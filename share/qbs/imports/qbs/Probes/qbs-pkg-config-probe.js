@@ -104,15 +104,20 @@ function configure(
         ];
     }
     if (!options.libDirs) {
-        // if we have pkg-config installed, let's ask it for its search paths (since
+        // if we have pkg-config/pkgconf installed, let's ask it for its search paths (since
         // built-in search paths can differ between platforms)
         var executable = executableFilePath ? executableFilePath : getPkgConfigExecutable();
         if (executable) {
             var p = new Process()
             if (p.exec(executable, ['pkg-config', '--variable=pc_path']) === 0) {
                 var stdout = p.readStdOut().trim();
-                // TODO: pathListSeparator? depends on what pkg-config prints on Windows
-                options.libDirs = stdout ? stdout.split(':'): [];
+                options.libDirs = stdout ? stdout.split(FileInfo.pathListSeparator()): [];
+                var installDir = FileInfo.path(executable);
+                options.libDirs = options.libDirs.map(function(path){
+                    if (FileInfo.isAbsolutePath(path))
+                        return path;
+                    return FileInfo.cleanPath(FileInfo.joinPaths(installDir, path));
+                });
             }
         }
     }

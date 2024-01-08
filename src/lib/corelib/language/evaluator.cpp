@@ -77,13 +77,15 @@ static int getEvalPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t 
                                 JSValueConst obj);
 static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc,
                            JSValueConst obj, JSAtom prop);
+static int getEvalPropertySafe(JSContext *ctx, JSPropertyDescriptor *desc,
+                               JSValueConst obj, JSAtom prop);
 
 static bool debugProperties = false;
 
 Evaluator::Evaluator(ScriptEngine *scriptEngine)
     : m_scriptEngine(scriptEngine)
     , m_scriptClass(scriptEngine->registerClass("Evaluator", nullptr, nullptr, JS_UNDEFINED,
-                                                getEvalPropertyNames, getEvalProperty))
+                                                getEvalPropertyNames, getEvalPropertySafe))
 {
     scriptEngine->registerEvaluator(this);
 }
@@ -993,6 +995,16 @@ static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc, JSValue o
         qDebug() << "[SC] queryProperty: no such property";
     engine->setLastLookupStatus(false);
     return 0;
+}
+
+static int getEvalPropertySafe(JSContext *ctx, JSPropertyDescriptor *desc, JSValue obj, JSAtom prop)
+{
+    try {
+        return getEvalProperty(ctx, desc, obj, prop);
+    } catch (const ErrorInfo &e) {
+        ScopedJsValue error(ctx, throwError(ctx, e.toString()));
+        return -1;
+    }
 }
 
 } // namespace Internal

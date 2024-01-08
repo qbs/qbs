@@ -80,6 +80,7 @@
             May contain the values: "weak", "lazy", "reexport", and "upward"; refer to the Apple
             ld64 man page for full details. \c{undefined} uses normal linking.
             Currently only applies when linking for Apple platforms.
+            Note that \c "lazy" mode is deprecated and doesn't work with Xcode 15 and above.
     \endtable
 
     \section2 Relevant File Tags
