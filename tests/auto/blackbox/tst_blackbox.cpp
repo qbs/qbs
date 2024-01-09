@@ -8221,6 +8221,12 @@ void TestBlackbox::movedFileDependency()
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::msvcAsmLinkerFlags()
+{
+    QDir::setCurrent(testDataDir + "/msvc-asm-flags");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::badInterpreter()
 {
     if (!HostOsInfo::isAnyUnixHost())
