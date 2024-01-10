@@ -767,7 +767,7 @@ jobs:
       if: matrix.config.xcodeVersion == ''
     - name: Run Tests
       run: |
-        sudo chmod g+w /cores
+        sudo chmod 777 /cores
         ulimit -c unlimited
         ${{ matrix.config.script }} ./release/install-root/usr/local/bin
     - name: Coredump on failure
