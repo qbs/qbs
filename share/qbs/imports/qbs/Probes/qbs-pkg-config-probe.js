@@ -87,7 +87,7 @@ function configure(
     result.packages = [];
     result.packagesByModuleName = {};
     result.brokenPackages = [];
-    result.qtInfos = {};
+    result.qtInfos = [];
 
     var options = {};
     options.libDirs = libDirs;

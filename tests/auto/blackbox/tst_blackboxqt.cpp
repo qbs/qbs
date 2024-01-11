@@ -396,6 +396,20 @@ void TestBlackboxQt::pkgconfigQt_data()
             << QStringList({"moduleProviders.qbspkgconfig.sysroot:/some/fake/sysroot"}) << false;
 }
 
+void TestBlackboxQt::pkgconfigNoQt()
+{
+    QDir::setCurrent(testDataDir + "/pkgconfig-qt");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("build", {"-f", "pkgconfig-qt.qbs"});
+    params.arguments << "moduleProviders.qbspkgconfig.libDirs:nonexistent";
+    params.expectFailure = true;
+
+    QCOMPARE(runQbs(params) == 0, false);
+    QVERIFY2(m_qbsStderr.contains("Dependency 'Qt.core' not found for product 'p'"), m_qbsStderr);
+    // QBS-1777: basic check for JS exceptions in case of missing Qt
+    QVERIFY2(!m_qbsStderr.contains("Error executing provider for module 'Qt.core'"), m_qbsStderr);
+}
+
 void TestBlackboxQt::pluginMetaData()
 {
     QDir::setCurrent(testDataDir + "/plugin-meta-data");
