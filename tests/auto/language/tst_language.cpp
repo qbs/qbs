@@ -956,10 +956,6 @@ void TestLanguage::erroneousFiles_data()
                "cannot read property 'includes' of undefined";
     QTest::newRow("misused-inherited-property") << "Binding to non-item property";
     QTest::newRow("undeclared_property_in_Properties_item") << "Item 'blubb' is not declared";
-    QTest::newRow("same-module-prefix1") << "The name of module 'prefix1' is equal to the first "
-                                            "component of the name of module 'prefix1.suffix'";
-    QTest::newRow("same-module-prefix2") << "The name of module 'prefix2' is equal to the first "
-                                            "component of the name of module 'prefix2.suffix'";
     QTest::newRow("conflicting-properties-in-export-items")
             << "Export item in inherited item redeclares property 'theProp' with different type.";
     QTest::newRow("invalid-property-option")
@@ -1763,6 +1759,34 @@ void TestLanguage::moduleMergingVariantValues()
         qDebug() << e.toString();
     }
     QCOMPARE(exceptionCaught, false);
+}
+
+void TestLanguage::moduleNameCollisions_data()
+{
+    QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<bool>("collisionExpected");
+
+    QTest::newRow("simple collision (one order)") << "simple-collision1.qbs" << true;
+    QTest::newRow("simple collision (other order)") << "simple-collision2.qbs" << true;
+    QTest::newRow("collision with more components") << "complex-collision.qbs" << true;
+    QTest::newRow("no collision (same length)") << "no-collision1.qbs" << false;
+    QTest::newRow("no collision (different length)") << "no-collision2.qbs" << false;
+}
+
+void TestLanguage::moduleNameCollisions()
+{
+    QFETCH(QString, projectFile);
+    QFETCH(bool, collisionExpected);
+
+    try {
+        const QString compositeProjectFilePath = QString("module-name-collisions/") + projectFile;
+        QVERIFY(resolveProject(qPrintable(compositeProjectFilePath)));
+        QVERIFY(!collisionExpected);
+    } catch (const ErrorInfo &e) {
+        const QString errorString = e.toString();
+        QVERIFY2(collisionExpected, qPrintable(errorString));
+        QVERIFY2(errorString.contains("not allowed"), qPrintable(errorString));
+    }
 }
 
 void TestLanguage::moduleParameters_data()

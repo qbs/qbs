@@ -119,6 +119,8 @@ private slots:
     void jsImportUsedInMultipleScopes();
     void localProfileAsTopLevelProfile();
     void moduleMergingVariantValues();
+    void moduleNameCollisions_data();
+    void moduleNameCollisions();
     void moduleParameters_data();
     void moduleParameters();
     void modulePrioritizationBySearchPath_data();
