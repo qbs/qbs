@@ -1614,6 +1614,33 @@ void TestLanguage::invalidOverrides_data()
             << "products.MyOtherProduct.cpp.useRPaths" << QString();
 }
 
+void TestLanguage::invalidPropOnNonRequiredModule_data()
+{
+    QTest::addColumn<bool>("useExistingModule");
+    QTest::addColumn<bool>("errorExpected");
+
+    QTest::newRow("existing module") << true << true;
+    QTest::newRow("non-existing module") << false << false;
+}
+
+void TestLanguage::invalidPropOnNonRequiredModule()
+{
+    QFETCH(bool, useExistingModule);
+    QFETCH(bool, errorExpected);
+
+    try {
+        defaultParameters.setOverriddenValues(
+                    {std::make_pair("project.useExistingModule", useExistingModule)});
+        resolveProject("invalid-prop-on-non-required-module");
+        QVERIFY(!errorExpected);
+    } catch (const ErrorInfo &e) {
+        const QString errorString = e.toString();
+        QVERIFY2(errorExpected, qPrintable(errorString));
+        QVERIFY2(errorString.contains("Property 'nosuchprop' is not declared"),
+                 qPrintable(errorString));
+    }
+}
+
 void TestLanguage::itemPrototype()
 {
     FileContextPtr fileContext = FileContext::create();

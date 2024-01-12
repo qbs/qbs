@@ -110,6 +110,8 @@ private slots:
     void invalidBindingInDisabledItem();
     void invalidOverrides();
     void invalidOverrides_data();
+    void invalidPropOnNonRequiredModule_data();
+    void invalidPropOnNonRequiredModule();
     void itemPrototype();
     void itemScope();
     void jsExtensions();

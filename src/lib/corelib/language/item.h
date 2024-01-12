@@ -165,6 +165,7 @@ public:
     static void removeChild(Item *parent, Item *child);
     void dump() const;
     bool isPresentModule() const;
+    bool isFallbackModule() const;
     void setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &logger);
     void copyProperty(const QString &propertyName, Item *target) const;
     void overrideProperties(

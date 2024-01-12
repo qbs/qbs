@@ -360,13 +360,6 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
             if (dependency.name.toString() == StringConstants::qbsModule())
                 throw e;
 
-            // This can happen when a property is set unconditionally on a non-required,
-            // non-present dependency. We allow this for user convenience.
-            if (!dependency.requiredLocally) {
-                state.pendingResolvedDependencies.pop();
-                continue;
-            }
-
             // See QBS-1338 for why we do not abort handling the product.
             state.pendingResolvedDependencies.pop();
             Item::Modules &modules = m_product.item->modules();
