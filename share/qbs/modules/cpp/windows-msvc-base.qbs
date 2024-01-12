@@ -320,12 +320,11 @@ CppModule {
         outputFileTags: Cpp.assemblerOutputTags(false)
         outputArtifacts: Cpp.assemblerOutputArtifacts(input)
         prepare: {
-            var args = ["/nologo", "/c",
-                        "/Fo" + FileInfo.toWindowsSeparators(output.filePath),
-                        FileInfo.toWindowsSeparators(input.filePath)];
+            var args = ["/nologo", "/c", "/Fo" + FileInfo.toWindowsSeparators(output.filePath)];
             if (product.cpp.debugInformation)
                 args.push("/Zi");
             args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
+            args.push(FileInfo.toWindowsSeparators(input.filePath));
             var cmd = new Command(product.cpp.assemblerPath, args);
             cmd.description = "assembling " + input.fileName;
             cmd.jobPool = "assembler";

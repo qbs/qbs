@@ -82,10 +82,9 @@
     \section2 Dependencies
 
     The \l protobuf.cpp module requires runtime libraries to be operational. It depends on the
-    \c "protobuflib" module which can be created by the \l qbspkgconfig module provider (the
-    corresponding packages are \c protobuf or \c protobuf-lite). If \l useGrpc is set to true,
-    the \l protobuf.cpp module also depends on the \c "grpcpp" module (corresponding package is
-    \c gprc++).
+    \c "protobuflib" module which can be created by the \l qbspkgconfig or fallback module
+    providers (the corresponding packages are \c protobuf or \c protobuf-lite). If \l useGrpc is
+    set to true, the \l protobuf.cpp module also depends on the \c "grpc++" module.
 */
 
 /*!

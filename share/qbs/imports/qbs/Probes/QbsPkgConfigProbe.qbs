@@ -37,6 +37,7 @@ Probe {
     property stringList _extraPaths
     property stringList _libDirs
     property bool _staticMode: false
+    property bool _definePrefix: false
 
     property path _sysroot
 
@@ -51,7 +52,13 @@ Probe {
 
     configure: {
         var result = PkgConfigProbeConfigure.configure(
-            _executableFilePath, _extraPaths, _libDirs, _staticMode, _sysroot, _mergeDependencies);
+            _executableFilePath,
+            _extraPaths,
+            _libDirs,
+            _staticMode,
+            _definePrefix,
+            _sysroot,
+            _mergeDependencies);
         packages = result.packages;
         packagesByModuleName = result.packagesByModuleName;
         brokenPackages = result.brokenPackages;

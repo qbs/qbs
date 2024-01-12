@@ -207,6 +207,7 @@ private slots:
     void missingOverridePrefix();
     void moduleConditions();
     void movedFileDependency();
+    void msvcAsmLinkerFlags();
     void multipleChanges();
     void multipleConfigurations();
     void multiplexedTool();

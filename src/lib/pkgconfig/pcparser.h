@@ -55,6 +55,7 @@ public:
 
 private:
     std::string trimAndSubstitute(const PcPackage &pkg, std::string_view str) const;
+    std::string evaluateVariable(PcPackage &pkg, std::string_view tag, std::string_view str) const;
     void parseStringField(
             PcPackage &pkg,
             std::string &field,

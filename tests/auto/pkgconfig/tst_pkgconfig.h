@@ -41,9 +41,13 @@ public:
 
 private slots:
     void initTestCase();
+    void fileName();
+    void completeBaseName();
+    void parentPath();
     void pkgConfig();
     void pkgConfig_data();
     void benchSystem();
+    void prefix();
 
 private:
     const QString m_sourceDataDir;

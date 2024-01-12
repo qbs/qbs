@@ -59,6 +59,7 @@ public:
         bool disableUninstalled{true};               // PKG_CONFIG_DISABLE_UNINSTALLED
         bool staticMode{false};
         bool mergeDependencies{true};
+        bool definePrefix{false};
         VariablesMap globalVariables;
         VariablesMap systemVariables;
     };

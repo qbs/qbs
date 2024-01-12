@@ -16,6 +16,7 @@ CppApplication {
     cpp.warningLevel: "none"
 
     Depends { name: "protobuf.cpp"; required: false }
+    Depends { name: "grpc++"; id: grpcpp; required: false }
     protobuf.cpp.useGrpc: true
 
     property bool hasDependencies: {
