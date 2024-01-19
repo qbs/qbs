@@ -110,6 +110,8 @@ private slots:
     void invalidBindingInDisabledItem();
     void invalidOverrides();
     void invalidOverrides_data();
+    void invalidPropOnNonRequiredModule_data();
+    void invalidPropOnNonRequiredModule();
     void itemPrototype();
     void itemScope();
     void jsExtensions();
@@ -117,6 +119,8 @@ private slots:
     void jsImportUsedInMultipleScopes();
     void localProfileAsTopLevelProfile();
     void moduleMergingVariantValues();
+    void moduleNameCollisions_data();
+    void moduleNameCollisions();
     void moduleParameters_data();
     void moduleParameters();
     void modulePrioritizationBySearchPath_data();

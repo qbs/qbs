@@ -248,7 +248,6 @@ private slots:
     void productDependenciesByType();
     void productInExportedModule();
     void productProperties();
-    void propertyAssignmentOnNonPresentModule();
     void propertyAssignmentInFailedModule();
     void propertyChanges();
     void propertyEvaluationContext();

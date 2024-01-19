@@ -3480,13 +3480,6 @@ void TestBlackbox::productProperties()
     QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user")));
 }
 
-void TestBlackbox::propertyAssignmentOnNonPresentModule()
-{
-    QDir::setCurrent(testDataDir + "/property-assignment-on-non-present-module");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
-}
-
 void TestBlackbox::propertyAssignmentInFailedModule()
 {
     QDir::setCurrent(testDataDir + "/property-assignment-in-failed-module");

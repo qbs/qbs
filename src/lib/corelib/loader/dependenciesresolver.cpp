@@ -360,13 +360,6 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
             if (dependency.name.toString() == StringConstants::qbsModule())
                 throw e;
 
-            // This can happen when a property is set unconditionally on a non-required,
-            // non-present dependency. We allow this for user convenience.
-            if (!dependency.requiredLocally) {
-                state.pendingResolvedDependencies.pop();
-                continue;
-            }
-
             // See QBS-1338 for why we do not abort handling the product.
             state.pendingResolvedDependencies.pop();
             Item::Modules &modules = m_product.item->modules();
@@ -1001,21 +994,30 @@ void DependenciesResolver::checkForModuleNamePrefixCollision(
         return;
 
     for (const Item::Module &m : m_product.item->modules()) {
-        if (m.name.length() == dependency.name.length()
-            || m.name.front() != dependency.name.front()) {
+        if (m.name.length() == dependency.name.length())
             continue;
-        }
+
         QualifiedId shortName;
         QualifiedId longName;
-        if (m.name < dependency.name) {
+        if (m.name.length() < dependency.name.length()) {
             shortName = m.name;
             longName = dependency.name;
         } else {
             shortName = dependency.name;
             longName = m.name;
         }
-        throw ErrorInfo(Tr::tr("The name of module '%1' is equal to the first component of the "
-                               "name of module '%2', which is not allowed")
+        const auto isPrefix = [&] {
+            for (int i = 0; i < shortName.length(); ++i) {
+                if (shortName.at(i) != longName.at(i))
+                    return false;
+            }
+            return true;
+        };
+        if (!isPrefix())
+            continue;
+
+        throw ErrorInfo(Tr::tr("The name of module '%1' is a prefix of the name of module '%2', "
+                               "which is not allowed")
                             .arg(shortName.toString(), longName.toString()), dependency.location());
     }
 }

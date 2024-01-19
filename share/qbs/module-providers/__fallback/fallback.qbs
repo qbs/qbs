@@ -46,6 +46,8 @@ Module {
 
     property string theName: FileInfo.completeBaseName(filePath)
 
+    readonly property bool __fallback: true // Hack, please look away
+
     Probes.PkgConfigProbe {
         id: pkgConfigProbe
         condition: pkgconfig.present

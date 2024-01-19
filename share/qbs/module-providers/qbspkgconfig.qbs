@@ -152,7 +152,7 @@ ModuleProvider {
 
         if (moduleName.startsWith("Qt")) {
             function setupQt(packageName, qtInfos) {
-                if (qtInfos === undefined)
+                if (qtInfos === undefined || qtInfos.length === 0)
                     return [];
                 var qtProviderDir = FileInfo.joinPaths(path, "Qt");
                 return SetupQt.doSetup(packageName, qtInfos, outputBaseDir, qtProviderDir);
