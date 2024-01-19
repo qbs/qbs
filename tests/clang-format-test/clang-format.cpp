@@ -327,8 +327,8 @@ void penaltyTests(bool isThatTrue)
                                                 : (QIODevice::ReadOnly | QIODevice::Text);
 
     const auto someValue10 = functionToCall(valueX, valueY, valueXTimesY);
-    const auto someValue11
-        = functionToCall(valueX, valueY, valueXTimesY, unbelievableBigValue, unbelievableBigValue);
+    const auto someValue11 = functionToCall(
+        valueX, valueY, valueXTimesY, unbelievableBigValue, unbelievableBigValue);
     const auto someValue12 = functionToCall(
         valueX,
         valueY,
@@ -367,11 +367,12 @@ void penaltyTests(bool isThatTrue)
         QCoreApplication::tr("Starting: \"%1\" %2")
             .arg("/some/very/very/very/very/long/path/to/an/executable", argumentsVeryLong),
         functionToCall(3),
-        functionToCall(3) | unlimitedValueunbelievableBigValue | unlimitedValueunbelievableBigValue);
+        functionToCall(3) | unlimitedValueunbelievableBigValue
+            | unlimitedValueunbelievableBigValue);
 
     const QString path;
-    const bool someLongerNameNNNNNNNNNN
-        = functionToCallSt(path, QStringList(QLatin1String("-print-env")));
+    const bool someLongerNameNNNNNNNNNN = functionToCallSt(
+        path, QStringList(QLatin1String("-print-env")));
 }
 
 // -------------------------------------------------------------------------------------------------

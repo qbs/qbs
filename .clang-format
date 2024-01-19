@@ -85,11 +85,11 @@ ObjCBlockIndentWidth: 4
 ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 PenaltyBreakAssignment: 88
-PenaltyBreakBeforeFirstCallParameter: 300
+PenaltyBreakBeforeFirstCallParameter: 50
 PenaltyBreakComment: 500
 PenaltyBreakFirstLessLess: 400
 PenaltyBreakString: 600
-PenaltyExcessCharacter: 50
+PenaltyExcessCharacter: 500
 PenaltyReturnTypeOnItsOwnLine: 300
 PointerAlignment: Right
 ReflowComments:  false
