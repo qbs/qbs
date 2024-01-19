@@ -197,12 +197,3 @@
 
     \nodefaultvalue
 */
-
-/*!
-    \qmlproperty bool Depends::enableFallback
-
-    Whether to fall back to a pkg-config based \l{Module Providers}{module provider}
-    if the dependency is not found.
-
-    \defaultvalue \c true
-*/

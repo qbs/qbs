@@ -247,8 +247,14 @@ void BuiltinDeclarations::addDependsItem()
     item << PropertyDeclaration(StringConstants::multiplexConfigurationIdsProperty(),
                                 PropertyDeclaration::StringList, QString(),
                                 PropertyDeclaration::ReadOnlyFlag);
-    item << PropertyDeclaration(StringConstants::enableFallbackProperty(),
-                                PropertyDeclaration::Boolean, StringConstants::trueValue());
+    PropertyDeclaration fallbackProp(
+        StringConstants::enableFallbackProperty(),
+        PropertyDeclaration::Boolean,
+        StringConstants::falseValue());
+    fallbackProp.setDeprecationInfo(DeprecationInfo(
+        Version(2, 4),
+        Tr::tr("The fallback provider has been deprecated. Use qbspkgconfig instead.")));
+    item << fallbackProp;
     insert(item);
 }
 

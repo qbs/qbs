@@ -467,15 +467,17 @@
 
     \section1 How do I build against libraries that provide pkg-config files?
 
-    Just add a \l Depends item that matches the name of the pkg-config module, and \QBS
-    will automatically employ \l{https://www.freedesktop.org/wiki/Software/pkg-config}{pkg-config}
+    Just add a \l Depends item that matches the name of the pkg-config module,
+    set the \l Product::qbsModuleProviders property to \c "qbspkgconfig",
+    and \QBS will employ
+    \l{https://www.freedesktop.org/wiki/Software/pkg-config}{pkg-config}
     to find the headers and libraries if no matching \QBS module can be found. For instance,
     to build against the OpenSSL library, you would write this:
     \code
+    qbsModuleProviders: "qbspkgconfig"
     Depends { name: "openssl" }
     \endcode
-    That's it. The pkg-config behavior can be fine-tuned via the \l pkgconfig module,
-    but normally you will not need to pull it in explicitly.
+    That's it. The pkg-config behavior can be fine-tuned via the \l qbspkgconfig provider.
 
     Internally, this functionality is implemented via \l {Module Providers}
 

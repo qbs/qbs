@@ -1922,12 +1922,6 @@
             a second attempt will be made to locate the dependency using the new paths.
             The search for a matching module provider ends as soon as one was found, regardless
             of whether it created any modules or not.
-        \li If no matching module provider was found in any of the search paths, \QBS will fall back
-            to a generic module provider, which creates a module that attempts to locate the
-            dependency via \c pkg-config.
-            This fallback mechanism can be disabled in the respective
-            \l{Depends::enableFallback}{Depends} item or globally via the
-            \l{no-fallback-module-provider}{--no-fallback-module-provider} option.
     \endlist
 
     \section1 Selecting Module Providers
