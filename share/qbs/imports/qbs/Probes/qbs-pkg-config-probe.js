@@ -79,7 +79,7 @@ function getQmakePaths(pkg) {
 }
 
 function configure(
-    executableFilePath, extraPaths, libDirs, staticMode, definePrefix, sysroot, mergeDependencies) {
+    executableFilePath, extraPaths, libDirs, staticMode, definePrefix, sysroot) {
 
     var result = {};
     result.packages = [];
@@ -94,7 +94,6 @@ function configure(
     if (options.sysroot)
         options.allowSystemLibraryPaths = true;
     options.staticMode = staticMode;
-    options.mergeDependencies = mergeDependencies;
     options.extraPaths = extraPaths;
     if (options.sysroot && !options.libDirs) {
         options.libDirs = [

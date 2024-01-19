@@ -110,9 +110,6 @@ void TestPkgConfig::pkgConfig()
     if (jsonFileName.isEmpty())
         jsonFileName = pcFileName;
 
-    if (!optionsMap.contains("mergeDependencies"))
-        optionsMap["mergeDependencies"] = false;
-
     Options options = qbs::Internal::PkgConfigJs::convertOptions(
             QProcessEnvironment::systemEnvironment(), optionsMap);
     options.libDirs.push_back(m_workingDataDir.toStdString());
@@ -219,14 +216,6 @@ void TestPkgConfig::pkgConfig_data()
             << QStringLiteral("simple") << QString() << QVariantMap();
     QTest::newRow("requires-test")
             << QStringLiteral("requires-test") << QString() << QVariantMap();
-    QTest::newRow("requires-test-merged")
-            << QStringLiteral("requires-test")
-            << QStringLiteral("requires-test-merged")
-            << QVariantMap({{"mergeDependencies", true}});
-    QTest::newRow("requires-test-merged-static")
-            << QStringLiteral("requires-test")
-            << QStringLiteral("requires-test-merged-static")
-            << QVariantMap({{"mergeDependencies", true}, {"staticMode", true}});
     QTest::newRow("special-flags")
             << QStringLiteral("special-flags") << QString() << QVariantMap();
     QTest::newRow("system")
@@ -237,10 +226,6 @@ void TestPkgConfig::pkgConfig_data()
             << QStringLiteral("tilde") << QString() << QVariantMap();
     QTest::newRow("variables")
             << QStringLiteral("variables") << QString() << QVariantMap();
-    QTest::newRow("variables-merged")
-            << QStringLiteral("variables")
-            << QString()
-            << QVariantMap({{"mergeDependencies", true}});
     QTest::newRow("whitespace")
             << QStringLiteral("whitespace") << QString() << QVariantMap();
     QTest::newRow("base.name")

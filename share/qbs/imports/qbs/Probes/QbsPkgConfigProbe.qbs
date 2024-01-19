@@ -41,9 +41,6 @@ Probe {
 
     property path _sysroot
 
-    // TODO: deprecate in 2.2, remove in 2.3
-    property bool _mergeDependencies: false
-
     // Output
     property var packages
     property var packagesByModuleName
@@ -57,8 +54,7 @@ Probe {
             _libDirs,
             _staticMode,
             _definePrefix,
-            _sysroot,
-            _mergeDependencies);
+            _sysroot);
         packages = result.packages;
         packagesByModuleName = result.packagesByModuleName;
         brokenPackages = result.brokenPackages;

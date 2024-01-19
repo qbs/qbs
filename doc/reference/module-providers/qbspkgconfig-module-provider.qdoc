@@ -120,18 +120,3 @@
 
     \defaultvalue \c "" on macOS, \c qbs.sysroot on other platforms
 */
-
-/*!
-    \qmlproperty bool qbspkgconfig::mergeDependencies
-    \obsolete
-
-    Holds whether dependencies should be merged by pkg-config or \QBS.
-
-    If set to true, dependencies are merged by pkg-config meaning each generated module
-    is self-contained and does not depend on other modules. If set to false, generated modules
-    may depend on other modules and property merging is done by \QBS.
-
-    \defaultvalue \c false
-
-    Deprecated in \QBS 2.2.0.
-*/

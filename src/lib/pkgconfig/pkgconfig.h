@@ -58,7 +58,6 @@ public:
         std::vector<std::string> systemLibraryPaths; // PKG_CONFIG_SYSTEM_LIBRARY_PATH
         bool disableUninstalled{true};               // PKG_CONFIG_DISABLE_UNINSTALLED
         bool staticMode{false};
-        bool mergeDependencies{true};
         bool definePrefix{false};
         VariablesMap globalVariables;
         VariablesMap systemVariables;
@@ -78,7 +77,6 @@ public:
 
 private:
     Packages findPackages() const;
-    Packages mergeDependencies(const Packages &packages) const;
 
 private:
     Options m_options;

@@ -62,12 +62,6 @@ ModuleProvider {
     property path sysroot: qbs.toolchain && qbs.toolchain.includes("xcode")
                            ? undefined : qbs.sysroot
 
-    property bool mergeDependencies: false
-    PropertyOptions {
-        name: "mergeDependencies"
-        removalVersion: "2.3.0"
-    }
-
     Probes.QbsPkgConfigProbe {
         id: theProbe
         // TODO: without explicit 'parent' we do not have access to the fake "qbs" scope
