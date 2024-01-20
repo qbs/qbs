@@ -48,7 +48,7 @@ Probe {
     property var packages
     property var packagesByModuleName
     property var brokenPackages
-    property varList qtInfos
+    property stringList qmakePaths
 
     configure: {
         var result = PkgConfigProbeConfigure.configure(
@@ -62,7 +62,7 @@ Probe {
         packages = result.packages;
         packagesByModuleName = result.packagesByModuleName;
         brokenPackages = result.brokenPackages;
-        qtInfos = result.qtInfos;
+        qmakePaths = result.qmakePaths;
         found = true;
     }
 }

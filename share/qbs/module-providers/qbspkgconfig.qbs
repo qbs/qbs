@@ -79,6 +79,12 @@ ModuleProvider {
         _definePrefix: parent.definePrefix
     }
 
+    Probes.QmakeProbe {
+        id: qmakeProbe
+        condition: moduleName.startsWith("Qt") && theProbe.qmakePaths
+        qmakePaths: theProbe.qmakePaths
+    }
+
     isEager: false
 
     relativeSearchPaths: {
@@ -159,7 +165,7 @@ ModuleProvider {
             }
 
             if (!sysroot) {
-                return setupQt(moduleName, theProbe.qtInfos);
+                return setupQt(moduleName, qmakeProbe.qtInfos);
             }
             return [];
         }
