@@ -77,6 +77,7 @@ ModuleProvider {
         _libDirs: parent.libDirs
         _staticMode: parent.staticMode
         _definePrefix: parent.definePrefix
+        _mergeDependencies: parent.mergeDependencies
     }
 
     Probes.QmakeProbe {
