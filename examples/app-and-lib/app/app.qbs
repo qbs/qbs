@@ -53,5 +53,6 @@ Application {
     files : [ "main.cpp" ]
     Depends { name: "cpp" }
     Depends { name: "mylib" }
+    install: true
 }
 
