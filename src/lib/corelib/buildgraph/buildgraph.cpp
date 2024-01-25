@@ -710,7 +710,7 @@ void updateArtifactFromSourceArtifact(const ResolvedProductPtr &product,
     const QVariantMap oldModuleProperties = artifact->properties->value();
     setArtifactData(artifact, sourceArtifact);
     if (oldFileTags != artifact->fileTags()
-            || oldModuleProperties != artifact->properties->value()) {
+        || !qVariantMapsEqual(oldModuleProperties, artifact->properties->value())) {
         invalidateArtifactAsRuleInputIfNecessary(artifact);
     }
 }
@@ -766,7 +766,7 @@ void updateGeneratedArtifacts(ResolvedProduct *product)
             provideFullFileTagsAndProperties(artifact);
             applyPerArtifactProperties(artifact);
             if (oldFileTags != artifact->fileTags()
-                    || oldModuleProperties != artifact->properties->value()) {
+                || !qVariantMapsEqual(oldModuleProperties, artifact->properties->value())) {
                 invalidateArtifactAsRuleInputIfNecessary(artifact);
             }
         }

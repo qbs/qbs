@@ -1925,7 +1925,8 @@ struct ProductDataSelector
     bool qbsPropertiesMatch(const qbs::ProductData &p) const
     {
         for (auto it = qbsProperties.begin(); it != qbsProperties.end(); ++it) {
-            if (it.value() != p.moduleProperties().getModuleProperty("qbs", it.key()))
+            if (!qbs::qVariantsEqual(
+                    it.value(), p.moduleProperties().getModuleProperty("qbs", it.key())))
                 return false;
         }
         return true;

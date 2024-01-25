@@ -47,6 +47,7 @@
 #include <tools/jsonhelper.h>
 #include <tools/profile.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 #include <tools/scripttools.h>
 #include <tools/settings.h>
 #include <tools/stringconstants.h>
@@ -517,7 +518,7 @@ ErrorInfo SetupProjectParameters::expandBuildConfiguration()
     QVariantMap expandedConfig = expandedBuildConfiguration(profile, configurationName(), &err);
     if (err.hasError())
         return err;
-    if (d->buildConfiguration != expandedConfig) {
+    if (!qVariantMapsEqual(d->buildConfiguration, expandedConfig)) {
         d->buildConfigurationTree.clear();
         d->buildConfiguration = expandedConfig;
     }

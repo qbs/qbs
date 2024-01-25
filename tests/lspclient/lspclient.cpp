@@ -27,6 +27,7 @@
 ****************************************************************************/
 
 #include <lsp/clientcapabilities.h>
+#include <lsp/completion.h>
 #include <lsp/initializemessages.h>
 #include <lsp/languagefeatures.h>
 #include <lsp/textsynchronization.h>
@@ -40,7 +41,10 @@
 #include <cstdlib>
 #include <iostream>
 
-enum class Command { GotoDefinition, };
+enum class Command {
+    GotoDefinition,
+    Completion,
+};
 
 class LspClient : public QObject
 {
@@ -65,6 +69,8 @@ private:
     void handleResponse();
     void sendGotoDefinitionRequest();
     void handleGotoDefinitionResponse();
+    void sendCompletionRequest();
+    void handleCompletionResponse();
     lsp::DocumentUri uri() const;
     lsp::DocumentUri::PathMapper mapper() const;
 
@@ -93,6 +99,8 @@ int main(int argc, char *argv[])
                                           "socket");
     const QCommandLineOption gotoDefinitionOption(
                 {"goto-def", "g"}, "Go to definition from the specified location.");
+    const QCommandLineOption completionOption(
+        {"completion", "c"}, "Request completion at the specified location.");
     const QCommandLineOption insertCodeOption("insert-code",
                                           "A piece of code to insert before doing the actual "
                                           "operation.",
@@ -101,7 +109,12 @@ int main(int argc, char *argv[])
                                                 "The location at which to insert the code.",
                                                 "<line>:<column>");
     QCommandLineParser parser;
-    parser.addOptions({socketOption, insertCodeOption, insertLocationOption, gotoDefinitionOption});
+    parser.addOptions(
+        {socketOption,
+         insertCodeOption,
+         insertLocationOption,
+         gotoDefinitionOption,
+         completionOption});
     parser.addHelpOption();
     parser.addPositionalArgument("location", "The location at which to operate.",
                                  "<file>:<line>:<column>");
@@ -120,6 +133,8 @@ int main(int argc, char *argv[])
 
     if (parser.isSet(gotoDefinitionOption))
         command = Command::GotoDefinition;
+    else if (parser.isSet(completionOption))
+        command = Command::Completion;
     else
         complainAndExit("Don't know what to do.");
 
@@ -339,6 +354,8 @@ void LspClient::sendRequest()
     switch (m_command) {
     case Command::GotoDefinition:
         return sendGotoDefinitionRequest();
+    case Command::Completion:
+        return sendCompletionRequest();
     }
 }
 
@@ -352,6 +369,8 @@ void LspClient::handleResponse()
     switch (m_command) {
     case Command::GotoDefinition:
         return handleGotoDefinitionResponse();
+    case Command::Completion:
+        return handleCompletionResponse();
     }
 }
 
@@ -376,6 +395,29 @@ void LspClient::handleGotoDefinitionResponse()
     for (const lsp::Utils::Link &link : std::as_const(links)) {
         std::cout << qPrintable(link.targetFilePath) << ':' << link.targetLine << ':'
                   << (link.targetColumn + 1) << std::endl;
+    }
+    exit(EXIT_SUCCESS);
+}
+
+void LspClient::sendCompletionRequest()
+{
+    const lsp::TextDocumentIdentifier doc(uri());
+    const lsp::Position pos(m_line - 1, m_column - 1);
+    sendMessage(lsp::CompletionRequest({doc, pos}));
+}
+
+void LspClient::handleCompletionResponse()
+{
+    const lsp::CompletionResult result(lsp::CompletionRequest::Response(m_messageObject)
+                                           .result()
+                                           .value_or(lsp::CompletionResult()));
+    if (const auto items = std::get_if<QList<lsp::CompletionItem>>(&result)) {
+        for (const lsp::CompletionItem &item : *items) {
+            std::cout << qPrintable(item.label());
+            if (item.detail())
+                std::cout << ' ' << qPrintable(*item.detail());
+            std::cout << std::endl;
+        }
     }
     exit(EXIT_SUCCESS);
 }

@@ -70,7 +70,7 @@ namespace QbsQmlJS {
 
 class Engine;
 
-class QBS_AUTOTEST_EXPORT Parser: protected QmlJSGrammar
+class QML_PARSER_EXPORT Parser : protected QmlJSGrammar
 {
 public:
     union Value {

@@ -158,7 +158,7 @@ bool TrafoChangeTracker::checkForPropertyChange(const Property &restoredProperty
     case Property::PropertyInArtifact:
         QBS_CHECK(false);
     }
-    if (restoredProperty.value != v) {
+    if (!qVariantsEqual(restoredProperty.value, v)) {
         qCDebug(lcBuildGraph).noquote().nospace()
                 << "Value for property '" << restoredProperty.moduleName << "."
                 << restoredProperty.propertyName << "' has changed.\n"

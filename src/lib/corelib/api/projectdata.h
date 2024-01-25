@@ -74,6 +74,14 @@ class QBS_EXPORT PropertyMap
     friend QBS_EXPORT bool operator!=(const PropertyMap &, const PropertyMap &);
 
 public:
+    struct PropertyInfo
+    {
+        QString name;
+        QString type;
+        QVariant value;
+        bool isBuiltin = false;
+    };
+
     PropertyMap();
     PropertyMap(const PropertyMap &other);
     PropertyMap(PropertyMap &&other) Q_DECL_NOEXCEPT;
@@ -83,6 +91,8 @@ public:
     PropertyMap &operator =(PropertyMap &&other) Q_DECL_NOEXCEPT;
 
     QStringList allProperties() const;
+    QStringList allModules() const;
+    QList<PropertyInfo> allPropertiesForModule(const QString &module) const;
     QVariant getProperty(const QString &name) const;
 
     QStringList getModulePropertiesAsStringList(const QString &moduleName,

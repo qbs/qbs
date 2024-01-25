@@ -212,7 +212,7 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
                 newValue = initialProperties.value(b.first);
             }
         }
-        if (newValue != getJsVariant(ctx, b.second)) {
+        if (!qVariantsEqual(newValue, getJsVariant(ctx, b.second))) {
             if (!resolvedProbe)
                 storedValue = VariantValue::createStored(newValue);
             else
@@ -281,10 +281,10 @@ bool ProbesResolver::probeMatches(const ProbeConstPtr &probe, bool condition,
         CompareScript compareScript) const
 {
     return probe->condition() == condition
-            && probe->initialProperties() == initialProperties
-            && (compareScript == CompareScript::No
-                || (probe->configureScript() == configureScript
-                    && !probe->needsReconfigure(m_loaderState.topLevelProject().lastResolveTime())));
+           && qVariantMapsEqual(probe->initialProperties(), initialProperties)
+           && (compareScript == CompareScript::No
+               || (probe->configureScript() == configureScript
+                   && !probe->needsReconfigure(m_loaderState.topLevelProject().lastResolveTime())));
 }
 
 } // namespace Internal

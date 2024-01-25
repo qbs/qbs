@@ -199,6 +199,51 @@ inline bool qVariantConvert(QVariant &variant, int typeId)
 #endif
 }
 
+inline QMetaType::Type qVariantType(const QVariant &v)
+{
+    return static_cast<QMetaType::Type>(
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+        v.metaType().id()
+#else
+        v.type()
+#endif
+    );
+}
+
+template<typename T>
+inline QVariant typedNullVariant()
+{
+    const auto metaType = QMetaType::fromType<T>();
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
+    return QVariant(metaType, nullptr);
+#else
+    return QVariant(static_cast<QVariant::Type>(metaType.id()));
+#endif
+}
+
+inline bool qVariantsEqual(const QVariant &v1, const QVariant &v2)
+{
+    return v1.isNull() == v2.isNull() && v1 == v2;
+}
+
+inline bool qVariantMapsEqual(const QVariantMap &m1, const QVariantMap &m2)
+{
+    if (m1.size() != m2.size())
+        return false;
+    if (m1.isSharedWith(m2))
+        return true;
+
+    auto it1 = m1.cbegin();
+    auto it2 = m2.cbegin();
+    while (it1 != m1.cend()) {
+        if (it1.key() != it2.key() || !qVariantsEqual(it1.value(), it2.value()))
+            return false;
+        ++it2;
+        ++it1;
+    }
+    return true;
+}
+
 } // namespace qbs
 
 #endif // QBSQTTOOLS_H

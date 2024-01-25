@@ -43,7 +43,9 @@
 
 #include <QString>
 
-namespace qbs::Internal {
+namespace qbs {
+class ProjectData;
+namespace Internal {
 
 class LspServer
 {
@@ -51,7 +53,7 @@ public:
     LspServer();
     ~LspServer();
 
-    void updateProjectData(const CodeLinks &codeLinks);
+    void updateProjectData(const ProjectData &projectData, const CodeLinks &codeLinks);
     QString socketPath() const;
 
 private:
@@ -59,4 +61,5 @@ private:
     Private * const d;
 };
 
-} // namespace qbs::Internal
+} // namespace Internal
+} // namespace qbs

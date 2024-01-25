@@ -755,10 +755,11 @@ bool BuildGraphLoader::checkProductForInstallInfoChanges(const ResolvedProductPt
             << StringConstants::installDirProperty() << StringConstants::installPrefixProperty()
             << StringConstants::installRootProperty();
     for (const QString &key : specialProperties) {
-        if (restoredProduct->moduleProperties->qbsPropertyValue(key)
-                != newlyResolvedProduct->moduleProperties->qbsPropertyValue(key)) {
+        if (!qVariantsEqual(
+                restoredProduct->moduleProperties->qbsPropertyValue(key),
+                newlyResolvedProduct->moduleProperties->qbsPropertyValue(key))) {
             qCDebug(lcBuildGraph).noquote().nospace()
-                    << "Product property 'qbs." << key << "' changed.";
+                << "Product property 'qbs." << key << "' changed.";
             return true;
         }
     }
@@ -850,7 +851,8 @@ bool BuildGraphLoader::checkConfigCompatibility()
     }
     if (!m_parameters.overrideBuildGraphData()) {
         if (!m_parameters.overriddenValues().empty()
-                && m_parameters.overriddenValues() != restoredProject->overriddenValues) {
+            && !qVariantMapsEqual(
+                m_parameters.overriddenValues(), restoredProject->overriddenValues)) {
             const auto toUserOutput = [](const QVariantMap &propMap) {
                 QString o;
                 for (auto it = propMap.begin(); it != propMap.end(); ++it) {
@@ -868,7 +870,7 @@ bool BuildGraphLoader::checkConfigCompatibility()
                                    "you really want to rebuild with the new properties.")
                             .arg(toUserOutput(restoredProject->overriddenValues),
                                      toUserOutput(m_parameters.overriddenValues())));
-            }
+        }
         m_parameters.setOverriddenValues(restoredProject->overriddenValues);
         if (m_parameters.topLevelProfile() != restoredProject->profile()) {
             throw ErrorInfo(Tr::tr("The current profile is '%1', but profile '%2' was used "
@@ -883,7 +885,8 @@ bool BuildGraphLoader::checkConfigCompatibility()
     }
     if (!m_parameters.overrideBuildGraphData())
         return true;
-    if (m_parameters.finalBuildConfigurationTree() != restoredProject->buildConfiguration())
+    if (!qVariantMapsEqual(
+            m_parameters.finalBuildConfigurationTree(), restoredProject->buildConfiguration()))
         return false;
     Settings settings(m_parameters.settingsDirectory());
     const QVariantMap profileConfigsTree = restoredProject->fullProfileConfigsTree();

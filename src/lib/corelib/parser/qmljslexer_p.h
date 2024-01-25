@@ -86,7 +86,7 @@ public:
     }
 };
 
-class QBS_AUTOTEST_EXPORT Lexer: public QmlJSGrammar
+class QML_PARSER_EXPORT Lexer : public QmlJSGrammar
 {
 public:
     enum {

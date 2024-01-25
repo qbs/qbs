@@ -943,7 +943,7 @@ void DependencyParametersMerger::merge(QVariantMap &current, const QVariantMap &
             currentValue = mdst;
         } else {
             if (m_currentPrio == nextPrio) {
-                if (currentValue.isValid() && currentValue != newValue)
+                if (currentValue.isValid() && !qVariantsEqual(currentValue, newValue))
                     m_conflicts.emplace_back(m_path, currentValue, newValue, m_currentPrio);
             } else {
                 removeIf(m_conflicts, [this](const Conflict &conflict) {

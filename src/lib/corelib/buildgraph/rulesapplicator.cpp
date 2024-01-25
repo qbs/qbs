@@ -293,8 +293,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
             }
             outputArtifact->properties->setValue(artifactModulesCfg);
             if (!outputInfo.newlyCreated
-                    && (outputArtifact->fileTags() != outputInfo.oldFileTags
-                        || outputArtifact->properties->value() != outputInfo.oldProperties)) {
+                && (outputArtifact->fileTags() != outputInfo.oldFileTags
+                    || !qVariantMapsEqual(
+                        outputArtifact->properties->value(), outputInfo.oldProperties))) {
                 invalidateArtifactAsRuleInputIfNecessary(outputArtifact);
             }
         }
@@ -664,8 +665,10 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const JSValue &ob
             connect(outputInfo.artifact, dependency);
     }
     ArtifactBindingsExtractor().apply(engine(), outputInfo.artifact, obj);
-    if (!outputInfo.newlyCreated && (outputInfo.artifact->fileTags() != outputInfo.oldFileTags
-            || outputInfo.artifact->properties->value() != outputInfo.oldProperties)) {
+    if (!outputInfo.newlyCreated
+        && (outputInfo.artifact->fileTags() != outputInfo.oldFileTags
+            || !qVariantMapsEqual(
+                outputInfo.artifact->properties->value(), outputInfo.oldProperties))) {
         invalidateArtifactAsRuleInputIfNecessary(outputInfo.artifact);
     }
     return outputInfo.artifact;

@@ -308,6 +308,26 @@ QVariant PropertyDeclaration::convertToPropertyType(const QVariant &v, Type t,
     return c;
 }
 
+QVariant PropertyDeclaration::typedNullValue() const
+{
+    switch (type()) {
+    case PropertyDeclaration::Boolean:
+        return typedNullVariant<bool>();
+    case PropertyDeclaration::Integer:
+        return typedNullVariant<int>();
+    case PropertyDeclaration::VariantList:
+        return typedNullVariant<QVariantList>();
+    case PropertyDeclaration::String:
+    case PropertyDeclaration::Path:
+        return typedNullVariant<QString>();
+    case PropertyDeclaration::StringList:
+    case PropertyDeclaration::PathList:
+        return typedNullVariant<QStringList>();
+    default:
+        return {};
+    }
+}
+
 bool PropertyDeclaration::shouldCheckAllowedValues() const
 {
     return isValid()

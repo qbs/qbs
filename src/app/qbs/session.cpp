@@ -288,7 +288,7 @@ void Session::setupProject(const QJsonObject &request)
         const ProjectData oldProjectData = m_projectData;
         m_project = setupJob->project();
         m_projectData = m_project.projectData();
-        m_lspServer.updateProjectData(m_project.codeLinks());
+        m_lspServer.updateProjectData(m_projectData, m_project.codeLinks());
         QJsonObject reply;
         reply.insert(StringConstants::type(), QLatin1String("project-resolved"));
         if (success)

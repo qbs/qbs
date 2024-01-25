@@ -41,31 +41,14 @@
 
 #include <QtCore/qglobal.h>
 
-// Force QML_PARSER_EXPORT to be always empty.
-#ifndef QT_CREATOR
-#   define QT_CREATOR
-#endif
-#ifdef QML_BUILD_STATIC_LIB
-#   undef QML_BUILD_STATIC_LIB
-#endif
-#define QML_BUILD_STATIC_LIB 1
-
-#ifdef QT_CREATOR
-#  ifdef QMLJS_BUILD_DIR
-#    define QML_PARSER_EXPORT Q_DECL_EXPORT
-#  elif QML_BUILD_STATIC_LIB
-#    define QML_PARSER_EXPORT
-#  else
-#    define QML_PARSER_EXPORT Q_DECL_IMPORT
-#  endif // QMLJS_BUILD_DIR
-
-#else // !QT_CREATOR
-#  if defined(QT_BUILD_QMLDEVTOOLS_LIB) || defined(QT_QMLDEVTOOLS_LIB)
-     // QmlDevTools is a static library
-#    define QML_PARSER_EXPORT
-#  else
-#    define QML_PARSER_EXPORT Q_AUTOTEST_EXPORT
-#  endif
-#endif // QT_CREATOR
+#ifdef QBS_STATIC_LIB
+#define QML_PARSER_EXPORT
+#else
+#ifdef QBS_LIBRARY
+#define QML_PARSER_EXPORT Q_DECL_EXPORT
+#else
+#define QML_PARSER_EXPORT Q_DECL_IMPORT
+#endif // QBS_LIBRARY
+#endif // QBS_STATIC_LIB
 
 #endif // QMLJSGLOBAL_P_H

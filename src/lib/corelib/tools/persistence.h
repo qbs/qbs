@@ -145,8 +145,9 @@ private:
     template<typename T> QHash<T, PersistentObjectId> &idMap();
     template<typename T> PersistentObjectId &lastStoredId();
 
-    static const PersistentObjectId ValueNotFoundId = -1;
-    static const PersistentObjectId EmptyValueId = -2;
+    static const inline PersistentObjectId ValueNotFoundId = -1;
+    static const inline PersistentObjectId EmptyValueId = -2;
+    static const inline PersistentObjectId NullValueId = -3;
 
     std::unique_ptr<QIODevice> m_file;
     QDataStream m_stream;
@@ -271,8 +272,13 @@ template<typename T> inline T PersistentPool::idLoadValue()
 {
     int id;
     m_stream >> id;
-    if (id == EmptyValueId)
+    if (id == NullValueId)
         return T();
+    if (id == EmptyValueId) {
+        if constexpr (std::is_same_v<T, QString>)
+            return QString(0, QChar());
+        return T();
+    }
     QBS_CHECK(id >= 0);
     if (id >= static_cast<int>(idStorage<T>().size())) {
         T value;
@@ -287,6 +293,12 @@ template<typename T> inline T PersistentPool::idLoadValue()
 template<typename T>
 void PersistentPool::idStoreValue(const T &value)
 {
+    if constexpr (std::is_same_v<T, QString>) {
+        if (value.isNull()) {
+            m_stream << NullValueId;
+            return;
+        }
+    }
     if (value.isEmpty()) {
         m_stream << EmptyValueId;
         return;

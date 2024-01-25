@@ -93,7 +93,7 @@ public:
     QString message;
 };
 
-class QBS_AUTOTEST_EXPORT Engine
+class QML_PARSER_EXPORT Engine
 {
     Lexer *_lexer{nullptr};
     Directives *_directives{nullptr};

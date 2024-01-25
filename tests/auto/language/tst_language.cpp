@@ -1928,7 +1928,7 @@ void TestLanguage::moduleParameters()
             };
             const QVariantMap actual = findInProduct(it.key());
             const QVariantMap expected = it.value().toMap();
-            const bool same = actual == expected;
+            const bool same = qVariantMapsEqual(actual, expected);
             if (!same) {
                 qDebug().noquote() << "---" << expected;
                 qDebug().noquote() << "+++" << actual;

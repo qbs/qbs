@@ -6369,20 +6369,33 @@ void TestBlackbox::qbsLanguageServer_data()
             << ((testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1\n")
                 + (testDataDir + "/lsp/modules/Prefix/m2/m2.qbs:1:1\n")
                 + (testDataDir + "/lsp/modules/Prefix/m3/m3.qbs:1:1"));
-    QTest::addRow("follow to product") << "--goto-def"
-                                       << (testDataDir + "/lsp/lsp.qbs:8:19")
-                                       << QString() << QString()
-                                       << (testDataDir + "/lsp/lsp.qbs:2:5");
+    QTest::addRow("follow to product")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:9:19") << QString() << QString()
+        << (testDataDir + "/lsp/lsp.qbs:2:5");
     QTest::addRow("follow to module, non-invalidating insert")
-            << "--goto-def"
-            << (testDataDir + "/lsp/lsp.qbs:4:9")
-            << "5:9" << QString("property bool dummy\n")
-            << (testDataDir + "/lsp/modules/m/m.qbs:1:1");
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:4:9") << "5:9"
+        << QString("property bool dummy\n") << (testDataDir + "/lsp/modules/m/m.qbs:1:1");
     QTest::addRow("follow to module, invalidating insert")
-            << "--goto-def"
-            << (testDataDir + "/lsp/lsp.qbs:4:9")
-            << QString() << QString("property bool dummy\n")
-            << QString();
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:4:9") << QString()
+        << QString("property bool dummy\n") << QString();
+    QTest::addRow("completion: LHS, module prefix")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("P")
+        << QString("Prefix.m1\nPrefix.m2\nPrefix.m3");
+    QTest::addRow("completion: LHS, module name")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("Prefix.m")
+        << QString("m1\nm2\nm3");
+    QTest::addRow("completion: LHS, module property right after dot")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString()
+        << QString("Prefix.m1.") << QString("p1 bool\np2 string\nx bool");
+    QTest::addRow("completion: LHS, module property with identifier prefix")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString()
+        << QString("Prefix.m1.p") << QString("p1 bool\np2 string");
+    QTest::addRow("completion: simple RHS, module property")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString()
+        << QString("property bool dummy: Prefix.m1.p") << QString("p1 bool\np2 string");
+    QTest::addRow("completion: complex RHS, module property")
+        << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString()
+        << QString("property bool dummy: { return Prefix.m1.p") << QString("p1 bool\np2 string");
 }
 
 void TestBlackbox::qbsLanguageServer()

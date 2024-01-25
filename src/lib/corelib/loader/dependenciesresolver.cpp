@@ -751,7 +751,7 @@ void DependenciesResolver::adjustDependsItemForMultiplexing(Item *dependsItem)
         for (auto lhsProperty = lhs.constBegin(); lhsProperty != lhs.constEnd(); lhsProperty++) {
             const auto rhsProperty = rhs.find(lhsProperty.key());
             const bool isCommonProperty = rhsProperty != rhs.constEnd();
-            if (isCommonProperty && lhsProperty.value() != rhsProperty.value())
+            if (isCommonProperty && !qVariantsEqual(lhsProperty.value(), rhsProperty.value()))
                 return false;
         }
         return true;

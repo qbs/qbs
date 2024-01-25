@@ -1589,7 +1589,13 @@ void PropertiesEvaluator::evaluateProperty(
         } else if (pd.type() == PropertyDeclaration::VariantList) {
             v = v.toList();
         }
+
+        // Enforce proper type for undefined values (note that path degrades to string).
+        if (!v.isValid())
+            v = pd.typedNullValue();
+
         pd.checkAllowedValues(v, propValue->location(), propName, m_loaderState);
+
         result[propName] = v;
         break;
     }

@@ -39,18 +39,25 @@
 
 #include "lspserver.h"
 
+#include <api/projectdata.h>
 #include <logging/translator.h>
 #include <lsp/basemessage.h>
+#include <lsp/completion.h>
 #include <lsp/initializemessages.h>
 #include <lsp/jsonrpcmessages.h>
 #include <lsp/messages.h>
+#include <lsp/servercapabilities.h>
 #include <lsp/textsynchronization.h>
+#include <parser/qmljsastvisitor_p.h>
+#include <parser/qmljslexer_p.h>
+#include <parser/qmljsparser_p.h>
 #include <tools/qbsassert.h>
 #include <tools/stlutils.h>
 
 #include <QBuffer>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QMap>
 
 #include <unordered_map>
 #ifdef Q_OS_WINDOWS
@@ -103,6 +110,32 @@ static int posToOffset(const lsp::Position &pos, const QString &doc)
     return posToOffset(posFromLspPos(pos), doc);
 }
 
+class AstNodeLocator : public QbsQmlJS::AST::Visitor
+{
+public:
+    AstNodeLocator(int position, QbsQmlJS::AST::UiProgram &ast)
+        : m_position(position)
+    {
+        ast.accept(this);
+    }
+
+    QList<QbsQmlJS::AST::Node *> path() const { return m_path; }
+
+private:
+    bool preVisit(QbsQmlJS::AST::Node *node) override
+    {
+        if (int(node->firstSourceLocation().offset) > m_position)
+            return false;
+        if (int(node->lastSourceLocation().offset) < m_position)
+            return false;
+        m_path << node;
+        return true;
+    }
+
+    const int m_position;
+    QList<QbsQmlJS::AST::Node *> m_path;
+};
+
 class LspServer::Private
 {
 public:
@@ -119,6 +152,7 @@ public:
     void handleInitializeRequest();
     void handleInitializedNotification();
     void handleGotoDefinitionRequest();
+    void handleCompletionRequest();
     void handleShutdownRequest();
     void handleDidOpenNotification();
     void handleDidChangeNotification();
@@ -130,6 +164,7 @@ public:
     lsp::BaseMessage currentMessage;
     QJsonObject messageObject;
     QLocalSocket *socket = nullptr;
+    ProjectData projectData;
     CodeLinks codeLinks;
     std::unordered_map<QString, Document> documents;
 
@@ -153,8 +188,9 @@ LspServer::LspServer() : d(new Private)
 
 LspServer::~LspServer() { delete d; }
 
-void LspServer::updateProjectData(const CodeLinks &codeLinks)
+void LspServer::updateProjectData(const ProjectData &projectData, const CodeLinks &codeLinks)
 {
+    d->projectData = projectData;
     d->codeLinks = codeLinks;
 }
 
@@ -271,6 +307,8 @@ void LspServer::Private::handleCurrentMessage()
         return handleDidCloseNotification();
     if (method == "textDocument/definition")
         return handleGotoDefinitionRequest();
+    if (method == "textDocument/completion")
+        return handleCompletionRequest();
 
     sendErrorResponse(LspErrorResponse::MethodNotFound, Tr::tr("This server can do very little."));
 }
@@ -291,6 +329,9 @@ void LspServer::Private::handleInitializeRequest()
     lsp::ServerCapabilities capabilities; // TODO: hover
     capabilities.setDefinitionProvider(true);
     capabilities.setTextDocumentSync({int(lsp::TextDocumentSyncKind::Incremental)});
+    lsp::ServerCapabilities::CompletionOptions completionOptions;
+    completionOptions.setTriggerCharacters({"."});
+    capabilities.setCompletionProvider(completionOptions);
     result.setCapabilities(capabilities);
     sendResponse(result);
 }
@@ -351,6 +392,142 @@ void LspServer::Private::handleGotoDefinitionRequest()
         return sendResponse(locations);
     }
     sendResponse(nullptr);
+}
+
+// We operate under the assumption that the client has basic QML support.
+// Therefore, we only provide completion for qbs modules and their properties.
+// Only a simple prefix match is implemented, with no regard to the contents after the cursor.
+void LspServer::Private::handleCompletionRequest()
+{
+    if (!projectData.isValid())
+        return sendResponse(nullptr);
+
+    const lsp::CompletionParams params(messageObject.value(lsp::paramsKey));
+    const QString sourceFile = params.textDocument().uri().toLocalFile();
+    const Document *sourceDoc = nullptr;
+    if (const auto it = documents.find(sourceFile); it != documents.end())
+        sourceDoc = &it->second;
+    if (!sourceDoc)
+        return sendResponse(nullptr);
+
+    // If there are products corresponding to this file, check only these when looking for modules.
+    // Otherwise, check all products.
+    const QList<ProductData> allProducts = projectData.allProducts();
+    if (allProducts.isEmpty())
+        return sendResponse(nullptr);
+    QList<ProductData> relevantProducts;
+    for (const ProductData &p : allProducts) {
+        if (p.location().filePath() == sourceFile)
+            relevantProducts << p;
+    }
+    if (relevantProducts.isEmpty())
+        relevantProducts = allProducts;
+
+    QString identifierPrefix;
+    QStringList modulePrefixes;
+    const int offset = posToOffset(params.position(), sourceDoc->currentContent) - 1;
+    if (offset < 0 || offset >= sourceDoc->currentContent.length())
+        return sendResponse(nullptr);
+    const auto collectFromRawString = [&] {
+        int currentPos = offset;
+        const auto constructIdentifier = [&] {
+            QString id;
+            while (currentPos >= 0) {
+                const QChar c = sourceDoc->currentContent.at(currentPos);
+                if (!c.isLetterOrNumber() && c != '_')
+                    break;
+                id.prepend(c);
+                --currentPos;
+            }
+            return id;
+        };
+        identifierPrefix = constructIdentifier();
+        while (true) {
+            if (currentPos <= 0 || sourceDoc->currentContent.at(currentPos) != '.')
+                return;
+            --currentPos;
+            const QString modulePrefix = constructIdentifier();
+            if (modulePrefix.isEmpty())
+                return;
+            modulePrefixes.prepend(modulePrefix);
+        }
+    };
+
+    // Parse the current file. Note that completion usually happens on invalid code, which
+    // often confuses the parser so much that it yields unusable results. Therefore, we always
+    // gather our input parameters from the raw string. We only use the parse result to skip
+    // completion in contexts where it is undesirable.
+    QbsQmlJS::Engine engine;
+    QbsQmlJS::Lexer lexer(&engine);
+    lexer.setCode(sourceDoc->currentContent, 1);
+    QbsQmlJS::Parser parser(&engine);
+    parser.parse();
+    if (parser.ast()) {
+        AstNodeLocator locator(offset, *parser.ast());
+        const QList<QbsQmlJS::AST::Node *> &astPath = locator.path();
+        if (!astPath.isEmpty()) {
+            switch (astPath.last()->kind) {
+            case QbsQmlJS::AST::Node::Kind_FieldMemberExpression:
+            case QbsQmlJS::AST::Node::Kind_UiObjectDefinition:
+            case QbsQmlJS::AST::Node::Kind_UiQualifiedId:
+            case QbsQmlJS::AST::Node::Kind_UiScriptBinding:
+                break;
+            default:
+                return sendResponse(nullptr);
+            }
+        }
+    }
+
+    collectFromRawString();
+    if (modulePrefixes.isEmpty() && identifierPrefix.isEmpty())
+        return sendResponse(nullptr); // We do not want to start completion from nothing.
+
+    QJsonArray results;
+    QMap<QString, QString> namesAndTypes;
+    for (const ProductData &product : std::as_const(relevantProducts)) {
+        const PropertyMap &moduleProps = product.moduleProperties();
+        const QStringList allModules = moduleProps.allModules();
+        const QString moduleNameOrPrefix = modulePrefixes.join('.');
+
+        // Case 1: Prefixes match a module name. Identifier can only expand to the name
+        // of a module property.
+        // Example: "Qt.core.a^" -> "Qt.core.availableBuildVariants"
+        if (!modulePrefixes.isEmpty() && allModules.contains(moduleNameOrPrefix)) {
+            for (const PropertyMap::PropertyInfo &info :
+                 moduleProps.allPropertiesForModule(moduleNameOrPrefix)) {
+                if (info.isBuiltin)
+                    continue;
+                if (!identifierPrefix.isEmpty() && !info.name.startsWith(identifierPrefix))
+                    continue;
+                namesAndTypes.insert(info.name, info.type);
+            }
+            continue;
+        }
+
+        // Case 2: Isolated identifier. Can only expand to a module name.
+        //     Example: "Q^" -> "Qt.core", "Qt.widgets", ...
+        // Case 3: Prefixes match a module prefix. Identifier can only expand to a module name.
+        //     Example: "Qt.c^" -> "Qt.core", "Qt.concurrent", ...
+        QString fullPrefix = identifierPrefix;
+        int nameOffset = 0;
+        if (!modulePrefixes.isEmpty()) {
+            fullPrefix.prepend(moduleNameOrPrefix + '.');
+            nameOffset = moduleNameOrPrefix.length() + 1;
+        }
+        for (const QString &module : allModules) {
+            if (module.startsWith(fullPrefix))
+                namesAndTypes.insert(module.mid(nameOffset), {});
+        }
+    }
+
+    for (auto it = namesAndTypes.cbegin(); it != namesAndTypes.cend(); ++it) {
+        lsp::CompletionItem item;
+        item.setLabel(it.key());
+        if (!it.value().isEmpty())
+            item.setDetail(it.value());
+        results.append(QJsonObject(item));
+    };
+    sendResponse(results);
 }
 
 void LspServer::Private::handleShutdownRequest()
@@ -425,14 +602,13 @@ void LspServer::Private::handleDidCloseNotification()
 static int posToOffset(const CodePosition &pos, const QString &doc)
 {
     int offset = 0;
-    int next = 0;
-    for (int newlines = 0; newlines < pos.line() - 1; ++newlines) {
+    for (int newlines = 0, next = 0; newlines < pos.line() - 1; ++newlines) {
         offset = doc.indexOf('\n', next);
         if (offset == -1)
             return -1;
         next = offset + 1;
     }
-    return offset + pos.column() - 1;
+    return offset + pos.column();
 }
 
 bool Document::isPositionUpToDate(const CodePosition &pos) const

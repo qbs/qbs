@@ -77,7 +77,7 @@ private:
 
 inline bool operator==(const PropertyMapInternal &lhs, const PropertyMapInternal &rhs)
 {
-    return lhs.m_value == rhs.m_value;
+    return qVariantsEqual(lhs.m_value, rhs.m_value);
 }
 
 QVariant QBS_AUTOTEST_EXPORT moduleProperty(const QVariantMap &properties,

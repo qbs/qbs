@@ -488,6 +488,8 @@ void ScriptEngine::addInternalExtension(const char *name, JSValue ext)
 
 JSValue ScriptEngine::asJsValue(const QVariant &v, quintptr id, bool frozen)
 {
+    if (v.isNull())
+        return JS_UNDEFINED;
     switch (static_cast<QMetaType::Type>(v.userType())) {
     case QMetaType::QByteArray:
         return asJsValue(v.toByteArray());

@@ -939,7 +939,7 @@ bool operator==(const ExportedProperty &p1, const ExportedProperty &p2)
 
 bool operator==(const ExportedModuleDependency &d1, const ExportedModuleDependency &d2)
 {
-    return d1.name == d2.name && d1.moduleProperties == d2.moduleProperties;
+    return d1.name == d2.name && qVariantMapsEqual(d1.moduleProperties, d2.moduleProperties);
 }
 
 bool equals(const std::vector<ExportedItemPtr> &l1, const std::vector<ExportedItemPtr> &l2)
@@ -966,20 +966,19 @@ bool operator==(const ExportedModule &m1, const ExportedModule &m2)
         for (auto it1 = m1.cbegin(), it2 = m2.cbegin(); it1 != m1.cend(); ++it1, ++it2) {
             if (it1.key()->name != it2.key()->name)
                 return false;
-            if (it1.value() != it2.value())
+            if (!qVariantMapsEqual(it1.value(), it2.value()))
                 return false;
         }
         return true;
     };
 
-    return m1.propertyValues == m2.propertyValues
-            && m1.modulePropertyValues == m2.modulePropertyValues
-            && equals(m1.children, m2.children)
-            && m1.m_properties == m2.m_properties
-            && m1.importStatements == m2.importStatements
-            && m1.productDependencies.size() == m2.productDependencies.size()
-            && m1.productDependencies == m2.productDependencies
-            && depMapsEqual(m1.dependencyParameters, m2.dependencyParameters);
+    return qVariantMapsEqual(m1.propertyValues, m2.propertyValues)
+           && qVariantMapsEqual(m1.modulePropertyValues, m2.modulePropertyValues)
+           && equals(m1.children, m2.children) && m1.m_properties == m2.m_properties
+           && m1.importStatements == m2.importStatements
+           && m1.productDependencies.size() == m2.productDependencies.size()
+           && m1.productDependencies == m2.productDependencies
+           && depMapsEqual(m1.dependencyParameters, m2.dependencyParameters);
 }
 
 JSValue PrivateScriptFunction::getFunction(ScriptEngine *engine, const QString &errorMessage) const
