@@ -48,24 +48,6 @@
 **
 ****************************************************************************/
 
-Project {
-    references: [
-        "app-and-lib/app-and-lib.qbs",
-        "cocoa-application/cocoa-application.qbs",
-        "cocoa-touch-application/cocoa-touch-application.qbs",
-        "code-generator/code-generator.qbs",
-        "collidingmice/collidingmice.qbs",
-        "compiled-qml/compiled-qml.qbs",
-        "grpc/grpc.qbs",
-        "helloworld-complex/helloworld-complex.qbs",
-        "helloworld-minimal/helloworld-minimal.qbs",
-        "helloworld-qt/helloworld-qt.qbs",
-        "install-bundle/install-bundle.qbs",
-        // these examples are broken because of the bug in the protobuf modules
-        // "protobuf/addressbook_cpp/addressbook_cpp.qbs",
-        // "protobuf/addressbook_objc/addressbook_objc.qbs",
-        "baremetal/baremetal.qbs",
-        "rule/rule.qbs",
-        "rpaths/rpaths.qbs",
-    ]
+Product {
+    files: "**/*"
 }
