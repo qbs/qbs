@@ -34,7 +34,6 @@ var FileInfo = require("qbs.FileInfo");
 var PkgConfig = require("qbs.PkgConfig");
 var ProviderUtils = require("qbs.ProviderUtils");
 var Process = require("qbs.Process");
-var QmakeProbeConfigure = require("qmake-probe.js");
 
 // We should probably use BinaryProbe instead in the provider
 function getPkgConfigExecutable() {
@@ -55,7 +54,7 @@ function getPkgConfigExecutable() {
     return undefined;
 }
 
-function configureQt(pkg) {
+function getQmakePaths(pkg) {
     var packageName = pkg.baseFileName;
     if (packageName === "QtCore"
             || packageName === "Qt5Core"
@@ -75,8 +74,7 @@ function configureQt(pkg) {
             }
         }
         var suffix = FileInfo.executableSuffix();
-        var qmakePaths = [FileInfo.joinPaths(binDir, "qmake" + suffix)];
-        return QmakeProbeConfigure.configure(qmakePaths);
+        return [FileInfo.joinPaths(binDir, "qmake" + suffix)];
     }
 }
 
@@ -131,9 +129,9 @@ function configure(
 
         if (packageName.startsWith("Qt")) {
             if (!sysroot) {
-                var infos = configureQt(pkg);
-                if (infos !== undefined)
-                    result.qtInfos = infos;
+                var qmakePaths = getQmakePaths(pkg);
+                if (qmakePaths !== undefined)
+                    result.qmakePaths = qmakePaths;
             }
         }
     }

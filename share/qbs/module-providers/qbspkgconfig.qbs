@@ -77,6 +77,13 @@ ModuleProvider {
         _libDirs: parent.libDirs
         _staticMode: parent.staticMode
         _definePrefix: parent.definePrefix
+        _mergeDependencies: parent.mergeDependencies
+    }
+
+    Probes.QmakeProbe {
+        id: qmakeProbe
+        condition: moduleName.startsWith("Qt") && theProbe.qmakePaths
+        qmakePaths: theProbe.qmakePaths
     }
 
     isEager: false
@@ -159,7 +166,7 @@ ModuleProvider {
             }
 
             if (!sysroot) {
-                return setupQt(moduleName, theProbe.qtInfos);
+                return setupQt(moduleName, qmakeProbe.qtInfos);
             }
             return [];
         }
