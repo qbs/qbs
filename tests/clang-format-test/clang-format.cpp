@@ -37,8 +37,11 @@ static int aGlobalInt = 3;
 
 // qtcassert.h:
 namespace Utils {
-QTCREATOR_UTILS_EXPORT void writeAssertLocation(const char *msg);
+void writeAssertLocation(const char *msg)
+{
+    std::printf("%s", msg);
 }
+} // namespace Utils
 
 #define QTC_ASSERT_STRINGIFY_HELPER(x) #x
 #define QTC_ASSERT_STRINGIFY(x) QTC_ASSERT_STRINGIFY_HELPER(x)
