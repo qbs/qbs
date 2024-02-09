@@ -795,7 +795,7 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
             expandPatterns(result, changed_parts, filePath);
         } else {
             if (parentDir != baseDir)
-                dirTimeStamps.emplace_back(parentDir, FileInfo(baseDir).lastModified());
+                dirTimeStamps.emplace_back(parentDir, FileInfo(parentDir).lastModified());
             result += QDir::cleanPath(filePath);
         }
     }
