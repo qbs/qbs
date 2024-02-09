@@ -4,18 +4,22 @@ Project {
     CppApplication {
         name: "theProduct"
 
-        property bool moreFiles: false
         cpp.blubb: true
 
         files: ["file.cpp", "main.cpp"]
-        Group {
-            condition: moreFiles
-            files: ["blubb.cpp"]
-        }
     }
 
     Product {
         name: "theOtherProduct"
         property bool dummy: { throw "this one comes from a thread"; }
+    }
+
+    Product {
+        name: "aThirdProduct"
+        property bool moreFiles: false
+        Group {
+            condition: moreFiles
+            files: ["blubb.txt"]
+        }
     }
 }
