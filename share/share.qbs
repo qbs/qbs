@@ -18,6 +18,11 @@ Product {
     }
 
     Group {
+        name: "CMake"
+        files: "CMakeLists.txt"
+    }
+
+    Group {
         name: "Python packages"
         prefix: "../src/3rdparty/python/**/"
         files: ["*.py"]

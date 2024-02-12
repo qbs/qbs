@@ -26,6 +26,7 @@ QbsProduct {
     type: ["archiver.archive"]
     targetName: "qbs-" + qbs.targetOS[0] + "-" + qbs.architecture + "-" + qbsversion.version
     destinationDirectory: project.buildDirectory
+    hasCMakeFile: false
 
     archiver.type: qbs.targetOS.contains("windows") ? "zip" : "tar"
     Properties {

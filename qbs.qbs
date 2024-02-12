@@ -42,11 +42,6 @@ Project {
     }
 
     Product {
-        name: "cmake project files for qbs"
-        files: ["**/CMakeLists.txt"]
-    }
-
-    Product {
         name: "continuous integration files"
         files: [
             ".clang-tidy",
