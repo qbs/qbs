@@ -750,8 +750,6 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
     if (baseDir.startsWith(buildDir))
         return;
 
-    dirTimeStamps.emplace_back(baseDir, FileInfo(baseDir).lastModified());
-
     QStringList changed_parts = parts;
     bool recursive = false;
     QString part = changed_parts.takeFirst();
@@ -778,8 +776,12 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
             : QDir::Files | QDir::System
               | QDir::Dirs; // This one is needed to get symbolic links to directories
 
-    if (isDir && !FileInfo::isPattern(filePattern))
+    if (FileInfo::isPattern(filePattern)) {
+        if (!recursive)
+            dirTimeStamps.emplace_back(baseDir, FileInfo(baseDir).lastModified());
+    } else if (isDir) {
         itFilters |= QDir::Hidden;
+    }
     if (filePattern != StringConstants::dotDot() && filePattern != StringConstants::dot())
         itFilters |= QDir::NoDotAndDotDot;
 
@@ -791,13 +793,10 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
             continue; // See above.
         if (!isDir && it.fileInfo().isDir() && !it.fileInfo().isSymLink())
             continue;
-        if (isDir) {
+        if (isDir)
             expandPatterns(result, changed_parts, filePath);
-        } else {
-            if (parentDir != baseDir)
-                dirTimeStamps.emplace_back(parentDir, FileInfo(parentDir).lastModified());
+        else
             result += QDir::cleanPath(filePath);
-        }
     }
 }
 
