@@ -351,80 +351,93 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Linux tests (gcc)',
-            image: 'focal',
+            name: 'Run Linux tests (gcc, Qt 6)',
+            image: 'jammy-qt6',
+            suffix: 'linux-jammy',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (clang)',
-            image: 'focal',
+            name: 'Run Linux tests (clang, Qt 6)',
+            image: 'jammy-qt6',
+            suffix: 'linux-jammy',
             profile: 'qt-clang_64',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (gcc, Qt 6.2)',
-            image: 'focal-qt6',
+            name: 'Run Linux tests (gcc, Qt 5)',
+            image: 'focal-qt5',
+            suffix: 'linux',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }
         - {
             name: 'Run Linux tests (gcc, Qt 6.5 static)',
             image: 'focal-qt6-static',
+            suffix: 'linux',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }
         - {
             name: 'Run Android tests (Qt 5.15)',
             image: 'focal-android-515',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Run Android tests (Qt 6.2.0)',
             image: 'focal-android-620',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Run Android tests (Qt 6.3.0)',
             image: 'focal-android-630',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
               name: 'Run Android tests (Qt 6.4.2)',
               image: 'focal-android-642',
+              suffix: 'linux',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
             }
         - {
               name: 'Run Android tests (Qt 6.5.0)',
               image: 'focal-android-650',
+              suffix: 'linux',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
             }
         - {
             name: 'Run Android tests (ndk r19c)',
             image: 'focal-android-ndk-r19c',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r21e)',
             image: 'focal-android-ndk-r21e',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r23)',
             image: 'focal-android-ndk-r23',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Linux tests (Qt 4.8.7)',
             image: 'focal-qt4',
+            suffix: 'linux',
             profile: '',
             script: './scripts/test-qt4.sh',
           }
@@ -438,10 +451,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-linux-${{ github.run_id }}.tar.gz
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
       run: docker-compose pull ${{ matrix.config.image }}
     - name: Run tests
