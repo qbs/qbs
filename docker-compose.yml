@@ -18,6 +18,20 @@ x-default-service: &linux
       - SYS_PTRACE
 
 services:
+  jammy-qt6: &jammy-qt6
+    << : *linux
+    hostname: jammy-qt6
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-0
+    build:
+      dockerfile: docker/jammy/Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.3
+        QTCREATOR_VERSION: 11.0.3
+
+  jammy:
+    << : *jammy-qt6
+
   focal-qt5: &focal-qt5
     << : *linux
     hostname: focal-qt5
