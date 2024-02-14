@@ -17,6 +17,7 @@ jobs:
         config:
         - {
             name: 'Build on Linux (gcc)',
+            image: 'focal-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableBundledQt:true
@@ -24,6 +25,19 @@ jobs:
                       products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
             cacheid: 'gcc-qt6',
+            suffix: 'linux',
+          }
+        - {
+            name: 'Build on Linux (Jammy, gcc)',
+            image: 'jammy-qt6',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-linux-jammy-${{ github.run_id }}
+                      products.qbs_archive.includeTests:true',
+            script: './scripts/build-qbs-with-qbs.sh',
+            cacheid: 'gcc-qt6-jammy',
+            suffix: 'linux-jammy',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -42,18 +56,18 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
     - name: Pull the Docker Image
-      run: docker-compose pull focal-qt6
+      run: docker-compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
-      run: docker-compose run focal-qt6 ccache -s
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
     - name: Build Qbs
-      run: docker-compose run focal-qt6 ${{ matrix.config.script }}
+      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run focal-qt6 ccache -s
+      run: docker-compose run ${{ matrix.config.image }} ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
-        name: qbs-linux-${{ github.run_id }}.tar.gz
-        path: release/qbs-linux-${{ github.run_id }}.tar.gz
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+        path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
 
   build-linux-extra:
     name: ${{ matrix.config.name }}
