@@ -112,7 +112,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, Qt 5.15)',
-            image: 'focal',
+            image: 'jammy-qt5',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
@@ -366,7 +366,7 @@ jobs:
           }
         - {
             name: 'Run Linux tests (gcc, Qt 5)',
-            image: 'focal-qt5',
+            image: 'jammy-qt5',
             suffix: 'linux',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
