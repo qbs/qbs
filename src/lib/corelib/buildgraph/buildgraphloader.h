@@ -46,6 +46,7 @@
 
 #include <language/forward_decls.h>
 #include <logging/logger.h>
+#include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 
 #include <QtCore/qprocess.h>
@@ -140,6 +141,8 @@ private:
     Logger m_logger;
     QStringList m_artifactsRemovedFromDisk;
     std::unordered_map<QString, std::vector<SourceArtifactConstPtr>> m_changedSourcesByProduct;
+    Set<QString> m_changedProjectFiles;
+    Set<QString> m_removedProjectFiles;
     Set<QString> m_productsWhoseArtifactsNeedUpdate;
     qint64 m_wildcardExpansionEffort = 0;
     qint64 m_propertyComparisonEffort = 0;
