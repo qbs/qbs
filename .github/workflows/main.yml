@@ -373,8 +373,8 @@ jobs:
           }
         - {
             name: 'Run Linux tests (gcc, Qt 6.5 static)',
-            image: 'focal-qt6-static',
-            suffix: 'linux',
+            image: 'jammy-qt6-static',
+            suffix: 'linux-jammy',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }

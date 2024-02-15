@@ -1,7 +1,7 @@
 #
 # Testing Qbs with static qt6
 #
-FROM ubuntu:focal
+FROM ubuntu:jammy
 LABEL Description="Ubuntu static qt6 test environment for Qbs"
 ARG QT_VERSION
 ARG QTCREATOR_VERSION
@@ -31,11 +31,11 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 RUN wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-RUN echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ focal main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
+RUN echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
 RUN cat /etc/apt/sources.list.d/kitware.list
 
 RUN apt-get update -qq && \
@@ -43,9 +43,9 @@ RUN apt-get update -qq && \
     build-essential \
     git \
     perl \
-    clang-12 \
+    clang-15 \
     cmake \
-    python \
+    python3 \
     zlib1g-dev \
     libzstd-dev \
     libdbus-1-dev \
@@ -57,7 +57,7 @@ RUN apt-get update -qq && \
     libvulkan-dev \
     libicu-dev \
     libb2-dev \
-    libclang-12-dev \
+    libclang-15-dev \
     libsystemd-dev \
     libfontconfig1-dev \
     libfreetype6-dev \
@@ -103,7 +103,7 @@ RUN apt-get update -qq && \
     libxcb-damage0-dev \
     libxcb-dpms0-dev \
     libgstreamer1.0-dev \
-    llvm-12-dev \
+    llvm-15-dev \
     apt-transport-https
 
 ENV QT_HOME="/home/${USER_NAME}/qt"
@@ -122,7 +122,7 @@ USER root
 
 RUN cd ${QT_HOME}/static-build && cmake --install .
 
-FROM ubuntu:focal
+FROM ubuntu:jammy
 LABEL Description="Ubuntu static qt6 test environment for Qbs"
 ARG QT_VERSION
 ARG QTCREATOR_VERSION
@@ -156,8 +156,8 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-12 \
-        clang-tidy-12 \
+        clang-15 \
+        clang-tidy-15 \
         cmake \
         curl \
         flex \
@@ -189,13 +189,13 @@ RUN apt-get update -qq && \
         zip \
         libb2-1 \
         libpcre++ && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-12 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-12 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-12 100 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-15 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
     pip install beautifulsoup4 lxml protobuf pyyaml
 
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-8
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-15
 
 #
 # Install Qbs for Linux from qt.io

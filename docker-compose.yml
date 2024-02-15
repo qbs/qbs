@@ -32,6 +32,17 @@ services:
   jammy:
     << : *jammy-qt6
 
+  jammy-qt6-static:
+    << : *linux
+    hostname: jammy-qt6-static
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-static-6.5.0_2.1.2-0
+    build:
+      dockerfile: docker/jammy/test-qt6-static.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.0
+        QTCREATOR_VERSION: 11.0.3
+
   focal-qt5: &focal-qt5
     << : *linux
     hostname: focal-qt5
@@ -56,17 +67,6 @@ services:
 
   focal:
     << : *focal-qt5
-
-  focal-qt6-static:
-    << : *linux
-    hostname: focal-qt6-static
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt6-static-6.5.0_1.24.1-0
-    build:
-      dockerfile: docker/focal/test-qt6-static.Dockerfile
-      context: .
-      args:
-        QT_VERSION: 6.5.0
-        QTCREATOR_VERSION: 9.0.2
 
   focal-android-515:
     << : *linux
