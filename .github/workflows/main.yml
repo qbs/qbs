@@ -393,20 +393,6 @@ jobs:
             script: './scripts/test-qt-for-android.sh',
           }
         - {
-            name: 'Run Android tests (Qt 6.3.0)',
-            image: 'focal-android-630',
-            suffix: 'linux',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
-          }
-        - {
-              name: 'Run Android tests (Qt 6.4.2)',
-              image: 'focal-android-642',
-              suffix: 'linux',
-              profile: '',
-              script: './scripts/test-qt-for-android.sh',
-            }
-        - {
               name: 'Run Android tests (Qt 6.5.0)',
               image: 'focal-android-650',
               suffix: 'linux',
