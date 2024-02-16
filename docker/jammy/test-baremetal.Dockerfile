@@ -1,7 +1,7 @@
 #
 # Baremetal toolchains for testing Qbs
 #
-FROM ubuntu:focal
+FROM ubuntu:jammy
 LABEL Description="Ubuntu baremetal test environment for Qbs"
 
 # Allow colored output on command line.
@@ -27,7 +27,7 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 # Install baremetal toolchains and Qbs runtime dependencies.

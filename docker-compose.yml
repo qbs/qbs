@@ -128,12 +128,12 @@ services:
       args:
         ANDROID_NDK_VERSION: 23.0.7599858
 
-  focal-baremetal:
+  jammy-baremetal:
     << : *linux
-    hostname: focal-baremetal
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-baremetal-4
+    hostname: jammy-baremetal
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-baremetal-0
     build:
-      dockerfile: docker/focal/test-baremetal.Dockerfile
+      dockerfile: docker/jammy/test-baremetal.Dockerfile
       context: .
 
   focal-qt4:

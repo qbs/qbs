@@ -463,23 +463,23 @@ jobs:
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
-      run: docker-compose pull focal-baremetal
-    - name: arm-none-eabi-gcc-9_2
-      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: docker-compose pull jammy-baremetal
+    - name: arm-none-eabi-gcc-10_3
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: avr-gcc-5_4
-      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: msp430-gcc-4_6
-      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: xtensa-lx106-elf-gcc-9_2
-      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-9_2 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: riscv64-unknown-elf-gcc-9_3
-      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-9_3 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-3_8_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-mcs51 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-3_8_0-stm8
-      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-stm8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-3_8_0-hcs8
-      run: QBS_AUTOTEST_PROFILE=sdcc-3_8_0-hcs8 docker-compose run focal-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: riscv64-unknown-elf-gcc-10_2
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_2 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_0_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: xtensa-lx106-elf-gcc-10_3
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
 
   test-baremetal-windows:
     name: Run Baremetal tests (Windows)
