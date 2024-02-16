@@ -422,7 +422,7 @@ jobs:
           }
         - {
             name: 'Run Linux tests (Qt 4.8.7)',
-            image: 'focal-qt4',
+            image: 'jammy-qt4',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-qt4.sh',

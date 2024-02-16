@@ -136,12 +136,12 @@ services:
       dockerfile: docker/jammy/test-baremetal.Dockerfile
       context: .
 
-  focal-qt4:
+  jammy-qt4:
     << : *linux
-    hostname: focal-qt4
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:focal-qt4-1
+    hostname: jammy-qt4
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt4-0
     build:
-      dockerfile: docker/focal/test-qt4.Dockerfile
+      dockerfile: docker/jammy/test-qt4.Dockerfile
       context: .
 
   leap:
