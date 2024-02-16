@@ -380,42 +380,42 @@ jobs:
           }
         - {
             name: 'Run Android tests (Qt 5.15)',
-            image: 'focal-android-515',
+            image: 'jammy-android-515',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
-            name: 'Run Android tests (Qt 6.2.0)',
-            image: 'focal-android-620',
+            name: 'Run Android tests (Qt 6.2)',
+            image: 'jammy-android-62',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
-              name: 'Run Android tests (Qt 6.5.0)',
-              image: 'focal-android-650',
+              name: 'Run Android tests (Qt 6.5)',
+              image: 'jammy-android-65',
               suffix: 'linux',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
             }
         - {
             name: 'Run Android tests (ndk r19c)',
-            image: 'focal-android-ndk-r19c',
+            image: 'jammy-android-ndk-r19c',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r21e)',
-            image: 'focal-android-ndk-r21e',
+            image: 'jammy-android-ndk-r21e',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r23)',
-            image: 'focal-android-ndk-r23',
+            image: 'jammy-android-ndk-r23',
             suffix: 'linux',
             profile: '',
             script: './scripts/test-for-android.sh',
