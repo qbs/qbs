@@ -45,12 +45,12 @@ LLVM_INSTALL_DIR=${LLVM_INSTALL_DIR:-""}
 # update-alternatives --install /usr/bin/run-clang-tidy.py run-clang-tidy.py /usr/bin/run-clang-tidy-4.0.py 1
 
 CLANG_TIDY=`which clang-tidy`
-RUN_CLANG_TIDY=`which run-clang-tidy.py`
+RUN_CLANG_TIDY=`which run-clang-tidy`
 
 if [ -z "$RUN_CLANG_TIDY" ] || [ -z "$CLANG_TIDY" ]; then
     if [ ! -z "$LLVM_INSTALL_DIR" ]; then
         CLANG_TIDY="$LLVM_INSTALL_DIR/bin/clang-tidy"
-        RUN_CLANG_TIDY="$LLVM_INSTALL_DIR/share/clang/run-clang-tidy.py"
+        RUN_CLANG_TIDY="$LLVM_INSTALL_DIR/bin/run-clang-tidy"
     else
         echo "Can't find clang-tidy and/or run-clang-tidy.py in PATH, try setting LLVM_INSTALL_DIR"
         exit 1

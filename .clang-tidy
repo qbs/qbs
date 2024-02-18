@@ -2,6 +2,7 @@
 Checks: >
     -*,
     bugprone-*,
+    -bugprone-easily-swappable-parameters,
     -bugprone-narrowing-conversions,
     -bugprone-throw-keyword-missing,
     cppcoreguidelines-interfaces-global-init,
@@ -12,7 +13,7 @@ Checks: >
     google-build-namespaces,
     google-global-names-in-headers,
     google-objc-*,
-    google-readability-casting,
+    -google-readability-casting,
     google-readability-namespace-comments,
     google-runtime-operator,
     misc-definitions-in-headers,
@@ -70,6 +71,3 @@ WarningsAsErrors: >
 
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
-CheckOptions:
-...
-

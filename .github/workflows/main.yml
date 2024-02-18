@@ -80,7 +80,7 @@ jobs:
         - {
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
             cacheid: 'clang',
           }

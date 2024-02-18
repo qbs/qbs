@@ -1,13 +1,3 @@
----
-Checks: >
-    -bugprone-branch-clone,
-    -bugprone-easily-swappable-parameters,
-    -bugprone-implicit-widening-of-multiplication-result,
-    -bugprone-signed-char-misuse,
-    -bugprone-suspicious-memory-comparison,
-    -bugprone-sizeof-expression,
-    -misc-redundant-expression,
-    -misc-unused-parameters
+Checks: '-*,misc-definitions-in-headers'
 
 InheritParentConfig: true
-...
