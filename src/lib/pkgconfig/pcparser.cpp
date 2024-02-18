@@ -524,9 +524,11 @@ void PcParser::parseLibs(
         raiseDuplicateFieldException(fieldName, pkg.filePath);
 
     const auto trimmed = trimAndSubstitute(pkg, str);
+    if (trimmed.empty())
+        return;
 
     const auto argv = splitCommand(trimmed);
-    if (!trimmed.empty() && !argv)
+    if (!argv)
         throw PcException("Couldn't parse Libs field into an argument vector");
 
     libs = doParseLibs(*argv);
@@ -593,9 +595,11 @@ void PcParser::parseCFlags(PcPackage &pkg, std::string_view str)
         raiseDuplicateFieldException("Cflags", pkg.filePath);
 
     const auto command = trimAndSubstitute(pkg, str);
+    if (command.empty())
+        return;
 
     const auto argv = splitCommand(command);
-    if (!command.empty() && !argv)
+    if (!argv)
         throw PcException("Couldn't parse Cflags field into an argument vector");
 
     std::vector<PcPackage::Flag> cflags;

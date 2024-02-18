@@ -435,7 +435,9 @@ void TopLevelProjectContext::removeModuleFileFromDirectoryCache(const QString &f
     auto &moduleFiles = moduleFilesGuard.get();
     const auto it = moduleFiles.find(FileInfo::path(filePath));
     QBS_CHECK(it != moduleFiles.end());
-    it->second->removeOne(filePath);
+    auto &files = it->second;
+    QBS_CHECK(files);
+    files->removeOne(filePath);
 }
 
 void TopLevelProjectContext::addUnknownProfilePropertyError(const Item *moduleProto,

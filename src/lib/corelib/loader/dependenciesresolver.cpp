@@ -1125,8 +1125,8 @@ DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, Loader
 std::pair<ProductDependency, ProductContext *> DependenciesContextImpl::pendingDependency() const
 {
     QBS_CHECK(!stateStack.empty());
-    if (stateStack.front().currentDependsItem
-        && !stateStack.front().currentDependsItem->productTypes.empty()) {
+    if (const auto &currentDependsItem = stateStack.front().currentDependsItem;
+        currentDependsItem && !currentDependsItem->productTypes.empty()) {
         qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
                                     << "to be delayed because of bulk dependency";
         return {ProductDependency::Bulk, nullptr};
