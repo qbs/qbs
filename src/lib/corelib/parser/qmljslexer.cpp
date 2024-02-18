@@ -1071,7 +1071,7 @@ bool Lexer::scanDirectives(Directives *directives)
 
         const int lineNumber = tokenStartLine();
 
-        if (! (_tokenKind == T_IDENTIFIER || _tokenKind == T_RESERVED_WORD))
+        if (_tokenKind != T_IDENTIFIER && _tokenKind != T_RESERVED_WORD)
             return false; // expected a valid QML/JS directive
 
         const QString directiveName = tokenText();
@@ -1083,7 +1083,7 @@ bool Lexer::scanDirectives(Directives *directives)
         // it must be a pragma or an import directive.
         if (directiveName == QLatin1String("pragma")) {
             // .pragma library
-            if (! (lex() == T_IDENTIFIER && tokenText() == QLatin1String("library")))
+            if (lex() != T_IDENTIFIER || tokenText() != QLatin1String("library"))
                 return false; // expected `library
 
             // we found a .pragma library directive
@@ -1126,7 +1126,7 @@ bool Lexer::scanDirectives(Directives *directives)
             //
             // recognize the mandatory `as' followed by the module name
             //
-            if (! (lex() == T_RESERVED_WORD && tokenText() == QLatin1String("as")))
+            if (lex() != T_RESERVED_WORD || tokenText() != QLatin1String("as"))
                 return false; // expected `as'
 
             if (lex() != T_IDENTIFIER)

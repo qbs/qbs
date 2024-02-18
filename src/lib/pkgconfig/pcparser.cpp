@@ -722,10 +722,8 @@ void PcParser::parseLine(PcPackage &pkg, std::string_view str)
         size_t pos = 0;
         for (; pos < s.size(); ++pos) {
             auto p = s.data() + pos;
-            if (!((*p >= 'A' && *p <= 'Z') ||
-                   (*p >= 'a' && *p <= 'z') ||
-                   (*p >= '0' && *p <= '9') ||
-                   *p == '_' || *p == '.')) {
+            if ((*p < 'A' || *p > 'Z') && (*p < 'a' || *p > 'z') && (*p < '0' || *p > '9')
+                && *p != '_' && *p != '.') {
                 break;
             }
         }

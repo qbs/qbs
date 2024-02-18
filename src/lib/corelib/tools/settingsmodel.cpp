@@ -281,10 +281,10 @@ bool SettingsModel::setData(const QModelIndex &index, const QVariant &value, int
     const QString valueString = value.toString();
     QString *toChange = nullptr;
     if (index.column() == keyColumn() && !valueString.isEmpty()
-            && !node->parent->hasDirectChildWithName(valueString)
-            && !(node->parent->parent == &d->rootNode
-                 && node->parent->name == Internal::StringConstants::profilesSettingsKey()
-                 && valueString == Profile::fallbackName())) {
+        && !node->parent->hasDirectChildWithName(valueString)
+        && (node->parent->parent != &d->rootNode
+            || node->parent->name != Internal::StringConstants::profilesSettingsKey()
+            || valueString != Profile::fallbackName())) {
         toChange = &node->name;
     } else if (index.column() == valueColumn() && valueString != node->value) {
         toChange = &node->value;
