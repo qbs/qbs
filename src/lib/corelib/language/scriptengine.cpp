@@ -808,7 +808,7 @@ JSValue ScriptEngine::evaluate(JsValueOwner resultOwner, const QString &code,
     m_scopeChains << scopeChain;
     const QByteArray &codeStr = code.toUtf8();
 
-    m_evalPositions.emplace(std::make_pair(filePath, line));
+    m_evalPositions.emplace(filePath, line);
     const JSValue v = JS_EvalThis(m_context, globalObject(), codeStr.constData(), codeStr.length(),
                                   filePath.toUtf8().constData(), line, JS_EVAL_TYPE_GLOBAL);
     m_evalPositions.pop();
