@@ -231,7 +231,7 @@ void Logger::printWarning(const ErrorInfo &warning)
 
 LogWriter Logger::qbsLog(LoggerLevel level, bool force) const
 {
-    return LogWriter(m_logSink, level, force);
+    return {m_logSink, level, force};
 }
 
 } // namespace Internal

@@ -829,7 +829,7 @@ ScopedJsValueList ScriptEngine::argumentList(const QStringList &argumentNames,
     JSValueList result;
     for (const auto &name : argumentNames)
         result.push_back(getJsProperty(m_context, context, name));
-    return ScopedJsValueList(m_context, result);
+    return {m_context, result};
 }
 
 JSClassID ScriptEngine::registerClass(const char *name, JSClassCall *constructor,

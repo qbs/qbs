@@ -58,7 +58,7 @@ QualifiedId::QualifiedId(const QStringList &nameParts)
 
 QualifiedId QualifiedId::fromString(const QString &str)
 {
-    return QualifiedId(str.split(QLatin1Char('.')));
+    return {str.split(QLatin1Char('.'))};
 }
 
 QString QualifiedId::toString() const

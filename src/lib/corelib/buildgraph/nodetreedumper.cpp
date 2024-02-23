@@ -120,7 +120,7 @@ bool NodeTreeDumper::doVisit(BuildGraphNode *node, const QString &nodeRepr)
 
 QByteArray NodeTreeDumper::indentation() const
 {
-    return QByteArray(m_indentation, ' ');
+    return {m_indentation, ' '};
 }
 
 } // namespace Internal

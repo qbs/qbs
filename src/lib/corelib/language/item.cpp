@@ -172,7 +172,7 @@ ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
     if (v && v->type() == Value::ItemValueType)
         return std::static_pointer_cast<ItemValue>(v);
     if (!itemTemplate)
-        return ItemValuePtr();
+        return {};
     const bool createdByPropertiesBlock = itemValue && itemValue->createdByPropertiesBlock();
     ItemValuePtr result = ItemValue::create(Item::create(&pool, itemTemplate->type()),
                                             createdByPropertiesBlock);
@@ -184,7 +184,7 @@ JSSourceValuePtr Item::sourceProperty(const QString &name) const
 {
     ValuePtr v = property(name);
     if (!v || v->type() != Value::JSSourceValueType)
-        return JSSourceValuePtr();
+        return {};
     return std::static_pointer_cast<JSSourceValue>(v);
 }
 
@@ -192,7 +192,7 @@ VariantValuePtr Item::variantProperty(const QString &name) const
 {
     ValuePtr v = property(name);
     if (!v || v->type() != Value::VariantValueType)
-        return VariantValuePtr();
+        return {};
     return std::static_pointer_cast<VariantValue>(v);
 }
 

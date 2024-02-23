@@ -231,7 +231,7 @@ Project SetupProjectJob::project() const
 {
     auto const wrapper = qobject_cast<const InternalJobThreadWrapper *>(internalJob());
     auto const job = qobject_cast<const InternalSetupProjectJob *>(wrapper->synchronousJob());
-    return Project(job->project(), job->logger());
+    return {job->project(), job->logger()};
 }
 
 void SetupProjectJob::resolve(const Project &existingProject,
