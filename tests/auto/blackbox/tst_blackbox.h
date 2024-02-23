@@ -344,6 +344,8 @@ private slots:
     void wholeArchive();
     void wholeArchive_data();
     void wildCardsAndRules();
+    void wildCardsAndChangeTracking_data();
+    void wildCardsAndChangeTracking();
     void wildcardRenaming();
     void zip();
     void zip_data();

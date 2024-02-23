@@ -252,7 +252,7 @@ CppModule {
     property var buildEnv: {
         var env = {};
         if (qbs.toolchain.includes("mingw"))
-            env.PATH = [toolchainInstallPath]; // For libwinpthread etc
+            env.PATH = toolchainInstallPath; // For libwinpthread etc
         return env;
     }
 

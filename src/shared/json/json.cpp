@@ -3757,7 +3757,7 @@ static void valueToJson(const Base *b, const Value &v, std::string &json, int in
             // +2 to format to ensure the expected precision
             const int n = std::numeric_limits<double>::digits10 + 2;
             char buf[30] = {0};
-            std::sprintf(buf, "%.*g", n, d);
+            std::snprintf(buf, sizeof(buf), "%.*g", n, d);
             // Hack:
             if (buf[0] == '-' && buf[1] == '0' && buf[2] == '\0')
                 json += "0";

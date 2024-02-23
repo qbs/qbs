@@ -1,7 +1,7 @@
 #
 # Testing Qbs with qt4
 #
-FROM ubuntu:focal
+FROM ubuntu:jammy
 LABEL Description="Ubuntu qt4 test environment for Qbs"
 
 # Allow colored output on command line.
@@ -28,11 +28,11 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 # Install baremetal toolchains and Qbs runtime dependencies.
-RUN sudo add-apt-repository ppa:gezakovacs/ppa -y && \
+RUN sudo add-apt-repository ppa:ubuntuhandbook1/ppa -y && \
     apt-get update -qq && \
     apt-get install -qq -y \
         build-essential \

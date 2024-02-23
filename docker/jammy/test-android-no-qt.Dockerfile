@@ -1,8 +1,8 @@
 #
-# Android SDK/NDK + Qt for Android for testing Qbs
+# Android SDK/NDK for testing Qbs
 #
-FROM ubuntu:focal
-LABEL Description="Ubuntu test environment for Qbs and Qt for Android"
+FROM ubuntu:jammy
+LABEL Description="Ubuntu test environment for Qbs for Android"
 
 # Allow colored output on command line.
 ENV TERM=xterm-color
@@ -27,7 +27,7 @@ RUN apt-get update -qq && \
     usermod -a -G sudo ${USER_NAME} && \
     echo "%devel         ALL = (ALL) NOPASSWD: ALL" >> /etc/sudoers
 
-COPY docker/focal/entrypoint.sh /sbin/entrypoint.sh
+COPY docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
 # Qbs build dependencies
@@ -37,17 +37,9 @@ RUN apt-get update -qq && \
         curl \
         libasan5 \
         libglib2.0-0 \
-        locales \
         openjdk-8-jdk-headless \
         p7zip-full \
         unzip
-
-# Set the locale
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
 
 ENV JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 RUN echo "export JAVA_HOME=${JAVA_HOME}" > /etc/profile.d/android.sh && \
@@ -77,7 +69,7 @@ RUN curl -s https://dl.google.com/android/repository/commandlinetools-linux-${CO
     rm -v ${ANDROID_HOME}/commandlinetools.zip
 
 # Accept SDK license
-ARG ANDROID_PLATFORM="android-30"
+ARG ANDROID_PLATFORM="android-29"
 ARG BUILD_TOOLS="29.0.2"
 RUN yes | sdkmanager "--sdk_root=${ANDROID_HOME}" --verbose --licenses && \
           sdkmanager "--sdk_root=${ANDROID_HOME}" --update && \
@@ -111,27 +103,3 @@ RUN cd ${ANDROID_SDK_ROOT} && \
 
 USER root
 
-#
-# Install Qt and Qbs for Linux from qt.io
-#
-ARG QT_VERSION
-COPY scripts/install-qt.sh install-qt.sh
-RUN if [ "${QT_VERSION}" \< "5.14" ] || [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
-        QT_ABIS="android_armv7 android_arm64_v8a android_x86 android_x86_64"; \
-    else \
-        QT_ABIS="any"; \
-    fi; \
-    if [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
-        ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative icu; \
-        if [ "${QT_VERSION}" \< "6.1.0" ]; then \
-            QT_COMPONENTS="qtbase qtdeclarative qttools qtquickcontrols2 qtquicktimeline svg"; \
-        else \
-            QT_COMPONENTS="qtbase qtdeclarative qttools qtquicktimeline svg"; \
-        fi; \
-    else \
-        QT_COMPONENTS="qtbase qtdeclarative qttools qtimageformats"; \
-    fi; \
-    for abi in ${QT_ABIS}; do \
-        ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} ${QT_COMPONENTS}; \
-    done && \
-    echo "export QT_VERSION=${QT_VERSION}" >> /etc/profile.d/qt.sh

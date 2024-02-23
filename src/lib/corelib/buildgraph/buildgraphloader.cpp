@@ -307,8 +307,10 @@ void BuildGraphLoader::trackProjectChanges()
     std::vector<ResolvedProductPtr> allRestoredProducts = restoredProject->allProducts();
     std::vector<ResolvedProductPtr> changedProducts;
     bool reResolvingNecessary = false;
-    if (!checkConfigCompatibility())
+    if (!checkConfigCompatibility()) {
+        m_logger.qbsInfo() << Tr::tr("One or more properties have changed.");
         reResolvingNecessary = true;
+    }
     if (hasProductFileChanged(allRestoredProducts, restoredProject->lastStartResolveTime,
                               buildSystemFiles, changedProducts)) {
         reResolvingNecessary = true;
@@ -332,6 +334,15 @@ void BuildGraphLoader::trackProjectChanges()
         for (const ErrorInfo &e : std::as_const(restoredProject->warningsEncountered))
             m_logger.printWarning(e);
         return;
+    }
+
+    for (const QString &file : m_changedProjectFiles) {
+        m_logger.qbsInfo() << Tr::tr("Project file '%1' has changed.")
+                                  .arg(QDir::toNativeSeparators(file));
+    }
+    for (const QString &file : m_removedProjectFiles) {
+        m_logger.qbsInfo() << Tr::tr("Project file '%1' was removed.")
+                                  .arg(QDir::toNativeSeparators(file));
     }
 
     restoredProject->buildData->setDirty();
@@ -497,9 +508,11 @@ bool BuildGraphLoader::hasEnvironmentChanged(const TopLevelProjectConstPtr &rest
     newEnv.remove(ldPreloadEnvVar);
 
     if (oldEnv != newEnv) {
-        qCDebug(lcBuildGraph) << "Set of environment variables changed. Must re-resolve project."
-                              << "\nold:" << restoredProject->environment.toStringList()
-                              << "\nnew:" << m_parameters.adjustedEnvironment().toStringList();
+        m_logger.qbsInfo() << Tr::tr("Environment changed.");
+        m_logger.qbsDebug() << Tr::tr("old: %1").arg(
+            restoredProject->environment.toStringList().join(QLatin1Char('\n')));
+        m_logger.qbsDebug() << Tr::tr("new: %2").arg(
+            m_parameters.adjustedEnvironment().toStringList().join(QLatin1Char('\n')));
         return true;
     }
     return false;
@@ -510,8 +523,8 @@ bool BuildGraphLoader::hasCanonicalFilePathResultChanged(const TopLevelProjectCo
     for (auto it = restoredProject->canonicalFilePathResults.constBegin();
          it != restoredProject->canonicalFilePathResults.constEnd(); ++it) {
         if (QFileInfo(it.key()).canonicalFilePath() != it.value()) {
-            qCDebug(lcBuildGraph) << "Canonical file path for file" << it.key()
-                                  << "changed, must re-resolve project.";
+            m_logger.qbsInfo() << Tr::tr("Canonical file path for file '%1' changed.")
+                                      .arg(QDir::toNativeSeparators(it.key()));
             return true;
         }
     }
@@ -524,8 +537,8 @@ bool BuildGraphLoader::hasFileExistsResultChanged(const TopLevelProjectConstPtr 
     for (QHash<QString, bool>::ConstIterator it = restoredProject->fileExistsResults.constBegin();
          it != restoredProject->fileExistsResults.constEnd(); ++it) {
         if (FileInfo(it.key()).exists() != it.value()) {
-            qCDebug(lcBuildGraph) << "Existence check for file" << it.key()
-                                  << "changed, must re-resolve project.";
+            m_logger.qbsInfo() << Tr::tr("Existence check for file '%1' changed.")
+                                      .arg(QDir::toNativeSeparators(it.key()));
             return true;
         }
     }
@@ -539,9 +552,8 @@ bool BuildGraphLoader::hasDirectoryEntriesResultChanged(const TopLevelProjectCon
          it != restoredProject->directoryEntriesResults.constEnd(); ++it) {
         if (QDir(it.key().first).entryList(static_cast<QDir::Filters>(it.key().second), QDir::Name)
                 != it.value()) {
-            qCDebug(lcBuildGraph) << "Entry list for directory" << it.key().first
-                                  << static_cast<QDir::Filters>(it.key().second)
-                                  << "changed, must re-resolve project.";
+            m_logger.qbsInfo() << Tr::tr("Entry list for directory '%1' changed.")
+                                      .arg(QDir::toNativeSeparators(it.key().first));
             return true;
         }
     }
@@ -555,8 +567,8 @@ bool BuildGraphLoader::hasFileLastModifiedResultChanged(const TopLevelProjectCon
          = restoredProject->fileLastModifiedResults.constBegin();
          it != restoredProject->fileLastModifiedResults.constEnd(); ++it) {
         if (FileInfo(it.key()).lastModified() != it.value()) {
-            qCDebug(lcBuildGraph) << "Timestamp for file" << it.key()
-                                  << "changed, must re-resolve project.";
+            m_logger.qbsInfo() << Tr::tr("Timestamp for file '%1' has changed.")
+                                      .arg(QDir::toNativeSeparators(it.key()));
             return true;
         }
     }
@@ -574,17 +586,18 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
         const FileInfo pfi(filePath);
         remainingBuildSystemFiles.remove(filePath);
         if (!pfi.exists()) {
-            qCDebug(lcBuildGraph) << "A product was removed, must re-resolve project";
+            m_removedProjectFiles << filePath;
             hasChanged = true;
         } else if (referenceTime < pfi.lastModified()) {
-            qCDebug(lcBuildGraph) << "A product was changed, must re-resolve project";
+            m_changedProjectFiles << filePath;
             hasChanged = true;
         } else if (!contains(changedProducts, product)) {
             bool foundMissingSourceFile = false;
             for (const QString &file : std::as_const(product->missingSourceFiles)) {
                 if (FileInfo(file).exists()) {
-                    qCDebug(lcBuildGraph) << "Formerly missing file" << file << "in product"
-                                          << product->name << "exists now, must re-resolve project";
+                    m_logger.qbsInfo()
+                        << Tr::tr("Formerly missing file '%1' in product '%2' exists now.")
+                               .arg(QDir::toNativeSeparators(filePath), product->fullDisplayName());
                     foundMissingSourceFile = true;
                     break;
                 }
@@ -599,6 +612,9 @@ bool BuildGraphLoader::hasProductFileChanged(const std::vector<ResolvedProductPt
                                             ? &m_wildcardExpansionEffort : nullptr);
             for (const GroupPtr &group : product->groups) {
                 if (group->wildcards && group->wildcards->hasChangedSinceExpansion()) {
+                    m_logger.qbsInfo()
+                        << Tr::tr("Must re-expand wildcards for group '%1' in product '%2'.")
+                               .arg(group->name, product->fullDisplayName());
                     hasChanged = true;
                     changedProducts.push_back(product);
                     break;
@@ -616,8 +632,7 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
     for (const QString &file : buildSystemFiles) {
         const FileInfo fi(file);
         if (!fi.exists()) {
-            qCDebug(lcBuildGraph) << "Project file" << file
-                                  << "no longer exists, must re-resolve project.";
+            m_removedProjectFiles << file;
             return true;
         }
         const auto generatedChecker = [&file, restoredProject](const ModuleProviderInfo &mpi) {
@@ -628,7 +643,7 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
         const FileTime referenceTime = fileWasCreatedByModuleProvider
                 ? restoredProject->lastEndResolveTime : restoredProject->lastStartResolveTime;
         if (referenceTime < fi.lastModified()) {
-            qCDebug(lcBuildGraph) << "Project file" << file << "changed, must re-resolve project.";
+            m_changedProjectFiles << file;
             return true;
         }
     }

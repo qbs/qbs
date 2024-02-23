@@ -8048,6 +8048,35 @@ void TestBlackbox::wildCardsAndRules()
     QVERIFY(!m_qbsStdout.contains("creating output artifact"));
 }
 
+void TestBlackbox::wildCardsAndChangeTracking_data()
+{
+    QTest::addColumn<QString>("dirToModify");
+    QTest::addColumn<bool>("expectReResolve");
+
+    QTest::newRow("root path") << QString(".") << false;
+    QTest::newRow("dir with recursive match") << QString("recursive1") << false;
+    QTest::newRow("non-recursive base dir") << QString("nonrecursive") << true;
+    QTest::newRow("empty base dir with file patterns") << QString("nonrecursive/empty") << true;
+}
+
+void TestBlackbox::wildCardsAndChangeTracking()
+{
+    QFETCH(QString, dirToModify);
+    QFETCH(bool, expectReResolve);
+
+    const QString srcDir = testDataDir + "/wildcards-and-change-tracking";
+    QDir::setCurrent(srcDir);
+    rmDirR("default");
+    QDir::current().mkdir("nonrecursive/empty");
+
+    QCOMPARE(runQbs({"resolve"}), 0);
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch(dirToModify + "/blubb.txt");
+    QCOMPARE(runQbs({"resolve"}), 0);
+    QCOMPARE(m_qbsStdout.contains("Resolving"), expectReResolve);
+}
+
 void TestBlackbox::loadableModule()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/loadablemodule"));

@@ -30,6 +30,7 @@
 
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var ExporterHelpers = require("../exporter.js");
 
 function tagListToString(tagList)
 {
@@ -102,15 +103,6 @@ function writeTargetArtifactGroups(product, output, moduleFile)
     }
 }
 
-function checkValuePrefix(name, value, forbiddenPrefix, prefixDescription)
-{
-    if (value.startsWith(forbiddenPrefix)) {
-        throw "Value '" + value + "' for exported property '" + name + "' in product '"
-                + product.name + "' points into " + prefixDescription + ".\n"
-                + "Did you forget to set the prefixMapping property in an Export item?";
-    }
-}
-
 function stringifyValue(project, product, moduleInstallDir, prop, value)
 {
     if (value instanceof Array) {
@@ -128,29 +120,9 @@ function stringifyValue(project, product, moduleInstallDir, prop, value)
         return value;
     }
 
-    // Catch user oversights: Paths that point into the project source or build directories
-    // make no sense in the module.
-    if (!value.startsWith(product.qbs.installRoot)) {
-        checkValuePrefix(prop.name, value, project.buildDirectory, "project build directory");
-        checkValuePrefix(prop.name, value, project.sourceDirectory, "project source directory");
-    }
-
-    // Adapt file paths pointing into the install dir, that is, make them relative to the
-    // module file for relocatability. We accept them with or without the install root.
-    // The latter form will typically be a result of applying the prefixMapping property,
-    // while the first one could be an untransformed path, for instance if the project
-    // file is written in such a way that include paths are picked up from the installed
-    // location rather than the source directory.
-    var valuePrefixToStrip;
-    var fullInstallPrefix = FileInfo.joinPaths(product.qbs.installRoot, product.qbs.installPrefix);
-    if (fullInstallPrefix.length > 1 && value.startsWith(fullInstallPrefix)) {
-        valuePrefixToStrip = fullInstallPrefix;
-    } else {
-        var installPrefix = FileInfo.joinPaths("/", product.qbs.installPrefix);
-        if (installPrefix.length > 1 && value.startsWith(installPrefix))
-            valuePrefixToStrip = installPrefix;
-    }
+    var valuePrefixToStrip = ExporterHelpers.getPrefixToStrip(project, product, prop.name, value);
     if (valuePrefixToStrip) {
+        var fullInstallPrefix = FileInfo.joinPaths(product.qbs.installRoot, product.qbs.installPrefix);
         var deployedModuleInstallDir = moduleInstallDir.slice(fullInstallPrefix.length);
         return "FileInfo.cleanPath(FileInfo.joinPaths(path, FileInfo.relativePath("
                 + JSON.stringify(deployedModuleInstallDir) + ", "

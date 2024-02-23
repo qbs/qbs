@@ -121,13 +121,23 @@ void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
         return;
     }
 
-    const auto clangCl = clangCls.front();
     const QString architectures[] = {
         QStringLiteral("x86_64"),
         QStringLiteral("x86")
     };
-    qbs::Internal::transform(architectures, profiles, [settings, clangCl](const auto &arch) {
-        const auto profileName = QStringLiteral("clang-cl-%1").arg(arch);
-        return createProfileHelper(settings, profileName, clangCl.toolchainInstallPath,
-                                   clangCl.vcvarsallPath, arch); });
+    for (size_t index = 0; index < clangCls.size(); ++index) {
+        const auto &clangCl = clangCls[index];
+        const QString suffix = index == 0 ? QString() : QStringLiteral("-%1").arg(index);
+        qbs::Internal::transform(
+            architectures, profiles, [settings, clangCl, suffix](const auto &arch) {
+                const auto profileName = QStringLiteral("clang-cl") + suffix
+                                         + QStringLiteral("-%1").arg(arch);
+                return createProfileHelper(
+                    settings,
+                    profileName,
+                    clangCl.toolchainInstallPath,
+                    clangCl.vcvarsallPath,
+                    arch);
+            });
+    }
 }

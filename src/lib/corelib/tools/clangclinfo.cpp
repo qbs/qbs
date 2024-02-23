@@ -121,7 +121,7 @@ std::vector<ClangClInfo> ClangClInfo::installedCompilers(
     if (registry.contains(key)) {
         const auto compilerPath = QDir::fromNativeSeparators(registry.value(key).toString())
                 + QStringLiteral("/bin/") + compilerName;
-        if (QFileInfo::exists(compilerPath))
+        if (QFileInfo::exists(compilerPath) && !contains(compilerPaths, compilerPath))
             compilerPaths.push_back(compilerPath);
     }
 

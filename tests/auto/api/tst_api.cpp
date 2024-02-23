@@ -2738,7 +2738,7 @@ void TestApi::restoredWarnings()
 
     // Re-resolving with changes: Errors come from the re-resolving, stored ones must be suppressed.
     QVariantMap overridenValues;
-    overridenValues.insert("products.theProduct.moreFiles", true);
+    overridenValues.insert("products.aThirdProduct.moreFiles", true);
     setupParams.setOverriddenValues(overridenValues);
     job.reset(qbs::Project().setupProject(setupParams, m_logSink, nullptr));
     waitForFinished(job.get());
@@ -2748,13 +2748,14 @@ void TestApi::restoredWarnings()
     const auto afterErrors = m_logSink->warnings;
     for (const qbs::ErrorInfo &e : afterErrors) {
         const QString msg = e.toString();
-        QVERIFY2(msg.contains("Superfluous version")
-                 || msg.contains("Property 'blubb' is not declared")
-                 || msg.contains("blubb.cpp' does not exist")
-                 || msg.contains("this one comes from a thread")
-                 || msg.contains("Product 'theOtherProduct' had errors and was disabled")
-                 || msg.contains("Product 'theProduct' had errors and was disabled"),
-                 qPrintable(msg));
+        QVERIFY2(
+            msg.contains("Superfluous version") || msg.contains("Property 'blubb' is not declared")
+                || msg.contains("blubb.txt' does not exist")
+                || msg.contains("this one comes from a thread")
+                || msg.contains("Product 'theOtherProduct' had errors and was disabled")
+                || msg.contains("Product 'theThirdProduct' had errors and was disabled")
+                || msg.contains("Product 'theProduct' had errors and was disabled"),
+            qPrintable(msg));
     }
     m_logSink->warnings.clear();
 }

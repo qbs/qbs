@@ -225,10 +225,8 @@ void ProductResolverStage1::start()
     QBS_CHECK(m_product.dependenciesContext);
     if (!m_product.dependenciesContext->dependenciesResolved)
         return;
-    if (m_product.delayedError.hasError()
-            && m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict) {
+    if (m_product.delayedError.hasError())
         return;
-    }
 
     // Run probes for modules and product.
     resolveProbes();
