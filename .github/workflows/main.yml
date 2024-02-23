@@ -87,12 +87,12 @@ jobs:
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             cacheid: 'cmake',
           }
         - {
             name: 'Build on Linux (gcc, ASAN)',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
@@ -102,7 +102,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, UBSAN)',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
