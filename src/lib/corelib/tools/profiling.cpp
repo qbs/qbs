@@ -104,7 +104,7 @@ void AccumulatingTimer::stop()
 
 QString elapsedTimeString(qint64 elapsedTimeInNs)
 {
-    qint64 ms = elapsedTimeInNs / (1000 * 1000);
+    qint64 ms = elapsedTimeInNs / (1000ll * 1000ll);
     qint64 s = ms/1000;
     ms -= s*1000;
     qint64 m = s/60;
