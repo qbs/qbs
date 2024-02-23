@@ -16,18 +16,6 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Build on Linux (gcc)',
-            image: 'focal-qt6',
-            options: 'modules.cpp.compilerWrapper:ccache
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true
-                      products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}
-                      products.qbs_archive.includeTests:true',
-            script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: 'gcc-qt6',
-            suffix: 'linux',
-          }
-        - {
             name: 'Build on Linux (Jammy, gcc)',
             image: 'jammy-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
