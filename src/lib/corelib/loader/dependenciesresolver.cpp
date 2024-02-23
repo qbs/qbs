@@ -432,7 +432,7 @@ LoadModuleResult DependenciesResolver::loadModule(
                                                              dependency.parameters);
     } else if (dependency.product) {
         productDep = dependency.product; // We have already done the look-up.
-    } else if (!(productDep = findMatchingProduct(dependency))) {
+    } else if (productDep = findMatchingProduct(dependency); !productDep) {
         moduleItem = findMatchingModule(dependency);
     }
 

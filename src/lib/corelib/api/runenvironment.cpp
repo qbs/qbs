@@ -363,16 +363,16 @@ int RunEnvironment::doRunTarget(const QString &targetBin, const QStringList &arg
                                 << arguments;
             }
         } else {
-            if (QFileInfo(targetExecutable = findExecutable(QStringList()
-                        << QStringLiteral("iostool"))).isExecutable()) {
+            if (targetExecutable = findExecutable(QStringList{QStringLiteral("iostool")});
+                QFileInfo(targetExecutable).isExecutable()) {
                 targetArguments = QStringList()
                         << QStringLiteral("-run")
                         << QStringLiteral("-bundle")
                         << QDir::cleanPath(bundlePath);
                 if (!arguments.empty())
                     targetArguments << QStringLiteral("-extra-args") << arguments;
-            } else if (QFileInfo(targetExecutable = findExecutable(QStringList()
-                        << QStringLiteral("ios-deploy"))).isExecutable()) {
+            } else if (targetExecutable = findExecutable(QStringList{QStringLiteral("ios-deploy")});
+                       QFileInfo(targetExecutable).isExecutable()) {
                 targetArguments = QStringList()
                         << QStringLiteral("--no-wifi")
                         << QStringLiteral("--noninteractive")

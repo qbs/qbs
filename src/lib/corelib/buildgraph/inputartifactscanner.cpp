@@ -103,9 +103,14 @@ static void resolveDepencency(const RawScannedDependency &dependency,
     }
 
     // prioritize found artifacts
-    if ((result->file = dependencyInProduct)
-        || (result->file = dependencyInOtherProduct)
-        || (result->file = fileDependencyArtifact)) {
+    if (dependencyInProduct)
+        result->file = dependencyInProduct;
+    else if (dependencyInOtherProduct)
+        result->file = dependencyInOtherProduct;
+    else
+        result->file = fileDependencyArtifact;
+
+    if (result->file) {
         result->filePath = result->file->filePath();
 
         if (result->file == dependencyInOtherProduct && !productOfDependencyIsDependency) {

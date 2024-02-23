@@ -142,7 +142,8 @@ ValuePtr Item::property(const QString &name) const
     ValuePtr value;
     const Item *item = this;
     do {
-        if ((value = item->m_properties.value(name)))
+        value = item->m_properties.value(name);
+        if (value)
             break;
         item = item->m_prototype;
     } while (item);
