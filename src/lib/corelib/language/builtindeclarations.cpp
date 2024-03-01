@@ -166,25 +166,28 @@ void BuiltinDeclarations::insert(const ItemDeclaration &decl)
 
 static PropertyDeclaration conditionProperty()
 {
-    return PropertyDeclaration(StringConstants::conditionProperty(), PropertyDeclaration::Boolean,
-                               StringConstants::trueValue());
+    return {
+        StringConstants::conditionProperty(),
+        PropertyDeclaration::Boolean,
+        StringConstants::trueValue()};
 }
 
 static PropertyDeclaration alwaysRunProperty()
 {
-    return PropertyDeclaration(StringConstants::alwaysRunProperty(), PropertyDeclaration::Boolean,
-                               StringConstants::falseValue());
+    return {
+        StringConstants::alwaysRunProperty(),
+        PropertyDeclaration::Boolean,
+        StringConstants::falseValue()};
 }
 
 static PropertyDeclaration nameProperty()
 {
-    return PropertyDeclaration(StringConstants::nameProperty(), PropertyDeclaration::String);
+    return {StringConstants::nameProperty(), PropertyDeclaration::String};
 }
 
 static PropertyDeclaration buildDirProperty()
 {
-    return PropertyDeclaration(StringConstants::buildDirectoryProperty(),
-                               PropertyDeclaration::Path);
+    return {StringConstants::buildDirectoryProperty(), PropertyDeclaration::Path};
 }
 
 static PropertyDeclaration prepareScriptProperty()

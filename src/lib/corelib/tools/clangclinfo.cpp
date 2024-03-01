@@ -47,7 +47,7 @@ static std::vector<MSVCInstallInfo> compatibleMsvcs(Logger &logger)
             return true;
         bool ok = false;
         const int major = versions.at(0).toInt(&ok);
-        return !(ok && major >= 15); // support MSVC2017 and above
+        return !ok || major < 15; // support MSVC2017 and above
     };
     Internal::removeIf(msvcs, filter);
     for (const auto &msvc: msvcs) {

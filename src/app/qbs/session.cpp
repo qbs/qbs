@@ -623,10 +623,11 @@ Session::ProductSelection Session::getProductSelection(const QJsonObject &reques
 {
     const QJsonValue productSelection = request.value(StringConstants::productsKey());
     if (productSelection.isArray())
-        return ProductSelection(getProductsByName(fromJson<QStringList>(productSelection)));
-    return ProductSelection(productSelection.toString() == QLatin1String("all")
-                            ? Project::ProductSelectionWithNonDefault
-                            : Project::ProductSelectionDefaultOnly);
+        return {getProductsByName(fromJson<QStringList>(productSelection))};
+    return {
+        productSelection.toString() == QLatin1String("all")
+            ? Project::ProductSelectionWithNonDefault
+            : Project::ProductSelectionDefaultOnly};
 }
 
 Session::FileUpdateData Session::prepareFileUpdate(const QJsonObject &request)

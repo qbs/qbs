@@ -75,7 +75,7 @@ static QVariant getModuleProperty(const PropertyMap &properties, const QString &
 {
     const int lastDotIndex = fullPropertyName.lastIndexOf(QLatin1Char('.'));
     if (lastDotIndex == -1)
-        return QVariant();
+        return {};
     return properties.getModuleProperty(fullPropertyName.left(lastDotIndex),
                                         fullPropertyName.mid(lastDotIndex + 1));
 }

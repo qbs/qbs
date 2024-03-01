@@ -123,7 +123,7 @@ ErrorInfo JsException::toErrorInfo() const
     ErrorInfo e(msg, stackTrace());
     if (e.hasLocation() || !m_fallbackLocation.isValid())
         return e;
-    return ErrorInfo(msg, m_fallbackLocation);
+    return {msg, m_fallbackLocation};
 }
 
 void defineJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop, JSValue val)

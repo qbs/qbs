@@ -168,6 +168,7 @@ ModuleProviderLoader::findOrCreateProviderInfo(
         const QualifiedId &moduleName, const QualifiedId &name, ModuleProviderLookup lookupType,
         const QVariantMap &qbsModule)
 {
+    QBS_CHECK(product.providerConfig);
     const QVariantMap config = product.providerConfig->value(name.toString()).toMap();
     std::lock_guard lock(m_loaderState.topLevelProject().moduleProvidersCacheLock());
     ModuleProvidersCacheKey cacheKey{name.toString(), {}, config, qbsModule, int(lookupType)};

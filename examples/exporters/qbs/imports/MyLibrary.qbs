@@ -83,6 +83,13 @@ StaticLibrary {
         qbs.installDir: FileInfo.joinPaths(installDir, "pkgconfig")
     }
 
+    Depends { name: "Exporter.cmake" }
+    Group {
+        fileTagsFilter: ["Exporter.cmake.package"]
+        qbs.install: install
+        qbs.installDir: FileInfo.joinPaths(installDir, "cmake", product.name)
+    }
+
     Depends { name: 'bundle' }
     bundle.isBundle: false
 }

@@ -1386,9 +1386,9 @@ void TestBlackbox::variantSuffix_data()
                             std::make_pair(QString("unix"), QStringList())});
 }
 
-static bool waitForProcessSuccess(QProcess &p)
+static bool waitForProcessSuccess(QProcess &p, int msecs = 30000)
 {
-    if (!p.waitForStarted() || !p.waitForFinished()) {
+    if (!p.waitForStarted(msecs) || !p.waitForFinished(msecs)) {
         qDebug() << p.errorString();
         return false;
     }
@@ -4097,6 +4097,82 @@ void TestBlackbox::exportToOutsideSearchPath()
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(m_qbsStderr.contains("Dependency 'aModule' not found for product 'theProduct'."),
              m_qbsStderr.constData());
+}
+
+void TestBlackbox::exportsCMake()
+{
+    QFETCH(QStringList, arguments);
+
+    QDir::setCurrent(testDataDir + "/exports-cmake");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters findCMakeParams("resolve", {"-f", "find-cmake.qbs"});
+    QCOMPARE(runQbs(findCMakeParams), 0);
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    const QRegularExpression pattern(
+        QRegularExpression::anchoredPattern(".*---(.*)---.*"),
+        QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString jsonString = match.captured(1);
+    const QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonString.toUtf8());
+    const QJsonObject jsonData = jsonDoc.object();
+
+    rmDirR(relativeBuildDir());
+    const QStringList exporterArgs{"-f", "exports-cmake.qbs"};
+    QbsRunParameters exporterRunParams("build", exporterArgs);
+    exporterRunParams.arguments << arguments;
+    QCOMPARE(runQbs(exporterRunParams), 0);
+
+    if (!jsonData.value(u"cmakeFound").toBool()) {
+        QSKIP("cmake is not installed");
+        return;
+    }
+
+    if (jsonData.value(u"crossCompiling").toBool()) {
+        QSKIP("test is not applicable with cross-compile toolchains");
+        return;
+    }
+
+    const auto cmakeFilePath = jsonData.value(u"cmakeFilePath").toString();
+    QVERIFY(!cmakeFilePath.isEmpty());
+
+    const auto generator = jsonData.value(u"generator").toString();
+    if (generator.isEmpty()) {
+        QSKIP("cannot detect cmake generator");
+        return;
+    }
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    const auto buildEnv = jsonData.value(u"buildEnv").toObject();
+    for (auto it = buildEnv.begin(), end = buildEnv.end(); it != end; ++it) {
+        env.insert(it.key(), it.value().toString());
+    }
+
+    const auto installPrefix = jsonData.value(u"installPrefix").toString();
+    const auto cmakePrefixPath = QFileInfo(relativeBuildDir()).absoluteFilePath() + "/install-root/"
+                                 + installPrefix + "/lib/cmake";
+    const auto sourceDirectory = testDataDir + "/exports-cmake/cmake";
+    QProcess configure;
+    configure.setProcessEnvironment(env);
+    configure.setWorkingDirectory(sourceDirectory);
+    configure.start(
+        cmakeFilePath, {".", "-DCMAKE_PREFIX_PATH=" + cmakePrefixPath, "-G" + generator});
+    QVERIFY(waitForProcessSuccess(configure, 120000));
+
+    QProcess build;
+    build.setProcessEnvironment(env);
+    build.setWorkingDirectory(sourceDirectory);
+    build.start(cmakeFilePath, QStringList{"--build", "."});
+    QVERIFY(waitForProcessSuccess(build));
+}
+
+void TestBlackbox::exportsCMake_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::newRow("dynamic lib") << QStringList("project.isStatic: false");
+    QTest::newRow("static lib") << QStringList("project.isStatic: true");
+    QTest::newRow("framework") << QStringList("project.isBundle: true");
 }
 
 void TestBlackbox::exportsPkgconfig()

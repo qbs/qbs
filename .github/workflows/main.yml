@@ -16,18 +16,6 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Build on Linux (gcc)',
-            image: 'focal-qt6',
-            options: 'modules.cpp.compilerWrapper:ccache
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true
-                      products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}
-                      products.qbs_archive.includeTests:true',
-            script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: 'gcc-qt6',
-            suffix: 'linux',
-          }
-        - {
             name: 'Build on Linux (Jammy, gcc)',
             image: 'jammy-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
@@ -80,19 +68,19 @@ jobs:
         - {
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
             cacheid: 'clang',
           }
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             cacheid: 'cmake',
           }
         - {
             name: 'Build on Linux (gcc, ASAN)',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
@@ -102,7 +90,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, UBSAN)',
-            image: 'focal-qt6',
+            image: 'jammy-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
@@ -367,7 +355,7 @@ jobs:
         - {
             name: 'Run Linux tests (gcc, Qt 5)',
             image: 'jammy-qt5',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }
@@ -381,49 +369,49 @@ jobs:
         - {
             name: 'Run Android tests (Qt 5.15)',
             image: 'jammy-android-515',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Run Android tests (Qt 6.2)',
             image: 'jammy-android-62',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
               name: 'Run Android tests (Qt 6.5)',
               image: 'jammy-android-65',
-              suffix: 'linux',
+              suffix: 'linux-jammy',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
             }
         - {
             name: 'Run Android tests (ndk r19c)',
             image: 'jammy-android-ndk-r19c',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r21e)',
             image: 'jammy-android-ndk-r21e',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Android tests (ndk r23)',
             image: 'jammy-android-ndk-r23',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Run Linux tests (Qt 4.8.7)',
             image: 'jammy-qt4',
-            suffix: 'linux',
+            suffix: 'linux-jammy',
             profile: '',
             script: './scripts/test-qt4.sh',
           }
@@ -458,10 +446,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v1
       with:
-        name: qbs-linux-${{ github.run_id }}.tar.gz
+        name: qbs-linux-jammy-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xzf qbs-linux-${{ github.run_id }}.tar.gz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-jammy-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
       run: docker-compose pull jammy-baremetal
     - name: arm-none-eabi-gcc-10_3

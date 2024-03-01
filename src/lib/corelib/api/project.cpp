@@ -797,8 +797,14 @@ RunEnvironment Project::getRunEnvironment(const ProductData &product,
         const QStringList &setupRunEnvConfig, Settings *settings) const
 {
     const ResolvedProductPtr resolvedProduct = d->internalProduct(product);
-    return RunEnvironment(resolvedProduct, d->internalProject, installOptions, environment,
-                          setupRunEnvConfig, settings, d->logger);
+    return {
+        resolvedProduct,
+        d->internalProject,
+        installOptions,
+        environment,
+        setupRunEnvConfig,
+        settings,
+        d->logger};
 }
 
 /*!

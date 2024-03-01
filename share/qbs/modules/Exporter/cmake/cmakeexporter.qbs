@@ -1,6 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2024 Raphaël Cotty <raphael.cotty@gmail.com>
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com)
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,91 +38,47 @@
 **
 ****************************************************************************/
 
-#include "nodetreedumper.h"
+import qbs.File
+import qbs.FileInfo
+import qbs.ModUtils
+import qbs.TextFile
 
-#include "artifact.h"
-#include "productbuilddata.h"
-#include "rulenode.h"
+import "cmakeexporter.js" as HelperFunctions
 
-#include <language/language.h>
-#include <tools/qbsassert.h>
+Module {
+    property string configFileName: packageName + "Config.cmake"
+    property string versionFileName: packageName + "ConfigVersion.cmake"
+    property string packageName: product.targetName
 
-#include <QtCore/qiodevice.h>
+    additionalProductTypes: ["Exporter.cmake.package"]
 
-namespace qbs {
-namespace Internal {
+    Rule {
+        multiplex: true
+        requiresInputs: false
 
-static int indentWidth() { return 4; }
+        auxiliaryInputs: {
+            if (product.type.includes("staticlibrary"))
+                return ["staticlibrary"];
+            if (product.type.includes("dynamiclibrary"))
+                return ["dynamiclibrary"];
+        }
 
-NodeTreeDumper::NodeTreeDumper(QIODevice &outDevice) : m_outDevice(outDevice)
-{
-}
-
-void NodeTreeDumper::start(const QVector<ResolvedProductPtr> &products)
-{
-    m_indentation = 0;
-    for (const ResolvedProductPtr &p : products) {
-        if (!p->buildData)
-            continue;
-        m_currentProduct = p;
-        for (Artifact * const root : p->buildData->rootArtifacts())
-            root->accept(this);
-        m_visited.clear();
-        QBS_CHECK(m_indentation == 0);
+        Artifact {
+            filePath: product.Exporter.cmake.configFileName
+            fileTags: ["Exporter.cmake.package", "Exporter.cmake.configFile"]
+        }
+        Artifact {
+            filePath: product.Exporter.cmake.versionFileName
+            fileTags: ["Exporter.cmake.package", "Exporter.cmake.versionFile"]
+        }
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.description = "generate cmake package files";
+            cmd.sourceCode = function() {
+                HelperFunctions.writeConfigFile(project, product, outputs);
+                HelperFunctions.writeVersionFile(product, outputs);
+            }
+            return [cmd];
+        }
     }
 }
-
-bool NodeTreeDumper::visit(Artifact *artifact)
-{
-    return doVisit(artifact, artifact->fileName());
-}
-
-void NodeTreeDumper::endVisit(Artifact *artifact)
-{
-    Q_UNUSED(artifact);
-    doEndVisit();
-}
-
-bool NodeTreeDumper::visit(RuleNode *rule)
-{
-    return doVisit(rule, rule->toString());
-}
-
-void NodeTreeDumper::endVisit(RuleNode *rule)
-{
-    Q_UNUSED(rule);
-    doEndVisit();
-}
-
-void NodeTreeDumper::doEndVisit()
-{
-    unindent();
-}
-
-void NodeTreeDumper::indent()
-{
-    m_outDevice.write("\n");
-    m_indentation += indentWidth();
-}
-
-void NodeTreeDumper::unindent()
-{
-    m_indentation -= indentWidth();
-}
-
-bool NodeTreeDumper::doVisit(BuildGraphNode *node, const QString &nodeRepr)
-{
-    m_outDevice.write(indentation());
-    m_outDevice.write(nodeRepr.toLocal8Bit());
-    indent();
-    const bool wasVisited = !m_visited.insert(node).second;
-    return !wasVisited && node->product == m_currentProduct;
-}
-
-QByteArray NodeTreeDumper::indentation() const
-{
-    return {m_indentation, ' '};
-}
-
-} // namespace Internal
-} // namespace qbs

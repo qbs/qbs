@@ -159,8 +159,7 @@ static JSSourceValue::AltProperty getPropertyData(const Item *propertiesItem, co
             throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
                             propertiesItem->location());
         }
-        return JSSourceValue::AltProperty(StringConstants::falseValue(),
-                                          propertiesItem->location());
+        return {StringConstants::falseValue(), propertiesItem->location()};
     }
     if (Q_UNLIKELY(value->type() != Value::JSSourceValueType)) {
         throw ErrorInfo(Tr::tr("Properties.%1 must be a value binding.").arg(name),
@@ -180,7 +179,7 @@ static JSSourceValue::AltProperty getPropertyData(const Item *propertiesItem, co
 
     }
     const JSSourceValuePtr srcval = std::static_pointer_cast<JSSourceValue>(value);
-    return JSSourceValue::AltProperty(srcval->sourceCodeForEvaluation(), srcval->location());
+    return {srcval->sourceCodeForEvaluation(), srcval->location()};
 }
 
 void ASTPropertiesItemHandler::handlePropertiesBlock(const Item *propertiesItem)
