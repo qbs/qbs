@@ -3190,6 +3190,12 @@ void TestBlackbox::pathProbe()
         QVERIFY2(m_qbsStderr.contains("Probe failed to find files"), m_qbsStderr);
 }
 
+void TestBlackbox::pathListInProbe()
+{
+    QDir::setCurrent(testDataDir + "/path-list-in-probe");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::pchChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/pch-change-tracking");

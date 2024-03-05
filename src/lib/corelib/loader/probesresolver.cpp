@@ -198,10 +198,12 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
                 if (JsException ex = engine->checkAndClearException({}))
                     throw ex.toErrorInfo();
                 newValue = getJsVariant(ctx, v);
-                // special case, string lists are represented as js arrays and and we don't type
-                // info when converting
-                if (decl.type() == PropertyDeclaration::StringList
-                    && newValue.userType() == QMetaType::QVariantList) {
+                // Special case, string and path lists are represented as js arrays but we don't
+                // want to make them const as we do for object lists. Converting to QStringList
+                // allows to distinguish between these two cases in ScriptEngine::asJsValue
+                if (newValue.userType() == QMetaType::QVariantList
+                    && (decl.type() == PropertyDeclaration::StringList
+                        || decl.type() == PropertyDeclaration::PathList)) {
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
                     newValue.convert(QMetaType(QMetaType::QStringList));
 #else

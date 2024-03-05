@@ -232,6 +232,7 @@ private slots:
     void overrideProjectProperties();
     void pathProbe_data();
     void pathProbe();
+    void pathListInProbe();
     void pchChangeTracking();
     void perGroupDefineInExportItem();
     void pkgConfigProbe();
