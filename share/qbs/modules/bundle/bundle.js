@@ -152,6 +152,12 @@ function _assign(target, source) {
 
 function macOSSpecsPaths(version, developerPath) {
     var result = [];
+    if (Utilities.versionCompare(version, "15.3") >= 0) {
+        result.push(FileInfo.joinPaths(
+            developerPath, "..", "SharedFrameworks", "XCBuild.framework", "PlugIns",
+            "XCBBuildService.bundle", "Contents", "PlugIns", "XCBSpecifications.ideplugin",
+            "Contents", "Resources"));
+    }
     if (Utilities.versionCompare(version, "14.3") >= 0) {
         result.push(FileInfo.joinPaths(
                     developerPath, "Library", "Xcode", "Plug-ins", "XCBSpecifications.ideplugin",
