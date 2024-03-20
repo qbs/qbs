@@ -40,6 +40,10 @@
         \li  \l{tutorial-2.html}{Static Library}
         \li  \l{tutorial-3.html}{Dynamic Library}
         \li  \l{tutorial-4.html}{Convenience Items}
+        \li  \l{tutorial-5.html}{Autotest}
+        \li  \l{tutorial-6.html}{Project Properties}
+        \li  \l{tutorial-7.html}{Buildconfig Module}
+        \li  \l{tutorial-8.html}{Configurable Library}
     \endlist
 */
 
@@ -237,7 +241,7 @@
 /*!
     \previouspage tutorial-3.html
     \page tutorial-4.html
-    \nextpage howtos.html
+    \nextpage tutorial-5.html
 
     \title Convenience Items
 
@@ -290,4 +294,260 @@
     to extend its value rather than override it. Here, we concatenate the list of defines from the
     base item \c{["MYLIB_LIBRARY"]} with a new list, specific to this product (namely,
     \c{['CRUCIAL_DEFINE']}).
+*/
+
+/*!
+    \previouspage tutorial-4.html
+    \page tutorial-5.html
+    \nextpage tutorial-6.html
+
+    \title Autotest
+
+    Now that we can re-use our base items, let's add a simple autotest. We inherit the new item
+    from the \c MyApplication item and add an \c "autotest" type:
+
+    \snippet ../tutorial/chapter-5/qbs/imports/MyAutoTest.qbs 0
+
+    This additional type is required for the helper \l{AutotestRunner} item. This item runs all
+    products with the \c "autotest" type when it is being built. It also implicitly depends on all
+    such products, so they will be built before running as well.
+
+    Let's add this item to our top-level \l{Project} item:
+
+    \code
+    Project {
+        name: "My Project"
+        minimumQbsVersion: "2.0"
+        // ...
+        AutotestRunner {
+            timeout: 60
+        }
+    }
+    \endcode
+    Here we set the \l{AutotestRunner::timeout}{timeout} property to 60 seconds so that our runner
+    kills tests that run way too long.
+
+    Now we need to add our first test. Let's create a new product with the following content:
+
+    \snippet ../tutorial/chapter-5/test/test.qbs 0
+
+    Here we depend on our library (which we are going to test), set the product
+    \l{Product::name}{name}, and specify the source file, which looks like this:
+    \snippet ../tutorial/chapter-5/test/test.c 0
+
+    The test compares the value from the library with the value from the command line.
+
+    Don't forget to add the new test product to the references property in the Project:
+    \snippet ../tutorial/chapter-5/myproject.qbs 0
+
+    Now we can build the autotest product - this will also launch our test:
+    \code
+    $ qbs build -p "autotest-runner"
+    ...
+    running test mytest [autotest-runner]
+    Build done for configuration default.
+    \endcode
+*/
+
+/*!
+    \previouspage tutorial-5.html
+    \page tutorial-6.html
+    \nextpage tutorial-7.html
+
+    \title Project Properties
+
+    It would be nice if our project was configurable. Let's add some properties to our root project
+    file:
+    \snippet ../tutorial/chapter-6/myproject.qbs 0
+
+    Now we can use those properties in our helper items and in products:
+
+    \snippet ../tutorial/chapter-6/qbs/imports/MyApplication.qbs 0
+
+    Here, we access the project file using the special
+    \l{special-property-values.html#project}{project} value. If the nearest project in the project
+    tree does not have the desired property, \QBS looks it up in the parent project, potentially
+    all the way up to the top-level project.
+    We also use the \l{Application::installDebugInformation}{installDebugInformation}
+    property here. By default, it has the same value as \l{Application::install}{install} but we
+    want to make the debug information install optional.
+
+    Let's now disable the tests if \c project.withTests is \c false:
+
+    \snippet ../tutorial/chapter-6/myproject.qbs 1
+
+    Here we use the \l{Properties} item within the \l{SubProject} item. This item allows to
+    override a subproject's properties which can be useful when adding some other \QBS project as a
+    Git submodule. Of course, it is not very useful in our particular case since we only set the
+    \l{Project::condition}{Project.condition} property. We could achieve the same effect by
+    setting the \l{SubProject::condition}{condition} property of the \l{SubProject} item:
+    \code
+        SubProject {
+            filePath: "test/test.qbs"
+            condition: parent.withTests
+        }
+    \endcode
+    Another way would be to disable the test product. That way, an IDE would still show the whole
+    project tree including disabled tests:
+    \code
+        // qbs/imports/MyAutoTest.qbs
+        MyApplication {
+            condition: project.withTests
+            type: base.concat(["autotest"])
+        }
+    \endcode
+
+    Let's finally make our \l{AutotestRunner} configurable too:
+    \snippet ../tutorial/chapter-6/myproject.qbs 2
+
+    There are several ways to override project properties from the command line. First, the special
+    \c project variable can be used to set the properties of the top-level project:
+    \code
+        $ qbs resolve project.withTests:false
+    \endcode
+
+    You can also refer to properties using project's \l{Project::name}{name}:
+
+    \code
+        $ qbs resolve "projects.My Project.withTests:false"
+    \endcode
+
+    This can again be useful for accessing the properties of external sub-projects. Note that since
+    the project name contains spaces, we use quotes here.
+*/
+
+/*!
+    \previouspage tutorial-6.html
+    \page tutorial-7.html
+    \nextpage tutorial-8.html
+
+    \title Buildconfig Module
+
+    In the previous chapter, we added some properties to our main \l{Project} file. While this is a
+    perfect approach for \e public properties of the project, sometimes we want
+    to add some \e private properties for better tuning. Of course, we could put everything
+    in the \l{Project} file, but that would make it very convoluted. Also, accessing the top-level
+    project all the way from products makes things strongly tied.
+
+    You can also use a \l{Module} that \l{Product}{products} may depend on. That way, a
+    \l{Product} only uses properties of the module it depends on without the need to know about
+    the top-level project.
+
+    Let's create a file named \c{mybuildconfig.qbs} and put it into the
+    \c{qbs/modules/mybuildconfig} directory, near the \c{qbs/imports} directory:
+    \code
+        // qbs/modules/mybuildconfig.qbs
+        Module {
+        }
+    \endcode
+
+    So far, this is just an empty \l{Module} so let's add some properties to it:
+    \snippet ../tutorial/chapter-7/qbs/modules/mybuildconfig/mybuildconfig.qbs 0
+
+    We added the \c appInstallDir and \c libInstallDir properties that will allow us to configure
+    the installation location of the our application and library, respectively.
+
+    Now we can use our module in the \c{MyApplication.qbs} item:
+    \snippet ../tutorial/chapter-7/qbs/imports/MyApplication.qbs 0
+
+    We pull in the new module using the \l{Depends} item, similar to how we pulled in
+    the \l{cpp} module dependency earlier. We also set the \l{Application::installDir}{installDir}
+    property to the corresponding module property, namely to \c{mybuildconfig.appInstallDir}.
+
+    \QBS \l{Module}{modules} have the feature to automatically export properties of other modules.
+    Those exported properties are merged in the resulting product. We can use this feature to set
+    the \l{cpp::rpaths}{cpp.rpaths} in our module rather than in products:
+
+    \snippet ../tutorial/chapter-7/qbs/modules/mybuildconfig/mybuildconfig.qbs 1
+
+    Here, we inject the dependency on the \l{cpp} module and calculate the \c{libRPaths} property.
+    This is a relative path from the \c{product.installDir} (which is either \c{"bin"}
+    or \c{"lib"}, depending on product type to \c{libInstallDir}). Finally, we set
+    \l{cpp::rpaths}{cpp.rpaths} to this property. This way, those \c rpaths will be automatically
+    exported to all products that depend on the \c{mybuildconfig} module.
+
+    Now, we can also use our new module in the library item:
+    \snippet ../tutorial/chapter-7/qbs/imports/MyLibrary.qbs 0
+
+    Let's change the library folder name from \c{"lib"} to \c{"lib64"} when building our project:
+    \code
+        $ qbs modules.mybuildconfig.libDirName:lib64
+        ...
+        $ ls default/install-root/usr/local/
+        bin    lib64
+    \endcode
+*/
+
+/*!
+    \previouspage tutorial-7.html
+    \page tutorial-8.html
+    \nextpage howtos.html
+
+    \title Configurable Library
+
+    In this chapter, we will make our library more configurable. We will add configuration options
+    to be able to choose between static and dynamic builds.
+
+    We start with some new properties in the \c mybuildconfig module:
+    \code
+    Module {
+        ...
+        property bool staticBuild: false
+        property bool installStaticLib: true
+        ...
+    }
+    \endcode
+
+    We need to do some modifications to export macros in the \c lib/lib_global.h header:
+    \snippet ../tutorial/chapter-8/lib/lib_global.h 0
+
+    Here' we added a new branch when \c MYLIB_STATIC_LIBRARY is defined. In that case, we make
+    the \c MY_LIB_EXPORT macro empty.
+
+    Now, let's modify the \c qbs/imports/MyLibrary.qbs file as follows:
+    \snippet ../tutorial/chapter-8/qbs/imports/MyLibrary.qbs 0
+
+    First thing to notice is that we changed the type of the item from \l{DynamicLibrary} to the
+    \l{Library} item which is a common base item for dynamic and static libraries.
+
+    Second, we change the \l{Product::type}{type} of the product so it depends on the \c staticBuild
+    property:
+    \code
+    type: mybuildconfig.staticBuild ? "staticlibrary" : "dynamiclibrary"
+    \endcode
+
+    Third, we change our \e{export macro} to be different in the static and dynamic builds to
+    correspond with the changes we made to the \c lib_global.h:
+    \code
+    readonly property string _nameUpper : name.replace(" ", "_").toUpperCase()
+    property string libraryMacro: _nameUpper + "_LIBRARY"
+    property string staticLibraryMacro: _nameUpper + "_STATIC_LIBRARY"
+    cpp.defines: mybuildconfig.staticBuild ? [staticLibraryMacro] : [libraryMacro]
+    \endcode
+
+    Note that in a static build we export the \c MYLIB_STATIC_LIBRARY macro so that the dependent
+    products will know whether they link to a static or dynamic library:
+    \code
+    Export {
+        ...
+        cpp.defines: exportingProduct.mybuildconfig.staticBuild
+            ? [exportingProduct.staticLibraryMacro] : []
+    }
+    \endcode
+
+    Now we can build our project in dynamic or static mode:
+    \code
+    $ qbs resolve modules.mybuildconfig.staticBuild:false && qbs build
+    ...
+    $ ls default/install-root/usr/local/lib/
+        libmylib.1.0.0.so
+        libmylib.1.0.so
+        libmylib.1.so
+        libmylib.so
+    $ rm -r default
+    $ qbs resolve modules.mybuildconfig.staticBuild:true && qbs build
+    ...
+    $ $ ls default/install-root/usr/local/lib/
+        libmylib.a
+    \endcode
 */

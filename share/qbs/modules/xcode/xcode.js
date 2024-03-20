@@ -205,9 +205,16 @@ function boolFromSdkOrPlatform(varName, sdkProps, platformProps, defaultValue) {
 function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath,
                         developerPath) {
     if (Utilities.versionCompare(version, "13.3") >= 0) {
-        var pluginsDir = Utilities.versionCompare(version, "14.3") >= 0
-            ? FileInfo.joinPaths(developerPath, "Library", "Xcode", "Plug-ins")
-            : FileInfo.joinPaths(developerPath, "..", "PlugIns");
+        var pluginsDir;
+        if (Utilities.versionCompare(version, "15.3") >= 0) {
+            pluginsDir = FileInfo.joinPaths(developerPath, "..",
+                "SharedFrameworks", "XCBuild.framework", "PlugIns", "XCBBuildService.bundle",
+                "Contents", "PlugIns");
+        } else if (Utilities.versionCompare(version, "14.3") >= 0) {
+            pluginsDir = FileInfo.joinPaths(developerPath, "Library", "Xcode", "Plug-ins");
+        } else {
+            pluginsDir = FileInfo.joinPaths(developerPath, "..", "PlugIns");
+        }
         var baseDir = FileInfo.joinPaths(pluginsDir,
                                          "XCBSpecifications.ideplugin", "Contents", "Resources");
 
