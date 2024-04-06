@@ -44,6 +44,7 @@
         \li  \l{tutorial-6.html}{Project Properties}
         \li  \l{tutorial-7.html}{Buildconfig Module}
         \li  \l{tutorial-8.html}{Configurable Library}
+        \li  \l{tutorial-9.html}{Version Header}
     \endlist
 */
 
@@ -481,7 +482,7 @@
 /*!
     \previouspage tutorial-7.html
     \page tutorial-8.html
-    \nextpage howtos.html
+    \nextpage tutorial-9.html
 
     \title Configurable Library
 
@@ -549,5 +550,98 @@
     ...
     $ $ ls default/install-root/usr/local/lib/
         libmylib.a
+    \endcode
+*/
+
+/*!
+    \previouspage tutorial-8.html
+    \page tutorial-9.html
+    \nextpage howtos.html
+
+    \title Version Header
+
+    To create new files, such as version headers, during the build, use \l{Rules}. Every command
+    \QBS executes, such as compile or linker commands, is described by a corresponding Rule in a
+    Module or a Product.
+
+    In this section, we will create a simple header with a string constant based on the variable
+    in our project.
+
+    First, we add this variable to our \c mybuildconfig module:
+    \snippet ../tutorial/chapter-9/qbs/modules/mybuildconfig/mybuildconfig.qbs 0
+
+    Next, we create a new file, \c{version.h.in}, located in the \c{version-header} directory. This
+    file contains the template for our header:
+    \snippet ../tutorial/chapter-9/version-header/version.h.in 0
+
+    Now we create a file called \c{version-header.qbs} in the same directory. This file contains
+    a \l{Product} with a \l{Rule} that turns the \c{version.h.in} into a real header.
+    Let's go through the contents of the file:
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 0
+
+    First, we import \l{TextFile Service}{TextFile}. We will need this class to read the template
+    and write the resulting header. Second, we declare a new \l{Product} named \c{"version_header"}
+    and with the \c{"hpp"} type. This is the type of the artifact we will create in the Rule.
+    Third, we add the dependency on the \c mybuildconfig module to use the new
+    \c mybuildconfig.productVersion variable.
+
+    We also add a \l{Group} with the template file and assign the \c{version_h_in} tag to the file:
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 1
+
+    \QBS Rules work with file tags, instead of working with files directly, which makes
+    it easy to reuse rules. The name of the tag is chosen arbitrarily here. We could use the name
+    of the file as a tag, but to avoid confusion between file name and file tag, we use underscores
+    in the tag instead of dots.
+
+    Now we can create a Rule itself:
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 2
+    Here, we specify that our Rule takes files tagged as \c "version_h_in" and produces an
+    \l{Artifact} with the name \c "version.h" and tagged \c "hpp". By default, files are created in
+    the \l{Product::destinationDirectory}{Product.destinationDirectory} folder. We add the \c "hpp"
+    tag for the header as this is the tag the \l{cpp}{cpp module} uses for headers. That way, \QBS
+    can track changes and process our generated file the same way it treats all other
+    headers. Note that earlier we set the product type to \c "hpp" as well. \QBS requires that
+    artifact type should match the product type directly or be accessible via the chain of Rules.
+    Otherwise, the Rule won't be executed. For details, see the \l{Rules and Product Types}
+    section.
+
+    The actual code generation happens in the \l{Rule::prepare}{Rule.prepare} script:
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 3
+
+    In this script, we create a \l {JavaScriptCommand} object and set some meta properties, such as
+    the description and highlight. For details about Commands, see
+    \l{Command and JavaScriptCommand}. In the sourceCode variable, we create a JavaScript
+    function that opens the \l{The inputs and outputs Variables}{input file}, reads its content
+    using the \l{TextFile Service}{TextFile} object, replaces the \c "${PRODUCT_VERSION}"
+    placeholder with the actual value in the \c product.mybuildconfig.productVersion variable, and
+    writes the resulting content into the \l{The inputs and outputs Variables}{output file}.
+
+    Finally, we export the \l{Product::buildDirectory}{exportingProduct.buildDirectory} so that
+    products that depend on this product can include our generated header:
+
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 4
+
+    The full content of the file should look like this:
+
+    \snippet ../tutorial/chapter-9/version-header/version-header.qbs 5
+
+    Let's now add our Product into the root project so \QBS will be aware of it:
+    \snippet ../tutorial/chapter-9/myproject.qbs 0
+
+    We also need to add the dependency on the \c "version_header" to our application:
+    \snippet ../tutorial/chapter-9/app/app.qbs 0
+
+    Now we can include the header in the \c main.c file and print the contents of the string
+    constant:
+
+    \snippet ../tutorial/chapter-9/app/main.c 0
+
+    Let's try and run our application. You should see something like this:
+    \code
+    $ qbs run -p "My Application"
+    Starting target. Full command line: .../default/install-root/usr/local/bin/myapp
+    Hello, world
+    Hello from library
+    ProductVersion = 1.0.0
     \endcode
 */

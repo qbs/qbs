@@ -1,0 +1,3 @@
+MyApplication {
+    type: ["application", "autotest"]
+}
