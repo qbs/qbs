@@ -83,7 +83,6 @@ class ScriptEngine;
 using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet>;
 using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 
-enum class FallbackMode { Enabled, Disabled };
 enum class Deferral { Allowed, NotAllowed };
 enum class ProductDependency { None, Single, Bulk };
 

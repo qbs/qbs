@@ -81,7 +81,6 @@ public:
     bool dryRun() const;
     bool forceProbesExecution() const;
     bool waitLockBuildGraph() const;
-    bool disableFallbackProvider() const;
     bool logTime() const;
     bool withNonDefaultProducts() const;
     bool buildBeforeInstalling() const;

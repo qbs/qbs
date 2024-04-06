@@ -78,8 +78,6 @@
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
     \include cli-options.qdocinc show-progress
-    \target no-fallback-module-provider
-    \include cli-options.qdocinc no-fallback-module-provider
     \include cli-options.qdocinc wait-lock
 
     \section1 Parameters

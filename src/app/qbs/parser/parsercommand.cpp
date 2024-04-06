@@ -209,8 +209,7 @@ static QList<CommandLineOption::Type> resolveOptions()
             CommandLineOption::ForceProbesOptionType,
             CommandLineOption::LogTimeOptionType,
             CommandLineOption::DeprecationWarningsOptionType,
-            CommandLineOption::JobsOptionType,
-            CommandLineOption::DisableFallbackProviderType};
+            CommandLineOption::JobsOptionType};
 }
 
 QList<CommandLineOption::Type> ResolveCommand::supportedOptions() const

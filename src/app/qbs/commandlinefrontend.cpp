@@ -152,7 +152,6 @@ void CommandLineFrontend::start()
         params.setDryRun(m_parser.dryRun());
         params.setForceProbeExecution(m_parser.forceProbesExecution());
         params.setWaitLockBuildGraph(m_parser.waitLockBuildGraph());
-        params.setFallbackProviderEnabled(!m_parser.disableFallbackProvider());
         params.setLogElapsedTime(m_parser.logTime());
         params.setSettingsDirectory(m_settings->baseDirectory());
         params.setOverrideBuildGraphData(m_parser.command() == ResolveCommandType);

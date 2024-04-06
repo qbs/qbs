@@ -99,7 +99,6 @@ public:
     bool logElapsedTime;
     bool forceProbeExecution;
     bool waitLockBuildGraph;
-    bool fallbackProviderEnabled = true;
     SetupProjectParameters::RestoreBehavior restoreBehavior;
     ErrorHandlingMode propertyCheckingMode;
     ErrorHandlingMode productErrorMode;
@@ -166,7 +165,6 @@ SetupProjectParameters SetupProjectParameters::fromJson(const QJsonObject &data)
     setValueFromJson(params.d->logElapsedTime, data, "log-time");
     setValueFromJson(params.d->forceProbeExecution, data, "force-probe-execution");
     setValueFromJson(params.d->waitLockBuildGraph, data, "wait-lock-build-graph");
-    setValueFromJson(params.d->fallbackProviderEnabled, data, "fallback-provider-enabled");
     setValueFromJson(params.d->environment, data, "environment");
     setValueFromJson(params.d->restoreBehavior, data, "restore-behavior");
     setValueFromJson(params.d->propertyCheckingMode, data, "error-handling-mode");
@@ -620,22 +618,6 @@ bool SetupProjectParameters::waitLockBuildGraph() const
 void SetupProjectParameters::setWaitLockBuildGraph(bool wait)
 {
     d->waitLockBuildGraph = wait;
-}
-
-/*!
- * \brief Returns true if qbs should fall back to pkg-config if a dependency is not found.
- */
-bool SetupProjectParameters::fallbackProviderEnabled() const
-{
-    return d->fallbackProviderEnabled;
-}
-
-/*!
- * Controls whether to fall back to pkg-config if a dependency is not found.
- */
-void SetupProjectParameters::setFallbackProviderEnabled(bool enable)
-{
-    d->fallbackProviderEnabled = enable;
 }
 
 /*!

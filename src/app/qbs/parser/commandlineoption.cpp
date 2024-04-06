@@ -710,17 +710,6 @@ QString WaitLockOption::longRepresentation() const
     return QStringLiteral("--wait-lock");
 }
 
-QString DisableFallbackProviderOption::description(CommandType) const
-{
-    return Tr::tr("%1\n\tDo not fall back to pkg-config if a dependency is not found.\n")
-            .arg(longRepresentation());
-}
-
-QString DisableFallbackProviderOption::longRepresentation() const
-{
-    return QStringLiteral("--no-fallback-module-provider");
-}
-
 QString RunEnvConfigOption::description(CommandType command) const
 {
     Q_UNUSED(command);

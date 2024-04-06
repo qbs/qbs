@@ -128,9 +128,6 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::WaitLockOptionType:
             option = new WaitLockOption;
             break;
-        case CommandLineOption::DisableFallbackProviderType:
-            option = new DisableFallbackProviderOption;
-            break;
         case CommandLineOption::RunEnvConfigOptionType:
             option = new RunEnvConfigOption;
             break;
@@ -277,12 +274,6 @@ GeneratorOption *CommandLineOptionPool::generatorOption() const
 WaitLockOption *CommandLineOptionPool::waitLockOption() const
 {
     return static_cast<WaitLockOption *>(getOption(CommandLineOption::WaitLockOptionType));
-}
-
-DisableFallbackProviderOption *CommandLineOptionPool::disableFallbackProviderOption() const
-{
-    return static_cast<DisableFallbackProviderOption *>(
-                getOption(CommandLineOption::DisableFallbackProviderType));
 }
 
 RunEnvConfigOption *CommandLineOptionPool::runEnvConfigOption() const

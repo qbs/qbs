@@ -132,9 +132,6 @@ public:
     bool waitLockBuildGraph() const;
     void setWaitLockBuildGraph(bool wait);
 
-    bool fallbackProviderEnabled() const;
-    void setFallbackProviderEnabled(bool enable);
-
     QProcessEnvironment environment() const;
     void setEnvironment(const QProcessEnvironment &env);
     QProcessEnvironment adjustedEnvironment() const;

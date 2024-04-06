@@ -68,12 +68,15 @@ namespace qbs::Internal {
 class ModuleLoader
 {
 public:
-    ModuleLoader(LoaderState &loaderState, ProductContext &product,
-                 const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-                 FallbackMode fallbackMode)
-        : m_loaderState(loaderState), m_product(product),
-          m_dependsItemLocation(dependsItemLocation), m_moduleName(moduleName),
-          m_fallbackMode(fallbackMode)
+    ModuleLoader(
+        LoaderState &loaderState,
+        ProductContext &product,
+        const CodeLocation &dependsItemLocation,
+        const QualifiedId &moduleName)
+        : m_loaderState(loaderState)
+        , m_product(product)
+        , m_dependsItemLocation(dependsItemLocation)
+        , m_moduleName(moduleName)
     {}
 
     Item *load();
@@ -92,7 +95,6 @@ private:
     ProductContext &m_product;
     const CodeLocation &m_dependsItemLocation;
     const QualifiedId &m_moduleName;
-    const FallbackMode m_fallbackMode;
 };
 
 struct PrioritizedItem
@@ -142,11 +144,13 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
     return maxIt->item;
 }
 
-Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
-        const CodeLocation &dependsItemLocation, const QualifiedId &moduleName,
-        FallbackMode fallbackMode)
+Item *searchAndLoadModuleFile(
+    LoaderState &loaderState,
+    ProductContext &product,
+    const CodeLocation &dependsItemLocation,
+    const QualifiedId &moduleName)
 {
-    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName, fallbackMode).load();
+    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName).load();
 }
 
 Item *ModuleLoader::load()
@@ -158,7 +162,7 @@ Item *ModuleLoader::load()
         AccumulatingTimer providersTimer(m_loaderState.parameters().logElapsedTime()
                                          ? &m_product.timingData.moduleProviders : nullptr);
         auto result = ModuleProviderLoader(m_loaderState).executeModuleProviders(
-                    m_product, m_dependsItemLocation, m_moduleName, m_fallbackMode);
+                    m_product, m_dependsItemLocation, m_moduleName);
         if (result.searchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << m_moduleName.toString()
                                     << "with newly added search paths from module provider";

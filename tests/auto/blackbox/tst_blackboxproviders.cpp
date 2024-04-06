@@ -87,60 +87,6 @@ void TestBlackboxProviders::brokenProvider()
     QCOMPARE(m_qbsStderr.count("This provider is broken"), 2);
 }
 
-void TestBlackboxProviders::fallbackModuleProvider_data()
-{
-    QTest::addColumn<bool>("fallbacksEnabledGlobally");
-    QTest::addColumn<bool>("fallbacksEnabledInProduct");
-    QTest::addColumn<QStringList>("pkgConfigLibDirs");
-    QTest::addColumn<bool>("successExpected");
-    QTest::newRow("without custom lib dir, fallbacks disabled globally and in product")
-            << false << false << QStringList() << false;
-    QTest::newRow("without custom lib dir, fallbacks disabled globally, enabled in product")
-            << false << true << QStringList() << false;
-    QTest::newRow("without custom lib dir, fallbacks enabled globally, disabled in product")
-            << true << false << QStringList() << false;
-    QTest::newRow("without custom lib dir, fallbacks enabled globally and in product")
-            << true << true << QStringList() << false;
-    QTest::newRow("with custom lib dir, fallbacks disabled globally and in product")
-            << false << false << QStringList(testDataDir + "/fallback-module-provider/libdir")
-            << false;
-    QTest::newRow("with custom lib dir, fallbacks disabled globally, enabled in product")
-            << false << true << QStringList(testDataDir + "/fallback-module-provider/libdir")
-            << false;
-    QTest::newRow("with custom lib dir, fallbacks enabled globally, disabled in product")
-            << true << false << QStringList(testDataDir + "/fallback-module-provider/libdir")
-            << false;
-    QTest::newRow("with custom lib dir, fallbacks enabled globally and in product")
-            << true << true << QStringList(testDataDir + "/fallback-module-provider/libdir")
-            << true;
-}
-
-void TestBlackboxProviders::fallbackModuleProvider()
-{
-    QFETCH(bool, fallbacksEnabledInProduct);
-    QFETCH(bool, fallbacksEnabledGlobally);
-    QFETCH(QStringList, pkgConfigLibDirs);
-    QFETCH(bool, successExpected);
-
-    QDir::setCurrent(testDataDir + "/fallback-module-provider");
-    static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
-    QbsRunParameters resolveParams("resolve",
-        QStringList{"modules.pkgconfig.libDirs:" + pkgConfigLibDirs.join(','),
-                    "products.p.fallbacksEnabled:" + b2s(fallbacksEnabledInProduct),
-                    "--force-probe-execution"});
-    if (!fallbacksEnabledGlobally)
-        resolveParams.arguments << "--no-fallback-module-provider";
-    QCOMPARE(runQbs(resolveParams), 0);
-    const bool pkgConfigPresent = m_qbsStdout.contains("pkg-config present: true");
-    const bool pkgConfigNotPresent = m_qbsStdout.contains("pkg-config present: false");
-    QVERIFY(pkgConfigPresent != pkgConfigNotPresent);
-    if (pkgConfigNotPresent)
-        successExpected = false;
-    QbsRunParameters buildParams;
-    buildParams.expectFailure = !successExpected;
-    QCOMPARE(runQbs(buildParams) == 0, successExpected);
-}
-
 void TestBlackboxProviders::moduleProviders()
 {
     QDir::setCurrent(testDataDir + "/module-providers");

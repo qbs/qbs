@@ -89,7 +89,6 @@ public:
     VersionRange versionRange;
     QVariantMap parameters;
     bool limitToSubProject = false;
-    FallbackMode fallbackMode = FallbackMode::Enabled;
     bool requiredLocally = true;
     bool requiredGlobally = true;
 };
@@ -123,7 +122,6 @@ public:
     VersionRange versionRange;
     QVariantMap parameters;
     bool limitToSubProject = false;
-    FallbackMode fallbackMode = FallbackMode::Enabled;
     bool requiredLocally = true;
     bool requiredGlobally = true;
     bool checkProduct = true;
@@ -592,8 +590,8 @@ Item *DependenciesResolver::findMatchingModule(
         return nullptr;
     }
 
-    if (Item *moduleItem = searchAndLoadModuleFile(m_loaderState, m_product, dependency.location(),
-                                                   dependency.name, dependency.fallbackMode)) {
+    if (Item *moduleItem = searchAndLoadModuleFile(
+            m_loaderState, m_product, dependency.location(), dependency.name)) {
         QBS_CHECK(moduleItem->type() == ItemType::Module);
         Item * const proto = moduleItem;
         ModuleItemLocker locker(*moduleItem);
@@ -849,11 +847,6 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(It
                         item->location());
     }
 
-    const FallbackMode fallbackMode
-            = m_loaderState.parameters().fallbackProviderEnabled()
-                  && evaluator.boolValue(item, StringConstants::enableFallbackProperty())
-              ? FallbackMode::Enabled : FallbackMode::Disabled;
-
     bool profilesPropertyWasSet = false;
     std::optional<QStringList> profiles;
     bool required = true;
@@ -882,7 +875,7 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(It
     return EvaluatedDependsItem{
         item, QualifiedId::fromString(name), submodules, productTypeTags,
         multiplexIds, profiles, {minVersion, maxVersion}, parameters, limitToSubProject,
-        fallbackMode, required};
+        required};
 }
 
 // Potentially multiplexes a dependency along Depends.productTypes, Depends.subModules and
@@ -1038,12 +1031,11 @@ FullyResolvedDependsItem::FullyResolvedDependsItem(
     ProductContext *product, const EvaluatedDependsItem &dependency)
     : product(product), item(dependency.item), name(product->name),
     versionRange(dependency.versionRange), parameters(dependency.parameters),
-    fallbackMode(FallbackMode::Disabled), checkProduct(false) {}
+    checkProduct(false) {}
 
 FullyResolvedDependsItem FullyResolvedDependsItem::makeBaseDependency()
 {
     FullyResolvedDependsItem item;
-    item.fallbackMode = FallbackMode::Disabled;
     item.name = StringConstants::qbsModule();
     return item;
 }
@@ -1055,7 +1047,6 @@ FullyResolvedDependsItem::FullyResolvedDependsItem(
       versionRange(dependency.versionRange),
       parameters(dependency.parameters),
       limitToSubProject(dependency.limitToSubProject),
-      fallbackMode(dependency.fallbackMode),
       requiredLocally(dependency.requiredLocally),
       requiredGlobally(dependency.requiredGlobally) {}
 

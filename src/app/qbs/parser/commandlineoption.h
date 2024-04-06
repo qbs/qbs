@@ -76,7 +76,6 @@ public:
         GeneratorOptionType,
         WaitLockOptionType,
         RunEnvConfigOptionType,
-        DisableFallbackProviderType,
         DeprecationWarningsOptionType,
     };
 
@@ -424,14 +423,6 @@ public:
 };
 
 class WaitLockOption : public OnOffOption
-{
-public:
-    QString description(CommandType command) const override;
-    QString shortRepresentation() const override { return {}; }
-    QString longRepresentation() const override;
-};
-
-class DisableFallbackProviderOption : public OnOffOption
 {
 public:
     QString description(CommandType command) const override;

@@ -69,11 +69,10 @@ public:
     ModuleProviderResult executeModuleProviders(
             ProductContext &productContext,
             const CodeLocation &dependsItemLocation,
-            const QualifiedId &moduleName,
-            FallbackMode fallbackMode);
+            const QualifiedId &moduleName);
 
 private:
-    enum class ModuleProviderLookup { Scoped, Named, Fallback };
+    enum class ModuleProviderLookup { Scoped, Named };
     struct Provider {
         QualifiedId name;
         ModuleProviderLookup lookup;

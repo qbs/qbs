@@ -55,7 +55,6 @@
     \include cli-options.qdocinc more-verbose
     \include cli-options.qdocinc settings-dir
     \include cli-options.qdocinc show-progress
-    \include cli-options.qdocinc no-fallback-module-provider
     \include cli-options.qdocinc deprecation-warnings
 
     \section1 Parameters

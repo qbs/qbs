@@ -78,8 +78,7 @@ ModuleProviderLoader::ModuleProviderLoader(LoaderState &loaderState)
 ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProviders(
         ProductContext &productContext,
         const CodeLocation &dependsItemLocation,
-        const QualifiedId &moduleName,
-        FallbackMode fallbackMode)
+        const QualifiedId &moduleName)
 {
     ModuleProviderLoader::ModuleProviderResult result;
     try {
@@ -98,18 +97,6 @@ ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModulePr
         }
         result = executeModuleProvidersHelper(
             productContext, dependsItemLocation, moduleName, providersToRun);
-
-        if (fallbackMode == FallbackMode::Enabled
-                && !result.providerFound
-                && !providerNames) {
-                qCDebug(lcModuleLoader) << "Specific module provider not found for"
-                                    << moduleName.toString()  << ", setting up fallback.";
-            result = executeModuleProvidersHelper(
-                    productContext,
-                    dependsItemLocation,
-                    moduleName,
-                    {{moduleName, ModuleProviderLookup::Fallback}});
-        }
     } catch (const ErrorInfo &error) {
         auto ei = error;
         ei.prepend(
@@ -290,9 +277,6 @@ QString ModuleProviderLoader::findModuleProviderFile(
             for (const QString &component : name)
                 fullPath = FileInfo::resolvePath(fullPath, component);
             fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("provider.qbs"));
-            break;
-        case ModuleProviderLookup::Fallback:
-            fullPath = FileInfo::resolvePath(fullPath, QStringLiteral("__fallback/provider.qbs"));
             break;
         }
         if (!FileInfo::exists(fullPath)) {

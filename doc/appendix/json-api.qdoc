@@ -126,7 +126,6 @@
     \row    \li dry-run                      \li bool                \li no
     \row    \li environment                  \li \l Environment      \li no
     \row    \li error-handling-mode          \li string              \li no
-    \row    \li fallback-provider-enabled    \li bool                \li no
     \row    \li force-probe-execution        \li bool                \li no
     \row    \li log-time                     \li bool                \li no
     \row    \li log-level                    \li \l LogLevel         \li no
