@@ -37,15 +37,11 @@ jobs:
       run: mkdir -p ~/.ccache
     - name: test
       run: echo ${{ github.ref }}
-    - name: prepare timestamp
-      id: get-timestamp
-      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     - name: ccache cache files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
       run: docker-compose pull jammy-qt6
     - name: Print ccache stats
@@ -56,9 +52,9 @@ jobs:
       run: docker-compose run jammy-qt6 ccache -s
     - name: Get archive name
       id: get-archive-name
-      run: echo ::set-output name=archive-name::$(git describe)
+      run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v2'
+      uses: 'actions/upload-artifact@v4'
       with:
         name: qbs-linux-${{ github.run_id }}.tar.gz
         path: release/qbs-linux-${{ github.run_id }}.tar.gz
@@ -81,15 +77,11 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
-    - name: prepare timestamp
-      id: get-timestamp
-      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
     - name: ccache cache files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-release-ccache-${{ steps.get-timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-release-ccache-
+        key: ${{ runner.os }}-release-ccache
     - name: Install required packages
       run: |
         brew install ccache p7zip
@@ -114,7 +106,7 @@ jobs:
     - name: Print ccache stats
       run: ccache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v2'
+      uses: 'actions/upload-artifact@v4'
       with:
         name: qbs-macos-${{ github.run_id }}.tar.gz
         path: release/qbs-macos-${{ github.run_id }}.tar.gz
@@ -132,16 +124,11 @@ jobs:
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
       shell: bash
-    - name: prepare timestamp
-      id: get-timestamp
-      run: echo ::set-output name=timestamp::$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-      shell: bash
     - name: clcache cache files
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-release-msvc-docker-clcache-${{ steps.get-timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-release-msvc-docker-clcache-
+        key: ${{ runner.os }}-release-msvc-docker-clcache
     - name: Pull the Windows Image
       run: docker-compose pull windows
     - name: Print clcache stats
@@ -162,10 +149,9 @@ jobs:
       run: docker-compose run --rm windows clcache -s
     - name: Get archive name
       id: get-archive-name
-      run: echo ::set-output name=archive-name::$(git describe)
-      shell: bash
+      run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v2'
+      uses: 'actions/upload-artifact@v4'
       with:
         name: qbs-windows-${{ github.run_id }}
         path: |
@@ -182,7 +168,7 @@ jobs:
         submodules: true
     - name: Get version name
       id: get-version-name
-      run: echo ::set-output name=version-name::$(cat VERSION)
+      run: echo "version-name=$(cat VERSION)" >> $GITHUB_OUTPUT
     - name: Create directories
       run: |
         mkdir release
@@ -198,7 +184,7 @@ jobs:
         cd tmp/
         tar czf ../release/qbs-src-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-src-${{ steps.get-version-name.outputs.version-name }}
     - name: Download Linux artifacts
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: qbs-linux-${{ github.run_id }}.tar.gz
         path: ./tmp
@@ -209,7 +195,7 @@ jobs:
         cd tmp/
         tar czf ../release/qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}
     - name: Download Windows artifacts
-      uses: actions/download-artifact@v1
+      uses: actions/download-artifact@v4
       with:
         name: qbs-windows-${{ github.run_id }}
         path: ./tmp/release
@@ -226,9 +212,9 @@ jobs:
         find . -type f -printf '%f\n' | grep -v .txt | xargs sha256sum > sha256sums.txt
     - name: Get archive name
       id: get-archive-name
-      run: echo ::set-output name=archive-name::$(git describe)
+      run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v2'
+      uses: 'actions/upload-artifact@v4'
       with:
         name: qbs-release-${{ steps.get-archive-name.outputs.archive-name }}
         path: |
