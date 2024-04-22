@@ -47,9 +47,11 @@ class LoaderState;
 class ProductContext;
 class QualifiedId;
 
-Item *searchAndLoadModuleFile(LoaderState &loaderState, ProductContext &product,
-                              const CodeLocation &dependsItemLocation,
-                              const QualifiedId &moduleName);
+Item *searchAndLoadModuleFile(
+    LoaderState &loaderState,
+    ProductContext &product,
+    const CodeLocation &dependsItemLocation,
+    const QualifiedId &moduleName);
 
 } // namespace Internal
 } // namespace qbs

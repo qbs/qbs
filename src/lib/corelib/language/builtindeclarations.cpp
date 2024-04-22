@@ -247,9 +247,11 @@ void BuiltinDeclarations::addDependsItem()
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::limitToSubProjectProperty(),
                                 PropertyDeclaration::Boolean, StringConstants::falseValue());
-    item << PropertyDeclaration(StringConstants::multiplexConfigurationIdsProperty(),
-                                PropertyDeclaration::StringList, QString(),
-                                PropertyDeclaration::ReadOnlyFlag);
+    item << PropertyDeclaration(
+        StringConstants::multiplexConfigurationIdsProperty(),
+        PropertyDeclaration::StringList,
+        QString(),
+        PropertyDeclaration::ReadOnlyFlag);
     insert(item);
 }
 

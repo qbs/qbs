@@ -873,8 +873,15 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(It
     if (!productTypeTags.empty())
         m_product.bulkDependencies.emplace_back(productTypeTags, item->location());
     return EvaluatedDependsItem{
-        item, QualifiedId::fromString(name), submodules, productTypeTags,
-        multiplexIds, profiles, {minVersion, maxVersion}, parameters, limitToSubProject,
+        item,
+        QualifiedId::fromString(name),
+        submodules,
+        productTypeTags,
+        multiplexIds,
+        profiles,
+        {minVersion, maxVersion},
+        parameters,
+        limitToSubProject,
         required};
 }
 
@@ -1029,9 +1036,13 @@ Item::Module DependenciesResolver::createModule(
 
 FullyResolvedDependsItem::FullyResolvedDependsItem(
     ProductContext *product, const EvaluatedDependsItem &dependency)
-    : product(product), item(dependency.item), name(product->name),
-    versionRange(dependency.versionRange), parameters(dependency.parameters),
-    checkProduct(false) {}
+    : product(product)
+    , item(dependency.item)
+    , name(product->name)
+    , versionRange(dependency.versionRange)
+    , parameters(dependency.parameters)
+    , checkProduct(false)
+{}
 
 FullyResolvedDependsItem FullyResolvedDependsItem::makeBaseDependency()
 {
@@ -1042,13 +1053,16 @@ FullyResolvedDependsItem FullyResolvedDependsItem::makeBaseDependency()
 
 FullyResolvedDependsItem::FullyResolvedDependsItem(
     const EvaluatedDependsItem &dependency, QualifiedId name, QString profile, QString multiplexId)
-    : item(dependency.item), name(std::move(name)),
-      profile(std::move(profile)), multiplexId(std::move(multiplexId)),
-      versionRange(dependency.versionRange),
-      parameters(dependency.parameters),
-      limitToSubProject(dependency.limitToSubProject),
-      requiredLocally(dependency.requiredLocally),
-      requiredGlobally(dependency.requiredGlobally) {}
+    : item(dependency.item)
+    , name(std::move(name))
+    , profile(std::move(profile))
+    , multiplexId(std::move(multiplexId))
+    , versionRange(dependency.versionRange)
+    , parameters(dependency.parameters)
+    , limitToSubProject(dependency.limitToSubProject)
+    , requiredLocally(dependency.requiredLocally)
+    , requiredGlobally(dependency.requiredGlobally)
+{}
 
 QString FullyResolvedDependsItem::id() const
 {

@@ -76,9 +76,9 @@ ModuleProviderLoader::ModuleProviderLoader(LoaderState &loaderState)
     : m_loaderState(loaderState) {}
 
 ModuleProviderLoader::ModuleProviderResult ModuleProviderLoader::executeModuleProviders(
-        ProductContext &productContext,
-        const CodeLocation &dependsItemLocation,
-        const QualifiedId &moduleName)
+    ProductContext &productContext,
+    const CodeLocation &dependsItemLocation,
+    const QualifiedId &moduleName)
 {
     ModuleProviderLoader::ModuleProviderResult result;
     try {

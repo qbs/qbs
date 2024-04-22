@@ -67,9 +67,9 @@ public:
         std::optional<QStringList> searchPaths;
     };
     ModuleProviderResult executeModuleProviders(
-            ProductContext &productContext,
-            const CodeLocation &dependsItemLocation,
-            const QualifiedId &moduleName);
+        ProductContext &productContext,
+        const CodeLocation &dependsItemLocation,
+        const QualifiedId &moduleName);
 
 private:
     enum class ModuleProviderLookup { Scoped, Named };

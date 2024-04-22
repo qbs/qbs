@@ -161,8 +161,8 @@ Item *ModuleLoader::load()
     if (existingPaths.isEmpty()) { // no suitable names found, try to use providers
         AccumulatingTimer providersTimer(m_loaderState.parameters().logElapsedTime()
                                          ? &m_product.timingData.moduleProviders : nullptr);
-        auto result = ModuleProviderLoader(m_loaderState).executeModuleProviders(
-                    m_product, m_dependsItemLocation, m_moduleName);
+        auto result = ModuleProviderLoader(m_loaderState)
+                          .executeModuleProviders(m_product, m_dependsItemLocation, m_moduleName);
         if (result.searchPaths) {
             qCDebug(lcModuleLoader) << "Re-checking for module" << m_moduleName.toString()
                                     << "with newly added search paths from module provider";
