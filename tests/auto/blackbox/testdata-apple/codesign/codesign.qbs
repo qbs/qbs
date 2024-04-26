@@ -2,10 +2,13 @@ import "../multiarch-helpers.js" as Helpers
 
 Project {
     name: "p"
+    // we do not have the access to xcode version in qbs.architectures so we need to pass it here
     property string xcodeVersion
 
     property bool isBundle: true
     property bool enableSigning: true
+    property bool multiArch: false
+    property bool multiVariant: false
 
     CppApplication {
         name: "A"
@@ -18,7 +21,8 @@ Project {
         installDir: ""
 
         qbs.architectures:
-            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+            multiArch ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+        qbs.buildVariants: project.multiVariant ? ["debug", "release"] : []
     }
 
     DynamicLibrary {
@@ -32,7 +36,8 @@ Project {
         install: true
         installDir: ""
         qbs.architectures:
-            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+            multiArch ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+        qbs.buildVariants: project.multiVariant ? ["debug", "release"] : []
     }
 
     LoadableModule {
@@ -46,6 +51,7 @@ Project {
         install: true
         installDir: ""
         qbs.architectures:
-            project.xcodeVersion ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+            multiArch ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+        qbs.buildVariants: project.multiVariant ? ["debug", "release"] : []
     }
 }

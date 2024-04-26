@@ -280,20 +280,21 @@ function prepareSign(project, product, inputs, outputs, input, output) {
         return cmds;
 
     var isBundle = "bundle.content" in outputs;
-    var outputFilePath = isBundle
-            ? FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName)
-            : outputs["codesign.signed_artifact"][0].filePath;
-    var outputFileName = isBundle
-            ? product.bundle.bundleName
-            : outputs["codesign.signed_artifact"][0].fileName;
-    var isProductBundle = product.bundle && product.bundle.isBundle;
 
-    // If the product is a bundle, just sign the bundle
-    // instead of signing the bundle and executable separately
+    var artifacts = [];
+    if (isBundle) {
+        artifacts = [{
+            filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName),
+            fileName: product.bundle.bundleName
+        }];
+    } else {
+        artifacts = outputs["codesign.signed_artifact"];
+    }
+    var isProductBundle = product.bundle && product.bundle.isBundle;
     var shouldSignArtifact = !isProductBundle || isBundle;
 
     var enableCodeSigning = product.codesign.enableCodeSigning;
-    if (enableCodeSigning && shouldSignArtifact) {
+    if (enableCodeSigning) {
         var actualSigningIdentity = product.codesign._actualSigningIdentity;
         if (!actualSigningIdentity) {
             throw "No codesigning identities (i.e. certificate and private key pairs) matching “"
@@ -310,36 +311,53 @@ function prepareSign(project, product, inputs, outputs, input, output) {
             }
         }
 
-        var args = ["--force", "--sign", actualSigningIdentity.SHA1];
-
-        // If signingTimestamp is undefined or empty, do not specify the flag at all -
-        // this uses the system-specific default behavior
-        var signingTimestamp = product.codesign.signingTimestamp;
-        if (signingTimestamp) {
-            // If signingTimestamp is an empty string, specify the flag but do
-            // not specify a value - this uses a default Apple-provided server
-            var flag = "--timestamp";
-            if (signingTimestamp)
-                flag += "=" + signingTimestamp;
-            args.push(flag);
+        // The codesign tool behaves weirdly. It can sign a bundle with a single artifact, but if
+        // say debug build variant is present, it starts complaining that it is not signed.
+        // We could always sign everything, but again, in case of a framework (but not in case of
+        // app or loadable bundle), codesign produces a warning that artifact is already signed.
+        // So, we skip signing the release artifact and only sign if other build variants present.
+        if (!shouldSignArtifact && artifacts.length == 1) {
+            artifacts = [];
         }
+        for (var i = 0; i < artifacts.length; ++i) {
+            if (!shouldSignArtifact
+                && artifacts[i].qbs && artifacts[i].qbs.buildVariant === "release") {
+                continue;
+            }
+            var outputFilePath = artifacts[i].filePath;
+            var outputFileName = artifacts[i].fileName;
 
-        for (var j in inputs["codesign.xcent"]) {
-            args.push("--entitlements", inputs["codesign.xcent"][j].filePath);
-            break; // there should only be one
+            var args = ["--force", "--sign", actualSigningIdentity.SHA1];
+
+            // If signingTimestamp is undefined or empty, do not specify the flag at all -
+            // this uses the system-specific default behavior
+            var signingTimestamp = product.codesign.signingTimestamp;
+            if (signingTimestamp) {
+                // If signingTimestamp is an empty string, specify the flag but do
+                // not specify a value - this uses a default Apple-provided server
+                var flag = "--timestamp";
+                if (signingTimestamp)
+                    flag += "=" + signingTimestamp;
+                args.push(flag);
+            }
+
+            for (var j in inputs["codesign.xcent"]) {
+                args.push("--entitlements", inputs["codesign.xcent"][j].filePath);
+                break; // there should only be one
+            }
+
+            args = args.concat(product.codesign.codesignFlags || []);
+
+            args.push(outputFilePath + subpath);
+            cmd = new Command(product.codesign.codesignPath, args);
+            cmd.description = "codesign " + outputFileName
+                    + " (" + actualSigningIdentity.subjectInfo.CN + ")";
+            cmd.outputFilePath = outputFilePath;
+            cmd.stderrFilterFunction = function(stderr) {
+                return stderr.replace(outputFilePath + ": replacing existing signature\n", "");
+            };
+            cmds.push(cmd);
         }
-
-        args = args.concat(product.codesign.codesignFlags || []);
-
-        args.push(outputFilePath + subpath);
-        cmd = new Command(product.codesign.codesignPath, args);
-        cmd.description = "codesign " + outputFileName
-                + " (" + actualSigningIdentity.subjectInfo.CN + ")";
-        cmd.outputFilePath = outputFilePath;
-        cmd.stderrFilterFunction = function(stderr) {
-            return stderr.replace(outputFilePath + ": replacing existing signature\n", "");
-        };
-        cmds.push(cmd);
     }
 
     if (isBundle) {

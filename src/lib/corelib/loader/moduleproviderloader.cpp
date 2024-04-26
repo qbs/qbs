@@ -362,7 +362,9 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
                  BuiltinDeclarations::instance().nameForType(ItemType::ModuleProvider)));
     }
 
-    providerItem->setScope(createProviderScope(product, qbsModule));
+    Item * const scope = createProviderScope(product, qbsModule);
+    for (auto it = providerItem->properties().begin(); it != providerItem->properties().end(); ++it)
+        it.value()->setScope(scope, {});
     providerItem->setProperty(
         StringConstants::nameProperty(),
         VariantValue::create(name.toString()));
