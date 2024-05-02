@@ -27,10 +27,10 @@ jobs:
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
-    - name: Pull the Focal Image
-      run: docker-compose pull focal
+    - name: Pull the Docker Image
+      run: docker-compose pull jammy
     - name: Build Qbs Docs
-      run: docker-compose run focal ${{ matrix.config.script }}
+      run: docker-compose run jammy ${{ matrix.config.script }}
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v2'
       with:
