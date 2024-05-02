@@ -51,8 +51,12 @@
             maxVersion: '5.99.99'
         }
         files: 'main.cpp'
-        cpp.cxxFlags: pkgConfig.cflags
-        cpp.linkerFlags: pkgConfig.libs
+        cpp.defines : pkgConfig.defines
+        cpp.includePaths: pkgConfig.includePaths
+        cpp.dynamicLibraries: pkgConfig.libraries
+        cpp.libraryPaths: pkgConfig.libraryPaths
+        cpp.commonCompilerFlags: pkgConfig.compilerFlags
+        cpp.linkerFlags: pkgConfig.linkerFlags
     }
     \endcode
 */
@@ -193,9 +197,6 @@
 
     This output property contains the list of library paths that should be passed to a linker when
     using requested package.
-
-    This property sets the value of the PKG_CONFIG_LIBDIR environment variable passed to
-    the \c pkg-config binary.
 
     \nodefaultvalue
 */
