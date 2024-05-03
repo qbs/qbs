@@ -71,14 +71,12 @@ ModuleProvider {
 
     Probes.QbsPkgConfigProbe {
         id: theProbe
-        // TODO: without explicit 'parent' we do not have access to the fake "qbs" scope
-        _executableFilePath: parent.executableFilePath
-        _extraPaths: parent.extraPaths
-        _sysroot: parent.sysroot
-        _libDirs: parent.libDirs
-        _staticMode: parent.staticMode
-        _definePrefix: parent.definePrefix
-        _mergeDependencies: parent.mergeDependencies
+        _executableFilePath: executableFilePath
+        _extraPaths: extraPaths
+        _sysroot: sysroot
+        _libDirs: libDirs
+        _staticMode: staticMode
+        _definePrefix: definePrefix
     }
 
     Probes.QmakeProbe {
