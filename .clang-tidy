@@ -13,7 +13,6 @@ Checks: >
     google-build-namespaces,
     google-global-names-in-headers,
     google-objc-*,
-    -google-readability-casting,
     google-readability-namespace-comments,
     google-runtime-operator,
     misc-definitions-in-headers,
