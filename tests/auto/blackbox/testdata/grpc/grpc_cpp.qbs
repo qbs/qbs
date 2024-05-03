@@ -12,7 +12,7 @@ CppApplication {
 
     Depends { name: "cpp" }
     cpp.cxxLanguageVersion: "c++17"
-    cpp.minimumMacosVersion: "10.8"
+    cpp.minimumMacosVersion: "10.15"
     cpp.warningLevel: "none"
 
     Depends { name: "protobuf.cpp"; required: false }

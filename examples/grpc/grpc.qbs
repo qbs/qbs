@@ -41,7 +41,7 @@ Project {
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
-        cpp.minimumMacosVersion: "10.8"
+        cpp.minimumMacosVersion: "10.15"
         name: "client"
         files: "client.cpp"
         Properties {
@@ -61,7 +61,7 @@ Project {
         protobuf.cpp.useGrpc: true
         consoleApplication: true
         cpp.cxxLanguageVersion: "c++17"
-        cpp.minimumMacosVersion: "10.8"
+        cpp.minimumMacosVersion: "10.15"
         name: "server"
         files: "server.cpp"
         Properties {

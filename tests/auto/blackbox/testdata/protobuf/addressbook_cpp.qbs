@@ -11,7 +11,7 @@ CppApplication {
     consoleApplication: true
 
     Depends { name: "cpp" }
-    cpp.minimumMacosVersion: "10.8"
+    cpp.minimumMacosVersion: "10.15"
 
     Depends { name: "protobuf.cpp"; required: false }
     property bool hasProtobuf: {

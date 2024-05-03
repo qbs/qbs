@@ -352,6 +352,13 @@ function getQtProperties(qmakeFilePath) {
             qtProps.entryPointLibsRelease = fillEntryPointLibs(qtProps, false);
     } else if (qtProps.mkspecPath.contains("macx")) {
         if (qtProps.qtMajorVersion >= 5) {
+            // Since Qt 6.7.1, QMAKE_MACOSX|IOS_DEPLOYMENT_TARGET is no longer present in
+            // qmake.conf. But it is also present in qconfig.pri, so first try to read it from there
+            qtProps.macosVersion = configVariable(qconfigContent, "QMAKE_MACOSX_DEPLOYMENT_TARGET");
+            qtProps.iosVersion = configVariable(qconfigContent, "QMAKE_IOS_DEPLOYMENT_TARGET");
+
+            // Next, we override the value from qmake.conf, if present there
+            // Note, that TVOS/WATCHOS variables are only present in qmake.conf (as of Qt 6.7.1)
             var lines = getFileContentsRecursively(FileInfo.joinPaths(qtProps.mkspecPath,
                                                                       "qmake.conf"));
             for (var i = 0; i < lines.length; ++i) {
