@@ -72,7 +72,7 @@
            \endlist
         \li  \l{Tutorial}
            \list
-                \li  \l{tutorial-1.html}{Application}
+                \li  \l{tutorial-1.html}{Console Application}
                 \li  \l{tutorial-2.html}{Static Library}
                 \li  \l{tutorial-3.html}{Dynamic Library}
                 \li  \l{tutorial-4.html}{Convenience Items}

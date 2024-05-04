@@ -36,7 +36,7 @@
     concepts.
 
     \list
-        \li  \l{tutorial-1.html}{Application}
+        \li  \l{tutorial-1.html}{Console Application}
         \li  \l{tutorial-2.html}{Static Library}
         \li  \l{tutorial-3.html}{Dynamic Library}
         \li  \l{tutorial-4.html}{Convenience Items}
@@ -52,7 +52,7 @@
     \page tutorial-1.html
     \nextpage tutorial-2.html
 
-    \title Application
+    \title Console Application
 
     Let's start with a mandatory Hello World example. There is a Hello World example in the
     \l{overview.html#well-defined-language}{overview section}, but this time we will create a
