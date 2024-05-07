@@ -1,0 +1,1 @@
+ModuleWithIdParent { id: foo }

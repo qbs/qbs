@@ -1017,6 +1017,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("frozen-object-list") << "object is not extensible";
     QTest::newRow("module-property-binding-in-project")
         << "Module properties cannot be set in Project items";
+    QTest::newRow("module-with-id") << "Module items cannot have an id property";
 }
 
 void TestLanguage::erroneousFiles()

@@ -9,21 +9,19 @@ import qbs.PropertyList
 import qbs.Utilities
 
 Module {
-    id: xcodeModule
-
     Probes.XcodeLocationProbe {
         id: xcodeLocationProbe
-        condition: !xcodeModule.developerPath
+        condition: !developerPath
     }
 
     Probes.XcodeProbe {
         id: xcodeProbe
-        developerPath: xcodeModule.developerPath
-        platformType: xcodeModule.platformType
-        platformPath: xcodeModule.platformPath
-        devicePlatformPath: xcodeModule.devicePlatformPath
-        xcodebuildPath: xcodeModule.xcodebuildPath
-        sdksPath: xcodeModule.sdksPath
+        developerPath: parent.developerPath
+        platformType: parent.platformType
+        platformPath: parent.platformPath
+        devicePlatformPath: parent.devicePlatformPath
+        xcodebuildPath: parent.xcodebuildPath
+        sdksPath: parent.sdksPath
     }
 
     condition: qbs.targetOS.includes("darwin") &&

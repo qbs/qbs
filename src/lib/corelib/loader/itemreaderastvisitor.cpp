@@ -248,6 +248,8 @@ bool ItemReaderASTVisitor::visit(AST::UiScriptBinding *ast)
         const auto * const idExp = AST::cast<AST::IdentifierExpression *>(expStmt->expression);
         if (Q_UNLIKELY(!idExp || idExp->name.isEmpty()))
             throw ErrorInfo(Tr::tr("id: must be followed by identifier"));
+        if (m_item->type() == ItemType::Module)
+            throw ErrorInfo(Tr::tr("Module items cannot have an id property."));
         m_item->m_id = idExp->name.toString();
         m_file->ensureIdScope(m_itemPool);
         ItemValueConstPtr existingId = m_file->idScope()->itemProperty(m_item->id(), *m_itemPool);
