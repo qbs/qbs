@@ -2,7 +2,7 @@ import "../BareMetalApplication.qbs" as BareMetalApplication
 import "../BareMetalStaticLibrary.qbs" as BareMetalStaticLibrary
 
 Project {
-    property string outputLibrariesDirectory: sourceDirectory + "/libs"
+    property string outputLibrariesDirectory: buildDirectory + "/libs"
     BareMetalStaticLibrary {
         name: "lib-a"
         destinationDirectory: project.outputLibrariesDirectory

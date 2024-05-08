@@ -420,11 +420,7 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRul
 RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const QString &filePath,
         const FileTags &fileTags, bool alwaysUpdated, const ArtifactSet &inputArtifacts)
 {
-    QString outputPath = filePath;
-    // don't let the output artifact "escape" its build dir
-    outputPath.replace(StringConstants::dotDot(), QStringLiteral("dotdot"));
-    outputPath = resolveOutPath(outputPath);
-
+    const QString outputPath = resolveOutPath(filePath);
     if (m_rule->isDynamic()) {
         const Set<FileTag> undeclaredTags = fileTags - m_rule->collectedOutputFileTags();
         if (!undeclaredTags.empty()) {
@@ -676,9 +672,14 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const JSValue &ob
 
 QString RulesApplicator::resolveOutPath(const QString &path) const
 {
-    QString buildDir = m_product->topLevelProject()->buildDirectory;
-    QString result = FileInfo::resolvePath(buildDir, path);
-    result = QDir::cleanPath(result);
+    const QString buildDir = m_product->topLevelProject()->buildDirectory;
+    QString result = QDir::cleanPath(FileInfo::resolvePath(buildDir, path));
+    if (!result.startsWith(buildDir + QLatin1Char('/'))) {
+        throw ErrorInfo(
+            Tr::tr("Refusing to create artifact '%1' outside of build directory '%2'.")
+                .arg(QDir::toNativeSeparators(result), QDir::toNativeSeparators(buildDir)),
+            m_rule->prepareScript.location());
+    }
     return result;
 }
 

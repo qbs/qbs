@@ -4597,6 +4597,33 @@ void TestBlackbox::installTree()
     QVERIFY(QFile::exists(installRoot + "content/subdir2/baz.txt"));
 }
 
+void TestBlackbox::invalidArtifactPath_data()
+{
+    QTest::addColumn<QString>("baseDir");
+    QTest::addColumn<bool>("isValid");
+
+    QTest::newRow("inside, normal case") << "subdir" << true;
+    QTest::newRow("inside, build dir 1") << "project.buildDirectory" << true;
+    QTest::newRow("inside, build dir 2") << "subdir/.." << true;
+    QTest::newRow("outside, absolute") << "/tmp" << false;
+    QTest::newRow("outside, relative 1") << "../../" << false;
+    QTest::newRow("outside, relative 2") << "subdir/../../.." << false;
+}
+
+void TestBlackbox::invalidArtifactPath()
+{
+    QFETCH(QString, baseDir);
+    QFETCH(bool, isValid);
+
+    rmDirR(relativeBuildDir());
+    QDir::setCurrent(testDataDir + "/invalid-artifact-path");
+    QbsRunParameters params(QStringList("project.artifactDir:" + baseDir));
+    params.expectFailure = !isValid;
+    QCOMPARE(runQbs(params) == 0, isValid);
+    if (!isValid)
+        QVERIFY2(m_qbsStderr.contains("outside of build directory"), m_qbsStderr.constData());
+}
+
 void TestBlackbox::invalidCommandProperty_data()
 {
     QTest::addColumn<QString>("errorType");

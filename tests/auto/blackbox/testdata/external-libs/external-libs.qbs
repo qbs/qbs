@@ -1,7 +1,7 @@
 import qbs.TextFile
 
 Project {
-    property string libDir: sourceDirectory + "/libs"
+    property string libDir: buildDirectory + "/libs"
     StaticLibrary {
         name: "lib1"
         destinationDirectory: project.libDir
