@@ -17,7 +17,7 @@
 * Module properties are now accessible for groups in modules (QBS-1770).
 * Fixed pathList properties in Probes (QBS-1785).
 * The qbspkgconfig.mergeDependencies property was removed.
-* ModuleProviders now support the 'allowedValues' property of the PropertyDeclaration item
+* ModuleProviders now support the 'allowedValues' property of the PropertyOptions item
   (QBS-1748).
 
 # Apple

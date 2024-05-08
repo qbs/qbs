@@ -2,7 +2,7 @@
 * Fixed look-up of qbs properties in module providers via probes (QBS-1742).
 
 # Apple support
-* Fixed codesing module when multiplexing over build variants (QBS-1775).
+* Fixed codesign module when multiplexing over build variants (QBS-1775).
 
 # Qt support
 * Fixed retrieving minimum macOS/iOS versions for Qt 6.7.1.
