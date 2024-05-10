@@ -2,7 +2,7 @@ Project {
     CppApplication {
         consoleApplication: true
         name: "LinkedProduct-Assembly"
-        files: ["main.s"]
+        files: qbs.targetOS.includes("darwin") ? "darwin.s" : "main.s"
 
         cpp.linkerPath: cpp.compilerPathByLanguage["c"]
 
