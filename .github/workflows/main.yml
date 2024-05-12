@@ -678,7 +678,7 @@ jobs:
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '',
-            testProfile: 'xcode_13_4_1-macosx-x86_64',
+            testProfile: 'clang',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
