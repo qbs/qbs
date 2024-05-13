@@ -34,11 +34,16 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
+      shell: bash
     - name: ccache cache files
       uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
       run: docker-compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
@@ -110,11 +115,16 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
+      shell: bash
     - name: ccache cache files
       uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
       run: docker-compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
@@ -157,11 +167,16 @@ jobs:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
+      shell: bash
     - name: ccache cache files
       uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-ccache
+        key: ${{ runner.os }}-clang-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-clang-ccache
     - name: Install required packages
       run: |
         brew install ccache p7zip
@@ -207,12 +222,17 @@ jobs:
       QT_ASSUME_STDERR_HAS_CONSOLE: 1
     steps:
     - uses: actions/checkout@v1
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
+      shell: bash
     - name: clcache cache files
       uses: actions/cache@v4
       with:
         path: ~/clcache
-        key: ${{ runner.os }}-msvc-clcache
-    - name: Set up Python ${{ matrix.python-version }}
+        key: ${{ runner.os }}-msvc-clcache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-msvc-clcache
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: 3.8
@@ -264,12 +284,17 @@ jobs:
       CCACHE_DIR: ${{ github.workspace }}\ccache
     steps:
     - uses: actions/checkout@v1
+    - name: prepare timestamp
+      id: get-timestamp
+      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
+      shell: bash
     - name: ccache cache files
       uses: actions/cache@v4
       with:
-        path: ${{ github.workspace }}/ccache
-        key: ${{ runner.os }}-mingw-ccache
-    - name: Set up Python ${{ matrix.python-version }}
+        path: ~/.ccache
+        key: ${{ runner.os }}-mingw-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-mingw-ccache
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: 3.8
