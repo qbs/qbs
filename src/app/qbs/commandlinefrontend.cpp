@@ -490,9 +490,22 @@ QString CommandLineFrontend::buildDirectory(const QString &profileName) const
     }
 
     QString projectName(QFileInfo(m_parser.projectFilePath()).baseName());
+    QString originalBuildDir = buildDir;
     buildDir.replace(BuildDirectoryOption::magicProjectString(), projectName);
+    const QString buildDirPlaceHolderMsgTemplate = Tr::tr(
+        "You must provide the path to the project file when using build directory "
+        "placeholder '%1'.");
+    if (buildDir != originalBuildDir && projectName.isEmpty()) {
+        throw ErrorInfo(
+            buildDirPlaceHolderMsgTemplate.arg(BuildDirectoryOption::magicProjectString()));
+    }
     QString projectDir(QFileInfo(m_parser.projectFilePath()).path());
+    originalBuildDir = buildDir;
     buildDir.replace(BuildDirectoryOption::magicProjectDirString(), projectDir);
+    if (buildDir != originalBuildDir && projectDir.isEmpty()) {
+        throw ErrorInfo(
+            buildDirPlaceHolderMsgTemplate.arg(BuildDirectoryOption::magicProjectDirString()));
+    }
     if (!QFileInfo(buildDir).isAbsolute())
         buildDir = QDir::currentPath() + QLatin1Char('/') + buildDir;
     buildDir = QDir::cleanPath(buildDir);

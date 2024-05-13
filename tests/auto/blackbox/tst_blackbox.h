@@ -60,6 +60,8 @@ private slots:
     void bomSources();
     void buildDataOfDisabledProduct();
     void buildDirectories();
+    void buildDirPlaceholders_data();
+    void buildDirPlaceholders();
     void buildEnvChange();
     void buildGraphVersions();
     void buildVariantDefaults_data();

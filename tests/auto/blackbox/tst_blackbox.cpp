@@ -707,6 +707,45 @@ void TestBlackbox::buildDirectories()
     QVERIFY2(outputLines.contains(projectDir), m_qbsStdout.constData());
 }
 
+void TestBlackbox::buildDirPlaceholders_data()
+{
+    QTest::addColumn<QString>("buildDir");
+    QTest::addColumn<bool>("setProjectFile");
+    QTest::addColumn<bool>("successExpected");
+
+    QTest::newRow("normal dir, with project file") << "somedir" << true << true;
+    QTest::newRow("normal dir, without project file") << "somedir" << false << true;
+    QTest::newRow("@project, with project file") << "somedir/@project" << true << true;
+    QTest::newRow("@project, without project file") << "somedir/@project" << false << false;
+    QTest::newRow("@path, with project file") << "somedir/@path" << true << true;
+    QTest::newRow("@path, without project file") << "somedir/@path" << false << false;
+}
+
+void TestBlackbox::buildDirPlaceholders()
+{
+    QFETCH(QString, buildDir);
+    QFETCH(bool, setProjectFile);
+    QFETCH(bool, successExpected);
+
+    const QString projectDir = testDataDir + "/build-dir-placeholders";
+    rmDirR(projectDir);
+    QVERIFY(QDir().mkpath(projectDir));
+    QDir::setCurrent(projectDir);
+    QFile projectFile("build-dir-placeholders.qbs");
+    QVERIFY(projectFile.open(QIODevice::WriteOnly));
+    projectFile.write("Product {\n}\n");
+    projectFile.flush();
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params;
+    params.buildDirectory = buildDir;
+    if (setProjectFile) {
+        params.arguments << "-f"
+                         << "build-dir-placeholders.qbs";
+    }
+    params.expectFailure = !successExpected;
+    QCOMPARE(runQbs(params) == 0, successExpected);
+}
+
 void TestBlackbox::buildEnvChange()
 {
     QDir::setCurrent(testDataDir + "/buildenv-change");
