@@ -3,3 +3,4 @@
 
 _main:
 main:
+    ret
