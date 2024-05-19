@@ -12,6 +12,8 @@ StaticLibrary {
     files: [
         "cutils.c",
         "cutils.h",
+        "libbf.c",
+        "libbf.h",
         "libregexp-opcode.h",
         "libregexp.c",
         "libregexp.h",
@@ -22,12 +24,11 @@ StaticLibrary {
         "quickjs-atom.h",
         "quickjs-opcode.h",
         "quickjs.c",
-        "quickjs.diff",
         "quickjs.h",
     ]
 
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: [exportingProduct.sourceDirectory]
+        cpp.systemIncludePaths: [exportingProduct.sourceDirectory]
     }
 }

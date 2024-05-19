@@ -510,8 +510,7 @@ JSValue ScriptEngine::asJsValue(const QVariant &v, quintptr id, bool frozen)
     case QMetaType::Bool:
         return JS_NewBool(m_context, v.toBool());
     case QMetaType::QDateTime:
-        return JS_NewDate(
-            m_context, v.toDateTime().toString(Qt::ISODateWithMs).toUtf8().constData());
+        return JS_NewDate(m_context, v.toDateTime().toMSecsSinceEpoch());
     case QMetaType::QVariantMap:
         return asJsValue(v.toMap(), id, frozen);
     default:

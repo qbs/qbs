@@ -2,6 +2,7 @@ add_qbs_library(qbsquickjs
     STATIC
     SOURCES
         cutils.c cutils.h
+        libbf.c libbf.h
         libregexp-opcode.h
         libregexp.c libregexp.h
         libunicode-table.h
