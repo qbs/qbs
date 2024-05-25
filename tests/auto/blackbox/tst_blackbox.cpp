@@ -832,28 +832,34 @@ void TestBlackbox::buildVariantDefaults()
 void TestBlackbox::capnproto()
 {
     QFETCH(QString, projectFile);
+    QFETCH(QStringList, arguments);
     QDir::setCurrent(testDataDir + "/capnproto");
     rmDirR(relativeBuildDir());
 
     QbsRunParameters params{QStringLiteral("resolve"), {QStringLiteral("-f"), projectFile}};
+    params.arguments << arguments;
+    QCOMPARE(runQbs(params), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
     if (m_qbsStdout.contains("capnproto is not present"))
         QSKIP("capnproto is not present");
 
-    params.command.clear();
+    params.command = QStringLiteral("build");
     QCOMPARE(runQbs(params), 0);
 }
 
 void TestBlackbox::capnproto_data()
 {
     QTest::addColumn<QString>("projectFile");
+    QTest::addColumn<QStringList>("arguments");
 
-    QTest::newRow("cpp") << QStringLiteral("capnproto_cpp.qbs");
-    QTest::newRow("cpp-pkgconfig") << QStringLiteral("capnproto_cpp_pkgconfig.qbs");
-    QTest::newRow("greeter cpp (grpc)") << QStringLiteral("greeter_cpp.qbs");
-    QTest::newRow("relative import") << QStringLiteral("capnproto_relative_import.qbs");
-    QTest::newRow("absolute import") << QStringLiteral("capnproto_absolute_import.qbs");
+    QStringList pkgConfigArgs({"project.qbsModuleProviders:qbspkgconfig"});
+    QTest::newRow("cpp-pkgconfig") << QStringLiteral("capnproto_cpp.qbs") << pkgConfigArgs;
+    QTest::newRow("rpc-pkgconfig") << QStringLiteral("greeter_cpp.qbs") << pkgConfigArgs;
+    QTest::newRow("relative import")
+        << QStringLiteral("capnproto_relative_import.qbs") << pkgConfigArgs;
+    QTest::newRow("absolute import")
+        << QStringLiteral("capnproto_absolute_import.qbs") << pkgConfigArgs;
 }
 
 void TestBlackbox::changedFiles_data()
