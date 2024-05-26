@@ -8719,13 +8719,6 @@ void TestBlackbox::grpc()
 
     rmDirR(relativeBuildDir());
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile});
-    if (QTest::currentDataTag() == QLatin1String("cpp")) {
-        if (const QString extraLibs = qEnvironmentVariable("QBS_EXTRA_GRPC_LIBS");
-                !extraLibs.isEmpty()) {
-            resolveParams.arguments << (QLatin1String("modules.protobuf.cpp._extraGrpcLibs:")
-                                        + extraLibs);
-        }
-    }
     resolveParams.arguments << arguments;
     QCOMPARE(runQbs(resolveParams), 0);
     const bool withGrpc = m_qbsStdout.contains("has grpc: true");
