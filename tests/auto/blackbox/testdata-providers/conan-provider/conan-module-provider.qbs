@@ -7,4 +7,5 @@ CppApplication {
     qbs.installPrefix: ""
     install: true
     Depends { name: "conanmoduleprovider.testlib" }
+    Depends { name: "conanmoduleprovider.testlibheader" }
 }

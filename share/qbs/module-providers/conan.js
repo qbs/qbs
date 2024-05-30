@@ -184,11 +184,16 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
 
     writeLine("    readonly property string architecture: " + ModUtils.toJSLiteral(architecture));
     writeLine("    readonly property string platform: " + ModUtils.toJSLiteral(platform));
-    writeLine("    condition: (!qbs.architecture || architecture && qbs.architecture === architecture)");
-    if (["ios", "tvos", "watchos"].includes(platform)) {
-        writeLine("        && (qbs.targetPlatform === platform || qbs.targetPlatform === platform + \"-simulator\")");
-    } else {
-        writeLine("    && qbs.targetPlatform === platform");
+    writeLine("    condition: true");
+    if (architecture !== undefined) {
+        writeLine("    && (!qbs.architecture || qbs.architecture === architecture)");
+    }
+    if (platform !== undefined) {
+        if (["ios", "tvos", "watchos"].includes(platform)) {
+            writeLine("        && (qbs.targetPlatform === platform || qbs.targetPlatform === platform + \"-simulator\")");
+        } else {
+            writeLine("    && qbs.targetPlatform === platform");
+        }
     }
 
     writeLine("    Depends { name: 'cpp' }");

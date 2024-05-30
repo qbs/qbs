@@ -1,2 +1,3 @@
 [requires]
 conanmoduleprovider.testlib/1.2.3
+conanmoduleprovider.testlibheader/0.1.0

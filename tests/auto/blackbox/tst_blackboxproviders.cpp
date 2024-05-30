@@ -117,6 +117,11 @@ void TestBlackboxProviders::conanProvider()
     conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
     QVERIFY(waitForProcessSuccess(conan));
 
+    // install header lib third
+    QDir::setCurrent(testDataDir + "/conan-provider/testlibheader");
+    conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
+    QVERIFY(waitForProcessSuccess(conan));
+
     // now build an app using those libs
     QDir::setCurrent(testDataDir + "/conan-provider");
 
