@@ -60,13 +60,12 @@ AbstractCommandExecutor::AbstractCommandExecutor(Logger logger, QObject *parent)
     , m_logger(std::move(logger))
 {
     m_watchdog.setSingleShot(true);
-    connect(&m_watchdog, &QTimer::timeout,
-            this, [this]() {
-        cancel(ErrorInfo{Tr::tr("Command cancelled because it exceeded the timeout.")});
+    connect(&m_watchdog, &QTimer::timeout, this, [this]() {
+        cancel(ErrorInfo{Tr::tr("Command cancelled because it exceeded the timeout: %1")
+                             .arg(m_command->descriptionForCancelMessage(
+                                 m_transformer->product()->fullDisplayName()))});
     });
-    connect(this, &AbstractCommandExecutor::finished,
-            &m_watchdog, &QTimer::stop);
-
+    connect(this, &AbstractCommandExecutor::finished, &m_watchdog, &QTimer::stop);
 }
 
 void AbstractCommandExecutor::start(Transformer *transformer, AbstractCommand *cmd)

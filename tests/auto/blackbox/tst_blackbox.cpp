@@ -7636,6 +7636,7 @@ void TestBlackbox::autotestTimeout()
 {
     QFETCH(QStringList, resolveParams);
     QFETCH(bool, expectFailure);
+    QFETCH(QString, errorDetails);
     QDir::setCurrent(testDataDir + "/autotest-timeout");
     QbsRunParameters resolveParameters("resolve", resolveParams);
     QCOMPARE(runQbs(resolveParameters), 0);
@@ -7645,7 +7646,9 @@ void TestBlackbox::autotestTimeout()
     buildParameters.expectFailure = expectFailure;
     if (expectFailure) {
         QVERIFY(runQbs(buildParameters) != 0);
-        QVERIFY(m_qbsStderr.contains("cancelled") && m_qbsStderr.contains("timeout"));
+        QVERIFY(
+            m_qbsStderr.contains("cancelled") && m_qbsStderr.contains("timeout")
+            && m_qbsStderr.contains(errorDetails.toLocal8Bit()));
     }
     else
         QVERIFY(runQbs(buildParameters) == 0);
@@ -7655,11 +7658,12 @@ void TestBlackbox::autotestTimeout_data()
 {
     QTest::addColumn<QStringList>("resolveParams");
     QTest::addColumn<bool>("expectFailure");
-    QTest::newRow("no timeout") << QStringList() << false;
-    QTest::newRow("timeout on test") << QStringList({"products.testApp.autotest.timeout:2"})
-            << true;
-    QTest::newRow("timeout on runner") << QStringList({"products.autotest-runner.timeout:2"})
-            << true;
+    QTest::addColumn<QString>("errorDetails");
+    QTest::newRow("no timeout") << QStringList() << false << QString();
+    QTest::newRow("timeout on test")
+        << QStringList({"products.testApp.autotest.timeout:2"}) << true << QString("testApp");
+    QTest::newRow("timeout on runner")
+        << QStringList({"products.autotest-runner.timeout:2"}) << true << QString("testApp");
 }
 
 void TestBlackbox::autotests_data()

@@ -135,6 +135,11 @@ QString AbstractCommand::fullDescription(const QString &productName) const
     return description() + QLatin1String(" [") + productName + QLatin1Char(']');
 }
 
+QString AbstractCommand::descriptionForCancelMessage(const QString &productName) const
+{
+    return fullDescription(productName);
+}
+
 void AbstractCommand::load(PersistentPool &pool)
 {
     serializationOp<PersistentPool::Load>(pool);
@@ -333,6 +338,12 @@ void ProcessCommand::fillFromScriptValue(JSContext *ctx, const JSValue *scriptVa
             << stdoutFilePathProperty()
             << stderrFilePathProperty();
     applyCommandProperties(ctx, scriptValue);
+}
+
+QString ProcessCommand::descriptionForCancelMessage(const QString &productName) const
+{
+    return description() + QLatin1String(" (") + QDir::toNativeSeparators(m_program)
+           + QLatin1String(") [") + productName + QLatin1Char(']');
 }
 
 QStringList ProcessCommand::relevantEnvVars() const

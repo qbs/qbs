@@ -2902,6 +2902,7 @@ void TestApi::targetArtifactStatus()
 void TestApi::timeout()
 {
     QFETCH(QString, projectDirName);
+    QFETCH(QString, cancelOutput);
     const auto setupParams = defaultSetupParameters(projectDirName + "/timeout.qbs");
     std::unique_ptr<qbs::SetupProjectJob> setupJob{
             qbs::Project().setupProject(setupParams, m_logSink, nullptr)};
@@ -2934,13 +2935,15 @@ void TestApi::timeout()
     const auto errorString = buildJob->error().toString();
     QVERIFY2(errorString.contains("cancel"), qPrintable(errorString));
     QVERIFY(errorString.contains("timeout"));
+    QVERIFY(errorString.contains(cancelOutput));
 }
 
 void TestApi::timeout_data()
 {
     QTest::addColumn<QString>("projectDirName");
-    QTest::newRow("JS Command") << QString("timeout-js");
-    QTest::newRow("Process Command") << QString("timeout-process");
+    QTest::addColumn<QString>("cancelOutput");
+    QTest::newRow("JS Command") << QString("timeout-js") << QString("infinite loop");
+    QTest::newRow("Process Command") << QString("timeout-process") << QString("infinite-loop");
 }
 
 void TestApi::toolInModule()

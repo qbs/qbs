@@ -78,6 +78,7 @@ public:
     virtual bool equals(const AbstractCommand *other) const;
     virtual void fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
                                      const CodeLocation &codeLocation);
+    virtual QString descriptionForCancelMessage(const QString &productName) const;
 
     QString fullDescription(const QString &productName) const;
     const QString description() const { return m_description; }
@@ -129,6 +130,7 @@ public:
     bool equals(const AbstractCommand *otherAbstractCommand) const override;
     void fillFromScriptValue(JSContext *ctx, const JSValue *scriptValue,
                              const CodeLocation &codeLocation) override;
+    QString descriptionForCancelMessage(const QString &productName) const override;
     const QString program() const { return m_program; }
     const QStringList arguments() const { return m_arguments; }
     const QString workingDir() const { return m_workingDir; }
