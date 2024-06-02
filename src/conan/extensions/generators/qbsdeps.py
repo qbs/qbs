@@ -81,9 +81,8 @@ class _QbsDepsModuleFile():
 
     def _get_package_dir(self):
         # If editable, package_folder can be None
-        root_folder = self._dep.recipe_folder if self._dep.package_folder is None \
+        return self._dep.recipe_folder if self._dep.package_folder is None \
             else self._dep.package_folder
-        return root_folder.replace("\\", "/")
 
     def render(self):
         return json.dumps(self.get_content(), indent=4)
