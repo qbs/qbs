@@ -57,21 +57,17 @@ namespace Internal { class PersistentPool; }
 class QBS_EXPORT CodeLocation
 {
     friend QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);
+
 public:
-    CodeLocation();
-    explicit CodeLocation(const QString &aFilePath, int aLine = -1, int aColumn = -1,
-                          bool checkPath = true);
-    CodeLocation(const CodeLocation &other);
-    CodeLocation(CodeLocation &&other) noexcept;
-    CodeLocation &operator=(const CodeLocation &other);
-    CodeLocation &operator=(CodeLocation &&other) noexcept;
-    ~CodeLocation();
+    CodeLocation() = default;
+    explicit CodeLocation(
+        const QString &aFilePath, int aLine = -1, int aColumn = -1, bool checkPath = true);
 
-    QString filePath() const;
-    int line() const;
-    int column() const;
+    const QString &filePath() const noexcept { return m_filePath; }
+    int line() const noexcept { return m_line; }
+    int column() const noexcept { return m_column; }
 
-    bool isValid() const;
+    bool isValid() const noexcept { return !m_filePath.isEmpty(); }
     QString toString() const;
     QJsonObject toJson() const;
 
@@ -79,8 +75,9 @@ public:
     void store(Internal::PersistentPool &pool) const;
 
 private:
-    class CodeLocationPrivate;
-    QExplicitlySharedDataPointer<CodeLocationPrivate> d;
+    QString m_filePath;
+    int m_line = 0;
+    int m_column = 0;
 };
 
 QBS_EXPORT bool operator==(const CodeLocation &cl1, const CodeLocation &cl2);

@@ -53,64 +53,12 @@
 
 namespace qbs {
 
-class CodeLocation::CodeLocationPrivate : public QSharedData
-{
-public:
-    void load(Internal::PersistentPool &pool)
-    {
-        pool.load(filePath);
-        pool.load(line);
-        pool.load(column);
-    }
-
-    void store(Internal::PersistentPool &pool) const
-    {
-        pool.store(filePath);
-        pool.store(line);
-        pool.store(column);
-    }
-
-    QString filePath;
-    int line = 0;
-    int column = 0;
-};
-
-CodeLocation::CodeLocation() = default;
-
 CodeLocation::CodeLocation(const QString &aFilePath, int aLine, int aColumn, bool checkPath)
-    : d(new CodeLocationPrivate)
 {
     QBS_ASSERT(!checkPath || Internal::FileInfo::isAbsolute(aFilePath), qDebug() << aFilePath);
-    d->filePath = aFilePath;
-    d->line = aLine;
-    d->column = aColumn;
-}
-
-CodeLocation::CodeLocation(const CodeLocation &other) = default;
-CodeLocation::CodeLocation(CodeLocation &&other) noexcept = default;
-CodeLocation &CodeLocation::operator=(const CodeLocation &other) = default;
-CodeLocation &CodeLocation::operator=(CodeLocation &&other) noexcept = default;
-
-CodeLocation::~CodeLocation() = default;
-
-QString CodeLocation::filePath() const
-{
-    return d ? d->filePath : QString();
-}
-
-int CodeLocation::line() const
-{
-    return d ? d->line : -1;
-}
-
-int CodeLocation::column() const
-{
-    return d ? d->column : -1;
-}
-
-bool CodeLocation::isValid() const
-{
-    return !filePath().isEmpty();
+    m_filePath = aFilePath;
+    m_line = aLine;
+    m_column = aColumn;
 }
 
 QString CodeLocation::toString() const
@@ -145,15 +93,18 @@ void CodeLocation::load(Internal::PersistentPool &pool)
     const bool isValid = pool.load<bool>();
     if (!isValid)
         return;
-    d = new CodeLocationPrivate;
-    pool.load(*d);
+    pool.load(m_filePath);
+    pool.load(m_line);
+    pool.load(m_column);
 }
 
 void CodeLocation::store(Internal::PersistentPool &pool) const
 {
-    if (d) {
+    if (isValid()) {
         pool.store(true);
-        pool.store(*d);
+        pool.store(m_filePath);
+        pool.store(m_line);
+        pool.store(m_column);
     } else {
         pool.store(false);
     }
@@ -161,10 +112,8 @@ void CodeLocation::store(Internal::PersistentPool &pool) const
 
 bool operator==(const CodeLocation &cl1, const CodeLocation &cl2)
 {
-    if (cl1.d == cl2.d)
-        return true;
     return cl1.filePath() == cl2.filePath() && cl1.line() == cl2.line()
-            && cl1.column() == cl2.column();
+           && cl1.column() == cl2.column();
 }
 
 bool operator!=(const CodeLocation &cl1, const CodeLocation &cl2)
