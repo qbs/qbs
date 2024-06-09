@@ -549,5 +549,5 @@ void initializeJsExtensionXml(qbs::Internal::ScriptEngine *engine, JSValue exten
     JSValue contextObject = engine->newObject();
     XmlDomNode<QDomNode>::registerClass(engine, contextObject);
     XmlDomNode<QDomDocument>::registerClass(engine, contextObject);
-    setJsProperty(engine->context(), extensionObject, QLatin1String("Xml"), contextObject);
+    setJsProperty(engine->context(), extensionObject, std::string_view("Xml"), contextObject);
 }

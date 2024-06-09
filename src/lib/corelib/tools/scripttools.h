@@ -50,6 +50,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -62,6 +63,7 @@ using JSValueList = std::vector<JSValue>;
 
 void defineJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop, JSValue val);
 JSValue getJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop);
+void setJsProperty(JSContext *ctx, JSValueConst obj, std::string_view prop, JSValue val);
 void setJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop, JSValue val);
 void setJsProperty(JSContext *ctx, JSValueConst obj, const QString &prop, const QString &val);
 QString getJsStringProperty(JSContext *ctx, JSValueConst obj, const QString &prop);

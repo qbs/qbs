@@ -109,7 +109,7 @@ QtMocScanner::QtMocScanner(const ResolvedProductPtr &product, ScriptEngine *engi
     attachPointerTo(scannerObj, this);
     setJsProperty(engine->context(), targetScriptValue, qtMocScannerJsName(), scannerObj);
     JSValue applyFunction = JS_NewCFunction(engine->context(), &js_apply, "QtMocScanner", 1);
-    setJsProperty(engine->context(), scannerObj, QStringLiteral("apply"), applyFunction);
+    setJsProperty(engine->context(), scannerObj, std::string_view("apply"), applyFunction);
 }
 
 QtMocScanner::~QtMocScanner()
@@ -269,10 +269,13 @@ JSValue QtMocScanner::apply(ScriptEngine *engine, const Artifact *artifact)
 
     JSValue obj = engine->newObject();
     JSContext * const ctx = m_engine->context();
-    setJsProperty(ctx, obj, QStringLiteral("hasQObjectMacro"), JS_NewBool(ctx, hasQObjectMacro));
-    setJsProperty(ctx, obj, QStringLiteral("mustCompile"), JS_NewBool(ctx, mustCompile));
-    setJsProperty(ctx, obj, QStringLiteral("hasPluginMetaDataMacro"),
-                  JS_NewBool(ctx, hasPluginMetaDataMacro));
+    setJsProperty(ctx, obj, std::string_view("hasQObjectMacro"), JS_NewBool(ctx, hasQObjectMacro));
+    setJsProperty(ctx, obj, std::string_view("mustCompile"), JS_NewBool(ctx, mustCompile));
+    setJsProperty(
+        ctx,
+        obj,
+        std::string_view("hasPluginMetaDataMacro"),
+        JS_NewBool(ctx, hasPluginMetaDataMacro));
     engine->setUsesIo();
     return obj;
 }

@@ -136,10 +136,15 @@ JSValue getJsProperty(JSContext *ctx, JSValue obj, const QString &prop)
     return JS_GetPropertyStr(ctx, obj, prop.toUtf8().constData());
 }
 
+void setJsProperty(JSContext *ctx, JSValueConst obj, std::string_view prop, JSValue val)
+{
+    JS_SetPropertyStr(ctx, obj, prop.data(), val);
+}
+
 void setJsProperty(JSContext *ctx, JSValue obj, const QString &prop, JSValue val)
 {
-    if (JS_SetPropertyStr(ctx, obj, prop.toUtf8().constData(), val) <= 0)
-        qDebug() << "Oje!";
+    const auto propUtf8 = prop.toUtf8();
+    setJsProperty(ctx, obj, std::string_view{propUtf8.data(), size_t(propUtf8.size())}, val);
 }
 
 void setJsProperty(JSContext *ctx, JSValue obj, const QString &prop, const QString &val)

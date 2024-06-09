@@ -544,7 +544,7 @@ JSValue ScriptEngine::asJsValue(const QString &s)
 JSValue ScriptEngine::asJsValue(const QStringList &l)
 {
     JSValue array = JS_NewArray(m_context);
-    setJsProperty(m_context, array, QLatin1String("length"), JS_NewInt32(m_context, l.size()));
+    setJsProperty(m_context, array, std::string_view("length"), JS_NewInt32(m_context, l.size()));
     for (int i = 0; i < l.size(); ++i)
         JS_SetPropertyUint32(m_context, array, i, asJsValue(l.at(i)));
     return array;
@@ -580,7 +580,7 @@ JSValue ScriptEngine::asJsValue(const QVariantList &l, quintptr id, bool frozen)
         return JS_DupValue(m_context, it.value());
     frozen = id || frozen;
     JSValue array = JS_NewArray(m_context);
-    setJsProperty(m_context, array, QLatin1String("length"), JS_NewInt32(m_context, l.size()));
+    setJsProperty(m_context, array, std::string_view("length"), JS_NewInt32(m_context, l.size()));
     for (int i = 0; i < l.size(); ++i)
         JS_SetPropertyUint32(m_context, array, i, asJsValue(l.at(i), 0, frozen));
     if (frozen)

@@ -234,7 +234,7 @@ static void initModuleProperties(ScriptEngine *engine, JSValue objectWithPropert
 {
     JSContext * const ctx = engine->context();
     JSValue func = JS_NewCFunction(ctx, js_moduleProperty<ProductOrArtifact>, "moduleProperty", 2);
-    setJsProperty(ctx, objectWithProperties, QStringLiteral("moduleProperty"), func);
+    setJsProperty(ctx, objectWithProperties, std::string_view("moduleProperty"), func);
 }
 
 static JSValue setupBaseModuleScriptValue(ScriptEngine *engine, const ResolvedModule *module)
