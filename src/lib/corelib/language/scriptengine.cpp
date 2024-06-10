@@ -137,18 +137,25 @@ LookupResult ScriptEngine::doExtraScopeLookup(JSContext *ctx, JSAtom prop)
     ScriptEngine * const engine = engineForContext(ctx);
     engine->m_lastLookupWasSuccess = false;
 
-    JSValueList scopes;
-    if (!engine->m_scopeChains.isEmpty())
-        scopes = engine->m_scopeChains.last();
-    if (JS_IsObject(engine->m_globalObject))
-        scopes.insert(scopes.begin(), engine->m_globalObject);
-    for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
-        const JSValue v = JS_GetProperty(ctx, *it, prop);
+    auto handleScope = [ctx, prop, engine](const JSValue &scope) -> LookupResult {
+        const JSValue v = JS_GetProperty(ctx, scope, prop);
         if (!JS_IsUndefined(v) || engine->m_lastLookupWasSuccess) {
             engine->m_lastLookupWasSuccess = false;
-            return {v, *it, true};
+            return {v, scope, true};
+        }
+        return fail;
+    };
+
+    if (!engine->m_scopeChains.empty()) {
+        const JSValueList &scopes = engine->m_scopeChains.back().get();
+        for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
+            const auto res = handleScope(*it);
+            if (res.useResult)
+                return res;
         }
     }
+    if (JS_IsObject(engine->m_globalObject))
+        return handleScope(engine->m_globalObject);
     return fail;
 }
 
@@ -804,14 +811,14 @@ JSValue ScriptEngine::newArray(int length, JsValueOwner owner)
 JSValue ScriptEngine::evaluate(JsValueOwner resultOwner, const QString &code,
                                const QString &filePath, int line, const JSValueList &scopeChain)
 {
-    m_scopeChains << scopeChain;
+    m_scopeChains.emplace_back(scopeChain);
     const QByteArray &codeStr = code.toUtf8();
 
     m_evalPositions.emplace(filePath, line);
     const JSValue v = JS_EvalThis(m_context, globalObject(), codeStr.constData(), codeStr.length(),
                                   filePath.toUtf8().constData(), line, JS_EVAL_TYPE_GLOBAL);
     m_evalPositions.pop();
-    m_scopeChains.removeLast();
+    m_scopeChains.pop_back();
     if (resultOwner == JsValueOwner::ScriptEngine && JS_VALUE_HAS_REF_COUNT(v))
         ++m_evalResults[v];
     return v;

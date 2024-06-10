@@ -392,7 +392,7 @@ private:
     std::unordered_map<const ResolvedModule *, JSValue> m_moduleArtifactsMapScriptValues;
     std::unordered_map<const ResolvedProject *, JSValue> m_projectScriptValues;
     std::unordered_map<const ResolvedModule *, JSValue> m_baseModuleScriptValues;
-    QList<JSValueList> m_scopeChains;
+    std::vector<std::reference_wrapper<const JSValueList>> m_scopeChains;
     JSValueList m_contextStack;
     QHash<JSClassID, JSClassExoticMethods> m_exoticMethods;
     QHash<QString, JSClassID> m_classes;
