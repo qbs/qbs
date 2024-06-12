@@ -147,7 +147,7 @@ LookupResult ScriptEngine::doExtraScopeLookup(JSContext *ctx, JSAtom prop)
     };
 
     if (!engine->m_scopeChains.empty()) {
-        const JSValueList &scopes = engine->m_scopeChains.back().get();
+        const auto scopes = engine->m_scopeChains.back();
         for (auto it = scopes.rbegin(); it != scopes.rend(); ++it) {
             const auto res = handleScope(*it);
             if (res.useResult)
@@ -808,8 +808,12 @@ JSValue ScriptEngine::newArray(int length, JsValueOwner owner)
     return arr;
 }
 
-JSValue ScriptEngine::evaluate(JsValueOwner resultOwner, const QString &code,
-                               const QString &filePath, int line, const JSValueList &scopeChain)
+JSValue ScriptEngine::evaluate(
+    JsValueOwner resultOwner,
+    const QString &code,
+    const QString &filePath,
+    int line,
+    qbs::Internal::span<const JSValue> scopeChain)
 {
     m_scopeChains.emplace_back(scopeChain);
     const QByteArray &codeStr = code.toUtf8();

@@ -163,9 +163,12 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
         for (const ProbeProperty &b : probeBindings)
             setJsProperty(ctx, configureScope, b.first, JS_DupValue(ctx, b.second));
         engine->clearRequestedProperties();
-        ScopedJsValue sv(ctx, engine->evaluate(JsValueOwner::Caller,
-                configureScript->sourceCodeForEvaluation(), {}, 1,
-                {fileCtxScopes.fileScope, fileCtxScopes.importScope, configureScope}));
+        const JSValue scopes[] = {
+            fileCtxScopes.fileScope, fileCtxScopes.importScope, configureScope};
+        ScopedJsValue sv(
+            ctx,
+            engine->evaluate(
+                JsValueOwner::Caller, configureScript->sourceCodeForEvaluation(), {}, 1, scopes));
         if (JsException ex = engine->checkAndClearException(configureScript->location()))
             throw ex.toErrorInfo();
         importedFilesUsedInConfigure = engine->importedFilesUsedInScript();

@@ -52,9 +52,10 @@
 #include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
-#include <tools/scripttools.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/scripttools.h>
+#include <tools/span.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdebug.h>
@@ -603,11 +604,11 @@ private:
             }
         }
 
-        operator const JSValueList &() const { return m_chain; }
+        qbs::Internal::span<const JSValue> chain() const { return m_chain; }
 
     private:
         Evaluator &m_evaluator;
-        JSValueList m_chain;
+        QVarLengthArray<JSValue, 16> m_chain;
     };
 
     void setupConvenienceProperty(const QString &conveniencePropertyName, JSValue *extraScope,
@@ -848,7 +849,7 @@ private:
             ScopedJsValue sv(
                 m_engine.context(),
                 m_engine.evaluate(
-                    JsValueOwner::Caller, alternative->condition.value, {}, 1, scopeChain));
+                    JsValueOwner::Caller, alternative->condition.value, {}, 1, scopeChain.chain()));
             if (JsException ex = m_engine.checkAndClearException(alternative->condition.location)) {
                 // This handles cases like the following:
                 //   Depends { name: "cpp" }
@@ -887,7 +888,7 @@ private:
                 alternative->overrideListProperties.value,
                 {},
                 1,
-                scopeChain));
+                scopeChain.chain()));
             if (JsException ex = m_engine.checkAndClearException(
                     alternative->overrideListProperties.location)) {
                 result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
@@ -903,7 +904,7 @@ private:
             value->sourceCodeForEvaluation(),
             value->file()->filePath(),
             value->line(),
-            scopeChain);
+            scopeChain.chain());
         return result;
     }
 

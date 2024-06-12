@@ -45,12 +45,13 @@
 #include <buildgraph/requestedartifacts.h>
 #include <buildgraph/requesteddependencies.h>
 #include <logging/logger.h>
-#include <quickjs.h>
 #include <tools/codelocation.h>
 #include <tools/filetime.h>
 #include <tools/porting.h>
 #include <tools/scripttools.h>
 #include <tools/set.h>
+#include <tools/span.h>
+#include <quickjs.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qhash.h>
@@ -206,9 +207,12 @@ public:
     void takeOwnership(JSValue v);
     JSValue undefinedValue() const { return JS_UNDEFINED; }
     JSValue toScriptValue(const QVariant &v, quintptr id = 0) { return asJsValue(v, id); }
-    JSValue evaluate(JsValueOwner resultOwner, const QString &code,
-                     const QString &filePath = QString(), int line = 1,
-                     const JSValueList &scopeChain = {});
+    JSValue evaluate(
+        JsValueOwner resultOwner,
+        const QString &code,
+        const QString &filePath = QString(),
+        int line = 1,
+        qbs::Internal::span<const JSValue> scopeChain = {});
     void setLastLookupStatus(bool success) { m_lastLookupWasSuccess = success; }
     JSContext *context() const { return m_context; }
     JSValue globalObject() const { return m_globalObject; }
@@ -392,7 +396,7 @@ private:
     std::unordered_map<const ResolvedModule *, JSValue> m_moduleArtifactsMapScriptValues;
     std::unordered_map<const ResolvedProject *, JSValue> m_projectScriptValues;
     std::unordered_map<const ResolvedModule *, JSValue> m_baseModuleScriptValues;
-    std::vector<std::reference_wrapper<const JSValueList>> m_scopeChains;
+    std::vector<qbs::Internal::span<const JSValue>> m_scopeChains;
     JSValueList m_contextStack;
     QHash<JSClassID, JSClassExoticMethods> m_exoticMethods;
     QHash<QString, JSClassID> m_classes;
