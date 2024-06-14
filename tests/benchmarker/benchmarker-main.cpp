@@ -41,7 +41,7 @@ static bool hasRegression = false;
 
 static int relativeChange(qint64 oldVal, qint64 newVal)
 {
-    return newVal == 0 ? 0 : newVal * 100 / oldVal - 100;
+    return newVal == 0 ? 0 : (newVal - oldVal) * 100 / oldVal;
 }
 
 static QByteArray relativeChangeString(int change)

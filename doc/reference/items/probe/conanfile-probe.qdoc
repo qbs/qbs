@@ -43,6 +43,9 @@
     properties in products. \c ConanfileProbe can also be used to run other
     Conan generators and to retrieve their output.
 
+    \note This probe only works with Conan 1.x since the \c json generator was removed in Conan
+    2.0. Use the \l{conan}{conan} module provider and \c QbsDeps generator with Conan 2.0 instead.
+
     \section1 Examples
 
     In the following examples we assume that our project contains a \c conanfile.py.
