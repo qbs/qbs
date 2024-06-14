@@ -1,10 +1,8 @@
 Project {
     qbsModuleProviders: "provider_a"
-    property stringList wantedProviders: qbsModuleProviders
     name: "project"
     Project {
         name: "innerProject"
-        qbsModuleProviders: project.wantedProviders
         Product {
             name: "p1"
             Depends { name: "qbsmetatestmodule" }
