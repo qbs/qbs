@@ -174,11 +174,27 @@
 */
 
 /*!
+    \qmlproperty stringList Qt.core::disabledFeatures
+
+    Corresponds to cmake's \c QT_DISABLED_PUBLIC_FEATURES variable.
+
+    \readonly
+*/
+
+/*!
     \qmlproperty path Qt.core::docPath
 
     The path in which the Qt documentation is located.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty stringList Qt.core::enabledFeatures
+
+    Corresponds to cmake's \c QT_ENABLED_PUBLIC_FEATURES variable.
+
+    \readonly
 */
 
 /*!

@@ -213,6 +213,8 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         targetPlatform: ModUtils.toJSLiteral(qbsTargetPlatformFromQtMkspec(qtProps)),
         config: ModUtils.toJSLiteral(qtProps.configItems),
         qtConfig: ModUtils.toJSLiteral(qtProps.qtConfigItems),
+        enabledFeatures: ModUtils.toJSLiteral(qtProps.enabledFeatures),
+        disabledFeatures: ModUtils.toJSLiteral(qtProps.disabledFeatures),
         binPath: ModUtils.toJSLiteral(qtProps.binaryPath),
         installPath: ModUtils.toJSLiteral(qtProps.installPath),
         installPrefixPath: ModUtils.toJSLiteral(qtProps.installPrefixPath),

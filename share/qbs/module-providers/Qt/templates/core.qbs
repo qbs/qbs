@@ -40,6 +40,8 @@ Module {
     property string libInfix: @libInfix@
     property stringList config: @config@
     property stringList qtConfig: @qtConfig@
+    readonly property stringList enabledFeatures: @enabledFeatures@
+    readonly property stringList disabledFeatures: @disabledFeatures@
     property path binPath: @binPath@
     property path installPath: @installPath@
     property path incPath: @incPath@

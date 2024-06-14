@@ -120,7 +120,33 @@ function configVariable(configContent, key) {
 }
 
 function configVariableItems(configContent, key) {
-    return splitNonEmpty(configVariable(configContent, key), ' ');
+    var list = [];
+    var configContentLines = configContent.split('\n');
+    var regexp = new RegExp("^\\s*" + key + "\\s*([+-]?=)(.*)");
+    for (var i = 0; i < configContentLines.length; ++i) {
+        var line = configContentLines[i];
+        var match = regexp.exec(line);
+        if (!match)
+            continue;
+        var op = match[1];
+        var lineList = splitNonEmpty(match[2], ' ');
+        if (op === '=') {
+            list = lineList;
+            continue;
+        }
+        if (op === '+=') {
+            list = list.concat(lineList);
+            continue;
+        }
+        if (op === '-=') {
+            for (var j = 0; j < lineList.length; ++j) {
+                var idx = list.indexOf(lineList[j]);
+                if (idx !== -1)
+                    list.splice(idx, 1);
+            }
+        }
+    }
+    return list;
 }
 
 function msvcCompilerVersionForYear(year) {
@@ -271,6 +297,8 @@ function getQtProperties(qmakeFilePath) {
             || configVariable(qconfigContent, "QT_ARCH") || "x86";
     qtProps.configItems = configVariableItems(qconfigContent, "CONFIG");
     qtProps.qtConfigItems = configVariableItems(qconfigContent, "QT_CONFIG");
+    qtProps.enabledFeatures = configVariableItems(qconfigContent, "QT.global.enabled_features");
+    qtProps.disabledFeatures = configVariableItems(qconfigContent, "QT.global.disabled_features");
 
     // retrieve the mkspec
     if (qtProps.qtMajorVersion >= 5) {
