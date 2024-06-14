@@ -1179,6 +1179,9 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("module-with-id") << "Module items cannot have an id property";
     QTest::newRow("module-var-in-product")
         << "module-var-in-product.qbs:4:19 Use of 'module' is only allowed in Module items";
+    QTest::newRow("recursive-property-direct") << "refers to itself";
+    QTest::newRow("recursive-property-indirect") << "refers to itself.*via 'b'.*via 'c'";
+    QTest::newRow("recursive-property-indirect-via-module") << "refers to itself.*via 'a'";
 }
 
 void TestLanguage::erroneousFiles()

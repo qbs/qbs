@@ -48,10 +48,12 @@
 
 #include <QtCore/qhash.h>
 
+#include <deque>
 #include <functional>
 #include <mutex>
 #include <optional>
 #include <stack>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -111,6 +113,9 @@ public:
 
     std::stack<QualifiedId> &requestedProperties() { return m_requestedProperties; }
 
+    using EvalStack = std::deque<std::pair<QString, const Value *>>;
+    EvalStack &evalStack() { return m_evalStack; }
+
     void handleEvaluationError(const Item *item, const QString &name);
 
     QString pathPropertiesBaseDir() const { return m_pathPropertiesBaseDir; }
@@ -130,6 +135,7 @@ private:
     QString m_pathPropertiesBaseDir;
     PropertyDependencies m_propertyDependencies;
     std::stack<QualifiedId> m_requestedProperties;
+    EvalStack m_evalStack;
     std::mutex m_cacheInvalidationMutex;
     Set<const Item *> m_invalidatedCaches;
     bool m_valueCacheEnabled = false;
