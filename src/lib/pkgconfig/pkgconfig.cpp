@@ -40,22 +40,8 @@
 #include "pkgconfig.h"
 #include "pcparser.h"
 
-#if HAS_STD_FILESYSTEM
-#  if __has_include(<filesystem>)
-#    include <filesystem>
-#  else
-#    include <experimental/filesystem>
-// We need the alias from std::experimental::filesystem to std::filesystem
-namespace std {
-    namespace filesystem = experimental::filesystem;
-}
-#  endif
-#else
-#  include <QtCore/QDir>
-#  include <QtCore/QFileInfo>
-#endif
-
 #include <algorithm>
+#include <filesystem>
 #include <iostream>
 
 namespace qbs {
@@ -202,7 +188,6 @@ std::optional<std::string_view> PkgConfig::packageGetVariable(
     return result;
 }
 
-#if HAS_STD_FILESYSTEM
 std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPaths)
 {
     std::vector<std::filesystem::path> paths;
@@ -227,23 +212,6 @@ std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPa
     );
     return result;
 }
-#else
-std::vector<std::string> getPcFilePaths(const std::vector<std::string> &searchPaths)
-{
-    std::vector<std::string> result;
-    for (const auto &path : searchPaths) {
-        QDir dir(QString::fromStdString(path));
-        const auto paths = dir.entryList({QStringLiteral("*.pc")});
-        std::transform(
-            std::begin(paths),
-            std::end(paths),
-            std::back_inserter(result),
-            [&dir](const auto &path) { return dir.filePath(path).toStdString(); }
-        );
-    }
-    return result;
-}
-#endif
 
 PcBrokenPackage makeMissingDependency(
     const PcPackage &package, const PcPackage::RequiredVersion &depVersion)

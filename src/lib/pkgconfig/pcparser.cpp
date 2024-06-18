@@ -41,22 +41,9 @@
 
 #include "pkgconfig.h"
 
-#if HAS_STD_FILESYSTEM
-#  if __has_include(<filesystem>)
-#    include <filesystem>
-#  else
-#    include <experimental/filesystem>
-// We need the alias from std::experimental::filesystem to std::filesystem
-namespace std {
-    namespace filesystem = experimental::filesystem;
-}
-#  endif
-#else
-#include <QFileInfo>
-#endif
-
 #include <algorithm>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <stdexcept>
 
@@ -413,15 +400,9 @@ try
         throw PcException(std::string("Can't open file ") + path);
 
     package.baseFileName = std::string{completeBaseName(path)};
-#if HAS_STD_FILESYSTEM
     const auto fsPath = std::filesystem::path(path);
     package.filePath = fsPath.generic_string();
     package.variables["pcfiledir"] = fsPath.parent_path().generic_string();
-#else
-    QFileInfo fileInfo(QString::fromStdString(path));
-    package.filePath = fileInfo.absoluteFilePath().toStdString();
-    package.variables["pcfiledir"] = fileInfo.absolutePath().toStdString();
-#endif
 
     std::string line;
     while (readOneLine(file, line))
