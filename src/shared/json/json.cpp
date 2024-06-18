@@ -155,12 +155,12 @@ public:
         return t;
     }
     bool operator!() const { return !operator uint32_t(); }
-    bool operator==(uint32_t t) { return uint32_t(*this) == t; }
-    bool operator!=(uint32_t t) { return uint32_t(*this) != t; }
-    bool operator<(uint32_t t) { return uint32_t(*this) < t; }
-    bool operator>(uint32_t t) { return uint32_t(*this) > t; }
-    bool operator<=(uint32_t t) { return uint32_t(*this) <= t; }
-    bool operator>=(uint32_t t) { return uint32_t(*this) >= t; }
+    bool operator==(uint32_t t) const { return uint32_t(*this) == t; }
+    bool operator!=(uint32_t t) const { return uint32_t(*this) != t; }
+    bool operator<(uint32_t t) const { return uint32_t(*this) < t; }
+    bool operator>(uint32_t t) const { return uint32_t(*this) > t; }
+    bool operator<=(uint32_t t) const { return uint32_t(*this) <= t; }
+    bool operator>=(uint32_t t) const { return uint32_t(*this) >= t; }
     void operator+=(uint32_t i) { *this = (uint32_t(*this) + i); }
     void operator-=(uint32_t i) { *this = (uint32_t(*this) - i); }
 };
@@ -190,12 +190,12 @@ public:
     }
 
     bool operator!() const { return !operator int(); }
-    bool operator==(int t) { return int(*this) == t; }
-    bool operator!=(int t) { return int(*this) != t; }
-    bool operator<(int t) { return int(*this) < t; }
-    bool operator>(int t) { return int(*this) > t; }
-    bool operator<=(int t) { return int(*this) <= t; }
-    bool operator>=(int t) { return int(*this) >= t; }
+    bool operator==(int t) const { return int(*this) == t; }
+    bool operator!=(int t) const { return int(*this) != t; }
+    bool operator<(int t) const { return int(*this) < t; }
+    bool operator>(int t) const { return int(*this) > t; }
+    bool operator<=(int t) const { return int(*this) <= t; }
+    bool operator>=(int t) const { return int(*this) >= t; }
     void operator+=(int i) { *this = (int(*this) + i); }
     void operator-=(int i) { *this = (int(*this) - i); }
 };
@@ -369,7 +369,7 @@ public:
     char *data(const Base *b) const { return ((char *)b) + value; }
     int usedStorage(const Base *b) const;
 
-    bool toBoolean() const { return value != 0; }
+    bool toBoolean() const { return value != uint32_t(0); }
     double toDouble(const Base *b) const;
     std::string toString(const Base *b) const;
     Base *base(const Base *b) const;
@@ -1641,7 +1641,7 @@ bool JsonArray::operator==(const JsonArray &other) const
         return !other.a->length;
     if (!other.a)
         return !a->length;
-    if (a->length != other.a->length)
+    if (a->length != uint32_t(other.a->length))
         return false;
 
     for (int i = 0; i < (int)a->length; ++i) {
@@ -2608,7 +2608,7 @@ bool JsonObject::operator==(const JsonObject &other) const
         return !other.o->length;
     if (!other.o)
         return !o->length;
-    if (o->length != other.o->length)
+    if (o->length != uint32_t(other.o->length))
         return false;
 
     for (uint32_t i = 0; i < o->length; ++i) {
@@ -4880,9 +4880,9 @@ bool Value::isValid(const Base *b) const
         return true;
     if (s < 0 || offset + s > (int)b->tableOffset)
         return false;
-    if (type == JsonValue::Array)
+    if (type == uint32_t(JsonValue::Array))
         return static_cast<Array *>(base(b))->isValid();
-    if (type == JsonValue::Object)
+    if (type == uint32_t(JsonValue::Object))
         return static_cast<Object *>(base(b))->isValid();
     return true;
 }

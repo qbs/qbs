@@ -2,7 +2,7 @@ QtApplication {
     name: "qbs_benchmarker"
     type: "application"
     consoleApplication: true
-    cpp.cxxLanguageVersion: "c++17"
+    cpp.cxxLanguageVersion: "c++20"
     condition: Qt.concurrent.present
     Depends { name: "qbsbuildconfig" }
     Depends {

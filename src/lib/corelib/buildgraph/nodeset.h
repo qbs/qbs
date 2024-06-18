@@ -89,15 +89,9 @@ public:
                 ++m_it;
         }
 
-        bool operator==(const const_iterator &rhs)
-        {
-            return m_it == rhs.m_it;
-        }
+        bool operator==(const const_iterator &rhs) const { return m_it == rhs.m_it; }
 
-        bool operator!=(const const_iterator &rhs)
-        {
-            return !(*this == rhs);
-        }
+        bool operator!=(const const_iterator &rhs) const { return !(*this == rhs); }
 
         const_iterator &operator++()
         {

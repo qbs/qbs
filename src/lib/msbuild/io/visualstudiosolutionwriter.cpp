@@ -79,11 +79,11 @@ void VisualStudioSolutionWriter::setProjectBaseDirectory(const std::string &dir)
 bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
 {
     auto &out = *d->device;
-    out << u8"Microsoft Visual Studio Solution File, Format Version "
+    out << "Microsoft Visual Studio Solution File, Format Version "
         << solution->versionInfo().solutionVersion().toStdString()
-        << u8"\n# Visual Studio "
+        << "\n# Visual Studio "
         << solution->versionInfo().version().majorVersion()
-        << u8"\n";
+        << "\n";
 
     const auto fileProjects = solution->fileProjects();
     for (const auto &project : fileProjects) {
@@ -98,54 +98,54 @@ bool VisualStudioSolutionWriter::write(const VisualStudioSolution *solution)
                         Internal::HostOsInfo::HostOsWindows).toStdString();
         }
 
-        out << u8"Project(\""
+        out << "Project(\""
             << project->projectTypeGuid().toString().toStdString()
-            << u8"\") = \""
+            << "\") = \""
             << QFileInfo(QString::fromStdString(projectFilePath)).baseName().toStdString()
-            << u8"\", \""
+            << "\", \""
             << projectFilePath
-            << u8"\", \""
+            << "\", \""
             << project->guid().toString().toStdString()
-            << u8"\"\n";
+            << "\"\n";
 
-        out << u8"EndProject\n";
+        out << "EndProject\n";
     }
 
     const auto folderProjects = solution->folderProjects();
     for (const auto &project : folderProjects) {
-        out << u8"Project(\""
+        out << "Project(\""
             << project->projectTypeGuid().toString().toStdString()
-            << u8"\") = \""
+            << "\") = \""
             << project->name().toStdString()
-            << u8"\", \""
+            << "\", \""
             << project->name().toStdString()
-            << u8"\", \""
+            << "\", \""
             << project->guid().toString().toStdString()
-            << u8"\"\n";
+            << "\"\n";
 
-        out << u8"EndProject\n";
+        out << "EndProject\n";
     }
 
-    out << u8"Global\n";
+    out << "Global\n";
 
     const auto globalSections = solution->globalSections();
     for (const auto &globalSection : globalSections) {
-        out << u8"\tGlobalSection("
+        out << "\tGlobalSection("
             << globalSection->name().toStdString()
-            << u8") = "
-            << (globalSection->isPost() ? u8"postSolution" : u8"preSolution")
-            << u8"\n";
+            << ") = "
+            << (globalSection->isPost() ? "postSolution" : "preSolution")
+            << "\n";
         for (const auto &property : globalSection->properties())
-            out << u8"\t\t"
+            out << "\t\t"
                 << property.first.toStdString()
-                << u8" = "
+                << " = "
                 << property.second.toStdString()
-                << u8"\n";
+                << "\n";
 
-        out << u8"\tEndGlobalSection\n";
+        out << "\tEndGlobalSection\n";
     }
 
-    out << u8"EndGlobal\n";
+    out << "EndGlobal\n";
 
     return out.good();
 }

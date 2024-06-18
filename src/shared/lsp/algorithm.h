@@ -244,12 +244,14 @@ template<typename ResultContainer, // complete result container type
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 
 // function with result type deduction:
-template<template<typename> class C, // result container type
-         typename SC,                // input container type
-         typename F,                 // function type
-         typename Value = typename std::decay_t<SC>::value_type,
-         typename Result = std::decay_t<std::result_of_t<F(Value &)>>,
-         typename ResultContainer = C<Result>>
+template<
+    template<typename>
+    class C,     // result container type
+    typename SC, // input container type
+    typename F,  // function type
+    typename Value = typename std::decay_t<SC>::value_type,
+    typename Result = std::decay_t<std::invoke_result_t<F, Value &>>,
+    typename ResultContainer = C<Result>>
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 #ifdef Q_CC_CLANG
 // "Matching of template template-arguments excludes compatible templates"
@@ -261,12 +263,14 @@ Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 // enables the new behavior when given -frelaxed-template-template-args .
 // To avoid requiring everyone using this header to enable that feature, keep the old implementation
 // for Clang.
-template<template<typename, typename> class C, // result container type
-         typename SC,                          // input container type
-         typename F,                           // function type
-         typename Value = typename std::decay_t<SC>::value_type,
-         typename Result = std::decay_t<std::result_of_t<F(Value &)>>,
-         typename ResultContainer = C<Result, std::allocator<Result>>>
+template<
+    template<typename, typename>
+    class C,     // result container type
+    typename SC, // input container type
+    typename F,  // function type
+    typename Value = typename std::decay_t<SC>::value_type,
+    typename Result = std::decay_t<std::invoke_result_t<F, Value &>>,
+    typename ResultContainer = C<Result, std::allocator<Result>>>
 Q_REQUIRED_RESULT decltype(auto) transform(SC &&container, F function);
 #endif
 

@@ -70,3 +70,5 @@ WarningsAsErrors: >
 
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false
+CheckOptions:
+    modernize-loop-convert.UseCxx20ReverseRanges: false
