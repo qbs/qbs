@@ -97,34 +97,6 @@ static inline std::string trimmed(const std::string &s)
     return trim(copy);
 }
 
-static inline bool startsWith(const std::string &subject, const std::string &s)
-{
-    if (s.size() <= subject.size())
-        return std::equal(s.begin(), s.end(), subject.begin());
-    return false;
-}
-
-static inline bool startsWith(const std::string &subject, char c)
-{
-    std::string s;
-    s.push_back(c);
-    return startsWith(subject, s);
-}
-
-static inline bool endsWith(const std::string &subject, const std::string &s)
-{
-    if (s.size() <= subject.size())
-        return std::equal(s.rbegin(), s.rend(), subject.rbegin());
-    return false;
-}
-
-static inline bool endsWith(const std::string &subject, char c)
-{
-    std::string s;
-    s.push_back(c);
-    return endsWith(subject, s);
-}
-
 } // namespace Internal
 } // namespace qbs
 

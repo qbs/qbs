@@ -96,8 +96,6 @@ private slots:
     void stringutils_join_empty();
     void stringutils_join_char();
     void stringutils_join_char_data();
-    void stringutils_startsWith();
-    void stringutils_endsWith();
     void stringutils_trimmed();
 
     void hash_tuple();
