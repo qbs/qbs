@@ -535,8 +535,8 @@ bool findPath(BuildGraphNode *u, BuildGraphNode *v, QList<BuildGraphNode *> &pat
  */
 void connect(BuildGraphNode *p, BuildGraphNode *c)
 {
-    QBS_CHECK(p != c);
     qCDebug(lcBuildGraph).noquote() << "connect" << p->toString() << "->" << c->toString();
+    QBS_CHECK(p != c);
     if (c->type() == BuildGraphNode::ArtifactNodeType) {
         auto const ac = static_cast<Artifact *>(c);
         for (const Artifact *child : filterByType<Artifact>(p->children)) {

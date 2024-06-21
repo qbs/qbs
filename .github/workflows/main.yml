@@ -732,11 +732,18 @@ jobs:
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
       run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      if: matrix.config.toolchain == 'clang_64'
+      with:
+        python-version: 3.12
     - name: Install Conan
+      if: matrix.config.toolchain == 'clang_64'
+      uses: turtlebrowser/get-conan@main
+    - name: Setup Conan
       if: matrix.config.toolchain == 'clang_64'
       run: |
         brew install ninja
-        brew install conan
         conan config install src/conan/
         ./scripts/setup-conan-profiles.sh
     - name: Install Host Qt

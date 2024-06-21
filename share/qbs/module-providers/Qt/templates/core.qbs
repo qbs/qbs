@@ -40,6 +40,8 @@ Module {
     property string libInfix: @libInfix@
     property stringList config: @config@
     property stringList qtConfig: @qtConfig@
+    readonly property stringList enabledFeatures: @enabledFeatures@
+    readonly property stringList disabledFeatures: @disabledFeatures@
     property path binPath: @binPath@
     property path installPath: @installPath@
     property path incPath: @incPath@
@@ -444,6 +446,10 @@ Module {
                         "-o", output.filePath];
             if (input.Qt.core.enableBigResources)
                 args.push("-pass", "1");
+            if (product.Qt.core.disabledFeatures.contains("zstd")
+                    && Utilities.versionCompare(product.Qt.core.version, "5.13") >= 0) {
+                args.push("--no-zstd");
+            }
             var cmd = new Command(Rcc.fullPath(product), args);
             cmd.description = "rcc "
                 + (input.Qt.core.enableBigResources ? "(pass 1) " : "")

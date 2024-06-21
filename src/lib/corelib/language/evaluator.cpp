@@ -464,10 +464,15 @@ static int getEvalPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t 
 class PropertyStackManager
 {
 public:
-    PropertyStackManager(const Item *itemOfProperty, const QString &name, const Value *value,
-                         std::stack<QualifiedId> &requestedProperties,
-                         PropertyDependencies &propertyDependencies)
+    PropertyStackManager(
+        const Item *itemOfProperty,
+        const QString &name,
+        const Value *value,
+        std::stack<QualifiedId> &requestedProperties,
+        PropertyDependencies &propertyDependencies,
+        Evaluator::EvalStack &evalStack)
         : m_requestedProperties(requestedProperties)
+        , m_evalStack(evalStack)
     {
         if (value->type() == Value::JSSourceValueType
                 && (itemOfProperty->type() == ItemType::ModuleInstance
@@ -484,16 +489,31 @@ public:
                 propertyDependencies[fullPropName].insert(requestedProperties.top());
             m_requestedProperties.push(fullPropName);
         }
+        const auto matcher = [value](const std::pair<QString, const Value *> &prop) {
+            return prop.second == value;
+        };
+        if (auto it = std::find_if(m_evalStack.cbegin(), m_evalStack.cend(), matcher);
+            it != m_evalStack.cend()) {
+            ErrorInfo error(Tr::tr("Property '%1' refers to itself.").arg(name), value->location());
+            for (auto it2 = std::next(it); it2 != m_evalStack.cend(); ++it2) {
+                error.append(
+                    QString::fromLatin1("  via '%1'").arg(it2->first), it2->second->location());
+            }
+            throw ErrorInfo(error);
+        }
+        m_evalStack.emplace_back(name, value);
     }
 
     ~PropertyStackManager()
     {
         if (m_stackUpdate)
             m_requestedProperties.pop();
+        m_evalStack.pop_back();
     }
 
 private:
     std::stack<QualifiedId> &m_requestedProperties;
+    Evaluator::EvalStack &m_evalStack;
     bool m_stackUpdate = false;
 };
 
@@ -904,9 +924,13 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
         if (!value)
             continue;
         const Item * const itemOfProperty = item;     // The item that owns the property.
-        PropertyStackManager propStackmanager(itemOfProperty, name, value.get(),
-                                              evaluator->requestedProperties(),
-                                              evaluator->propertyDependencies());
+        PropertyStackManager propStackmanager(
+            itemOfProperty,
+            name,
+            value.get(),
+            evaluator->requestedProperties(),
+            evaluator->propertyDependencies(),
+            evaluator->evalStack());
         JSValue result;
         if (evaluator->cachingEnabled()) {
             data->evaluator->clearCacheIfInvalidated(*data);
