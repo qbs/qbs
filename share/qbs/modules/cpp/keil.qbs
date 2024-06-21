@@ -51,7 +51,11 @@ CppModule {
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
     }
 
-    qbs.architecture: keilProbe.found ? keilProbe.architecture : original
+    Properties {
+        condition: keilProbe.found
+        qbs.architecture: keilProbe.architecture
+    }
+
     qbs.targetPlatform: "none"
 
     compilerVersionMajor: keilProbe.versionMajor

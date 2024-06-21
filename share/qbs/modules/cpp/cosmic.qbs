@@ -52,7 +52,11 @@ CppModule {
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
     }
 
-    qbs.architecture: cosmicProbe.found ? cosmicProbe.architecture : original
+    Properties {
+        condition: cosmicProbe.found
+        qbs.architecture: cosmicProbe.architecture
+    }
+
     qbs.targetPlatform: "none"
 
     compilerVersionMajor: cosmicProbe.versionMajor

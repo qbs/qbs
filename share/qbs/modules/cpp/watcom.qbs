@@ -56,8 +56,11 @@ CppModule {
         _targetArchitecture: qbs.architecture
     }
 
-    qbs.architecture: watcomProbe.found ? watcomProbe.architecture : original
-    qbs.targetPlatform: watcomProbe.found ? watcomProbe.targetPlatform : original
+    Properties {
+        condition: watcomProbe.found
+        qbs.architecture: watcomProbe.architecture
+        qbs.targetPlatform: watcomProbe.targetPlatform
+    }
 
     compilerVersionMajor: watcomProbe.versionMajor
     compilerVersionMinor: watcomProbe.versionMinor

@@ -115,8 +115,6 @@ BareMetalApplication {
         cpp.entryPoint: "main"
     }
 
-    cpp.linkerPath: original
-
     files: [(qbs.architecture.startsWith("arm") ? "arm" : qbs.architecture)
                 + "-" + qbs.toolchainType + ".s"]
 }

@@ -105,7 +105,11 @@ CppModule {
         }
     }
 
-    qbs.architecture: gccProbe.found ? gccProbe.architecture : original
+    Properties {
+        condition: gccProbe.found
+        qbs.architecture: gccProbe.architecture
+    }
+
     endianness: gccProbe.endianness
 
     compilerDefinesByLanguage: gccProbe.compilerDefinesByLanguage

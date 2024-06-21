@@ -69,7 +69,7 @@
         cpp.defines: ["ON_UNKNOWN_PLATFORM"]
     }
     \endcode
-    is equivalent to
+    is roughly equivalent to
     \code
     Product {
         cpp.defines: {
@@ -84,7 +84,7 @@
                 return ["myWindowsIncludes"];
             if (qbs.targetOS.includes("linux"))
                 return ["myLinuxIncludes"];
-            return base;
+            return base ? base : original;
         }
     }
     \endcode

@@ -69,8 +69,6 @@ Project {
             cpp.dynamicLibraryPrefix: "lib"
             cpp.dynamicLibraryImportSuffix: ".a"
         }
-        cpp.dynamicLibraryPrefix: original
-        cpp.dynamicLibraryImportSuffix: original
 
         install: true
         installImportLib: true

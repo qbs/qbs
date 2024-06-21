@@ -56,7 +56,10 @@ MsvcBaseModule {
         winSdkVersion: windowsSdkVersion
     }
 
-    qbs.architecture: clangClProbe.found ? clangClProbe.architecture : original
+    Properties {
+        condition: clangClProbe.found
+        qbs.architecture: clangClProbe.architecture
+    }
 
     compilerVersionMajor: clangClProbe.versionMajor
     compilerVersionMinor: clangClProbe.versionMinor

@@ -56,8 +56,11 @@ CppModule {
         _targetExtender: extenderName
     }
 
-    qbs.architecture: dmcProbe.found ? dmcProbe.architecture : original
-    qbs.targetPlatform: dmcProbe.found ? dmcProbe.targetPlatform : original
+    Properties {
+        condition: dmcProbe.found
+        qbs.architecture: dmcProbe.architecture
+        qbs.targetPlatform: dmcProbe.targetPlatform
+    }
 
     compilerVersionMajor: dmcProbe.versionMajor
     compilerVersionMinor: dmcProbe.versionMinor

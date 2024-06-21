@@ -76,6 +76,8 @@ private slots:
     void delayedError_data();
     void dependencyOnAllProfiles();
     void derivedSubProject();
+    void disabledPropertiesItem_data();
+    void disabledPropertiesItem();
     void disabledSubProject();
     void dottedNames_data();
     void dottedNames();

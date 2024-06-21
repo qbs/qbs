@@ -52,7 +52,11 @@ CppModule {
         enableDefinesByLanguage: enableCompilerDefinesByLanguage
     }
 
-    qbs.architecture: iarProbe.found ? iarProbe.architecture : original
+    Properties {
+        condition: iarProbe.found
+        qbs.architecture: iarProbe.architecture
+    }
+
     qbs.targetPlatform: "none"
 
     compilerVersionMajor: iarProbe.versionMajor

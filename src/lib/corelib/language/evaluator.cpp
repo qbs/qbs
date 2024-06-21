@@ -726,7 +726,22 @@ private:
                 return;
             }
         }
+
         *result = evaluateJSSourceValue(value, data->item->outerItem()).scriptValue;
+
+        // FIXME: Should use JS_IsUninitialized(), but this needs to be solved more centrally.
+        if (!JS_IsUndefined(*result) || !value->createdByPropertiesBlock())
+            return;
+
+        const std::vector<ValuePtr> candidates = sorted(
+            value->candidates(), [](const ValuePtr &v1, const ValuePtr &v2) {
+                return v1->priority(nullptr) > v2->priority(nullptr);
+            });
+        for (const ValuePtr &candidate : candidates) {
+            candidate->apply(this);
+            if (!JS_IsUndefined(*result))
+                return;
+        }
     }
 
     struct JSSourceValueEvaluationResult

@@ -16,7 +16,6 @@ StaticLibrary {
         condition: variantSuffix !== undefined
         cpp.variantSuffix: variantSuffix
     }
-    cpp.variantSuffix: original
     cpp.staticLibraryPrefix: "lib"
     cpp.staticLibrarySuffix: ".ext"
 

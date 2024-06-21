@@ -76,7 +76,6 @@ QtModule {
         condition: importName
         Qt.core.generateMetaTypesFile: true
     }
-    Qt.core.generateMetaTypesFile: original
     Rule {
         condition: importName
         inputs: "qt.core.metatypes"

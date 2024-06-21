@@ -45,9 +45,14 @@ Project {
     Product {
         name: "lotsofobjects"
         type: ["dynamiclibrary"]
+
         // clang-cl does not use response file internally, thus linker complains that command is
         // too long. This can be worked around by calling the linker directly
-        cpp.linkerMode: qbs.toolchain.includes("clang-cl") ? "manual" : original
+        Properties {
+            condition: qbs.toolchain.includes("clang-cl")
+            cpp.linkerMode: "manual"
+        }
+
         Depends { name: "cpp" }
         Rule {
             multiplex: true

@@ -1823,6 +1823,17 @@
         mymodule.aProperty: myothermodule.anotherProperty === "x" ? "y" : original
     }
     \endcode
+    \note In all but the most exotic cases, a \l{Properties} item is the preferred way to
+          achieve the same result:
+    \code
+    Product {
+        Depends { name: "mymodule" }
+        Depends { name: "myothermodule" }
+        Properties {
+            condition: myothermodule.anotherProperty === "x"
+            mymodule.aProperty: "y"
+        }
+    \endcode
 
     \section2 \c outer
     This value is used in nested items, where it refers to the value of the respective property

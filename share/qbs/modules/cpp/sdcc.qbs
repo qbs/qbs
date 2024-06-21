@@ -51,7 +51,11 @@ CppModule {
         preferredArchitecture: qbs.architecture
     }
 
-    qbs.architecture: sdccProbe.found ? sdccProbe.architecture : original
+    Properties {
+        condition: sdccProbe.found
+        qbs.architecture: sdccProbe.architecture
+    }
+
     qbs.targetPlatform: "none"
 
     compilerVersionMajor: sdccProbe.versionMajor

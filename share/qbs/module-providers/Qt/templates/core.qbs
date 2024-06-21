@@ -131,13 +131,15 @@ Module {
         cpp.linkerVariant: "gold"
     }
     Properties {
-        condition: !moduleConfig.contains("use_gold_linker") && qbs.toolchain.contains("gcc")
-        cpp.linkerVariant: original
+        condition: Utilities.versionCompare(version, "6") >= 0
+        cpp.cxxLanguageVersion: "c++17"
+    }
+    Properties {
+        condition: Utilities.versionCompare(version, "6") < 0
+                   && Utilities.versionCompare(version, "5.7.0") >= 0
+        cpp.cxxLanguageVersion: "c++11"
     }
 
-    cpp.cxxLanguageVersion: Utilities.versionCompare(version, "6.0.0") >= 0
-                            ? "c++17"
-                            : Utilities.versionCompare(version, "5.7.0") >= 0 ? "c++11" : original
     cpp.enableCompilerDefinesByLanguage: ["cpp"].concat(
         qbs.targetOS.contains("darwin") ? ["objcpp"] : [])
     cpp.defines: {
@@ -202,10 +204,18 @@ Module {
         return frameworks;
     }
     cpp.rpaths: useRPaths ? libPath : undefined
-    cpp.runtimeLibrary: qbs.toolchain.contains("msvc")
-        ? config.contains("static_runtime") ? "static" : "dynamic"
-        : original
-    cpp.positionIndependentCode: versionMajor >= 5 ? true : original
+    Properties {
+        condition: qbs.toolchain.contains("msvc") && config.contains("static_runtime")
+        cpp.runtimeLibrary: "static"
+    }
+    Properties {
+        condition: qbs.toolchain.contains("msvc") && !config.contains("static_runtime")
+        cpp.runtimeLibrary: "dynamic"
+    }
+    Properties {
+        condition: versionMajor >= 5
+        cpp.positionIndependentCode: true
+    }
     cpp.cxxFlags: {
         var flags = [];
         if (qbs.toolchain.contains('msvc')) {
@@ -218,11 +228,10 @@ Module {
         }
         return flags;
     }
-    cpp.cxxStandardLibrary: {
-        if (qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
-                && config.contains('c++11'))
-            return "libc++";
-        return original;
+    Properties {
+        condition: qbs.targetOS.contains('darwin') && qbs.toolchain.contains('clang')
+                   && config.contains('c++11')
+        cpp.cxxStandardLibrary: "libc++"
     }
     cpp.minimumWindowsVersion: @minWinVersion_optional@
     cpp.minimumMacosVersion: @minMacVersion_optional@

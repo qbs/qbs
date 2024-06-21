@@ -625,6 +625,52 @@ void TestLanguage::derivedSubProject()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::disabledPropertiesItem_data()
+{
+    QTest::addColumn<bool>("setInProduct");
+    QTest::addColumn<bool>("setInHigher");
+    QTest::addColumn<bool>("setInLower");
+    QTest::addColumn<QString>("expectedValue");
+
+    QTest::newRow("default") << false << false << false << QString("default");
+    QTest::newRow("lower only") << false << false << true << QString("default_fromLower");
+    QTest::newRow("higher only") << false << true << false << QString("fromHigher");
+    QTest::newRow("lower and higher") << false << true << true << QString("fromHigher");
+    QTest::newRow("product only") << true << false << false << QString("fromProduct");
+    QTest::newRow("product and lower") << true << false << true << QString("fromProduct");
+    QTest::newRow("product and higher") << true << true << false << QString("fromProduct");
+    QTest::newRow("all") << true << true << true << QString("fromProduct");
+}
+
+void TestLanguage::disabledPropertiesItem()
+{
+    QFETCH(bool, setInLower);
+    QFETCH(bool, setInHigher);
+    QFETCH(bool, setInProduct);
+    QFETCH(QString, expectedValue);
+
+    QVariantMap overriddenValues;
+    overriddenValues.insert("modules.lower.setProp", setInLower);
+    overriddenValues.insert("modules.higher.setProp", setInHigher);
+    overriddenValues.insert("products.p.setProp", setInProduct);
+    defaultParameters.setOverriddenValues(overriddenValues);
+
+    bool exceptionCaught = false;
+    try {
+        resolveProject("disabled-properties-item/disabled-properties-item.qbs");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+
+    QVERIFY(!!project);
+    const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+    QCOMPARE(products.size(), 1);
+    const ResolvedProductConstPtr &p = *products.constBegin();
+    QCOMPARE(p->moduleProperties->moduleProperty("lower", "prop").toString(), expectedValue);
+}
+
 void TestLanguage::disabledSubProject()
 {
     bool exceptionCaught = false;
