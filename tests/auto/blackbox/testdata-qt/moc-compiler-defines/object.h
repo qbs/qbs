@@ -44,7 +44,7 @@
 
 // These were not defined during the moc run (QBS-1592).
 // Do not use Q_OS_UNIX here as it is a fallback value which is defined when nothing else is.
-#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WIN)
+#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WIN) || defined(Q_OS_HURD)
 
 class Object : public QObject
 {
