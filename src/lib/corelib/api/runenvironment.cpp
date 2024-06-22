@@ -178,7 +178,7 @@ int RunEnvironment::doRunShell()
     }
     const QProcessEnvironment environment = d->resolvedProduct
             ? d->resolvedProduct->buildEnvironment : d->project->environment;
-#if defined(Q_OS_LINUX)
+#if defined(Q_OS_LINUX) || defined(__GLIBC__)
     clearenv();
 #endif
     const auto keys = environment.keys();
