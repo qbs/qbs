@@ -65,6 +65,10 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
         if (!product.Android.sdk.d8Desugaring)
             args.push("--no-desugaring");
 
+        if (product.Android.sdk.minimumVersion) {
+            args.push("--min-api", product.Android.sdk.minimumVersion);
+        }
+
         args.push("--release");
         var classes = inputs["java.class"];
         if (classes) {
