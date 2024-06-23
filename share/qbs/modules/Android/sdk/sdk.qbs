@@ -176,6 +176,13 @@ Module {
         allowedValues: ["dx", "d8"]
     }
     readonly property bool _useD8: dexCompilerName === "d8"
+
+    property bool d8Desugaring: false
+    PropertyOptions {
+        name: "d8Desugaring"
+        description: "enable desugaring in d8 dex compiler"
+    }
+
     property path zipalignFilePath: FileInfo.joinPaths(buildToolsDir, "zipalign")
     property path androidJarFilePath: FileInfo.joinPaths(sdkDir, "platforms", platform,
                                                          "android.jar")

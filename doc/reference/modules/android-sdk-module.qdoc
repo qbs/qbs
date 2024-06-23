@@ -262,6 +262,15 @@
 */
 
 /*!
+    \qmlproperty bool Android.sdk::d8Desugaring
+    \since Qbs 2.5
+
+    Whether desugaring is enabled for "d8" dex compiler.
+
+    \defaultvalue \c false
+*/
+
+/*!
     \qmlproperty string Android.sdk::minimumVersion
     \since Qbs 1.17
 

@@ -62,7 +62,10 @@ function prepareDex(project, product, inputs, outputs, input, output, explicitly
     var args = ["--output", FileInfo.path(output.filePath)];
 
     if (product.Android.sdk._useD8) {
-        args.push("--no-desugaring", "--release");
+        if (!product.Android.sdk.d8Desugaring)
+            args.push("--no-desugaring");
+
+        args.push("--release");
         var classes = inputs["java.class"];
         if (classes) {
             args = args.concat(classes.map(function(javaClass) {
