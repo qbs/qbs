@@ -166,6 +166,12 @@ Module {
     }
     readonly property bool _generateAab: packageType == "aab"
 
+    property stringList extraResourcePackages
+    PropertyOptions {
+        name: "extraResourcePackages"
+        description: "extra resource packages to compile resources for"
+    }
+
     property path apksignerFilePath: FileInfo.joinPaths(buildToolsDir, "apksigner")
     property path aidlFilePath: FileInfo.joinPaths(buildToolsDir, "aidl")
     property path dxFilePath: FileInfo.joinPaths(buildToolsDir, "dx")
@@ -407,6 +413,14 @@ Module {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
                                                  "R.java"),
+                    fileTags: ["java.java"]
+                });
+            }
+            for (var rp in product.Android.sdk.extraResourcePackages) {
+                var resourcePackageName = product.Android.sdk.extraResourcePackages[rp];
+                artifacts.push({
+                    filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesBaseDir,
+                                                 resourcePackageName.split('.').join('/'), "R.java"),
                     fileTags: ["java.java"]
                 });
             }

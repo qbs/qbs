@@ -278,6 +278,11 @@ function prepareAapt2Link(project, product, inputs, outputs, input, output, expl
         args.push("-v");
     if (product.Android.sdk._generateAab)
         args.push("--proto-format");
+    if (product.Android.sdk.extraResourcePackages) {
+        args.push("--extra-packages");
+        args.push(product.Android.sdk.extraResourcePackages.join(":"));
+    }
+
     var cmd = new Command(product.Android.sdk.aaptFilePath, args);
     cmd.description = "linking resources";
     cmd.workingDirectory = product.buildDirectory;

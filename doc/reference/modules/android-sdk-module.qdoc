@@ -253,6 +253,15 @@
 */
 
 /*!
+    \qmlproperty stringList Android.sdk::extraResourcePackages
+    \since Qbs 2.5
+
+    List of additional Java package names to compile resources for.
+
+    \defaultvalue \c undefined
+*/
+
+/*!
     \qmlproperty string Android.sdk::dexCompilerName
     \since Qbs 1.20
 
