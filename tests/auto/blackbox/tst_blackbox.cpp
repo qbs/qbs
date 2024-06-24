@@ -151,7 +151,7 @@ bool TestBlackbox::prepareAndRunConan()
         qInfo() << "conan is not installed or not available in PATH.";
         return false;
     }
-    const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
+    const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test-libs";
     if (!QFileInfo(profilePath).exists()) {
         qInfo() << "conan profile is not installed, run './scripts/setup-conan-profiles.sh'";
         return false;
@@ -159,7 +159,7 @@ bool TestBlackbox::prepareAndRunConan()
     QProcess conan;
     QDir::setCurrent(testDataDir + "/conan-provider/testlibdep");
     rmDirR("build");
-    QStringList arguments{"install", ".", "--profile:all=qbs-test", "--output-folder=build"};
+    QStringList arguments{"install", ".", "--profile:all=qbs-test-libs", "--output-folder=build"};
     conan.start(executable, arguments);
     return waitForProcessSuccess(conan, 60000);
 }

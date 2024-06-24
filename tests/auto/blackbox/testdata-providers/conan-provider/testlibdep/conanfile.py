@@ -1,6 +1,6 @@
 from conan import ConanFile
 from conan.tools.cmake import CMakeToolchain, CMake, cmake_layout, CMakeDeps
-from conan.tools.files import collect_libs, copy
+from conan.tools.files import copy
 import os
 
 class ConanModuleProviderTestlib(ConanFile):
@@ -30,6 +30,6 @@ class ConanModuleProviderTestlib(ConanFile):
         cmake.install()
 
     def package_info(self):
-        self.cpp_info.libs = collect_libs(self)
+        self.cpp_info.libs = ['conanmoduleprovider.testlibdep']
         self.cpp_info.resdirs = ['share']
 

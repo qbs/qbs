@@ -32,16 +32,6 @@
 
 #include "../shared.h"
 
-// #include <tools/hostosinfo.h>
-// #include <tools/profile.h>
-// #include <tools/qttools.h>
-
-// #include <QtCore/qdir.h>
-// #include <QtCore/qregularexpression.h>
-
-// using qbs::Internal::HostOsInfo;
-// using qbs::Profile;
-
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
 TestBlackboxProviders::TestBlackboxProviders()
