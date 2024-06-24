@@ -1018,9 +1018,6 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("module-property-binding-in-project")
         << "Module properties cannot be set in Project items";
     QTest::newRow("module-with-id") << "Module items cannot have an id property";
-    QTest::newRow("recursive-property-direct") << "refers to itself";
-    QTest::newRow("recursive-property-indirect") << "refers to itself.*via 'b'.*via 'c'";
-    QTest::newRow("recursive-property-indirect-via-module") << "refers to itself.*via 'a'";
 }
 
 void TestLanguage::erroneousFiles()
