@@ -48,6 +48,7 @@
 #include <tools/profiling.h>
 #include <tools/set.h>
 #include <tools/setupprojectparameters.h>
+#include <tools/stlutils.h>
 
 #include <unordered_set>
 
@@ -64,12 +65,12 @@ public:
 
 private:
     int compareValuePriorities(const ValueConstPtr &v1, const ValueConstPtr &v2);
-    ValuePtr mergeListValues(const ValuePtr &currentHead, const ValuePtr &newElem);
     void mergePropertyFromLocalInstance(Item *loadingItem, const QString &loadingName,
                                         Item *globalInstance, const QString &name,
                                         const ValuePtr &value);
     bool doFinalMerge(Item *moduleItem);
     bool doFinalMerge(const PropertyDeclaration &propertyDecl, ValuePtr &propertyValue);
+    void finalizeCandidates(const ValuePtr &value);
 
     ProductContext & m_product;
     LoaderState &m_loaderState;
@@ -139,6 +140,7 @@ int ModulePropertyMerger::compareValuePriorities(const ValueConstPtr &v1, const 
 {
     QBS_CHECK(v1);
     QBS_CHECK(v2);
+    QBS_CHECK(v1 != v2);
     QBS_CHECK(v1->scope() != v2->scope());
     QBS_CHECK(v1->type() == Value::JSSourceValueType || v2->type() == Value::JSSourceValueType);
 
@@ -149,27 +151,6 @@ int ModulePropertyMerger::compareValuePriorities(const ValueConstPtr &v1, const 
     const int prioDiff = v1->scopeName().compare(v2->scopeName()); // Sic! See 8ff1dd0044
     QBS_CHECK(prioDiff != 0);
     return prioDiff;
-}
-
-ValuePtr ModulePropertyMerger::mergeListValues(const ValuePtr &currentHead, const ValuePtr &newElem)
-{
-    QBS_CHECK(newElem);
-    QBS_CHECK(!newElem->next());
-
-    if (!currentHead)
-        return !newElem->expired(m_product.item) ? newElem : newElem->next();
-
-    QBS_CHECK(!currentHead->expired(m_product.item));
-
-    if (newElem->expired(m_product.item))
-        return currentHead;
-
-    if (compareValuePriorities(currentHead, newElem) < 0) {
-        newElem->setNext(currentHead);
-        return newElem;
-    }
-    currentHead->setNext(mergeListValues(currentHead->next(), newElem));
-    return currentHead;
 }
 
 void ModulePropertyMerger::mergePropertyFromLocalInstance(
@@ -211,22 +192,15 @@ void ModulePropertyMerger::mergePropertyFromLocalInstance(
 
     QBS_CHECK(value->type() == Value::JSSourceValueType);
 
-    if (decl.isScalar()) {
-        QBS_CHECK(!globalVal->expired(m_product.item));
-        QBS_CHECK(!value->expired(m_product.item));
-        if (compareValuePriorities(globalVal, value) < 0) {
-            value->setCandidates(globalVal->candidates());
-            globalVal->setCandidates({});
-            value->addCandidate(globalVal);
-            globalInstance->setProperty(decl.name(), value);
-        } else {
-            globalVal->addCandidate(value);
-        }
+    QBS_CHECK(!globalVal->expired(m_product.item));
+    QBS_CHECK(!value->expired(m_product.item));
+    if (compareValuePriorities(globalVal, value) < 0) {
+        value->setCandidates(globalVal->candidates());
+        globalVal->setCandidates({});
+        value->addCandidate(globalVal);
+        globalInstance->setProperty(decl.name(), value);
     } else {
-        if (const ValuePtr &newChainStart = mergeListValues(globalVal, value);
-            newChainStart != globalVal) {
-            globalInstance->setProperty(decl.name(), newChainStart);
-        }
+        globalVal->addCandidate(value);
     }
 }
 
@@ -245,79 +219,75 @@ bool ModulePropertyMerger::doFinalMerge(Item *moduleItem)
 bool ModulePropertyMerger::doFinalMerge(const PropertyDeclaration &propertyDecl,
                                         ValuePtr &propertyValue)
 {
-    if (propertyValue->type() == Value::VariantValueType) {
-        QBS_CHECK(!propertyValue->next());
+    if (propertyValue->type() == Value::VariantValueType)
         return false;
-    }
     if (!propertyDecl.isValid())
         return false; // Caught later by dedicated checker.
+
     propertyValue->resetPriority();
-    if (propertyDecl.isScalar()) {
-        if (propertyValue->candidates().empty())
-            return false;
-        std::pair<int, std::vector<ValuePtr>> candidatesWithHighestPrio;
-        candidatesWithHighestPrio.first = propertyValue->priority(m_product.item);
-        candidatesWithHighestPrio.second.push_back(propertyValue);
-        for (const ValuePtr &v : propertyValue->candidates()) {
-            const int prio = v->priority(m_product.item);
-            if (prio < candidatesWithHighestPrio.first)
-                continue;
-            if (prio > candidatesWithHighestPrio.first) {
-                candidatesWithHighestPrio.first = prio;
-                candidatesWithHighestPrio.second = {v};
-                continue;
-            }
-            candidatesWithHighestPrio.second.push_back(v);
-        }
-        ValuePtr chosenValue = candidatesWithHighestPrio.second.front();
-        if (int(candidatesWithHighestPrio.second.size()) > 1) {
-            ErrorInfo error(Tr::tr("Conflicting scalar values for property '%1'.")
-                                .arg(propertyDecl.name()));
-            error.append({}, chosenValue->location());
-            QBS_CHECK(chosenValue->type() == Value::JSSourceValueType);
-            QStringView sourcCode = static_cast<JSSourceValue *>(
-                                        chosenValue.get())->sourceCode();
-            for (int i = 1; i < int(candidatesWithHighestPrio.second.size()); ++i) {
-                const ValuePtr &v = candidatesWithHighestPrio.second.at(i);
-                QBS_CHECK(v->type() == Value::JSSourceValueType);
-
-                // Note that this is a bit silly: The source code could still evaluate to
-                // different values in the end.
-                if (static_cast<JSSourceValue *>(v.get())->sourceCode() != sourcCode)
-                    error.append({}, v->location());
-            }
-            if (error.items().size() > 2)
-                m_loaderState.logger().printWarning(error);
-        }
-
-        if (propertyValue == chosenValue)
-            return false;
-        std::vector<ValuePtr> candidates = propertyValue->candidates();
-        candidates.erase(std::find(candidates.begin(), candidates.end(), chosenValue));
-        chosenValue->setCandidates(candidates);
-        chosenValue->addCandidate(propertyValue);
-        propertyValue->setCandidates({});
-        propertyValue = chosenValue;
-        return true;
-    }
-    if (!propertyValue->next())
+    if (propertyValue->candidates().empty())
         return false;
-    std::vector<ValuePtr> singleValuesBefore;
-    for (ValuePtr current = propertyValue; current;) {
-        singleValuesBefore.push_back(current);
-        const ValuePtr next = current->next();
-        if (next)
-            current->setNext({});
-        current = next;
+
+    std::pair<int, std::vector<ValuePtr>> candidatesWithHighestPrio;
+    candidatesWithHighestPrio.first = propertyValue->priority(m_product.item);
+    candidatesWithHighestPrio.second.push_back(propertyValue);
+    for (const ValuePtr &v : propertyValue->candidates()) {
+        const int prio = v->priority(m_product.item);
+        if (prio < candidatesWithHighestPrio.first)
+            continue;
+        if (prio > candidatesWithHighestPrio.first) {
+            candidatesWithHighestPrio.first = prio;
+            candidatesWithHighestPrio.second = {v};
+            continue;
+        }
+        candidatesWithHighestPrio.second.push_back(v);
     }
-    ValuePtr newValue;
-    for (const ValuePtr &v : singleValuesBefore)
-        newValue = mergeListValues(newValue, v);
-    std::vector<ValuePtr> singleValuesAfter;
-    for (ValuePtr current = propertyValue; current; current = current->next())
-        singleValuesAfter.push_back(current);
-    propertyValue = newValue;
-    return singleValuesBefore != singleValuesAfter;
+    ValuePtr chosenValue = candidatesWithHighestPrio.second.front();
+    if (propertyDecl.isScalar() && int(candidatesWithHighestPrio.second.size()) > 1) {
+        ErrorInfo error(
+            Tr::tr("Conflicting scalar values for property '%1'.").arg(propertyDecl.name()));
+        error.append({}, chosenValue->location());
+        QBS_CHECK(chosenValue->type() == Value::JSSourceValueType);
+        QStringView sourcCode = static_cast<JSSourceValue *>(chosenValue.get())->sourceCode();
+        for (int i = 1; i < int(candidatesWithHighestPrio.second.size()); ++i) {
+            const ValuePtr &v = candidatesWithHighestPrio.second.at(i);
+            QBS_CHECK(v->type() == Value::JSSourceValueType);
+
+            // Note that this is a bit silly: The source code could still evaluate to
+            // different values in the end.
+            if (static_cast<JSSourceValue *>(v.get())->sourceCode() != sourcCode)
+                error.append({}, v->location());
+        }
+        if (error.items().size() > 2)
+            m_loaderState.logger().printWarning(error);
+    }
+
+    if (propertyValue == chosenValue) {
+        const std::vector<ValuePtr> oldCandidates = propertyValue->candidates();
+        finalizeCandidates(propertyValue);
+        return oldCandidates != propertyValue->candidates();
+    }
+
+    std::vector<ValuePtr> candidates = propertyValue->candidates();
+    candidates.erase(std::find(candidates.begin(), candidates.end(), chosenValue));
+    chosenValue->setCandidates(candidates);
+    chosenValue->addCandidate(propertyValue);
+    propertyValue->setCandidates({});
+    propertyValue = chosenValue;
+    finalizeCandidates(propertyValue);
+    return true;
+}
+
+void ModulePropertyMerger::finalizeCandidates(const ValuePtr &value)
+{
+    value->removeExpiredCandidates(m_product.item);
+    value->sortCandidates([this](const ValuePtr &v1, const ValuePtr &v2) {
+        // https://stackoverflow.com/questions/38966516/should-sorting-algorithm-pass-same-element-in-the-comparison-function
+        if (v1 == v2)
+            return false;
+
+        return compareValuePriorities(v1, v2) > 0;
+    });
 }
 
 } // namespace qbs::Internal

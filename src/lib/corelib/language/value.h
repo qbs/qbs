@@ -45,6 +45,7 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
+#include <functional>
 #include <vector>
 
 namespace qbs {
@@ -77,8 +78,7 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
     Value(Type t, bool createdByPropertiesBlock);
-    Value(const Value &other) = delete;
-    Value(const Value &other, ItemPool &pool);
+    Value(const Value &other) = default;
     virtual ~Value();
 
     Type type() const { return m_type; }
@@ -92,12 +92,12 @@ public:
     int priority(const Item *productItem) const;
     virtual void resetPriority();
 
-    ValuePtr next() const;
-    void setNext(const ValuePtr &next);
-
     void addCandidate(const ValuePtr &v) { m_candidates.push_back(v); }
+
     const std::vector<ValuePtr> &candidates() const { return m_candidates; }
     void setCandidates(const std::vector<ValuePtr> &candidates) { m_candidates = candidates; }
+    void removeExpiredCandidates(const Item *productItem);
+    void sortCandidates(const std::function<bool(const ValuePtr &v1, const ValuePtr &v2)> &less);
 
     bool createdByPropertiesBlock() const { return m_flags & OriginPropertiesBlock; }
     void markAsSetByProfile() { m_flags |= OriginProfile; }
@@ -123,10 +123,9 @@ public:
 private:
     int calculatePriority(const Item *productItem) const;
 
-    Type m_type;
+    const Type m_type;
     Item *m_scope = nullptr;
     QString m_scopeName;
-    ValuePtr m_next;
     std::vector<ValuePtr> m_candidates;
     Flags m_flags;
     mutable int m_priority = -1;
@@ -232,12 +231,12 @@ class VariantValue : public Value
 {
 public:
     explicit VariantValue(QVariant v);
-    VariantValue(const VariantValue &v, ItemPool &pool);
+    VariantValue(const VariantValue &v) = default;
     static VariantValuePtr create(const QVariant &v = QVariant());
     static VariantValuePtr createStored(const QVariant &v = QVariant());
 
     void apply(ValueHandler *handler) override { handler->handle(this); }
-    ValuePtr clone(ItemPool &pool) const override;
+    ValuePtr clone(ItemPool &) const override;
 
     const QVariant &value() const { return m_value; }
     virtual quintptr id() const { return 0; }

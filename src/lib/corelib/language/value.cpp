@@ -44,6 +44,7 @@
 
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 namespace qbs {
 namespace Internal {
@@ -52,16 +53,6 @@ Value::Value(Type t, bool createdByPropertiesBlock) : m_type(t)
 {
     if (createdByPropertiesBlock)
         m_flags |= OriginPropertiesBlock;
-}
-
-Value::Value(const Value &other, ItemPool &pool)
-    : m_type(other.m_type),
-      m_scope(other.m_scope),
-      m_scopeName(other.m_scopeName),
-      m_next(other.m_next ? other.m_next->clone(pool) : ValuePtr()),
-      m_candidates(other.m_candidates),
-      m_flags(other.m_flags)
-{
 }
 
 Value::~Value() = default;
@@ -103,29 +94,24 @@ int Value::calculatePriority(const Item *productItem) const
 void Value::resetPriority()
 {
     m_priority = -1;
-    if (m_next)
-        m_next->resetPriority();
     for (const ValuePtr &v : m_candidates)
         v->resetPriority();
 }
 
-ValuePtr Value::next() const
+void Value::removeExpiredCandidates(const Item *productItem)
 {
-    return m_next;
+    removeIf(m_candidates, [productItem](const ValuePtr &v) { return v->expired(productItem); });
 }
 
-void Value::setNext(const ValuePtr &next)
+void Value::sortCandidates(const std::function<bool(const ValuePtr &, const ValuePtr &)> &less)
 {
-    QBS_ASSERT(next.get() != this, return);
-    QBS_CHECK(type() != VariantValueType);
-    m_next = next;
+    m_candidates = sorted(m_candidates, less);
 }
 
 bool Value::setInternally() const
 {
     return type() == VariantValueType && !setByProfile() && !setByCommandLine();
 }
-
 
 JSSourceValue::JSSourceValue(bool createdByPropertiesBlock)
     : Value(JSSourceValueType, createdByPropertiesBlock)
@@ -134,7 +120,8 @@ JSSourceValue::JSSourceValue(bool createdByPropertiesBlock)
 {
 }
 
-JSSourceValue::JSSourceValue(const JSSourceValue &other, ItemPool &pool) : Value(other, pool)
+JSSourceValue::JSSourceValue(const JSSourceValue &other, ItemPool &pool)
+    : Value(other)
 {
     m_sourceCode = other.m_sourceCode;
     m_line = other.m_line;
@@ -236,9 +223,6 @@ VariantValue::VariantValue(QVariant v)
 {
 }
 
-VariantValue::VariantValue(const VariantValue &other, ItemPool &pool)
-    : Value(other, pool), m_value(other.m_value) {}
-
 template<typename T>
 VariantValuePtr createImpl(const QVariant &v)
 {
@@ -259,9 +243,9 @@ VariantValuePtr VariantValue::createStored(const QVariant &v)
     return createImpl<StoredVariantValue>(v);
 }
 
-ValuePtr VariantValue::clone(ItemPool &pool) const
+ValuePtr VariantValue::clone(ItemPool &) const
 {
-    return std::make_shared<VariantValue>(*this, pool);
+    return std::make_shared<VariantValue>(*this);
 }
 
 const VariantValuePtr &VariantValue::falseValue()

@@ -267,20 +267,26 @@ void GroupsHandler::adjustScopesInGroupModuleInstances(Item *groupItem,
     }
 
     for (const ValuePtr &prop : module.item->properties()) {
-        if (prop->type() != Value::JSSourceValueType) {
-            QBS_CHECK(!prop->next());
+        if (prop->type() != Value::JSSourceValueType)
             continue;
-        }
-        for (ValuePtr v = prop; v; v = v->next()) {
+        const auto adjust = [groupItem](const ValuePtr &v) {
             if (!v->scope())
-                continue;
+                return;
             for (const Item::Module &module : groupItem->modules()) {
                 if (v->scope() == module.item->prototype()) {
                     v->setScope(module.item, {});
                     break;
                 }
             }
+        };
+        adjust(prop);
+        const auto candidates = transformed<std::vector<ValuePtr>>(
+            prop->candidates(),
+            [this](const ValuePtr &v) { return v->clone(m_loaderState.itemPool()); });
+        for (const ValuePtr &c : candidates) {
+            adjust(c);
         }
+        prop->setCandidates(candidates);
     }
 }
 
