@@ -68,6 +68,7 @@ Module {
     property int versionPatch: versionParts[2]
     property bool frameworkBuild: @frameworkBuild@
     property bool staticBuild: @staticBuild@
+    property bool multiThreading: @multiThreading@
     property stringList pluginMetaData: []
     property bool enableKeywords: true
     property bool generateMetaTypesFile
@@ -227,6 +228,8 @@ Module {
                 flags.push("/permissive-");
             }
         }
+        if (qbs.toolchain.includes("emscripten") && multiThreading)
+            flags.push("-pthread");
         return flags;
     }
     Properties {
@@ -234,6 +237,27 @@ Module {
                    && config.contains('c++11')
         cpp.cxxStandardLibrary: "libc++"
     }
+
+    Properties {
+        condition: qbs.toolchain.includes("emscripten")
+        cpp.driverLinkerFlags: {
+            var flags = [
+                "-sMAX_WEBGL_VERSION=2",
+                "-sFETCH=1",
+                "-sWASM_BIGINT=1",
+                "-sMODULARIZE",
+                "-sEXPORT_NAME=createQtAppInstance",
+                "-sALLOW_MEMORY_GROWTH",
+                '-sASYNCIFY_IMPORTS=["qt_asyncify_suspend_js", "qt_asyncify_resume_js"]',
+                '-sEXPORTED_RUNTIME_METHODS=["UTF16ToString", "stringToUTF16", "JSEvents", "specialHTMLTargets", "FS"]',
+                "-lembind"
+            ];
+            if (multiThreading)
+                flags.push("-pthread")
+            return flags;
+        }
+    }
+
     cpp.minimumWindowsVersion: @minWinVersion_optional@
     cpp.minimumMacosVersion: @minMacVersion_optional@
     cpp.minimumIosVersion: @minIosVersion_optional@
@@ -246,7 +270,7 @@ Module {
     cpp.windowsApiAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
     cpp.requireAppContainer: mkspecName.startsWith("winrt-")
 
-    additionalProductTypes: ["qm", "qt.core.metatypes"]
+    additionalProductTypes: ["qm", "qt.core.metatypes", "qthtml"]
 
     validate: {
         var validator = new ModUtils.PropertyValidator("Qt.core");
@@ -429,6 +453,28 @@ Module {
         }
 
         prepare: Core.qhelpGeneratorCommands(product, input, output)
+    }
+
+    Rule {
+        condition: qbs.toolchain.includes("emscripten")
+        inputs : ["application"]
+        multiplex: true
+
+        Artifact {
+            filePath : FileInfo.joinPaths(product.buildDirectory, product.targetName + ".html")
+            fileTags : ["qthtml"]
+        }
+
+        prepare: Core.wasmQtHtmlCommands(product, output)
+    }
+
+    Group {
+        condition: qbs.toolchain.includes("emscripten")
+        fileTags: ["qthtml"]
+        files: [
+            pluginPath + "/platforms/qtloader.js",
+            pluginPath + "/platforms/qtlogo.svg"
+        ]
     }
 
     @additionalContent@

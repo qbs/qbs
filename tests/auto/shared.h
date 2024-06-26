@@ -222,11 +222,35 @@ inline QString relativeProductBuildDir(const QString &productName,
     return relativeBuildDir(configurationName) + '/' + dirName;
 }
 
-inline QString relativeExecutableFilePath(const QString &productName,
-                                          const QString &configName = QString())
+inline QStringList profileToolchain(const qbs::Profile &profile)
 {
-    return relativeProductBuildDir(productName, configName) + '/'
-            + qbs::Internal::HostOsInfo::appendExecutableSuffix(productName);
+    const auto toolchainType = profile.value(QStringLiteral("qbs.toolchainType")).toString();
+    if (!toolchainType.isEmpty())
+        return qbs::canonicalToolchain(toolchainType);
+    return profile.value(QStringLiteral("qbs.toolchain")).toStringList();
+}
+
+inline bool builtWithEmscripten()
+{
+    const SettingsPtr s = settings();
+    const qbs::Profile profile(profileName(), s.get());
+    return profileToolchain(profile).contains(QLatin1String("emscripten"));
+}
+
+inline QString appendExecSuffix(const QString &productName)
+{
+    const auto productNameWithSuffix = builtWithEmscripten()
+                                           ? productName + QStringLiteral(".js")
+                                           : qbs::Internal::HostOsInfo::appendExecutableSuffix(
+                                                 productName);
+    return productNameWithSuffix;
+}
+
+inline QString relativeExecutableFilePath(
+    const QString &productName, const QString &configName = QString())
+{
+    const auto relativeDir = relativeProductBuildDir(productName, configName) + QLatin1Char('/');
+    return relativeDir + appendExecSuffix(productName);
 }
 
 inline void waitForNewTimestamp(const QString &testDir)
@@ -272,14 +296,6 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
     if (!QFile::copy(source, target))
         qFatal("Failed to copy '%s' to '%s'", qPrintable(source), qPrintable(target));
     touch(target);
-}
-
-inline QStringList profileToolchain(const qbs::Profile &profile)
-{
-    const auto toolchainType = profile.value(QStringLiteral("qbs.toolchainType")).toString();
-    if (!toolchainType.isEmpty())
-        return qbs::canonicalToolchain(toolchainType);
-    return profile.value(QStringLiteral("qbs.toolchain")).toStringList();
 }
 
 inline QString objectFileName(const QString &baseName, const QString &profileName)

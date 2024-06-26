@@ -111,6 +111,8 @@ private slots:
     void dynamicProject();
     void dynamicRuleOutputs();
     void emptyProfile();
+    void emscriptenArtifacts();
+    void emscriptenArtifacts_data();
     void enableExceptions();
     void enableExceptions_data();
     void enableRtti();

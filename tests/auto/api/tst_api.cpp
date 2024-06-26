@@ -1359,17 +1359,26 @@ void TestApi::generatedFilesList()
     const qbs::ProductData product = projectData.products().front();
     QString uiFilePath;
     QVERIFY(product.generatedArtifacts().size() >= 6);
-    const auto artifacts = product.generatedArtifacts();
+    const auto &artifacts = product.generatedArtifacts();
     for (const qbs::ArtifactData &a : artifacts) {
         QVERIFY(a.isGenerated());
         QFileInfo fi(a.filePath());
         using qbs::Internal::HostOsInfo;
         const QStringList possibleFileNames = QStringList()
-                << "main.cpp.o" << "main.cpp.obj"
-                << "mainwindow.cpp.o" << "mainwindow.cpp.obj"
-                << "moc_mainwindow.cpp" << "moc_mainwindow.cpp.o" << "moc_mainwindow.cpp.obj"
-                << "ui_mainwindow.h"
-                << HostOsInfo::appendExecutableSuffix("generated-files-list");
+                                              << "main.cpp.o"
+                                              << "main.cpp.obj"
+                                              << "mainwindow.cpp.o"
+                                              << "mainwindow.cpp.obj"
+                                              << "moc_mainwindow.cpp"
+                                              << "moc_mainwindow.cpp.o"
+                                              << "moc_mainwindow.cpp.obj"
+                                              << "ui_mainwindow.h"
+                                              << "generated-files-list.wasm"
+                                              << "generated-files-list.worker.js"
+                                              << "generated-files-list.js"
+                                              << "generated-files-list.html"
+                                              << qbs::Internal::HostOsInfo::appendExecutableSuffix(
+                                                     "generated-files-list");
         QVERIFY2(possibleFileNames.contains(fi.fileName()) || fi.fileName().endsWith(".plist")
                  || fi.fileName().contains("qt_plugin_import"),
                  qPrintable(fi.fileName()));
@@ -1395,7 +1404,10 @@ void TestApi::generatedFilesList()
     QCOMPARE(uiHeaderFileInfo.fileName(), QStringLiteral("ui_mainwindow.h"));
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
-    QCOMPARE(allParents.size(), 3);
+    if (builtWithEmscripten())
+        QCOMPARE(allParents.size(), 6); //build with "-pthread" support
+    else
+        QCOMPARE(allParents.size(), 3);
 }
 
 void TestApi::infiniteLoopBuilding()
@@ -1493,8 +1505,12 @@ void TestApi::installableFiles()
     for (const qbs::ArtifactData &f : beforeInstallableFiles) {
         if (!QFileInfo(f.filePath()).fileName().startsWith("main")) {
             QVERIFY(f.isExecutable());
-            QString expectedTargetFilePath = qbs::Internal::HostOsInfo
-                    ::appendExecutableSuffix(QStringLiteral("/tmp/usr/bin/installedApp"));
+            const auto baseExecutablePath = QStringLiteral("/tmp/usr/bin/installedApp");
+            const auto expectedTargetFilePath
+                = builtWithEmscripten()
+                      ? baseExecutablePath + QStringLiteral(".js")
+                      : qbs::Internal::HostOsInfo::appendExecutableSuffix(baseExecutablePath);
+
             QCOMPARE(f.installData().localInstallFilePath(), expectedTargetFilePath);
             QCOMPARE(product.targetExecutable(), expectedTargetFilePath);
             break;
@@ -1541,12 +1557,16 @@ void TestApi::isRunnable()
 
 void TestApi::linkDynamicLibs()
 {
+    if (builtWithEmscripten())
+        QSKIP("Emscripten does not support dynamic linking");
     const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs");
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::linkDynamicAndStaticLibs()
 {
+    if (builtWithEmscripten())
+        QSKIP("Emscripten does not support dynamic linking");
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
@@ -1578,6 +1598,10 @@ void TestApi::linkDynamicAndStaticLibs()
 
 void TestApi::linkStaticAndDynamicLibs()
 {
+    const SettingsPtr s = settings();
+    qbs::Profile profile(profileName(), s.get());
+    if (profileToolchain(profile).contains(QLatin1String("emscripten")))
+        QSKIP("Emscripten does not support dynamic linking");
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);

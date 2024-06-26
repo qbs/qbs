@@ -130,6 +130,19 @@ void TestBlackboxQt::dbusInterfaces()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::emscriptenHtml()
+{
+    if (!builtWithEmscripten())
+        QSKIP("Skipping emscripten test");
+
+    QDir::setCurrent(testDataDir + "/emscripten-html");
+    QCOMPARE(runQbs(), 0);
+    const auto relativeInstallRoot = relativeBuildDir() + QStringLiteral("/install-root/");
+    QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtloader.js")));
+    QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtlogo.svg")));
+    QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("app.html")));
+}
+
 void TestBlackboxQt::forcedMoc()
 {
     QDir::setCurrent(testDataDir + "/forced-moc");
@@ -173,6 +186,9 @@ void TestBlackboxQt::lrelease()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/lrelease"));
     QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
 
@@ -286,6 +302,9 @@ void TestBlackboxQt::mocSameFileName()
 
 void TestBlackboxQt::noRelinkOnQDebug()
 {
+    if (builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
+
     QFETCH(QString, checkMode);
     QFETCH(bool, expectRelink);
 
@@ -344,8 +363,6 @@ void TestBlackboxQt::pkgconfig()
     QbsRunParameters params;
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
-        QSKIP("pkgconfig or Qt not found");
 }
 
 void TestBlackboxQt::pkgconfigQt()
@@ -487,6 +504,8 @@ void TestBlackboxQt::qdoc()
 {
     QDir::setCurrent(testDataDir + "/qdoc");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     if (m_qbsStdout.contains("Qt is too old"))
         QSKIP("Skip test since qdoc3 does not work properly");
     QCOMPARE(runQbs(), 0);
@@ -497,6 +516,8 @@ void TestBlackboxQt::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+        QSKIP("Cannot run binaries in cross-compiled build");
 
     const bool isGcc = m_qbsStdout.contains("is gcc: true");
     const bool isNotGcc = m_qbsStdout.contains("is gcc: false");

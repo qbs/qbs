@@ -107,6 +107,8 @@ function qbsTargetPlatformFromQtMkspec(qtProps) {
         return "vxworks";
     if (ProviderUtils.isDesktopWindowsQt(qtProps) || mkspec.startsWith("winrt-"))
         return "windows";
+    if (mkspec.startsWith("wasm-"))
+        return "wasm-emscripten";
 }
 
 function pathToJSLiteral(path) { return JSON.stringify(FileInfo.fromNativeSeparators(path)); }
@@ -231,6 +233,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         libInfix: ModUtils.toJSLiteral(qtProps.qtLibInfix),
         availableBuildVariants: ModUtils.toJSLiteral(qtProps.buildVariant),
         staticBuild: ModUtils.toJSLiteral(qtProps.staticBuild),
+        multiThreading: ModUtils.toJSLiteral(qtProps.multiThreading),
         frameworkBuild: ModUtils.toJSLiteral(qtProps.frameworkBuild),
         name: ModUtils.toJSLiteral(ProviderUtils.qtModuleNameWithoutPrefix(module)),
         has_library: ModUtils.toJSLiteral(module.hasLibrary),

@@ -1018,7 +1018,7 @@ function linkerEnvVars(config, inputs)
 function setResponseFileThreshold(command, product)
 {
     if (product.qbs.targetOS.includes("windows") && Host.os().includes("windows"))
-        command.responseFileThreshold = 10000;
+        command.responseFileThreshold = 8000;
 }
 
 function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
@@ -1254,7 +1254,7 @@ function separateDebugInfoCommands(product, outputs, primaryOutput) {
     var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
             || outputs.debuginfo_loadablemodule;
 
-    if (debugInfo) {
+    if (debugInfo && !product.qbs.toolchain.includes("emscripten")) {
         var objcopy = product.cpp.objcopyPath;
 
         var cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
@@ -1384,7 +1384,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     setResponseFileThreshold(cmd, product);
     commands.push(cmd);
 
-    if (product.qbs.targetOS.includes("darwin")) {
+    if (product.qbs.toolchain.includes("emscripten") && outputs.application
+            && product.cpp.separateDebugInformation) {
+        args.push("-gseparate-dwarf");
+    } else if (product.qbs.targetOS.includes("darwin")) {
         if (!product.aggregate) {
             commands = commands.concat(separateDebugInfoCommandsDarwin(
                                            product, outputs, [primaryOutput]));
@@ -1423,7 +1426,10 @@ function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
     variants = variants || [{}];
 
     var artifacts = [];
-    if (product.cpp.separateDebugInformation) {
+    var separateDebugInfo = product.cpp.separateDebugInformation;
+    if (separateDebugInfo && product.qbs.toolchain.includes("emscripten"))
+        separateDebugInfo = fileTag === "application";
+    if (separateDebugInfo) {
         variants.map(function (variant) {
             artifacts.push({
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
@@ -1614,6 +1620,8 @@ function appLinkerOutputArtifacts(product)
             fileTags: ["mem_map"]
         });
     }
+    if (product.qbs.toolchain.includes("emscripten"))
+        artifacts = artifacts.concat(wasmArtifacts(product));
     return artifacts;
 }
 
@@ -1710,4 +1718,42 @@ function dynamicLibLinkerOutputArtifacts(product)
     if (!product.aggregate)
         artifacts = artifacts.concat(debugInfoArtifacts(product, undefined, "dll"));
     return artifacts;
+}
+
+function wasmArtifacts(product)
+{
+    var flags = product.cpp.driverLinkerFlags;
+    var wasmoption = 1;
+    var pthread = false;
+    for (var index in flags) {
+        var option = flags[index];
+        if (option.indexOf("WASM") !== -1) {
+            option = option.trim();
+            wasmoption = option.substring(option.length - 1);
+        } else if (option.indexOf("-pthread") !== -1) {
+            pthread = true;
+        }
+    }
+
+    var artifacts = [];
+    var createAppArtifact = function(fileName) {
+        return {
+            filePath: FileInfo.joinPaths(product.destinationDirectory, fileName),
+            fileTags: ["wasm"]
+        };
+    };
+    var suffix = product.cpp.executableSuffix;
+    if (suffix !== ".wasm") {
+        if (suffix === ".html")
+            artifacts.push(createAppArtifact(product.targetName + ".js"));
+        if (pthread)
+            artifacts.push(createAppArtifact(product.targetName + ".worker.js"));
+    }
+
+    if (wasmoption !== 0 && suffix !== ".wasm") //suffix .wasm will already result in "application".wasm
+        artifacts.push(createAppArtifact(product.targetName + ".wasm"));
+    if (wasmoption == 2)
+        artifacts.push(createAppArtifact(product.targetName + ".wasm.js"));
+
+      return artifacts;
 }

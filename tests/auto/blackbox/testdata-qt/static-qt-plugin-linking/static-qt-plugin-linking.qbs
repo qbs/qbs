@@ -22,5 +22,8 @@ Product {
 
     Depends { name: "Qt.core" }
     Depends { name: "Qt.gui" }
-    Depends { name: "Qt.qminimal"; condition: Qt.core.staticBuild }
+    Depends {
+        name: "Qt.qminimal";
+        condition: Qt.core.staticBuild && !qbs.toolchain.includes("emscripten")
+    }
 }

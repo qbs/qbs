@@ -1,3 +1,5 @@
+var TextFile = require("qbs.TextFile");
+
 function lreleaseCommands(project, product, inputs, outputs, input, output, explicitlyDependsOn)
 {
     var inputFilePaths;
@@ -24,5 +26,24 @@ function qhelpGeneratorCommands(product, input, output)
     cmd.description = 'qhelpgenerator ' + input.fileName;
     cmd.highlight = 'filegen';
     cmd.stdoutFilterFunction = function(output) { return ""; };
+    return cmd;
+}
+
+function wasmQtHtmlCommands(product, output)
+{
+    var cmd = new JavaScriptCommand();
+    cmd.description = "Generating Qt html for " + product.targetName;
+    cmd.highlight = "filegen";
+    cmd.sourceCode = function() {
+        var platformsPath = product.Qt.core.pluginPath + "/platforms";
+        var wasmShellFile = new TextFile(platformsPath + "/wasm_shell.html");
+        var content = wasmShellFile.readAll();
+        var appNameTemplate = "@APPNAME@";
+        var finalContent = content.replaceAll(appNameTemplate, product.name);
+        var preload = "@PRELOAD@";//TODO: figure out what it's for
+        finalContent = finalContent.replace(preload, "");
+        var finalHtmlFile = new TextFile(output.filePath, OpenMode = TextFile.WriteOnly);
+        finalHtmlFile.write(finalContent);
+    }
     return cmd;
 }

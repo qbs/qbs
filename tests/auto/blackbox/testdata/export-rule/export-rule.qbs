@@ -3,7 +3,7 @@ import qbs.File
 Project {
     Application {
         name: "MyApp"
-        files: ["myapp.blubb"]
+        files: ["main.cpp", "myapp.blubb"]
         Depends { name: "blubber" }
     }
     StaticLibrary {

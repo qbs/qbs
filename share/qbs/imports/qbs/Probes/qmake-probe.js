@@ -366,6 +366,7 @@ function getQtProperties(qmakeFilePath) {
     addQtBuildVariant(qtProps, "release");
 
     qtProps.staticBuild = checkForStaticBuild(qtProps);
+    qtProps.multiThreading = qtProps.enabledFeatures.contains("thread");
 
     // determine whether user apps require C++11
     if (qtProps.qtConfigItems.contains("c++11") && qtProps.staticBuild)

@@ -43,32 +43,52 @@
 
 #include <QtCore/qmap.h>
 
-#include <set>
-
 namespace qbs {
 
 namespace Internal {
-static const QString clangToolchain() { return QStringLiteral("clang"); }
-static const QString clangClToolchain() { return QStringLiteral("clang-cl"); }
-static const QString gccToolchain() { return QStringLiteral("gcc"); }
-static const QString llvmToolchain() { return QStringLiteral("llvm"); }
-static const QString mingwToolchain() { return QStringLiteral("mingw"); }
-static const QString msvcToolchain() { return QStringLiteral("msvc"); }
+static const QString clangToolchain()
+{
+    return QStringLiteral("clang");
 }
+static const QString clangClToolchain()
+{
+    return QStringLiteral("clang-cl");
+}
+static const QString gccToolchain()
+{
+    return QStringLiteral("gcc");
+}
+static const QString llvmToolchain()
+{
+    return QStringLiteral("llvm");
+}
+static const QString mingwToolchain()
+{
+    return QStringLiteral("mingw");
+}
+static const QString msvcToolchain()
+{
+    return QStringLiteral("msvc");
+}
+static const QString emscriptenToolchain()
+{
+    return QStringLiteral("emscripten");
+}
+} // namespace Internal
 
 using namespace Internal;
 
 QStringList canonicalToolchain(const QStringList &toolchain)
 {
-    static const QStringList knownToolchains {
+    static const QStringList knownToolchains{
         StringConstants::xcode(),
         clangToolchain(),
         llvmToolchain(),
         mingwToolchain(),
         gccToolchain(),
         clangClToolchain(),
-        msvcToolchain()
-    };
+        msvcToolchain(),
+        emscriptenToolchain()};
 
     // Canonicalize each toolchain in the toolchain list,
     // which gets us the aggregate canonicalized (unsorted) list
@@ -106,12 +126,12 @@ QStringList canonicalToolchain(const QString &name)
 {
     const QString &toolchainName = name.toLower();
     QStringList toolchains(toolchainName);
-    if (toolchainName == StringConstants::xcode())
+    if (toolchainName == StringConstants::xcode()) {
         toolchains << canonicalToolchain(clangToolchain());
-    else if (toolchainName == clangToolchain())
+    } else if (toolchainName == clangToolchain()) {
         toolchains << canonicalToolchain(llvmToolchain());
-    else if (toolchainName == llvmToolchain() ||
-             toolchainName == mingwToolchain()) {
+    } else if (toolchainName == llvmToolchain() || toolchainName == mingwToolchain()
+             || toolchainName == emscriptenToolchain()) {
         toolchains << canonicalToolchain(QStringLiteral("gcc"));
     } else if (toolchainName == clangClToolchain()) {
         toolchains << canonicalToolchain(msvcToolchain());

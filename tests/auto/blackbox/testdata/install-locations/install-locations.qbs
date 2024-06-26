@@ -12,6 +12,8 @@ Project {
 
         if (qbs.toolchain.includes("mingw"))
             console.info("is mingw");
+        if (qbs.toolchain.includes("emscripten"))
+            console.info("is emscripten")
     }
     CppApplication {
         name: "theapp"

@@ -1,11 +1,17 @@
+import qbs.Host
 import qbs.Utilities
 
 Product {
     condition: {
-        var ok = Utilities.versionCompare(Qt.core.version, "5.0.0") >= 0;
-        if (!ok)
+        if (Utilities.versionCompare(Qt.core.version, "5.0.0") < 0) {
             console.info("Qt is too old");
-        return ok;
+            return false;
+        }
+        if (qbs.targetPlatform !== Host.platform()) {
+            console.info("targetPlatform differs from hostPlatform");
+            return false;
+        }
+        return true;
     }
     name: "QDoc Test"
     type: ["qdoc-html", "qch"]

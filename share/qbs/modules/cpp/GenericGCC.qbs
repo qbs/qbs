@@ -475,6 +475,8 @@ CppModule {
                     tags.push("codesign.signed_artifact");
                 if (product.cpp.generateLinkerMapFile)
                     tags.push("mem_map");
+                if(product.qbs.toolchain.includes("emscripten"))
+                    tags.push("wasm")
                 return tags;
             }
             outputArtifacts: Gcc.appLinkerOutputArtifacts(product)

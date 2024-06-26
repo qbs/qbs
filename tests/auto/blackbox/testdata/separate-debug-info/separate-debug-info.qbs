@@ -15,6 +15,7 @@ Project {
                 console.info("is darwin: " + (targetOS.includes("darwin") ? "yes" : "no"));
                 console.info("is gcc: " + (toolchain.includes("gcc") ? "yes" : "no"));
                 console.info("is msvc: " + (toolchain.includes("msvc") ? "yes" : "no"));
+                console.info("is emscripten: " + (toolchain.includes("emscripten") ? "yes" : "no"));
             }
         }
     }

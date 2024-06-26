@@ -113,7 +113,7 @@ function dynamicLibraryFilePath(product, variantSuffix, version, maxParts) {
     fileName += product.moduleProperty("cpp", "dynamicLibrarySuffix");
 
     // For ELF images, append the version number if there is one (i.e. libqbs.so.1.0.0)
-    if (version && imageFormat === "elf")
+    if (version && (imageFormat === "elf" || imageFormat === "wasm"))
         fileName += "." + version;
 
     return fileName;
@@ -155,6 +155,9 @@ function debugInfoFileName(product, variantSuffix, fileTag) {
     if (!product.moduleProperty("qbs", "targetOS").contains("darwin")
             || !debugInfoIsBundle(product))
         suffix = product.moduleProperty("cpp", "debugInfoSuffix");
+
+    if (product.qbs.toolchain.includes("emscripten"))
+        return product.targetName + ".wasm.debug.wasm";
 
     if (product.moduleProperty("bundle", "isBundle")) {
         return FileInfo.fileName(bundleExecutableFilePath(product, variantSuffix)) + suffix;

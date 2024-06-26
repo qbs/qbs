@@ -439,9 +439,8 @@ void TestBlackbox::addFileTagToGeneratedArtifact()
     QDir::setCurrent(testDataDir + "/add-filetag-to-generated-artifact");
     QCOMPARE(runQbs(QStringList("project.enableTagging:true")), 0);
     QVERIFY2(m_qbsStdout.contains("compressing my_app"), m_qbsStdout.constData());
-    const QString compressedAppFilePath
-            = relativeProductBuildDir("my_compressed_app") + '/'
-            + qbs::Internal::HostOsInfo::appendExecutableSuffix("compressed-my_app");
+    const QString compressedAppFilePath = relativeProductBuildDir("my_compressed_app") + '/'
+                                          + appendExecSuffix("compressed-my_app");
     QVERIFY(regularFileExists(compressedAppFilePath));
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("project.enableTagging:false"))), 0);
     QCOMPARE(runQbs(), 0);
@@ -1692,6 +1691,8 @@ void TestBlackbox::versionScript()
 
 void TestBlackbox::wholeArchive()
 {
+    if (builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
     QDir::setCurrent(testDataDir + "/whole-archive");
     QFETCH(QString, wholeArchiveString);
     QFETCH(bool, ruleInvalidationExpected);
@@ -1758,9 +1759,11 @@ void TestBlackbox::clean()
                  << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
         depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
-        symlinks << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1"
-                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1"
-                 << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
+        if (!builtWithEmscripten()) {
+            symlinks << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1"
+                     << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1"
+                     << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
+        }
     } else {
         depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     }
@@ -2139,6 +2142,9 @@ void TestBlackbox::separateDebugInfo()
     const bool isMsvc = m_qbsStdout.contains("is msvc: yes");
     const bool isNotMsvc = m_qbsStdout.contains("is msvc: no");
     QVERIFY(isMsvc != isNotMsvc);
+    const bool isEmscripten = m_qbsStdout.contains("is emscripten: yes");
+    const bool isNotEmscripten = m_qbsStdout.contains("is emscripten: no");
+    QVERIFY(isEmscripten != isNotEmscripten);
 
     if (isDarwin) {
         QVERIFY(directoryExists(relativeProductBuildDir("app1") + "/app1.app.dSYM"));
@@ -2219,7 +2225,7 @@ void TestBlackbox::separateDebugInfo()
             + "/bar4.bundle.dSYM/Contents/Resources/DWARF")
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
-    } else if (isGcc) {
+    } else if (isGcc && isNotEmscripten) {
         const QString exeSuffix = isWindows ? ".exe" : "";
         const QString dllPrefix = isWindows ? "" : "lib";
         const QString dllSuffix = isWindows ? ".dll" : ".so";
@@ -2233,6 +2239,9 @@ void TestBlackbox::separateDebugInfo()
                               + '/' + dllPrefix +  "bar1" + dllSuffix + ".debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2")
                                + '/' + dllPrefix + "bar2" + dllSuffix + ".debug"));
+    } else if (isEmscripten) {
+        QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.wasm.debug.wasm"));
+        QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.wasm.debug.wasm"));
     } else if (isMsvc) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.pdb"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1") + "/foo1.pdb"));
@@ -2894,6 +2903,8 @@ void TestBlackbox::sanitizer_data()
 
 void TestBlackbox::sanitizer()
 {
+    if (builtWithEmscripten())
+        QSKIP("Unsupported for emscripten target");
     QFETCH(QString, sanitizer);
     QDir::setCurrent(testDataDir + "/sanitizer");
     rmDirR(relativeBuildDir());
@@ -3171,6 +3182,9 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
 
 void TestBlackbox::soVersion()
 {
+    if (builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
+
     const QString readElfPath = findExecutable(QStringList("readelf"));
     if (readElfPath.isEmpty() || readElfPath.endsWith("exe"))
         QSKIP("soversion test not applicable on this system");
@@ -4037,6 +4051,112 @@ void TestBlackbox::emptyProfile()
     QCOMPARE(runQbs(params), 0);
 }
 
+using ASet = QSet<QString>;
+namespace {
+QString JS()
+{
+    static const auto suffix = QStringLiteral(".js");
+    return suffix;
+}
+QString WASM()
+{
+    static const auto suffix = QStringLiteral(".wasm");
+    return suffix;
+}
+QString WASMJS()
+{
+    static const auto suffix = QStringLiteral(".wasm.js");
+    return suffix;
+}
+QString HTML()
+{
+    static const auto suffix = QStringLiteral(".html");
+    return suffix;
+}
+} // namespace
+void TestBlackbox::emscriptenArtifacts()
+{
+    if (!builtWithEmscripten())
+        QSKIP("Skipping emscripten test");
+
+    QDir::setCurrent(testDataDir + "/emscripten-artifacts");
+    QFETCH(QString, executableSuffix);
+    QFETCH(QString, wasmOption);
+    QFETCH(int, buildresult);
+    QFETCH(ASet, suffixes);
+
+    const QStringList params = {
+        QStringLiteral("modules.cpp.executableSuffix:%1").arg(executableSuffix),
+        QStringLiteral("modules.cpp.driverLinkerFlags:%1").arg(wasmOption)};
+
+    ASet possibleSuffixes = {JS(), WASM(), WASMJS(), HTML()};
+
+    QbsRunParameters qbsParams("resolve", params);
+    int result = runQbs(qbsParams);
+    QCOMPARE(result, 0);
+    result = runQbs(QbsRunParameters("build", params));
+    QCOMPARE(result, buildresult);
+    if (result == 0) {
+        const auto app = QStringLiteral("app");
+        const auto appWithoutSuffix = relativeProductBuildDir(app) + QLatin1Char('/') + app;
+
+        ASet usedSuffixes;
+        for (const auto &suffix : suffixes) {
+            usedSuffixes.insert(suffix);
+            QVERIFY(regularFileExists(appWithoutSuffix + suffix));
+        }
+
+        possibleSuffixes.subtract(usedSuffixes);
+        for (const auto &unusedSuffix : possibleSuffixes) {
+            QVERIFY(!regularFileExists(appWithoutSuffix + unusedSuffix));
+        }
+    }
+    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
+}
+
+void TestBlackbox::emscriptenArtifacts_data()
+{
+    QTest::addColumn<QString>("executableSuffix");
+    QTest::addColumn<QString>("wasmOption");
+    QTest::addColumn<int>("buildresult");
+    QTest::addColumn<ASet>("suffixes");
+
+    QTest::newRow(".js WASM=0") << ".js"
+                                << "-sWASM=0" << 0 << ASet{JS()};
+    QTest::newRow(".js WASM=1") << ".js"
+                                << "-sWASM=1" << 0 << ASet{JS(), WASM()};
+
+    QTest::newRow(".js WASM=2") << ".js"
+                                << "-sWASM=2" << 0 << ASet{JS(), WASM(), WASMJS()};
+
+    QTest::newRow(".js WASM=779") << ".js"
+                                  << "-sWASM=779" << 0 << ASet{JS(), WASM()};
+
+    QTest::newRow(".wasm WASM=0") << ".wasm"
+                                  << "-sWASM=0" << 1 << ASet{};
+
+    QTest::newRow(".wasm WASM=1") << ".wasm"
+                                  << "-sWASM=1" << 0 << ASet{WASM()};
+
+    QTest::newRow(".wasm WASM=2") << ".wasm"
+                                  << "-sWASM=2" << 0 << ASet{WASM(), WASMJS()};
+
+    QTest::newRow(".wasm WASM=848") << ".wasm"
+                                    << "-sWASM=848" << 0 << ASet{WASM()};
+
+    QTest::newRow(".html WASM=0") << ".html"
+                                  << "-sWASM=0" << 0 << ASet{JS(), HTML()};
+
+    QTest::newRow(".html WASM=1") << ".html"
+                                  << "-sWASM=1" << 0 << ASet{JS(), HTML(), WASM()};
+
+    QTest::newRow(".html WASM=2") << ".html"
+                                  << "-sWASM=2" << 0 << ASet{JS(), HTML(), WASM(), WASMJS()};
+
+    QTest::newRow(".html WASM=233") << ".html"
+                                    << "-sWASM=233" << 0 << ASet{JS(), HTML(), WASM()};
+}
+
 void TestBlackbox::erroneousFiles_data()
 {
     QTest::addColumn<QString>("errorMessage");
@@ -4544,6 +4664,9 @@ void TestBlackbox::flatbuf_data()
 
 void TestBlackbox::freedesktop()
 {
+    if (builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
+
     if (!HostOsInfo::isAnyUnixHost())
         QSKIP("only applies on Unix");
     if (HostOsInfo::isMacosHost())
@@ -4633,6 +4756,7 @@ void TestBlackbox::installLocations()
     const bool isMac = m_qbsStdout.contains("is mac");
     const bool isUnix = m_qbsStdout.contains("is unix");
     const bool isMingw = m_qbsStdout.contains("is mingw");
+    const bool isEmscripten = m_qbsStdout.contains("is emscripten");
     QVERIFY(isWindows || isDarwin || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
 
@@ -4675,26 +4799,24 @@ void TestBlackbox::installLocations()
         {}
     };
     const BinaryInfo app = {
-        isWindows ? "theapp.exe" : "theapp",
+        isWindows ? "theapp.exe" : (builtWithEmscripten() ? "theapp.js" : "theapp"),
         binDir.isEmpty() ? (isDarwin ? "/Applications" : "/bin") : binDir,
-        isDarwin ? (isMac ? "theapp.app/Contents/MacOS" : "theapp.app") : ""
-    };
+        isDarwin ? (isMac ? "theapp.app/Contents/MacOS" : "theapp.app") : ""};
     const BinaryInfo appDsym = {
-        isWindows
-            ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
-            : isDarwin ? "theapp.app.dSYM" : "theapp.debug",
+        isWindows  ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
+        : isDarwin ? "theapp.app.dSYM"
+                   : (builtWithEmscripten() ? "theapp.wasm.debug.wasm" : "theapp.debug"),
         dsymDir.isEmpty() ? app.installDir : dsymDir,
-        {}
-    };
+        {}};
 
     const QString installRoot = QDir::currentPath() + "/default/install-root";
-    const QString installPrefix = isWindows ? QString() : "/usr/local";
+    const QString installPrefix = (isWindows || isEmscripten) ? QString() : "/usr/local";
     const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
     const QString appFilePath = app.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
     const QString dllFilePath = dll.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
-    if (isWindows) {
+    if (isWindows && !isEmscripten) {
         const BinaryInfo lib = {
             "thelib.lib",
             libDir.isEmpty() ? "/lib" : libDir,
@@ -4708,10 +4830,13 @@ void TestBlackbox::installLocations()
 
     const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
     QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
-    const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
-    const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
+
+    if (!builtWithEmscripten()) { // no separate debug info for emscripten libs
+        const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
+        QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
+        const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
+        QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
+    }
 }
 
 void TestBlackbox::inputsFromDependencies()
@@ -5250,7 +5375,7 @@ void TestBlackbox::symbolLinkMode()
 
 void TestBlackbox::linkerMode()
 {
-    if (!HostOsInfo::isAnyUnixHost())
+    if (!HostOsInfo::isAnyUnixHost() || builtWithEmscripten())
         QSKIP("only applies on Unix");
 
     QDir::setCurrent(testDataDir + "/linkerMode");
@@ -7603,14 +7728,14 @@ void TestBlackbox::installedApp()
     QDir::setCurrent(testDataDir + "/installed_artifact");
 
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/bin/installedApp"))));
+    QVERIFY(regularFileExists(
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"))));
 
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installRoot:" + testDataDir
                                                             + "/installed-app"))), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(testDataDir
-            + HostOsInfo::appendExecutableSuffix("/installed-app/usr/bin/installedApp")));
+    QVERIFY(
+        regularFileExists(testDataDir + appendExecSuffix("/installed-app/usr/bin/installedApp")));
 
     QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
@@ -7618,8 +7743,8 @@ void TestBlackbox::installedApp()
     QVERIFY(addedFile.exists());
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--clean-install-root")), 0);
-    QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/bin/installedApp"))));
+    QVERIFY(regularFileExists(
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
@@ -7628,8 +7753,8 @@ void TestBlackbox::installedApp()
     REPLACE_IN_FILE("installed_artifact.qbs", "qbs.installPrefix: \"/usr\"",
                     "qbs.installPrefix: '/usr/local'");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/local/bin/installedApp"))));
+    QVERIFY(regularFileExists(
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/local/bin/installedApp"))));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
@@ -7637,8 +7762,8 @@ void TestBlackbox::installedApp()
     REPLACE_IN_FILE("installed_artifact.qbs", "qbs.installDir: \"bin\"",
                     "qbs.installDir: 'custom'");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(defaultInstallRoot
-            + HostOsInfo::appendExecutableSuffix(QStringLiteral("/usr/local/custom/installedApp"))));
+    QVERIFY(regularFileExists(
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/local/custom/installedApp"))));
 
     // Check whether changing install parameters on a source file causes re-installation.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -7816,6 +7941,9 @@ private:
 
 void TestBlackbox::assembly()
 {
+    if (builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
+
     QDir::setCurrent(testDataDir + "/assembly");
     QVERIFY(runQbs() == 0);
 

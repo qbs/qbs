@@ -95,7 +95,8 @@ void TestBlackboxExamples::examples_data()
 void TestBlackboxExamples::examples()
 {
     QFETCH(QString, example);
-
+    if (example == QLatin1String("pkgconfig-provider") && builtWithEmscripten())
+        QSKIP("Irrelevant for emscripten");
     QVERIFY(QDir::setCurrent(testDataDir + "/" + example));
     QbsRunParameters params(
             {QStringLiteral("-f"), QFileInfo(example).fileName() + QStringLiteral(".qbs")});

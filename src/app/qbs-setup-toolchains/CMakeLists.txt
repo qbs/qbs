@@ -7,6 +7,8 @@ set(SOURCES
     cosmicprobe.h
     dmcprobe.cpp
     dmcprobe.h
+    emscriptenprobe.cpp
+    emscriptenprobe.h
     gccprobe.cpp
     gccprobe.h
     iarewprobe.cpp

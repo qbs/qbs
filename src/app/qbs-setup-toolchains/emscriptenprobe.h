@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2020 Ivan Komissarov (abbapoh@gmail.com)
-** Contact: http://www.qt.io/licensing
+** Copyright (C) 2023 Danya Patrushev <danyapat@yandex.ru>
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
 **
@@ -37,23 +37,25 @@
 **
 ****************************************************************************/
 
-#ifndef OBJECT_H
-#define OBJECT_H
+#ifndef QBS_SETUPTOOLCHAINS_EMSCRIPTENPROBE_H
+#define QBS_SETUPTOOLCHAINS_EMSCRIPTENPROBE_H
+#include <QtCore/qlist.h>
 
-#include <QtCore/QObject>
+QT_BEGIN_NAMESPACE
+class QFileInfo;
+class QString;
+QT_END_NAMESPACE
 
-// These were not defined during the moc run (QBS-1592).
-// Do not use Q_OS_UNIX here as it is a fallback value which is defined when nothing else is.
-#if defined(Q_OS_DARWIN) || defined(Q_OS_LINUX) || defined(Q_OS_WIN) || defined(Q_OS_HURD) \
-    || defined(Q_OS_WASM)
+namespace qbs {
+class Profile;
+class Settings;
+} // namespace qbs
 
-class Object : public QObject
-{
-    Q_OBJECT
-public:
-    explicit Object(QObject *parent = nullptr);
-};
+bool isEmscriptenCompiler(const QString &compilerName);
 
-#endif
+qbs::Profile createEmscriptenProfile(
+    const QFileInfo &compiler, qbs::Settings *settings, const QString &profileName = QString());
 
-#endif // OBJECT_H
+void emscriptenProbe(qbs::Settings *settings, std::vector<qbs::Profile> &profiles);
+
+#endif // QBS_SETUPTOOLCHAINS_EMSCRIPTENPROBE_H

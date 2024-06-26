@@ -641,6 +641,8 @@ function guessTargetPlatform(m) {
             return "hurd";
         if (hasAnyOf(m, ["__HAIKU__"]))
             return "haiku";
+        if (hasAnyOf(m, ["__wasm__"]))
+            return "wasm-emscripten"
     }
 }
 

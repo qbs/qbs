@@ -68,6 +68,11 @@ Project {
             cpp.defines: ["WITH_PTHREAD", "WITH_ZLIB"]
             cpp.staticLibraries: !project.useExport ? ["pthread", "z"] : []
         }
+        Properties {
+            condition: qbs.toolchain.contains("emscripten")
+            cpp.defines: ["WITH_WEBSOCK"]
+            cpp.staticLibraries: !project.useExport ? ["websocket.js"] : []
+        }
         Export {
             condition : project.useExport
             Depends { name: "cpp" }
@@ -83,6 +88,10 @@ Project {
             Properties {
                 condition: qbs.targetOS.contains("windows")
                 cpp.staticLibraries: ["setupapi"]
+            }
+            Properties {
+                condition: qbs.toolchain.contains("emscripten")
+                cpp.staticLibraries: ["websocket.js"]
             }
         }
     }
