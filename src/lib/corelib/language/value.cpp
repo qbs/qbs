@@ -205,20 +205,6 @@ void JSSourceValue::resetPriority()
         a.value->resetPriority();
 }
 
-void JSSourceValue::addCandidate(const ValuePtr &v)
-{
-    Value::addCandidate(v);
-    for (const JSSourceValue::Alternative &a : m_alternatives)
-        a.value->addCandidate(v);
-}
-
-void JSSourceValue::setCandidates(const std::vector<ValuePtr> &candidates)
-{
-    Value::setCandidates(candidates);
-    for (const JSSourceValue::Alternative &a : m_alternatives)
-        a.value->setCandidates(candidates);
-}
-
 ItemValue::ItemValue(Item *item, bool createdByPropertiesBlock)
     : Value(ItemValueType, createdByPropertiesBlock)
     , m_item(item)

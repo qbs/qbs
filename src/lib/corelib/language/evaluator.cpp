@@ -645,7 +645,7 @@ private:
                 }
 
                 ValuePtr original;
-                for (const ValuePtr &v : value->candidates()) {
+                for (const ValuePtr &v : this->valuePtr->candidates()) {
                     if (!v->scope()) {
                         original = v;
                         break;

@@ -95,9 +95,9 @@ public:
     ValuePtr next() const;
     void setNext(const ValuePtr &next);
 
-    virtual void addCandidate(const ValuePtr &v) { m_candidates.push_back(v); }
+    void addCandidate(const ValuePtr &v) { m_candidates.push_back(v); }
     const std::vector<ValuePtr> &candidates() const { return m_candidates; }
-    virtual void setCandidates(const std::vector<ValuePtr> &candidates) { m_candidates = candidates; }
+    void setCandidates(const std::vector<ValuePtr> &candidates) { m_candidates = candidates; }
 
     bool createdByPropertiesBlock() const { return m_flags & OriginPropertiesBlock; }
     void markAsSetByProfile() { m_flags |= OriginProfile; }
@@ -200,8 +200,6 @@ public:
 
     void setScope(Item *scope, const QString &scopeName) override;
     void resetPriority() override;
-    void addCandidate(const ValuePtr &v) override;
-    void setCandidates(const std::vector<ValuePtr> &candidates) override;
 
 private:
     QStringView m_sourceCode;
