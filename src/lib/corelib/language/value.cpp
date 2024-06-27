@@ -208,8 +208,6 @@ void JSSourceValue::resetPriority()
 void JSSourceValue::addCandidate(const ValuePtr &v)
 {
     Value::addCandidate(v);
-    if (m_baseValue)
-        m_baseValue->addCandidate(v);
     for (const JSSourceValue::Alternative &a : m_alternatives)
         a.value->addCandidate(v);
 }
@@ -217,8 +215,6 @@ void JSSourceValue::addCandidate(const ValuePtr &v)
 void JSSourceValue::setCandidates(const std::vector<ValuePtr> &candidates)
 {
     Value::setCandidates(candidates);
-    if (m_baseValue)
-        m_baseValue->setCandidates(candidates);
     for (const JSSourceValue::Alternative &a : m_alternatives)
         a.value->setCandidates(candidates);
 }
