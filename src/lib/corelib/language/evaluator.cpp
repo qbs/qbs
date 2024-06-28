@@ -70,9 +70,17 @@ public:
     mutable QHash<QString, JSValue> valueCache;
 };
 
+enum class ConversionType { Full, ElementsOnly };
 static void convertToPropertyType_impl(
-    ScriptEngine *engine, const QString &pathPropertiesBaseDir, const Item *item,
-    const PropertyDeclaration& decl, const Value *value, const CodeLocation &location, JSValue &v);
+    ScriptEngine *engine,
+    const QString &pathPropertiesBaseDir,
+    const Item *item,
+    const PropertyDeclaration &decl,
+    const Value *value,
+    const CodeLocation &location,
+    ConversionType conversionType,
+    JSValue &v);
+
 static int getEvalPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
                                 JSValueConst obj);
 static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc,
@@ -213,7 +221,8 @@ bool Evaluator::isNonDefaultValue(const Item *item, const QString &name) const
 void Evaluator::convertToPropertyType(const PropertyDeclaration &decl, const CodeLocation &loc,
                                       JSValue &v)
 {
-    convertToPropertyType_impl(engine(), QString(), nullptr, decl, nullptr, loc, v);
+    convertToPropertyType_impl(
+        engine(), QString(), nullptr, decl, nullptr, loc, ConversionType::Full, v);
 }
 
 JSValue Evaluator::scriptValue(const Item *item)
@@ -342,14 +351,39 @@ static QString overriddenSourceDirectory(const Item *item, const QString &defaul
     return v ? v->value().toString() : defaultValue;
 }
 
-static void convertToPropertyType_impl(ScriptEngine *engine,
-                                       const QString &pathPropertiesBaseDir, const Item *item,
-                                       const PropertyDeclaration& decl,
-                                       const Value *value, const CodeLocation &location, JSValue &v)
+static void convertToPropertyType_impl(
+    ScriptEngine *engine,
+    const QString &pathPropertiesBaseDir,
+    const Item *item,
+    const PropertyDeclaration &decl,
+    const Value *value,
+    const CodeLocation &location,
+    ConversionType conversionType,
+    JSValue &v)
 {
     JSContext * const ctx = engine->context();
     if (JS_IsUndefined(v) || JS_IsError(ctx, v) || JS_IsException(v))
         return;
+
+    if (!decl.isScalar() && !JS_IsArray(ctx, v) && conversionType == ConversionType::ElementsOnly) {
+        const auto correspondingType = [](const PropertyDeclaration &decl) {
+            switch (decl.type()) {
+            case PropertyDeclaration::StringList:
+                return PropertyDeclaration::String;
+            case PropertyDeclaration::PathList:
+                return PropertyDeclaration::Path;
+            case PropertyDeclaration::VariantList:
+                return PropertyDeclaration::Variant;
+            default:
+                QBS_CHECK(false);
+            };
+        };
+        PropertyDeclaration elemDecl = decl;
+        elemDecl.setType(correspondingType(decl));
+        convertToPropertyType_impl(
+            engine, pathPropertiesBaseDir, item, elemDecl, value, location, conversionType, v);
+    }
+
     QString srcDir;
     QString actualBaseDir;
     const Item * const srcDirItem = value && value->scope() ? value->scope() : item;
@@ -392,7 +426,7 @@ static void convertToPropertyType_impl(ScriptEngine *engine,
     case PropertyDeclaration::PathList:
         srcDir = srcDirItem ? overriddenSourceDirectory(srcDirItem, actualBaseDir)
                             : pathPropertiesBaseDir;
-        // Fall-through.
+        [[fallthrough]];
     case PropertyDeclaration::StringList:
     {
         if (!JS_IsArray(ctx, v)) {
@@ -466,6 +500,7 @@ static void convertToPropertyType(
     const Item *item,
     const PropertyDeclaration &decl,
     const Value *value,
+    ConversionType conversionType,
     JSValue &v)
 {
     if (value->type() == Value::VariantValueType && JS_IsUndefined(v) && !decl.isScalar()) {
@@ -479,6 +514,7 @@ static void convertToPropertyType(
         decl,
         value,
         value->location(),
+        conversionType,
         v);
 }
 
@@ -555,7 +591,7 @@ public:
     void start()
     {
         valuePtr->apply(this);
-        convertToPropertyType(engine, data->item, decl, valuePtr, *result);
+        convertToPropertyType(engine, data->item, decl, valuePtr, ConversionType::Full, *result);
     }
 
 private:
@@ -782,11 +818,8 @@ private:
             if (JS_IsUndefined(*result))
                 continue;
 
-            // TODO: Provide a variant of convertToPropertyType() that does not do the
-            //       scalar -> array conversion. We currently create temporary JS arrays
-            //       here that are flattened again in the end.
-            convertToPropertyType(engine, data->item, decl, next.get(), *result);
-
+            convertToPropertyType(
+                engine, data->item, decl, next.get(), ConversionType::ElementsOnly, *result);
             lst.push_back(JS_DupValue(engine->context(), *result));
             if (next->type() == Value::JSSourceValueType
                 && std::static_pointer_cast<JSSourceValue>(next)->isExclusiveListValue()) {
