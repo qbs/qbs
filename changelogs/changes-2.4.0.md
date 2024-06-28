@@ -8,7 +8,6 @@
 # Language
 * The pkg-config based fallback provider was removed.
 * It is no longer allowed to attach a QML id to a module item.
-* Property evaluation now detects infinite recursion (QBS-1793).
 
 # Documentation
 * Added more tutorials.
