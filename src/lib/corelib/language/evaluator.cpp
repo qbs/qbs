@@ -360,7 +360,7 @@ static void convertToPropertyType_impl(
     JSValue &v)
 {
     JSContext * const ctx = engine->context();
-    if (JS_IsUndefined(v) || JS_IsError(ctx, v) || JS_IsException(v))
+    if (JS_IsUninitialized(v) || JS_IsUndefined(v) || JS_IsError(ctx, v) || JS_IsException(v))
         return;
 
     if (!decl.isScalar() && !JS_IsArray(ctx, v) && conversionType == ConversionType::ElementsOnly) {
@@ -575,6 +575,8 @@ public:
     JSValue eval()
     {
         JSValue result = m_value.apply(this);
+        if (JS_IsUninitialized(result))
+            result = JS_UNDEFINED;
         convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);
         return result;
     }
@@ -619,7 +621,7 @@ private:
                 || type == PropertyDeclaration::Variant // TODO: Why?
                 || type == PropertyDeclaration::VariantList;
         JSValue valueToSet = JS_DupValue(m_engine.context(), scriptValue);
-        if (isArray && JS_IsUndefined(valueToSet))
+        if (isArray && (JS_IsUninitialized(valueToSet) || JS_IsUndefined(valueToSet)))
             valueToSet = m_engine.newArray(0, JsValueOwner::Caller);
         setJsProperty(m_engine.context(), *extraScope, conveniencePropertyName, valueToSet);
     }
@@ -631,7 +633,7 @@ private:
         auto &extraScope = result.first;
         result.second = true;
         if (value->sourceUsesBase()) {
-            JSValue baseValue = JS_UNDEFINED;
+            JSValue baseValue = JS_UNINITIALIZED;
             if (value->baseValue()) {
                 baseValue = ValueEvaluator(
                                 m_evaluator,
@@ -645,7 +647,7 @@ private:
             setupConvenienceProperty(StringConstants::baseVar(), &extraScope, baseValue);
         }
         if (value->sourceUsesOuter()) {
-            JSValue v = JS_UNDEFINED;
+            JSValue v = JS_UNINITIALIZED;
             bool doSetup = false;
             if (outerItem) {
                 v = m_evaluator.property(outerItem, m_decl.name());
@@ -664,7 +666,7 @@ private:
                 setupConvenienceProperty(StringConstants::outerVar(), &extraScope, v);
         }
         if (value->sourceUsesOriginal()) {
-            JSValue originalJs = JS_UNDEFINED;
+            JSValue originalJs = JS_UNINITIALIZED;
             ScopedJsValue originalMgr(m_engine.context(), JS_UNDEFINED);
             if (m_decl.isScalar()) {
                 const Item *item = &m_itemOfProperty;
@@ -717,7 +719,7 @@ private:
     {
         JSValue outerScriptValue = JS_UNDEFINED;
         bool usedAlternative = false;
-        JSValue result = JS_UNDEFINED;
+        JSValue result = JS_UNINITIALIZED;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
@@ -752,12 +754,11 @@ private:
 
         if (m_decl.isScalar()) {
             if (value->createdByPropertiesBlock()) {
-                // FIXME: Should use JS_IsUninitialized(), but this needs to be solved more centrally.
-                if (!JS_IsUndefined(result))
+                if (!JS_IsUninitialized(result))
                     return result;
                 for (const ValuePtr &candidate : value->candidates()) {
                     result = candidate->apply(this);
-                    if (!JS_IsUndefined(result))
+                    if (!JS_IsUninitialized(result))
                         return result;
                 }
             }
@@ -768,7 +769,7 @@ private:
             return result;
 
         JSValueList lst;
-        if (!JS_IsUndefined(result))
+        if (!JS_IsUninitialized(result) && !JS_IsUndefined(result))
             lst << JS_DupValue(m_engine.context(), result);
         for (const ValuePtr &next : value->candidates()) {
             result = next->apply(this);
@@ -776,7 +777,7 @@ private:
                 const ScopedJsValueList l(m_engine.context(), lst);
                 return m_engine.throwError(ex.toErrorInfo().toString());
             }
-            if (JS_IsUndefined(result))
+            if (JS_IsUninitialized(result) || JS_IsUndefined(result))
                 continue;
 
             convertToPropertyType(

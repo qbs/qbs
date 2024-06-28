@@ -628,30 +628,42 @@ void TestLanguage::derivedSubProject()
 void TestLanguage::disabledPropertiesItem_data()
 {
     QTest::addColumn<bool>("setInProduct");
-    QTest::addColumn<bool>("setInHigher");
+    QTest::addColumn<bool>("setInHigher1");
+    QTest::addColumn<bool>("setInHigher2");
     QTest::addColumn<bool>("setInLower");
     QTest::addColumn<QString>("expectedValue");
 
-    QTest::newRow("default") << false << false << false << QString("default");
-    QTest::newRow("lower only") << false << false << true << QString("default_fromLower");
-    QTest::newRow("higher only") << false << true << false << QString("fromHigher");
-    QTest::newRow("lower and higher") << false << true << true << QString("fromHigher");
-    QTest::newRow("product only") << true << false << false << QString("fromProduct");
-    QTest::newRow("product and lower") << true << false << true << QString("fromProduct");
-    QTest::newRow("product and higher") << true << true << false << QString("fromProduct");
-    QTest::newRow("all") << true << true << true << QString("fromProduct");
+    QTest::newRow("default") << false << false << false << false << QString("default");
+    QTest::newRow("lower only") << false << false << false << true << QString("default_fromLower");
+    QTest::newRow("higher2 only") << false << false << true << false << QString();
+    QTest::newRow("lower and higher2") << false << false << true << true << QString();
+    QTest::newRow("higher1 only") << false << true << false << false << QString("fromHigher1");
+    QTest::newRow("lower and higher1") << false << true << false << true << QString("fromHigher1");
+    QTest::newRow("product only") << true << false << false << false << QString("fromProduct");
+    QTest::newRow("product and lower") << true << false << false << true << QString("fromProduct");
+    QTest::newRow("product and higher2")
+        << true << false << true << false << QString("fromProduct");
+    QTest::newRow("product, higher2 and lower")
+        << true << false << true << true << QString("fromProduct");
+    QTest::newRow("product and higher1")
+        << true << true << false << false << QString("fromProduct");
+    QTest::newRow("product, higher1 and higher2")
+        << true << true << true << false << QString("fromProduct");
+    QTest::newRow("all") << true << true << true << true << QString("fromProduct");
 }
 
 void TestLanguage::disabledPropertiesItem()
 {
     QFETCH(bool, setInLower);
-    QFETCH(bool, setInHigher);
+    QFETCH(bool, setInHigher1);
+    QFETCH(bool, setInHigher2);
     QFETCH(bool, setInProduct);
     QFETCH(QString, expectedValue);
 
     QVariantMap overriddenValues;
     overriddenValues.insert("modules.lower.setProp", setInLower);
-    overriddenValues.insert("modules.higher.setProp", setInHigher);
+    overriddenValues.insert("modules.higher1.setProp", setInHigher1);
+    overriddenValues.insert("modules.higher2.setProp", setInHigher2);
     overriddenValues.insert("products.p.setProp", setInProduct);
     defaultParameters.setOverriddenValues(overriddenValues);
 
