@@ -562,10 +562,10 @@ class SVConverter : ValueHandler
     const Item * const itemOfProperty;
     const QString * const propertyName;
     const EvaluationData * const data;
-    JSValue * const result;
     const PropertyDeclaration decl;
     JSValueList scopeChain;
     char pushedScopesCount;
+    JSValue result = JS_UNDEFINED;
 
 public:
     SVConverter(
@@ -574,24 +574,23 @@ public:
         const ValuePtr &v,
         const Item *_itemOfProperty,
         const QString *propertyName,
-        const EvaluationData *data,
-        JSValue *result)
+        const EvaluationData *data)
         : engine(engine)
         , object(obj)
         , valuePtr(v.get())
         , itemOfProperty(_itemOfProperty)
         , propertyName(propertyName)
         , data(data)
-        , result(result)
         , decl(data->item->propertyDeclaration(*propertyName))
         , pushedScopesCount(0)
     {
     }
 
-    void start()
+    JSValue run()
     {
         valuePtr->apply(this);
-        convertToPropertyType(engine, data->item, decl, valuePtr, ConversionType::Full, *result);
+        convertToPropertyType(engine, data->item, decl, valuePtr, ConversionType::Full, result);
+        return result;
     }
 
 private:
@@ -640,9 +639,9 @@ private:
         if (value->sourceUsesBase()) {
             JSValue baseValue = JS_UNDEFINED;
             if (value->baseValue()) {
-                SVConverter converter(engine, object, value->baseValue(), itemOfProperty,
-                                      propertyName, data, &baseValue);
-                converter.start();
+                SVConverter converter(
+                    engine, object, value->baseValue(), itemOfProperty, propertyName, data);
+                baseValue = converter.run();
             }
             setupConvenienceProperty(StringConstants::baseVar(), &extraScope, baseValue);
         }
@@ -705,9 +704,8 @@ private:
                     return result;
                 }
 
-                SVConverter converter(engine, object, original, item, propertyName, data,
-                                      &originalJs);
-                converter.start();
+                SVConverter converter(engine, object, original, item, propertyName, data);
+                originalJs = converter.run();
             } else {
                 originalJs = engine->newArray(0, JsValueOwner::Caller);
                 originalMgr.setValue(originalJs);
@@ -757,7 +755,7 @@ private:
                     && JS_IsUndefined(outerScriptValue)) {
                 JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, nullptr);
                 if (sver.hasError) {
-                    *result = sver.scriptValue;
+                    result = sver.scriptValue;
                     return;
                 }
                 outerScriptValue = sver.scriptValue;
@@ -767,7 +765,7 @@ private:
                                                                        &alternative,
                                                                        value, &outerScriptValue);
             if (!sver.tryNextAlternative || sver.hasError) {
-                *result = sver.scriptValue;
+                result = sver.scriptValue;
                 if (value->isExclusiveListValue())
                     return;
                 usedAlternative = true;
@@ -778,11 +776,11 @@ private:
         if (!usedAlternative) {
             JSSourceValueEvaluationResult sver = evaluateJSSourceValue(
                 value, data->item->outerItem());
-            *result = sver.scriptValue;
+            result = sver.scriptValue;
             if (sver.hasError)
                 return;
             if (JsException ex = engine->checkAndClearException({})) {
-                *result = engine->throwError(ex.toErrorInfo().toString());
+                result = engine->throwError(ex.toErrorInfo().toString());
                 return;
             }
         }
@@ -790,11 +788,11 @@ private:
         if (decl.isScalar()) {
             if (value->createdByPropertiesBlock()) {
                 // FIXME: Should use JS_IsUninitialized(), but this needs to be solved more centrally.
-                if (!JS_IsUndefined(*result))
+                if (!JS_IsUndefined(result))
                     return;
                 for (const ValuePtr &candidate : value->candidates()) {
                     candidate->apply(this);
-                    if (!JS_IsUndefined(*result))
+                    if (!JS_IsUndefined(result))
                         return;
                 }
             }
@@ -805,22 +803,22 @@ private:
             return;
 
         JSValueList lst;
-        if (!JS_IsUndefined(*result))
-            lst << JS_DupValue(engine->context(), *result);
+        if (!JS_IsUndefined(result))
+            lst << JS_DupValue(engine->context(), result);
         for (const ValuePtr &next : value->candidates()) {
-            *result = JS_UNDEFINED;
+            result = JS_UNDEFINED;
             next->apply(this);
             if (JsException ex = engine->checkAndClearException({})) {
                 const ScopedJsValueList l(engine->context(), lst);
-                *result = engine->throwError(ex.toErrorInfo().toString());
+                result = engine->throwError(ex.toErrorInfo().toString());
                 return;
             }
-            if (JS_IsUndefined(*result))
+            if (JS_IsUndefined(result))
                 continue;
 
             convertToPropertyType(
-                engine, data->item, decl, next.get(), ConversionType::ElementsOnly, *result);
-            lst.push_back(JS_DupValue(engine->context(), *result));
+                engine, data->item, decl, next.get(), ConversionType::ElementsOnly, result);
+            lst.push_back(JS_DupValue(engine->context(), result));
             if (next->type() == Value::JSSourceValueType
                 && std::static_pointer_cast<JSSourceValue>(next)->isExclusiveListValue()) {
                 // TODO: Why on earth do we keep the last _2_ elements?
@@ -837,7 +835,7 @@ private:
         if (lst.empty())
             return;
 
-        *result = engine->newArray(int(lst.size()), JsValueOwner::ScriptEngine);
+        result = engine->newArray(int(lst.size()), JsValueOwner::ScriptEngine);
         quint32 k = 0;
         JSContext *const ctx = engine->context();
         for (const JSValue &v : std::as_const(lst)) {
@@ -845,13 +843,13 @@ private:
             if (JS_IsArray(ctx, v)) {
                 const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());
                 for (quint32 j = 0; j < vlen; ++j)
-                    JS_SetPropertyUint32(ctx, *result, k++, JS_GetPropertyUint32(ctx, v, j));
+                    JS_SetPropertyUint32(ctx, result, k++, JS_GetPropertyUint32(ctx, v, j));
                 JS_FreeValue(ctx, v);
             } else {
-                JS_SetPropertyUint32(ctx, *result, k++, v);
+                JS_SetPropertyUint32(ctx, result, k++, v);
             }
         }
-        setJsProperty(ctx, *result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
+        setJsProperty(ctx, result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
     }
 
     struct JSSourceValueEvaluationResult
@@ -948,15 +946,15 @@ private:
 
     void handle(ItemValue *value) override
     {
-        *result = data->evaluator->scriptValue(value->item());
-        if (JS_IsUninitialized(*result))
+        result = data->evaluator->scriptValue(value->item());
+        if (JS_IsUninitialized(result))
             qDebug() << "SVConverter returned invalid script value.";
     }
 
     void handle(VariantValue *variantValue) override
     {
-        *result = engine->toScriptValue(variantValue->value(), variantValue->id());
-        engine->takeOwnership(*result);
+        result = engine->toScriptValue(variantValue->value(), variantValue->id());
+        engine->takeOwnership(result);
     }
 };
 
@@ -989,10 +987,12 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
         if (!value)
             continue;
         const Item * const itemOfProperty = item;     // The item that owns the property.
-        PropertyStackManager propStackmanager(itemOfProperty, name, value.get(),
-                                              evaluator->requestedProperties(),
-                                              evaluator->propertyDependencies());
-        JSValue result;
+        PropertyStackManager propStackmanager(
+            itemOfProperty,
+            name,
+            value.get(),
+            evaluator->requestedProperties(),
+            evaluator->propertyDependencies());
         if (evaluator->cachingEnabled()) {
             data->evaluator->clearCacheIfInvalidated(*data);
             const auto result = data->valueCache.constFind(name);
@@ -1004,8 +1004,8 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
             }
         }
 
-        SVConverter converter(engine, &obj, value, itemOfProperty, &name, data, &result);
-        converter.start();
+        SVConverter converter(engine, &obj, value, itemOfProperty, &name, data);
+        const JSValue result = converter.run();
 
         if (debugProperties)
             qDebug() << "[SC] cache miss " << name << ": "
