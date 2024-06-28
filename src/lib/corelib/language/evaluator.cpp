@@ -813,17 +813,6 @@ private:
             convertToPropertyType(
                 engine, data->item, decl, next.get(), ConversionType::ElementsOnly, result);
             lst.push_back(JS_DupValue(engine->context(), result));
-            if (next->type() == Value::JSSourceValueType
-                && std::static_pointer_cast<JSSourceValue>(next)->isExclusiveListValue()) {
-                // TODO: Why on earth do we keep the last _2_ elements?
-                auto keepIt = lst.rbegin();
-                for (int i = 0; i < 2 && keepIt != lst.rend(); ++i)
-                    ++keepIt;
-                for (auto it = lst.begin(); it < keepIt.base(); ++it)
-                    JS_FreeValue(engine->context(), *it);
-                lst.erase(lst.begin(), keepIt.base());
-                break;
-            }
         }
 
         if (lst.empty())
