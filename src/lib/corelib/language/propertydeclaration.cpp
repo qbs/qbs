@@ -371,7 +371,7 @@ void PropertyDeclaration::checkAllowedValues(
 }
 
 namespace {
-class PropertyDeclarationCheck : public ValueHandler
+class PropertyDeclarationCheck : public ValueHandler<void>
 {
 public:
     PropertyDeclarationCheck(LoaderState &loaderState) : m_loaderState(loaderState) {}
@@ -382,7 +382,7 @@ public:
     }
 
 private:
-    void handle(JSSourceValue *value) override
+    void doHandle(JSSourceValue *value) override
     {
         if (!value->createdByPropertiesBlock()) {
             const ErrorInfo error(Tr::tr("Property '%1' is not declared.")
@@ -390,7 +390,7 @@ private:
             handlePropertyError(error, m_loaderState.parameters(), m_loaderState.logger());
         }
     }
-    void handle(ItemValue *value) override
+    void doHandle(ItemValue *value) override
     {
         if (checkItemValue(value))
             handleItem(value->item());
@@ -492,7 +492,9 @@ private:
             }
         }
     }
-    void handle(VariantValue *) override { /* only created internally - no need to check */ }
+    void doHandle(VariantValue *) override
+    { /* only created internally - no need to check */
+    }
 
     Item *parentItem() const { return m_parentItems.back(); }
 

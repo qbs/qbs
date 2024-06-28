@@ -52,7 +52,21 @@ namespace qbs {
 namespace Internal {
 class Item;
 class ItemPool;
-class ValueHandler;
+class ItemValue;
+class JSSourceValue;
+class VariantValue;
+
+template<typename T>
+class ValueHandler
+{
+public:
+    T handle(Value *v);
+
+private:
+    virtual T doHandle(JSSourceValue *value) = 0;
+    virtual T doHandle(ItemValue *value) = 0;
+    virtual T doHandle(VariantValue *value) = 0;
+};
 
 class Value
 {
@@ -82,7 +96,11 @@ public:
     virtual ~Value();
 
     Type type() const { return m_type; }
-    virtual void apply(ValueHandler *) = 0;
+    template<typename T>
+    T apply(ValueHandler<T> *handler)
+    {
+        return handler->handle(this);
+    };
     virtual ValuePtr clone(ItemPool &) const = 0;
     virtual CodeLocation location() const { return {}; }
 
@@ -131,14 +149,6 @@ private:
     mutable int m_priority = -1;
 };
 
-class ValueHandler
-{
-public:
-    virtual void handle(JSSourceValue *value) = 0;
-    virtual void handle(ItemValue *value) = 0;
-    virtual void handle(VariantValue *value) = 0;
-};
-
 class JSSourceValue : public Value
 {
     friend class ItemReaderASTVisitor;
@@ -150,7 +160,6 @@ public:
     static JSSourceValuePtr QBS_AUTOTEST_EXPORT create(bool createdByPropertiesBlock = false);
     ~JSSourceValue() override;
 
-    void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone(ItemPool &pool) const override;
 
     void setSourceCode(QStringView sourceCode) { m_sourceCode = sourceCode; }
@@ -220,7 +229,6 @@ public:
     void setItem(Item *item) { m_item = item; }
 
 private:
-    void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone(ItemPool &pool) const override;
 
     Item *m_item;
@@ -235,7 +243,6 @@ public:
     static VariantValuePtr create(const QVariant &v = QVariant());
     static VariantValuePtr createStored(const QVariant &v = QVariant());
 
-    void apply(ValueHandler *handler) override { handler->handle(this); }
     ValuePtr clone(ItemPool &) const override;
 
     const QVariant &value() const { return m_value; }
@@ -248,6 +255,21 @@ public:
 private:
     QVariant m_value;
 };
+
+template<typename T>
+inline T ValueHandler<T>::handle(Value *v)
+{
+    switch (v->type()) {
+    case Value::JSSourceValueType:
+        return doHandle(static_cast<JSSourceValue *>(v));
+    case Value::ItemValueType:
+        return doHandle(static_cast<ItemValue *>(v));
+    case Value::VariantValueType:
+        return doHandle(static_cast<VariantValue *>(v));
+    }
+    if constexpr (!std::is_same_v<T, void>)
+        return {};
+}
 
 } // namespace Internal
 } // namespace qbs

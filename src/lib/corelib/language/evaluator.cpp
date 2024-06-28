@@ -554,7 +554,7 @@ private:
     bool m_stackUpdate = false;
 };
 
-class SVConverter : ValueHandler
+class SVConverter : ValueHandler<JSValue>
 {
     ScriptEngine * const engine;
     const JSValue * const object;
@@ -565,7 +565,6 @@ class SVConverter : ValueHandler
     const PropertyDeclaration decl;
     JSValueList scopeChain;
     char pushedScopesCount;
-    JSValue result = JS_UNDEFINED;
 
 public:
     SVConverter(
@@ -588,7 +587,7 @@ public:
 
     JSValue run()
     {
-        valuePtr->apply(this);
+        JSValue result = valuePtr->apply(this);
         convertToPropertyType(engine, data->item, decl, valuePtr, ConversionType::Full, result);
         return result;
     }
@@ -745,19 +744,18 @@ private:
             scopeChain.pop_back();
     }
 
-    void handle(JSSourceValue *value) override
+    JSValue doHandle(JSSourceValue *value) override
     {
         JSValue outerScriptValue = JS_UNDEFINED;
         bool usedAlternative = false;
+        JSValue result = JS_UNDEFINED;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->sourceUsesOuter()
                     && !data->item->outerItem()
                     && JS_IsUndefined(outerScriptValue)) {
                 JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, nullptr);
-                if (sver.hasError) {
-                    result = sver.scriptValue;
-                    return;
-                }
+                if (sver.hasError)
+                    return sver.scriptValue;
                 outerScriptValue = sver.scriptValue;
             }
             JSSourceValueEvaluationResult sver = evaluateJSSourceValue(alternative.value.get(),
@@ -765,9 +763,9 @@ private:
                                                                        &alternative,
                                                                        value, &outerScriptValue);
             if (!sver.tryNextAlternative || sver.hasError) {
-                result = sver.scriptValue;
                 if (value->isExclusiveListValue())
-                    return;
+                    return sver.scriptValue;
+                result = sver.scriptValue;
                 usedAlternative = true;
                 break;
             }
@@ -776,42 +774,38 @@ private:
         if (!usedAlternative) {
             JSSourceValueEvaluationResult sver = evaluateJSSourceValue(
                 value, data->item->outerItem());
-            result = sver.scriptValue;
             if (sver.hasError)
-                return;
-            if (JsException ex = engine->checkAndClearException({})) {
-                result = engine->throwError(ex.toErrorInfo().toString());
-                return;
-            }
+                return sver.scriptValue;
+            if (JsException ex = engine->checkAndClearException({}))
+                return engine->throwError(ex.toErrorInfo().toString());
+            result = sver.scriptValue;
         }
 
         if (decl.isScalar()) {
             if (value->createdByPropertiesBlock()) {
                 // FIXME: Should use JS_IsUninitialized(), but this needs to be solved more centrally.
                 if (!JS_IsUndefined(result))
-                    return;
+                    return result;
                 for (const ValuePtr &candidate : value->candidates()) {
-                    candidate->apply(this);
+                    result = candidate->apply(this);
                     if (!JS_IsUndefined(result))
-                        return;
+                        return result;
                 }
             }
-            return;
+            return result;
         }
 
         if (value->candidates().empty())
-            return;
+            return result;
 
         JSValueList lst;
         if (!JS_IsUndefined(result))
             lst << JS_DupValue(engine->context(), result);
         for (const ValuePtr &next : value->candidates()) {
-            result = JS_UNDEFINED;
-            next->apply(this);
+            result = next->apply(this);
             if (JsException ex = engine->checkAndClearException({})) {
                 const ScopedJsValueList l(engine->context(), lst);
-                result = engine->throwError(ex.toErrorInfo().toString());
-                return;
+                return engine->throwError(ex.toErrorInfo().toString());
             }
             if (JS_IsUndefined(result))
                 continue;
@@ -833,7 +827,7 @@ private:
         }
 
         if (lst.empty())
-            return;
+            return result;
 
         result = engine->newArray(int(lst.size()), JsValueOwner::ScriptEngine);
         quint32 k = 0;
@@ -850,6 +844,7 @@ private:
             }
         }
         setJsProperty(ctx, result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
+        return result;
     }
 
     struct JSSourceValueEvaluationResult
@@ -944,17 +939,19 @@ private:
         return result;
     }
 
-    void handle(ItemValue *value) override
+    JSValue doHandle(ItemValue *value) override
     {
-        result = data->evaluator->scriptValue(value->item());
+        const JSValue result = data->evaluator->scriptValue(value->item());
         if (JS_IsUninitialized(result))
             qDebug() << "SVConverter returned invalid script value.";
+        return result;
     }
 
-    void handle(VariantValue *variantValue) override
+    JSValue doHandle(VariantValue *variantValue) override
     {
-        result = engine->toScriptValue(variantValue->value(), variantValue->id());
+        const JSValue result = engine->toScriptValue(variantValue->value(), variantValue->id());
         engine->takeOwnership(result);
+        return result;
     }
 };
 
