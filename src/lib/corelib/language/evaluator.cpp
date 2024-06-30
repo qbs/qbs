@@ -603,14 +603,6 @@ private:
                 pushScope(m_evaluator.scriptValue(scope));
             }
         }
-        void pushItemScopes(const Item *item)
-        {
-            const Item *scope = item->scope();
-            if (scope) {
-                pushItemScopes(scope);
-                pushScope(m_evaluator.scriptValue(scope));
-            }
-        }
 
         operator const JSValueList &() const { return m_chain; }
 
@@ -847,7 +839,7 @@ private:
             return result;
         }
         scopeChain.pushScope(fileCtxScopes.fileScope);
-        scopeChain.pushItemScopes(m_data.item);
+        scopeChain.pushScopeRecursively(m_data.item->scope());
         if ((m_itemOfProperty.type() != ItemType::ModuleInstance
              && m_itemOfProperty.type() != ItemType::ModuleInstancePlaceholder)
             || !value->scope()) {
