@@ -20,4 +20,5 @@ Product {
     cpp.cxxLanguageVersion: "c++17"
     cpp.enableExceptions: true
     cpp.rpaths: qbsbuildconfig.libRPaths
+    cpp.minimumMacosVersion: "11.0"
 }
