@@ -65,7 +65,6 @@ namespace Internal {
 class EvaluationData
 {
 public:
-    Evaluator *evaluator = nullptr;
     const Item *item = nullptr;
     mutable QHash<QString, JSValue> valueCache;
 };
@@ -234,7 +233,6 @@ JSValue Evaluator::scriptValue(const Item *item)
     }
 
     const auto edata = new EvaluationData;
-    edata->evaluator = this;
     edata->item = item;
     edata->item->addObserver(this);
 
@@ -558,13 +556,14 @@ class ValueEvaluator : ValueHandler<JSValue>
 {
 public:
     ValueEvaluator(
-        ScriptEngine &engine,
+        Evaluator &evaluator,
         JSValue obj,
         const ValuePtr &v,
         const Item &itemOfProperty,
         const QString &propertyName,
         const EvaluationData &data)
-        : m_engine(engine)
+        : m_evaluator(evaluator)
+        , m_engine(*evaluator.engine())
         , m_object(obj)
         , m_value(*v)
         , m_itemOfProperty(itemOfProperty)
@@ -637,7 +636,7 @@ private:
             JSValue baseValue = JS_UNDEFINED;
             if (value->baseValue()) {
                 baseValue = ValueEvaluator(
-                                m_engine,
+                                m_evaluator,
                                 m_object,
                                 value->baseValue(),
                                 m_itemOfProperty,
@@ -651,7 +650,7 @@ private:
             JSValue v = JS_UNDEFINED;
             bool doSetup = false;
             if (outerItem) {
-                v = m_data.evaluator->property(outerItem, m_propertyName);
+                v = m_evaluator.property(outerItem, m_propertyName);
                 if (JsException ex = m_engine.checkAndClearException({})) {
                     extraScope = m_engine.throwError(ex.toErrorInfo().toString());
                     result.second = false;
@@ -706,7 +705,7 @@ private:
                     return result;
                 }
                 originalJs = ValueEvaluator(
-                                 m_engine, m_object, original, *item, m_propertyName, m_data)
+                                 m_evaluator, m_object, original, *item, m_propertyName, m_data)
                                  .eval();
             } else {
                 originalJs = m_engine.newArray(0, JsValueOwner::Caller);
@@ -823,7 +822,7 @@ private:
     {
         JSSourceValueEvaluationResult result;
         QBS_ASSERT(!alternative || value == alternative->value.get(), return result);
-        ScopeChain scopeChain(*m_data.evaluator);
+        ScopeChain scopeChain(m_evaluator);
         auto maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
         if (!maybeExtraScope.second) {
             result.scriptValue = maybeExtraScope.first;
@@ -831,7 +830,7 @@ private:
             return result;
         }
         const ScopedJsValue extraScopeMgr(m_engine.context(), maybeExtraScope.first);
-        const Evaluator::FileContextScopes fileCtxScopes = m_data.evaluator->fileContextScopes(
+        const Evaluator::FileContextScopes fileCtxScopes = m_evaluator.fileContextScopes(
             value->file());
         if (JsException ex = m_engine.checkAndClearException({})) {
             result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
@@ -913,7 +912,7 @@ private:
 
     JSValue doHandle(ItemValue *value) override
     {
-        const JSValue result = m_data.evaluator->scriptValue(value->item());
+        const JSValue result = m_evaluator.scriptValue(value->item());
         if (JS_IsUninitialized(result))
             qDebug() << "SVConverter returned invalid script value.";
         return result;
@@ -926,6 +925,7 @@ private:
         return result;
     }
 
+    Evaluator &m_evaluator;
     ScriptEngine &m_engine;
     const JSValue m_object;
     Value &m_value;
@@ -949,10 +949,10 @@ static QString resultToString(JSContext *ctx, const JSValue &scriptValue)
 }
 
 struct EvalResult { JSValue v = JS_UNDEFINED; bool found = false; };
-static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item *item,
-                                  const QString &name, EvaluationData *data)
+static EvalResult getEvalProperty(
+    Evaluator &evaluator, JSValue obj, const Item *item, const QString &name, EvaluationData *data)
 {
-    Evaluator * const evaluator = data->evaluator;
+    ScriptEngine &engine = *evaluator.engine();
     const bool isModuleInstance = item->type() == ItemType::ModuleInstance
             || item->type() == ItemType::ModuleInstancePlaceholder;
     for (; item; item = item->prototype()) {
@@ -968,33 +968,33 @@ static EvalResult getEvalProperty(ScriptEngine *engine, JSValue obj, const Item 
             itemOfProperty,
             name,
             value.get(),
-            evaluator->requestedProperties(),
-            evaluator->propertyDependencies());
-        if (evaluator->cachingEnabled()) {
-            data->evaluator->clearCacheIfInvalidated(*data);
+            evaluator.requestedProperties(),
+            evaluator.propertyDependencies());
+        if (evaluator.cachingEnabled()) {
+            evaluator.clearCacheIfInvalidated(*data);
             const auto result = data->valueCache.constFind(name);
             if (result != data->valueCache.constEnd()) {
                 if (debugProperties)
                     qDebug() << "[SC] cache hit " << name << ": "
-                             << resultToString(engine->context(), *result);
+                             << resultToString(engine.context(), *result);
                 return {*result, true};
             }
         }
 
         const JSValue result
-            = ValueEvaluator(*engine, obj, value, *itemOfProperty, name, *data).eval();
+            = ValueEvaluator(evaluator, obj, value, *itemOfProperty, name, *data).eval();
 
         if (debugProperties)
             qDebug() << "[SC] cache miss " << name << ": "
-                     << resultToString(engine->context(), result);
-        if (evaluator->cachingEnabled()) {
-            data->evaluator->clearCacheIfInvalidated(*data);
+                     << resultToString(engine.context(), result);
+        if (evaluator.cachingEnabled()) {
+            evaluator.clearCacheIfInvalidated(*data);
             const auto it = data->valueCache.find(name);
             if (it != data->valueCache.end()) {
-                JS_FreeValue(engine->context(), it.value());
-                it.value() = JS_DupValue(engine->context(), result);
+                JS_FreeValue(engine.context(), it.value());
+                it.value() = JS_DupValue(engine.context(), result);
             } else {
-                data->valueCache.insert(name, JS_DupValue(engine->context(), result));
+                data->valueCache.insert(name, JS_DupValue(engine.context(), result));
             }
         }
         return {result, true};
@@ -1008,9 +1008,9 @@ static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc, JSValue o
         desc->getter = desc->setter = desc->value = JS_UNDEFINED;
         desc->flags = JS_PROP_ENUMERABLE;
     }
-    ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
-    Evaluator * const evaluator = engine->evaluator();
-    const auto data = attachedPointer<EvaluationData>(obj, evaluator->classId());
+    ScriptEngine &engine = *ScriptEngine::engineForContext(ctx);
+    Evaluator &evaluator = *engine.evaluator();
+    const auto data = attachedPointer<EvaluationData>(obj, evaluator.classId());
     const QString name = getJsString(ctx, prop);
     if (debugProperties)
         qDebug() << "[SC] queryProperty " << jsObjectId(obj) << " " << name;
@@ -1018,9 +1018,8 @@ static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc, JSValue o
     if (name == QStringLiteral("parent")) {
         if (desc) {
             Item * const parent = data->item->parent();
-            desc->value = parent
-                    ? JS_DupValue(ctx, data->evaluator->scriptValue(data->item->parent()))
-                    : JS_UNDEFINED;
+            desc->value = parent ? JS_DupValue(ctx, evaluator.scriptValue(data->item->parent()))
+                                 : JS_UNDEFINED;
         }
         return 1;
     }
@@ -1028,28 +1027,28 @@ static int getEvalProperty(JSContext *ctx, JSPropertyDescriptor *desc, JSValue o
     if (!data) {
         if (debugProperties)
             qDebug() << "[SC] queryProperty: no data attached";
-        engine->setLastLookupStatus(false);
+        engine.setLastLookupStatus(false);
         return -1;
     }
 
-    EvalResult result = getEvalProperty(engine, obj, data->item, name, data);
+    EvalResult result = getEvalProperty(evaluator, obj, data->item, name, data);
     if (!result.found && data->item->parent()) {
         if (debugProperties)
             qDebug() << "[SC] queryProperty: query parent";
         const Item * const parentItem = data->item->parent();
-        result = getEvalProperty(engine, evaluator->scriptValue(parentItem), parentItem,
-                                 name, data);
+        result = getEvalProperty(
+            evaluator, evaluator.scriptValue(parentItem), parentItem, name, data);
     }
     if (result.found) {
         if (desc)
             desc->value = JS_DupValue(ctx, result.v);
-        engine->setLastLookupStatus(true);
+        engine.setLastLookupStatus(true);
         return 1;
     }
 
     if (debugProperties)
         qDebug() << "[SC] queryProperty: no such property";
-    engine->setLastLookupStatus(false);
+    engine.setLastLookupStatus(false);
     return 0;
 }
 
