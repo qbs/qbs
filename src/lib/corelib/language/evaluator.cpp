@@ -583,23 +583,40 @@ public:
     }
 
 private:
-    friend class AutoScopePopper;
-
-    class AutoScopePopper
+    class ScopeChain
     {
     public:
-        AutoScopePopper(ValueEvaluator *converter)
-            : m_converter(converter)
+        ScopeChain(Evaluator &evaluator)
+            : m_evaluator(evaluator)
+        {}
+
+        void pushScope(const JSValue &scope)
         {
+            if (JS_IsObject(scope))
+                m_chain << scope;
         }
 
-        ~AutoScopePopper()
+        void pushScopeRecursively(const Item *scope)
         {
-            m_converter->popScopes();
+            if (scope) {
+                pushScopeRecursively(scope->scope());
+                pushScope(m_evaluator.scriptValue(scope));
+            }
         }
+        void pushItemScopes(const Item *item)
+        {
+            const Item *scope = item->scope();
+            if (scope) {
+                pushItemScopes(scope);
+                pushScope(m_evaluator.scriptValue(scope));
+            }
+        }
+
+        operator const JSValueList &() const { return m_chain; }
 
     private:
-        ValueEvaluator *m_converter;
+        Evaluator &m_evaluator;
+        JSValueList m_chain;
     };
 
     void setupConvenienceProperty(const QString &conveniencePropertyName, JSValue *extraScope,
@@ -708,36 +725,6 @@ private:
         return result;
     }
 
-    void pushScope(const JSValue &scope)
-    {
-        if (JS_IsObject(scope)) {
-            m_scopeChain << scope;
-            ++m_pushedScopesCount;
-        }
-    }
-
-    void pushScopeRecursively(const Item *scope)
-    {
-        if (scope) {
-            pushScopeRecursively(scope->scope());
-            pushScope(m_data.evaluator->scriptValue(scope));
-        }
-    }
-    void pushItemScopes(const Item *item)
-    {
-        const Item *scope = item->scope();
-        if (scope) {
-            pushItemScopes(scope);
-            pushScope(m_data.evaluator->scriptValue(scope));
-        }
-    }
-
-    void popScopes()
-    {
-        for (; m_pushedScopesCount; --m_pushedScopesCount)
-            m_scopeChain.pop_back();
-    }
-
     JSValue doHandle(JSSourceValue *value) override
     {
         JSValue outerScriptValue = JS_UNDEFINED;
@@ -844,7 +831,7 @@ private:
     {
         JSSourceValueEvaluationResult result;
         QBS_ASSERT(!alternative || value == alternative->value.get(), return result);
-        AutoScopePopper autoScopePopper(this);
+        ScopeChain scopeChain(*m_data.evaluator);
         auto maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
         if (!maybeExtraScope.second) {
             result.scriptValue = maybeExtraScope.first;
@@ -859,21 +846,21 @@ private:
             result.hasError = true;
             return result;
         }
-        pushScope(fileCtxScopes.fileScope);
-        pushItemScopes(m_data.item);
+        scopeChain.pushScope(fileCtxScopes.fileScope);
+        scopeChain.pushItemScopes(m_data.item);
         if ((m_itemOfProperty.type() != ItemType::ModuleInstance
              && m_itemOfProperty.type() != ItemType::ModuleInstancePlaceholder)
             || !value->scope()) {
-            pushScope(m_object);
+            scopeChain.pushScope(m_object);
         }
-        pushScopeRecursively(value->scope());
-        pushScope(maybeExtraScope.first);
-        pushScope(fileCtxScopes.importScope);
+        scopeChain.pushScopeRecursively(value->scope());
+        scopeChain.pushScope(maybeExtraScope.first);
+        scopeChain.pushScope(fileCtxScopes.importScope);
         if (alternative) {
             ScopedJsValue sv(
                 m_engine.context(),
                 m_engine.evaluate(
-                    JsValueOwner::Caller, alternative->condition.value, {}, 1, m_scopeChain));
+                    JsValueOwner::Caller, alternative->condition.value, {}, 1, scopeChain));
             if (JsException ex = m_engine.checkAndClearException(alternative->condition.location)) {
                 // This handles cases like the following:
                 //   Depends { name: "cpp" }
@@ -912,7 +899,7 @@ private:
                 alternative->overrideListProperties.value,
                 {},
                 1,
-                m_scopeChain));
+                scopeChain));
             if (JsException ex = m_engine.checkAndClearException(
                     alternative->overrideListProperties.location)) {
                 result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
@@ -928,7 +915,7 @@ private:
             value->sourceCodeForEvaluation(),
             value->file()->filePath(),
             value->line(),
-            m_scopeChain);
+            scopeChain);
         return result;
     }
 
@@ -954,8 +941,6 @@ private:
     const QString &m_propertyName;
     const EvaluationData &m_data;
     const PropertyDeclaration m_decl;
-    JSValueList m_scopeChain;
-    int m_pushedScopesCount = 0;
 };
 
 static QString resultToString(JSContext *ctx, const JSValue &scriptValue)
