@@ -560,16 +560,15 @@ public:
         JSValue obj,
         const ValuePtr &v,
         const Item &itemOfProperty,
-        const QString &propertyName,
-        const EvaluationData &data)
+        const EvaluationData &data,
+        const PropertyDeclaration &decl)
         : m_evaluator(evaluator)
         , m_engine(*evaluator.engine())
         , m_object(obj)
         , m_value(*v)
         , m_itemOfProperty(itemOfProperty)
-        , m_propertyName(propertyName)
         , m_data(data)
-        , m_decl(data.item->propertyDeclaration(propertyName))
+        , m_decl(decl)
     {
     }
 
@@ -640,8 +639,8 @@ private:
                                 m_object,
                                 value->baseValue(),
                                 m_itemOfProperty,
-                                m_propertyName,
-                                m_data)
+                                m_data,
+                                m_decl)
                                 .eval();
             }
             setupConvenienceProperty(StringConstants::baseVar(), &extraScope, baseValue);
@@ -650,7 +649,7 @@ private:
             JSValue v = JS_UNDEFINED;
             bool doSetup = false;
             if (outerItem) {
-                v = m_evaluator.property(outerItem, m_propertyName);
+                v = m_evaluator.property(outerItem, m_decl.name());
                 if (JsException ex = m_engine.checkAndClearException({})) {
                     extraScope = m_engine.throwError(ex.toErrorInfo().toString());
                     result.second = false;
@@ -704,9 +703,8 @@ private:
                     result.second = false;
                     return result;
                 }
-                originalJs = ValueEvaluator(
-                                 m_evaluator, m_object, original, *item, m_propertyName, m_data)
-                                 .eval();
+                originalJs
+                    = ValueEvaluator(m_evaluator, m_object, original, *item, m_data, m_decl).eval();
             } else {
                 originalJs = m_engine.newArray(0, JsValueOwner::Caller);
                 originalMgr.setValue(originalJs);
@@ -930,7 +928,6 @@ private:
     const JSValue m_object;
     Value &m_value;
     const Item &m_itemOfProperty;
-    const QString &m_propertyName;
     const EvaluationData &m_data;
     const PropertyDeclaration m_decl;
 };
@@ -981,8 +978,14 @@ static EvalResult getEvalProperty(
             }
         }
 
-        const JSValue result
-            = ValueEvaluator(evaluator, obj, value, *itemOfProperty, name, *data).eval();
+        const JSValue result = ValueEvaluator(
+                                   evaluator,
+                                   obj,
+                                   value,
+                                   *itemOfProperty,
+                                   *data,
+                                   data->item->propertyDeclaration(name))
+                                   .eval();
 
         if (debugProperties)
             qDebug() << "[SC] cache miss " << name << ": "
