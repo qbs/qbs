@@ -559,15 +559,15 @@ public:
         Evaluator &evaluator,
         JSValue obj,
         const ValuePtr &v,
+        const Item &item,
         const Item &itemOfProperty,
-        const EvaluationData &data,
         const PropertyDeclaration &decl)
         : m_evaluator(evaluator)
         , m_engine(*evaluator.engine())
         , m_object(obj)
         , m_value(*v)
+        , m_item(item)
         , m_itemOfProperty(itemOfProperty)
-        , m_data(data)
         , m_decl(decl)
     {
     }
@@ -575,8 +575,7 @@ public:
     JSValue eval()
     {
         JSValue result = m_value.apply(this);
-        convertToPropertyType(
-            &m_engine, m_data.item, m_decl, &m_value, ConversionType::Full, result);
+        convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);
         return result;
     }
 
@@ -638,8 +637,8 @@ private:
                                 m_evaluator,
                                 m_object,
                                 value->baseValue(),
+                                m_item,
                                 m_itemOfProperty,
-                                m_data,
                                 m_decl)
                                 .eval();
             }
@@ -704,7 +703,7 @@ private:
                     return result;
                 }
                 originalJs
-                    = ValueEvaluator(m_evaluator, m_object, original, *item, m_data, m_decl).eval();
+                    = ValueEvaluator(m_evaluator, m_object, original, m_item, *item, m_decl).eval();
             } else {
                 originalJs = m_engine.newArray(0, JsValueOwner::Caller);
                 originalMgr.setValue(originalJs);
@@ -720,7 +719,7 @@ private:
         bool usedAlternative = false;
         JSValue result = JS_UNDEFINED;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
-            if (alternative.value->sourceUsesOuter() && !m_data.item->outerItem()
+            if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, nullptr);
                 if (sver.hasError)
@@ -729,7 +728,7 @@ private:
             }
             JSSourceValueEvaluationResult sver = evaluateJSSourceValue(
                 alternative.value.get(),
-                m_data.item->outerItem(),
+                m_item.outerItem(),
                 &alternative,
                 value,
                 &outerScriptValue);
@@ -743,8 +742,7 @@ private:
         }
 
         if (!usedAlternative) {
-            JSSourceValueEvaluationResult sver = evaluateJSSourceValue(
-                value, m_data.item->outerItem());
+            JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, m_item.outerItem());
             if (sver.hasError)
                 return sver.scriptValue;
             if (JsException ex = m_engine.checkAndClearException({}))
@@ -782,7 +780,7 @@ private:
                 continue;
 
             convertToPropertyType(
-                &m_engine, m_data.item, m_decl, next.get(), ConversionType::ElementsOnly, result);
+                &m_engine, &m_item, m_decl, next.get(), ConversionType::ElementsOnly, result);
             lst.push_back(JS_DupValue(m_engine.context(), result));
         }
 
@@ -836,7 +834,7 @@ private:
             return result;
         }
         scopeChain.pushScope(fileCtxScopes.fileScope);
-        scopeChain.pushScopeRecursively(m_data.item->scope());
+        scopeChain.pushScopeRecursively(m_item.scope());
         if ((m_itemOfProperty.type() != ItemType::ModuleInstance
              && m_itemOfProperty.type() != ItemType::ModuleInstancePlaceholder)
             || !value->scope()) {
@@ -927,8 +925,8 @@ private:
     ScriptEngine &m_engine;
     const JSValue m_object;
     Value &m_value;
+    const Item &m_item;
     const Item &m_itemOfProperty;
-    const EvaluationData &m_data;
     const PropertyDeclaration m_decl;
 };
 
@@ -982,8 +980,8 @@ static EvalResult getEvalProperty(
                                    evaluator,
                                    obj,
                                    value,
+                                   *data->item,
                                    *itemOfProperty,
-                                   *data,
                                    data->item->propertyDeclaration(name))
                                    .eval();
 
