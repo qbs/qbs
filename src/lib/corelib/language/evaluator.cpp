@@ -704,11 +704,9 @@ private:
         return extraScope;
     }
 
-    JSValue doHandle(JSSourceValue *value) override
+    JSValue handleAlternatives(JSSourceValue *value)
     {
         JSValue outerScriptValue = JS_UNDEFINED;
-        bool usedAlternative = false;
-        JSValue result = JS_UNINITIALIZED;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
@@ -722,34 +720,14 @@ private:
                 &alternative,
                 value,
                 &outerScriptValue);
-            if (!JS_IsUninitialized(v)) {
-                if (value->isExclusiveListValue())
-                    return v;
-                result = v;
-                usedAlternative = true;
-                break;
-            }
+            if (!JS_IsUninitialized(v))
+                return v;
         }
+        return JS_UNINITIALIZED;
+    }
 
-        if (!usedAlternative) {
-            result = evaluateJSSourceValue(value, m_item.outerItem());
-            if (JS_IsError(m_engine.context(), result))
-                return result;
-        }
-
-        if (m_decl.isScalar()) {
-            if (value->createdByPropertiesBlock()) {
-                if (!JS_IsUninitialized(result))
-                    return result;
-                for (const ValuePtr &candidate : value->candidates()) {
-                    result = candidate->apply(this);
-                    if (!JS_IsUninitialized(result))
-                        return result;
-                }
-            }
-            return result;
-        }
-
+    JSValue mergeWithCandidates(const JSSourceValue *value, JSValue result)
+    {
         if (value->candidates().empty())
             return result;
 
@@ -757,17 +735,16 @@ private:
         if (!JS_IsUninitialized(result) && !JS_IsUndefined(result))
             lst << JS_DupValue(m_engine.context(), result);
         for (const ValuePtr &next : value->candidates()) {
-            result = next->apply(this);
+            JSValue v = next->apply(this);
             if (JsException ex = m_engine.checkAndClearException({})) {
                 const ScopedJsValueList l(m_engine.context(), lst);
                 return m_engine.throwError(ex.toErrorInfo().toString());
             }
-            if (JS_IsUninitialized(result) || JS_IsUndefined(result))
+            if (JS_IsUninitialized(v) || JS_IsUndefined(v))
                 continue;
-
             convertToPropertyType(
-                &m_engine, &m_item, m_decl, next.get(), ConversionType::ElementsOnly, result);
-            lst.push_back(JS_DupValue(m_engine.context(), result));
+                &m_engine, &m_item, m_decl, next.get(), ConversionType::ElementsOnly, v);
+            lst.push_back(JS_DupValue(m_engine.context(), v));
         }
 
         if (lst.empty())
@@ -789,6 +766,31 @@ private:
         }
         setJsProperty(ctx, result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
         return result;
+    }
+
+    JSValue doHandle(JSSourceValue *value) override
+    {
+        JSValue result = handleAlternatives(value);
+        if (JS_IsUninitialized(result)) {
+            result = evaluateJSSourceValue(value, m_item.outerItem());
+            if (JS_IsError(m_engine.context(), result))
+                return result;
+        } else if (value->isExclusiveListValue()) {
+            return result;
+        }
+
+        if (m_decl.isScalar()) {
+            if (!JS_IsUninitialized(result) || !value->createdByPropertiesBlock())
+                return result;
+            for (const ValuePtr &candidate : value->candidates()) {
+                const JSValue v = candidate->apply(this);
+                if (!JS_IsUninitialized(v))
+                    return v;
+            }
+            return JS_UNINITIALIZED;
+        }
+
+        return mergeWithCandidates(value, result);
     }
 
     JSValue evaluateJSSourceValue(
