@@ -627,12 +627,9 @@ private:
         setJsProperty(m_engine.context(), *extraScope, conveniencePropertyName, valueToSet);
     }
 
-    std::pair<JSValue, bool> createExtraScope(const JSSourceValue *value, Item *outerItem,
-                                              JSValue *outerScriptValue)
+    JSValue createExtraScope(const JSSourceValue *value, Item *outerItem, JSValue *outerScriptValue)
     {
-        std::pair<JSValue, bool> result;
-        auto &extraScope = result.first;
-        result.second = true;
+        JSValue extraScope = JS_UNINITIALIZED;
         if (value->sourceUsesBase()) {
             JSValue baseValue = JS_UNINITIALIZED;
             if (value->baseValue()) {
@@ -652,11 +649,8 @@ private:
             bool doSetup = false;
             if (outerItem) {
                 v = m_evaluator.property(outerItem, m_decl.name());
-                if (JsException ex = m_engine.checkAndClearException({})) {
-                    extraScope = m_engine.throwError(ex.toErrorInfo().toString());
-                    result.second = false;
-                    return result;
-                }
+                if (JsException ex = m_engine.checkAndClearException({}))
+                    return m_engine.throwError(ex.toErrorInfo().toString());
                 doSetup = true;
                 JS_FreeValue(m_engine.context(), v);
             } else if (outerScriptValue) {
@@ -676,17 +670,13 @@ private:
                     && item->type() != ItemType::ModuleInstancePlaceholder) {
                     const QString errorMessage = Tr::tr("The special value 'original' can only "
                                                         "be used with module properties.");
-                    extraScope = throwError(m_engine.context(), errorMessage);
-                    result.second = false;
-                    return result;
+                    return throwError(m_engine.context(), errorMessage);
                 }
 
                 if (!value->scope()) {
                     const QString errorMessage = Tr::tr("The special value 'original' cannot "
                         "be used on the right-hand side of a property declaration.");
-                    extraScope = throwError(m_engine.context(), errorMessage);
-                    result.second = false;
-                    return result;
+                    return throwError(m_engine.context(), errorMessage);
                 }
 
                 ValuePtr original;
@@ -701,9 +691,7 @@ private:
                 // in that case.
                 if (!original) {
                     const QString errorMessage = Tr::tr("Error setting up 'original'.");
-                    extraScope = throwError(m_engine.context(), errorMessage);
-                    result.second = false;
-                    return result;
+                    return throwError(m_engine.context(), errorMessage);
                 }
                 originalJs
                     = ValueEvaluator(m_evaluator, m_object, original, m_item, *item, m_decl).eval();
@@ -713,7 +701,7 @@ private:
             }
             setupConvenienceProperty(StringConstants::originalVar(), &extraScope, originalJs);
         }
-        return result;
+        return extraScope;
     }
 
     JSValue doHandle(JSSourceValue *value) override
@@ -724,33 +712,29 @@ private:
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
-                JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, nullptr);
-                if (sver.hasError)
-                    return sver.scriptValue;
-                outerScriptValue = sver.scriptValue;
+                outerScriptValue = evaluateJSSourceValue(value, nullptr);
+                if (JS_IsError(m_engine.context(), outerScriptValue))
+                    return outerScriptValue;
             }
-            JSSourceValueEvaluationResult sver = evaluateJSSourceValue(
+            const JSValue v = evaluateJSSourceValue(
                 alternative.value.get(),
                 m_item.outerItem(),
                 &alternative,
                 value,
                 &outerScriptValue);
-            if (!sver.tryNextAlternative || sver.hasError) {
+            if (!JS_IsUninitialized(v)) {
                 if (value->isExclusiveListValue())
-                    return sver.scriptValue;
-                result = sver.scriptValue;
+                    return v;
+                result = v;
                 usedAlternative = true;
                 break;
             }
         }
 
         if (!usedAlternative) {
-            JSSourceValueEvaluationResult sver = evaluateJSSourceValue(value, m_item.outerItem());
-            if (sver.hasError)
-                return sver.scriptValue;
-            if (JsException ex = m_engine.checkAndClearException({}))
-                return m_engine.throwError(ex.toErrorInfo().toString());
-            result = sver.scriptValue;
+            result = evaluateJSSourceValue(value, m_item.outerItem());
+            if (JS_IsError(m_engine.context(), result))
+                return result;
         }
 
         if (m_decl.isScalar()) {
@@ -807,34 +791,23 @@ private:
         return result;
     }
 
-    struct JSSourceValueEvaluationResult
+    JSValue evaluateJSSourceValue(
+        const JSSourceValue *value,
+        Item *outerItem,
+        const JSSourceValue::Alternative *alternative = nullptr,
+        JSSourceValue *elseCaseValue = nullptr,
+        JSValue *outerScriptValue = nullptr)
     {
-        JSValue scriptValue = JS_UNDEFINED;
-        bool tryNextAlternative = true;
-        bool hasError = false;
-    };
-
-    JSSourceValueEvaluationResult evaluateJSSourceValue(const JSSourceValue *value, Item *outerItem,
-            const JSSourceValue::Alternative *alternative = nullptr,
-            JSSourceValue *elseCaseValue = nullptr, JSValue *outerScriptValue = nullptr)
-    {
-        JSSourceValueEvaluationResult result;
-        QBS_ASSERT(!alternative || value == alternative->value.get(), return result);
+        QBS_ASSERT(!alternative || value == alternative->value.get(), return JS_UNINITIALIZED);
         ScopeChain scopeChain(m_evaluator);
-        auto maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
-        if (!maybeExtraScope.second) {
-            result.scriptValue = maybeExtraScope.first;
-            result.hasError = true;
-            return result;
-        }
-        const ScopedJsValue extraScopeMgr(m_engine.context(), maybeExtraScope.first);
+        const JSValue maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
+        if (JS_IsError(m_engine.context(), maybeExtraScope))
+            return maybeExtraScope;
+        const ScopedJsValue extraScopeMgr(m_engine.context(), maybeExtraScope);
         const Evaluator::FileContextScopes fileCtxScopes = m_evaluator.fileContextScopes(
             value->file());
-        if (JsException ex = m_engine.checkAndClearException({})) {
-            result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
-            result.hasError = true;
-            return result;
-        }
+        if (JsException ex = m_engine.checkAndClearException({}))
+            return m_engine.throwError(ex.toErrorInfo().toString());
         scopeChain.pushScope(fileCtxScopes.fileScope);
         scopeChain.pushScopeRecursively(m_item.scope());
         if ((m_itemOfProperty.type() != ItemType::ModuleInstance
@@ -843,7 +816,7 @@ private:
             scopeChain.pushScope(m_object);
         }
         scopeChain.pushScopeRecursively(value->scope());
-        scopeChain.pushScope(maybeExtraScope.first);
+        scopeChain.pushScope(maybeExtraScope);
         scopeChain.pushScope(fileCtxScopes.importScope);
         if (alternative) {
             ScopedJsValue sv(
@@ -863,26 +836,16 @@ private:
                 //       there are currently several contexts where we do that, e.g. Export
                 //       and Group items. Perhaps change that, or try to collect all such
                 //       exceptions and don't try to evaluate other cases.
-                if (m_itemOfProperty.type() == ItemType::ModuleInstancePlaceholder) {
-                    result.scriptValue = JS_UNDEFINED;
-                    result.tryNextAlternative = false;
-                    return result;
-                }
+                if (m_itemOfProperty.type() == ItemType::ModuleInstancePlaceholder)
+                    return JS_UNDEFINED;
 
-                result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
-                //result.scriptValue = JS_Throw(engine->context(), ex.takeValue());
-                //result.scriptValue = ex.takeValue();
-                result.hasError = true;
-                return result;
+                return m_engine.throwError(ex.toErrorInfo().toString());
             }
-            if (JS_ToBool(m_engine.context(), sv)) {
-                // The condition is true. Continue evaluating the value.
-                result.tryNextAlternative = false;
-            } else {
-                // The condition is false. Try the next alternative or the else value.
-                result.tryNextAlternative = true;
-                return result;
-            }
+
+            // The condition is false. Try the next alternative or the else value.
+            if (!JS_ToBool(m_engine.context(), sv))
+                return JS_UNINITIALIZED;
+
             sv.reset(m_engine.evaluate(
                 JsValueOwner::Caller,
                 alternative->overrideListProperties.value,
@@ -891,21 +854,17 @@ private:
                 scopeChain.chain()));
             if (JsException ex = m_engine.checkAndClearException(
                     alternative->overrideListProperties.location)) {
-                result.scriptValue = m_engine.throwError(ex.toErrorInfo().toString());
-                //result.scriptValue = JS_Throw(engine->context(), ex.takeValue());
-                result.hasError = true;
-                return result;
+                return m_engine.throwError(ex.toErrorInfo().toString());
             }
             if (JS_ToBool(m_engine.context(), sv))
                 elseCaseValue->setIsExclusiveListValue();
         }
-        result.scriptValue = m_engine.evaluate(
+        return m_engine.evaluate(
             JsValueOwner::ScriptEngine,
             value->sourceCodeForEvaluation(),
             value->file()->filePath(),
             value->line(),
             scopeChain.chain());
-        return result;
     }
 
     JSValue doHandle(ItemValue *value) override
