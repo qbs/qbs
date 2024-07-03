@@ -43,6 +43,7 @@
 #include "loaderutils.h"
 #include "productresolver.h"
 
+#include <language/evaluator.h>
 #include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
@@ -541,8 +542,11 @@ void ProductsResolver::postProcess()
     const auto project = std::dynamic_pointer_cast<TopLevelProject>(
                 m_loaderState.topLevelProject().projects().front()->project);
     QBS_CHECK(project);
-    for (LoaderState * const loaderState : m_availableLoaderStates)
+    for (LoaderState * const loaderState : m_availableLoaderStates) {
         project->warningsEncountered << loaderState->logger().warnings();
+        if (loaderState == &m_loaderState)
+            project->warningsEncountered << loaderState->evaluator().engine()->logger().warnings();
+    }
 }
 
 void ProductsResolver::checkForMissedBulkDependencies(const ProductContext &product)

@@ -90,12 +90,23 @@ static int getEvalPropertySafe(JSContext *ctx, JSPropertyDescriptor *desc,
 
 static bool debugProperties = false;
 
+static void printPathResolvingDeprecationWarning(ScriptEngine &engine, const Value &val)
+{
+    const QString warning = Tr::tr(
+        "Resolving path properties relative to the exporting product's location is "
+        "deprecated.\nIn future versions of qbs, such properties will be resolved relative to the "
+        "importing product's location.\n"
+        "Explicitly use exportingProduct.sourceDirectory instead.");
+    engine.logger().printWarning({warning, val.location()});
+}
+
 Evaluator::Evaluator(ScriptEngine *scriptEngine)
     : m_scriptEngine(scriptEngine)
     , m_scriptClass(scriptEngine->registerClass("Evaluator", nullptr, nullptr, JS_UNDEFINED,
                                                 getEvalPropertyNames, getEvalPropertySafe))
 {
     scriptEngine->registerEvaluator(this);
+    scriptEngine->logger().storeWarnings();
 }
 
 Evaluator::~Evaluator()
@@ -336,13 +347,6 @@ static void makeTypeError(ScriptEngine *engine, const PropertyDeclaration &decl,
     makeTypeError(engine, error, v);
 }
 
-static QString overriddenSourceDirectory(const Item *item, const QString &defaultValue)
-{
-    const VariantValuePtr v = item->variantProperty
-            (StringConstants::qbsSourceDirPropertyInternal());
-    return v ? v->value().toString() : defaultValue;
-}
-
 static void convertToPropertyType_impl(
     ScriptEngine *engine,
     const QString &pathPropertiesBaseDir,
@@ -376,14 +380,25 @@ static void convertToPropertyType_impl(
             engine, pathPropertiesBaseDir, item, elemDecl, value, location, conversionType, v);
     }
 
-    QString srcDir;
     QString actualBaseDir;
-    const Item * const srcDirItem = value && value->scope() ? value->scope() : item;
-    if (item && !pathPropertiesBaseDir.isEmpty()) {
-        const VariantValueConstPtr itemSourceDir
-                = item->variantProperty(QStringLiteral("sourceDirectory"));
-        actualBaseDir = itemSourceDir ? itemSourceDir->value().toString() : pathPropertiesBaseDir;
+    bool baseDirIsFromExport = false;
+    if (decl.type() == PropertyDeclaration::Path || decl.type() == PropertyDeclaration::PathList) {
+        actualBaseDir = pathPropertiesBaseDir;
+        if (const Item * const baseDirItem = value && value->scope() ? value->scope() : item) {
+            if (const VariantValueConstPtr v = baseDirItem->variantProperty(
+                    StringConstants::qbsSourceDirPropertyInternal())) {
+                actualBaseDir = v->value().toString();
+                baseDirIsFromExport = true;
+            }
+            if (actualBaseDir.isEmpty()) {
+                if (const VariantValueConstPtr itemSourceDir = baseDirItem->variantProperty(
+                        StringConstants::sourceDirectoryProperty())) {
+                    actualBaseDir = itemSourceDir->value().toString();
+                }
+            }
+        }
     }
+
     switch (decl.type()) {
     case PropertyDeclaration::UnknownType:
     case PropertyDeclaration::Variant:
@@ -397,28 +412,24 @@ static void convertToPropertyType_impl(
             makeTypeError(engine, decl, location, v);
         break;
     case PropertyDeclaration::Path:
-    {
         if (!JS_IsString(v)) {
             makeTypeError(engine, decl, location, v);
             break;
         }
-        const QString srcDir = srcDirItem ? overriddenSourceDirectory(srcDirItem, actualBaseDir)
-                                          : pathPropertiesBaseDir;
-        if (!srcDir.isEmpty()) {
-            v = engine->toScriptValue(QDir::cleanPath(FileInfo::resolvePath(srcDir,
-                                                                            getJsString(ctx, v))));
+        if (!actualBaseDir.isEmpty()) {
+            const QString rawPath = getJsString(ctx, v);
+            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath))
+                printPathResolvingDeprecationWarning(*engine, *value);
+            v = engine->toScriptValue(
+                QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_FreeValue(ctx, v);
         }
         break;
-    }
     case PropertyDeclaration::String:
         if (!JS_IsString(v))
             makeTypeError(engine, decl, location, v);
         break;
     case PropertyDeclaration::PathList:
-        srcDir = srcDirItem ? overriddenSourceDirectory(srcDirItem, actualBaseDir)
-                            : pathPropertiesBaseDir;
-        [[fallthrough]];
     case PropertyDeclaration::StringList:
     {
         if (!JS_IsArray(ctx, v)) {
@@ -447,10 +458,13 @@ static void convertToPropertyType_impl(
                 makeTypeError(engine, error, v);
                 break;
             }
-            if (srcDir.isEmpty())
+            if (actualBaseDir.isEmpty())
                 continue;
+            const QString rawPath = getJsString(ctx, elem);
+            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath))
+                printPathResolvingDeprecationWarning(*engine, *value);
             const JSValue newElem = engine->toScriptValue(
-                        QDir::cleanPath(FileInfo::resolvePath(srcDir, getJsString(ctx, elem))));
+                QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_SetPropertyUint32(ctx, v, i, newElem);
         }
         break;
@@ -735,8 +749,10 @@ private:
             }
             if (JS_IsUninitialized(v) || JS_IsUndefined(v))
                 continue;
+
             convertToPropertyType(
                 &m_engine, &m_item, m_decl, next.get(), ConversionType::ElementsOnly, v);
+
             lst.push_back(JS_DupValue(m_engine.context(), v));
         }
 

@@ -59,7 +59,6 @@ Module {
 
     Group {
         name: "Application file";
-        prefix: product.sourceDirectory + '/'
         files: nodejs.applicationFile ? [nodejs.applicationFile] : []
     }
 

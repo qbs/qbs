@@ -965,7 +965,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("dependency_cycle4")
             << "Cyclic dependencies detected.";
     QTest::newRow("references_cycle")
-            << "Cycle detected while referencing file 'references_cycle.qbs'.";
+            << "Cycle detected while referencing file '.*references_cycle.qbs'.";
     QTest::newRow("subproject_cycle")
             << "Cycle detected while loading subproject file 'subproject_cycle.qbs'.";
     QTest::newRow("invalid_stringlist_element")
@@ -1104,6 +1104,19 @@ void TestLanguage::exports()
     try {
         resolveProject("exports.qbs");
         QVERIFY(!!project);
+        Set<CodeLocation> warningLocations;
+        for (const ErrorInfo &e : std::as_const(project->warningsEncountered)) {
+            const QString errStr = e.toString();
+            QVERIFY2(
+                errStr.contains("Resolving path properties relative to the exporting "
+                                "product's location is deprecated"),
+                qPrintable(errStr));
+            for (const ErrorItem &ei : e.items())
+                warningLocations << ei.codeLocation();
+        }
+        QCOMPARE(int(warningLocations.size()), 2);
+        for (const CodeLocation &loc : warningLocations)
+            QVERIFY(loc.line() == 12 || loc.line() == 9);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.size(), 22);
         ResolvedProductPtr product;
