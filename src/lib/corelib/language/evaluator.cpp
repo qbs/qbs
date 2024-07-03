@@ -126,9 +126,7 @@ JSValue Evaluator::property(const Item *item, const QString &name)
 
 JSValue Evaluator::value(const Item *item, const QString &name, bool *propertyWasSet)
 {
-    JSValue v;
-    evaluateProperty(&v, item, name, propertyWasSet);
-    return v;
+    return evaluateProperty(item, name, propertyWasSet);
 }
 
 bool Evaluator::boolValue(const Item *item, const QString &name,
@@ -141,8 +139,8 @@ bool Evaluator::boolValue(const Item *item, const QString &name,
 int Evaluator::intValue(const Item *item, const QString &name, int defaultValue,
                         bool *propertyWasSet)
 {
-    JSValue v;
-    if (!evaluateProperty(&v, item, name, propertyWasSet))
+    const JSValue v = evaluateProperty(item, name, propertyWasSet);
+    if (JS_IsUndefined(v))
         return defaultValue;
     qint32 n;
     JS_ToInt32(m_scriptEngine->context(), &n, v);
@@ -157,12 +155,8 @@ FileTags Evaluator::fileTagsValue(const Item *item, const QString &name, bool *p
 QString Evaluator::stringValue(const Item *item, const QString &name,
                                const QString &defaultValue, bool *propertyWasSet)
 {
-    JSValue v;
-    if (!evaluateProperty(&v, item, name, propertyWasSet))
-        return defaultValue;
-    QString str = getJsString(m_scriptEngine->context(), v);
-    JS_FreeValue(m_scriptEngine->context(), v);
-    return str;
+    const ScopedJsValue v(m_scriptEngine->context(), evaluateProperty(item, name, propertyWasSet));
+    return JS_IsUndefined(v) ? defaultValue : getJsString(m_scriptEngine->context(), v);
 }
 
 static QStringList toStringList(ScriptEngine *engine, const JSValue &scriptValue)
@@ -250,16 +244,15 @@ void Evaluator::handleEvaluationError(const Item *item, const QString &name)
     });
 }
 
-bool Evaluator::evaluateProperty(JSValue *result, const Item *item, const QString &name,
-        bool *propertyWasSet)
+JSValue Evaluator::evaluateProperty(const Item *item, const QString &name, bool *propertyWasSet)
 {
-    *result = property(item, name);
-    ScopedJsValue valMgr(m_scriptEngine->context(), *result);
+    const JSValue result = property(item, name);
+    ScopedJsValue valMgr(m_scriptEngine->context(), result);
     handleEvaluationError(item, name);
     valMgr.release();
     if (propertyWasSet)
         *propertyWasSet = isNonDefaultValue(item, name);
-    return !JS_IsUndefined(*result);
+    return result;
 }
 
 Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConstPtr &file)

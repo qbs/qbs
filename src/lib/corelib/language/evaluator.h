@@ -120,8 +120,7 @@ public:
     bool isNonDefaultValue(const Item *item, const QString &name) const;
 private:
     void onItemPropertyChanged(Item *item) override { invalidateCache(item); }
-    bool evaluateProperty(JSValue *result, const Item *item, const QString &name,
-            bool *propertyWasSet);
+    JSValue evaluateProperty(const Item *item, const QString &name, bool *propertyWasSet);
     void clearCache(EvaluationData &edata);
 
     ScriptEngine * const m_scriptEngine;
