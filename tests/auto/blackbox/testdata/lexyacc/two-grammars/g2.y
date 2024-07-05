@@ -1,5 +1,6 @@
 %{
-int g1lex();
+int g2lex();
+void g2error(const char *s);
 %}
 
 %%
