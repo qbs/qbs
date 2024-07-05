@@ -56,6 +56,7 @@
 #include <tools/stringconstants.h>
 
 #include <algorithm>
+#include <unordered_map>
 
 namespace qbs {
 namespace Internal {
@@ -92,6 +93,8 @@ Item *Item::clone(ItemPool &pool) const
          ++it) {
         dup->m_properties.insert(it.key(), it.value()->clone(pool));
     }
+
+    adaptScopesOfClonedAlternatives(dup);
 
     return dup;
 }
@@ -179,6 +182,58 @@ ItemValuePtr Item::itemProperty(const QString &name, const Item *itemTemplate,
                                             createdByPropertiesBlock);
     setProperty(name, result);
     return result;
+}
+
+// Such scopes were potentially set up in PropertiesBlockConverter.
+void Item::adaptScopesOfClonedAlternatives(Item *clone) const
+{
+    if (m_type != ItemType::Module && m_type != ItemType::Product)
+        return;
+
+    std::unordered_map<Item *, std::vector<JSSourceValue *>> valuesPerGroupScope;
+    const std::function<void(const PropertyMap &)> collectScopedValues =
+        [&](const PropertyMap &props) {
+            for (const auto &prop : props) {
+                switch (prop->type()) {
+                case Value::VariantValueType:
+                    break;
+                case Value::ItemValueType:
+                    collectScopedValues(static_cast<ItemValue *>(prop.get())->item()->properties());
+                    break;
+                case Value::JSSourceValueType:
+                    for (const JSSourceValue::Alternative &alt :
+                         static_cast<JSSourceValue *>(prop.get())->alternatives()) {
+                        if (alt.value->scope() && alt.value->scope()->type() == ItemType::Group)
+                            valuesPerGroupScope[alt.value->scope()].push_back(alt.value.get());
+                    }
+                    break;
+                }
+            }
+        };
+    const std::function<Item *(Item *, const Item *, const Item *)> getClonedGroup =
+        [&](Item *group, const Item *parent, const Item *clonedParent) -> Item * {
+        for (int i = 0; i < int(m_children.size()); ++i) {
+            Item * const child = parent->m_children.at(i);
+            Item * const clonedChild = clonedParent->m_children.at(i);
+            QBS_CHECK(child->type() == clonedChild->type());
+            if (child == group)
+                return clonedChild;
+            if (child->type() == ItemType::Group) {
+                if (Item * const clonedGroup = getClonedGroup(group, child, clonedChild))
+                    return clonedGroup;
+            }
+        }
+        return nullptr;
+    };
+    collectScopedValues(clone->m_properties);
+    for (const auto &[group, values] : valuesPerGroupScope) {
+        Item * const clonedGroup = getClonedGroup(group, this, clone);
+        QBS_CHECK(clonedGroup);
+        for (JSSourceValue * const v : values) {
+            QBS_CHECK(v->scope() == group);
+            v->setScope(clonedGroup, {});
+        }
+    }
 }
 
 JSSourceValuePtr Item::sourceProperty(const QString &name) const

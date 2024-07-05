@@ -199,7 +199,7 @@ public:
 private:
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate,
                               const ItemValueConstPtr &itemValue, ItemPool &pool);
-
+    void adaptScopesOfClonedAlternatives(Item *clone) const;
     void dump(int indentation) const;
 
     void lockModule() const;

@@ -179,8 +179,10 @@ void JSSourceValue::setScope(Item *scope, const QString &scopeName)
     Value::setScope(scope, scopeName);
     if (m_baseValue)
         m_baseValue->setScope(scope, scopeName);
-    for (const JSSourceValue::Alternative &a : m_alternatives)
-        a.value->setScope(scope, scopeName);
+    for (const JSSourceValue::Alternative &a : m_alternatives) {
+        if (!a.value->scope())
+            a.value->setScope(scope, scopeName);
+    }
 }
 
 void JSSourceValue::resetPriority()

@@ -91,6 +91,8 @@ public:
     {
         m_alternative.condition = condition;
         m_alternative.overrideListProperties = overrideListProperties;
+        while (m_targetItem->type() == ItemType::Group)
+            m_targetItem = m_targetItem->parent();
     }
 
     void apply()
@@ -101,6 +103,7 @@ public:
 private:
     JSSourceValue::Alternative m_alternative;
     Item * const m_propertiesBlockContainer;
+    Item *m_targetItem = m_propertiesBlockContainer;
     const Item * const m_propertiesBlock;
     ItemPool &m_itemPool;
 
@@ -115,11 +118,13 @@ private:
             }
             if (it.value()->type() == Value::ItemValueType) {
                 Item * const innerVal = std::static_pointer_cast<ItemValue>(it.value())->item();
-                ItemValuePtr outerVal = outer->itemProperty(it.key(), m_itemPool);
+                Item * const targetItem = outer == m_propertiesBlockContainer ? m_targetItem
+                                                                              : outer;
+                ItemValuePtr outerVal = targetItem->itemProperty(it.key(), m_itemPool);
                 if (!outerVal) {
                     outerVal = ItemValue::create(Item::create(&m_itemPool, innerVal->type()),
                                                  true);
-                    outer->setProperty(it.key(), outerVal);
+                    targetItem->setProperty(it.key(), outerVal);
                 }
                 doApply(outerVal->item(), innerVal);
             } else if (it.value()->type() == Value::JSSourceValueType) {
@@ -128,8 +133,13 @@ private:
                     throw ErrorInfo(Tr::tr("Incompatible value type in unconditional value at %1.")
                                     .arg(outerVal->location().toString()));
                 }
-                doApply(it.key(), outer, std::static_pointer_cast<JSSourceValue>(outerVal),
-                        std::static_pointer_cast<JSSourceValue>(it.value()));
+                const JSSourceValuePtr value = std::static_pointer_cast<JSSourceValue>(it.value());
+                doApply(it.key(), outer, std::static_pointer_cast<JSSourceValue>(outerVal), value);
+                if (outer != m_propertiesBlockContainer
+                    && m_targetItem != m_propertiesBlockContainer) {
+                    QBS_CHECK(m_propertiesBlockContainer->type() == ItemType::Group);
+                    value->setScope(m_propertiesBlockContainer, {});
+                }
             } else {
                 QBS_CHECK(!"Unexpected value type in conditional value.");
             }

@@ -3127,23 +3127,44 @@ void TestLanguage::propertiesBlocks()
     }
 }
 
+void TestLanguage::propertiesBlockInGroup_data()
+{
+    QTest::addColumn<bool>("withGroup");
+    QTest::addColumn<QStringList>("expectedValue");
+
+    QTest::newRow("with group") << true
+                                << QStringList{
+                                       "BASEDEF",
+                                       "FEATURE_ENABLED",
+                                       "THE_GROUP",
+                                       "MODULE_DEFINE",
+                                       "MODULE_GROUP"};
+    QTest::newRow("without group")
+        << false << QStringList{"BASEDEF", "MODULE_DEFINE", "MODULE_GROUP"};
+}
+
 void TestLanguage::propertiesBlockInGroup()
 {
+    QFETCH(bool, withGroup);
+    QFETCH(QStringList, expectedValue);
+
     bool exceptionCaught = false;
     try {
+        defaultParameters.setOverriddenValues(
+            {std::make_pair(QString("products.in-group.featureEnabled"), withGroup)});
         resolveProject("properties-block-in-group.qbs");
         QVERIFY(!!project);
         QCOMPARE(project->allProducts().size(), size_t(1));
         const ResolvedProductConstPtr product = project->allProducts().front();
+        const QStringList productValue
+            = moduleProperty(product->moduleProperties->value(), "dummy", "defines").toStringList();
+        QCOMPARE(productValue, expectedValue);
         const auto groupIt = std::find_if(product->groups.cbegin(), product->groups.cend(),
                 [](const GroupConstPtr &g) { return g->name == "the group"; });
         QVERIFY(groupIt != product->groups.cend());
-        const QVariantMap propertyMap = (*groupIt)->properties->value();
-        const QVariantList value = moduleProperty(propertyMap, "dummy", "defines").toList();
-        QStringList stringListValue;
-        std::transform(value.constBegin(), value.constEnd(), std::back_inserter(stringListValue),
-                       [](const QVariant &v) { return v.toString(); });
-        QCOMPARE(stringListValue, QStringList() << "BASEDEF" << "FEATURE_ENABLED");
+        const QStringList groupValue
+            = moduleProperty((*groupIt)->properties->value(), "dummy", "defines").toStringList();
+        QCOMPARE(groupValue, QStringList{"GROUP_ONLY"});
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

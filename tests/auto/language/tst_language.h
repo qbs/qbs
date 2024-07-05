@@ -156,6 +156,7 @@ private slots:
     void projectFileLookup_data();
     void propertiesBlocks_data();
     void propertiesBlocks();
+    void propertiesBlockInGroup_data();
     void propertiesBlockInGroup();
     void propertiesItemInModule();
     void propertyAssignmentInExportedGroup();
