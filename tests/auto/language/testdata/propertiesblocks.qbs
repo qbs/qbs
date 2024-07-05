@@ -128,7 +128,7 @@ Project {
             condition: false
             dummy.defines: outer.concat(["IMPOSSIBLE"])
         }
-        Properties {    // will be ignored
+        Properties {
             condition: true
             dummy.defines: outer.concat(["THREE"])
         }

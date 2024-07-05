@@ -711,15 +711,38 @@ private:
         return extraScope;
     }
 
+    JSValue mergeValues(const JSValueList &lst)
+    {
+        JSValue result = m_engine.newArray(int(lst.size()), JsValueOwner::ScriptEngine);
+        quint32 k = 0;
+        JSContext * const ctx = m_engine.context();
+        for (const JSValue &v : std::as_const(lst)) {
+            QBS_ASSERT(!JS_IsError(ctx, v), continue);
+            if (JS_IsArray(ctx, v)) {
+                const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());
+                for (quint32 j = 0; j < vlen; ++j)
+                    JS_SetPropertyUint32(ctx, result, k++, JS_GetPropertyUint32(ctx, v, j));
+                JS_FreeValue(ctx, v);
+            } else {
+                JS_SetPropertyUint32(ctx, result, k++, v);
+            }
+        }
+        setJsProperty(ctx, result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
+        return result;
+    }
+
     JSValue handleAlternatives(JSSourceValue *value)
     {
         JSValue outerScriptValue = JS_UNDEFINED;
+        JSValueList lst;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 outerScriptValue = evaluateJSSourceValue(value, nullptr);
-                if (JS_IsError(m_engine.context(), outerScriptValue))
+                if (JS_IsError(m_engine.context(), outerScriptValue)) {
+                    const ScopedJsValueList l(m_engine.context(), lst);
                     return outerScriptValue;
+                }
             }
             const JSValue v = evaluateJSSourceValue(
                 alternative.value.get(),
@@ -727,10 +750,15 @@ private:
                 &alternative,
                 value,
                 &outerScriptValue);
-            if (!JS_IsUninitialized(v))
+            if (JS_IsUninitialized(v))
+                continue;
+            if (m_decl.isScalar())
                 return v;
+            if (!JS_IsUndefined(v))
+                lst << JS_DupValue(m_engine.context(), v);
         }
-        return JS_UNINITIALIZED;
+
+        return lst.empty() ? JS_UNINITIALIZED : mergeValues(lst);
     }
 
     JSValue mergeWithCandidates(const JSSourceValue *value, JSValue result)
@@ -756,25 +784,7 @@ private:
             lst.push_back(JS_DupValue(m_engine.context(), v));
         }
 
-        if (lst.empty())
-            return result;
-
-        result = m_engine.newArray(int(lst.size()), JsValueOwner::ScriptEngine);
-        quint32 k = 0;
-        JSContext *const ctx = m_engine.context();
-        for (const JSValue &v : std::as_const(lst)) {
-            QBS_ASSERT(!JS_IsError(ctx, v), continue);
-            if (JS_IsArray(ctx, v)) {
-                const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());
-                for (quint32 j = 0; j < vlen; ++j)
-                    JS_SetPropertyUint32(ctx, result, k++, JS_GetPropertyUint32(ctx, v, j));
-                JS_FreeValue(ctx, v);
-            } else {
-                JS_SetPropertyUint32(ctx, result, k++, v);
-            }
-        }
-        setJsProperty(ctx, result, StringConstants::lengthProperty(), JS_NewInt32(ctx, k));
-        return result;
+        return lst.empty() ? result : mergeValues(lst);
     }
 
     JSValue doHandle(JSSourceValue *value) override

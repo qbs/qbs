@@ -632,24 +632,125 @@ void TestLanguage::disabledPropertiesItem_data()
     QTest::addColumn<bool>("setInHigher2");
     QTest::addColumn<bool>("setInLower");
     QTest::addColumn<QString>("expectedValue");
+    QTest::addColumn<QStringList>("expectedListValue");
 
-    QTest::newRow("default") << false << false << false << false << QString("default");
-    QTest::newRow("lower only") << false << false << false << true << QString("default_fromLower");
-    QTest::newRow("higher2 only") << false << false << true << false << QString();
-    QTest::newRow("lower and higher2") << false << false << true << true << QString();
-    QTest::newRow("higher1 only") << false << true << false << false << QString("fromHigher1");
-    QTest::newRow("lower and higher1") << false << true << false << true << QString("fromHigher1");
-    QTest::newRow("product only") << true << false << false << false << QString("fromProduct");
-    QTest::newRow("product and lower") << true << false << false << true << QString("fromProduct");
-    QTest::newRow("product and higher2")
-        << true << false << true << false << QString("fromProduct");
+    QTest::newRow("default") << false << false << false << false << QString("default")
+                             << QStringList{
+                                    "N_GREATER_7",
+                                    "N_GREATER_6",
+                                    "N_GREATER_5",
+                                    "N_LESS_20",
+                                    "N_NON_ZERO"};
+    QTest::newRow("lower only") << false << false << false << true << QString("default_fromLower")
+                                << QStringList{
+                                       "N_GREATER_7",
+                                       "N_GREATER_6",
+                                       "N_GREATER_5",
+                                       "N_LESS_20",
+                                       "WITH_LOWER_PROP",
+                                       "N_NON_ZERO"};
+    QTest::newRow("higher2 only") << false << false << true << false << QString()
+                                  << QStringList{
+                                         "N_GREATER_7",
+                                         "WITH_HIGHER2_PROP",
+                                         "N_GREATER_6",
+                                         "N_GREATER_5",
+                                         "N_LESS_20",
+                                         "N_NON_ZERO"};
+    QTest::newRow("lower and higher2") << false << false << true << true << QString()
+                                       << QStringList{
+                                              "N_GREATER_7",
+                                              "WITH_HIGHER2_PROP",
+                                              "N_GREATER_6",
+                                              "N_GREATER_5",
+                                              "N_LESS_20",
+                                              "WITH_LOWER_PROP",
+                                              "N_NON_ZERO"};
+    QTest::newRow("higher1 only") << false << true << false << false << QString("fromHigher1")
+                                  << QStringList{
+                                         "N_GREATER_7",
+                                         "N_GREATER_6",
+                                         "WITH_HIGHER1_PROP",
+                                         "N_GREATER_5",
+                                         "N_LESS_20",
+                                         "N_NON_ZERO"};
+    QTest::newRow("lower and higher1") << false << true << false << true << QString("fromHigher1")
+                                       << QStringList{
+                                              "N_GREATER_7",
+                                              "N_GREATER_6",
+                                              "WITH_HIGHER1_PROP",
+                                              "N_GREATER_5",
+                                              "N_LESS_20",
+                                              "WITH_LOWER_PROP",
+                                              "N_NON_ZERO"};
+    QTest::newRow("product only") << true << false << false << false << QString("fromProduct")
+                                  << QStringList{
+                                         "WITH_PRODUCT_PROP",
+                                         "N_GREATER_7",
+                                         "N_GREATER_6",
+                                         "N_GREATER_5",
+                                         "N_LESS_20",
+                                         "N_NON_ZERO"};
+    QTest::newRow("product and lower") << true << false << false << true << QString("fromProduct")
+                                       << QStringList{
+                                              "WITH_PRODUCT_PROP",
+                                              "N_GREATER_7",
+                                              "N_GREATER_6",
+                                              "N_GREATER_5",
+                                              "N_LESS_20",
+                                              "WITH_LOWER_PROP",
+                                              "N_NON_ZERO"};
+    QTest::newRow("product and higher2") << true << false << true << false << QString("fromProduct")
+                                         << QStringList{
+                                                "WITH_PRODUCT_PROP",
+                                                "N_GREATER_7",
+                                                "WITH_HIGHER2_PROP",
+                                                "N_GREATER_6",
+                                                "N_GREATER_5",
+                                                "N_LESS_20",
+                                                "N_NON_ZERO"};
     QTest::newRow("product, higher2 and lower")
-        << true << false << true << true << QString("fromProduct");
-    QTest::newRow("product and higher1")
-        << true << true << false << false << QString("fromProduct");
+        << true << false << true << true << QString("fromProduct")
+        << QStringList{
+               "WITH_PRODUCT_PROP",
+               "N_GREATER_7",
+               "WITH_HIGHER2_PROP",
+               "N_GREATER_6",
+               "N_GREATER_5",
+               "N_LESS_20",
+               "WITH_LOWER_PROP",
+               "N_NON_ZERO"};
+    QTest::newRow("product and higher1") << true << true << false << false << QString("fromProduct")
+                                         << QStringList{
+                                                "WITH_PRODUCT_PROP",
+                                                "N_GREATER_7",
+                                                "N_GREATER_6",
+                                                "WITH_HIGHER1_PROP",
+                                                "N_GREATER_5",
+                                                "N_LESS_20",
+                                                "N_NON_ZERO"};
     QTest::newRow("product, higher1 and higher2")
-        << true << true << true << false << QString("fromProduct");
-    QTest::newRow("all") << true << true << true << true << QString("fromProduct");
+        << true << true << true << false << QString("fromProduct")
+        << QStringList{
+               "WITH_PRODUCT_PROP",
+               "N_GREATER_7",
+               "WITH_HIGHER2_PROP",
+               "N_GREATER_6",
+               "WITH_HIGHER1_PROP",
+               "N_GREATER_5",
+               "N_LESS_20",
+               "N_NON_ZERO"};
+    QTest::newRow("all") << true << true << true << true << QString("fromProduct")
+                         << QStringList{
+                                "WITH_PRODUCT_PROP",
+                                "N_GREATER_7",
+                                "WITH_HIGHER2_PROP",
+                                "N_GREATER_6",
+                                "WITH_HIGHER1_PROP",
+                                "N_GREATER_5",
+                                "N_LESS_20",
+                                "WITH_LOWER_PROP",
+                                "N_NON_ZERO"};
 }
 
 void TestLanguage::disabledPropertiesItem()
@@ -659,6 +760,7 @@ void TestLanguage::disabledPropertiesItem()
     QFETCH(bool, setInHigher2);
     QFETCH(bool, setInProduct);
     QFETCH(QString, expectedValue);
+    QFETCH(QStringList, expectedListValue);
 
     QVariantMap overriddenValues;
     overriddenValues.insert("modules.lower.setProp", setInLower);
@@ -681,6 +783,8 @@ void TestLanguage::disabledPropertiesItem()
     QCOMPARE(products.size(), 1);
     const ResolvedProductConstPtr &p = *products.constBegin();
     QCOMPARE(p->moduleProperties->moduleProperty("lower", "prop").toString(), expectedValue);
+    QCOMPARE(
+        p->moduleProperties->moduleProperty("lower", "listProp").toStringList(), expectedListValue);
 }
 
 void TestLanguage::disabledSubProject()
@@ -2956,9 +3060,8 @@ void TestLanguage::propertiesBlocks_data()
             << QString("OVERWRITTEN");
 
     QTest::newRow("ambiguous_properties")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
-            << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"ONE", "TWO", "ONE", "THREE"})
+        << QString();
     QTest::newRow("inheritance_overwrite_in_subitem")
             << QString("dummy.defines")
             << QVariant(QStringList() << QString("OVERWRITTEN_IN_SUBITEM"))

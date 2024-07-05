@@ -51,9 +51,15 @@
     }
     \endcode
 
-    Multiple Properties items can be specified to set properties dependent on different
-    conditions. The order of appearance is important. Semantics are similar to if-else-chains.
-    The following example
+    As the above example demonstrates, the \c Properties item is especially useful if there are
+    several properties whose values depend on the same set of conditions.
+    These conditions do not need to be mutually exclusive, but care should be taken not to set
+    the same scalar property in more than one matching \c Properties item. \QBS makes no guarantees
+    about the value of the property in such cases.
+
+    If the same property is set both inside and outside of a \c Properties
+    item, the outside binding is only considered if none of the \c Properties conditions
+    match, that is, it acts as an "else" case.
     \code
     Product {
         Properties {
@@ -105,8 +111,6 @@
     }
     \endcode
 
-    We suggest to use the Properties item for mutually exclusive conditions only. It is
-    especially useful if there are several properties to set, based on the same condition.
 */
 
 /*!
