@@ -48,6 +48,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qstringlist.h>
 
+#include <optional>
+
 class ScannerPlugin;
 
 namespace qbs {
@@ -73,42 +75,23 @@ public:
 
 class InputArtifactScannerContext
 {
-    struct ResolvedDependencyCacheItem
+    using ResolvedDependencyCacheItem = std::optional<ResolvedDependency>;
+    using ResolvedDependenciesCache
+        = QHash<QString /*dirName*/, QHash<QString /*fileName*/, ResolvedDependencyCacheItem>>;
+
+    struct ScannerKeyCacheData
     {
-        ResolvedDependencyCacheItem()
-            : valid(false)
-        {}
-
-        bool valid;
-        ResolvedDependency resolvedDependency;
-    };
-
-    using ResolvedDependenciesCache = QHash<QString, QHash<QString, ResolvedDependencyCacheItem>>;
-
-    struct ScannerResolvedDependenciesCache
-    {
-        ScannerResolvedDependenciesCache() :
-            valid(false)
-        {}
-
-        bool valid;
         QStringList searchPaths;
         ResolvedDependenciesCache resolvedDependenciesCache;
     };
 
-    struct DependencyScannerCacheItem
-    {
-        DependencyScannerCacheItem();
-        ~DependencyScannerCacheItem();
+    using ScannerKeyCacheItem = std::optional<ScannerKeyCacheData>;
+    using ScannerKeyCache = QHash<const void * /*key*/, ScannerKeyCacheItem>;
 
-        bool valid;
-        QList<DependencyScannerPtr> scanners;
-    };
+    QHash<PropertyMapConstPtr, ScannerKeyCache> cachePerProperties;
+    QHash<Artifact *, ScannerKeyCache> cachePerFile;
 
-    using CacheItem = QHash<const void *, ScannerResolvedDependenciesCache>;
-
-    QHash<PropertyMapConstPtr, CacheItem> cachePerProperties;
-    QHash<Artifact *, CacheItem> cachePerFile;
+    using DependencyScannerCacheItem = std::optional<QList<DependencyScannerPtr>>;
     QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem>> scannersCache;
 
     friend class InputArtifactScanner;
@@ -125,13 +108,17 @@ public:
 private:
     void scanForFileDependencies(Artifact *inputArtifact);
     Set<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
-    void scanForScannerFileDependencies(DependencyScanner *scanner,
-            Artifact *inputArtifact, FileResourceBase *fileToBeScanned,
-            QList<FileResourceBase *> *filesToScan,
-            InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
-    void resolveScanResultDependencies(const Artifact *inputArtifact,
-            const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
-            InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache);
+    void scanForScannerFileDependencies(
+        DependencyScanner *scanner,
+        Artifact *inputArtifact,
+        FileResourceBase *fileToBeScanned,
+        QList<FileResourceBase *> *filesToScan,
+        InputArtifactScannerContext::ScannerKeyCacheItem &cache);
+    void resolveScanResultDependencies(
+        const Artifact *inputArtifact,
+        const RawScanResult &scanResult,
+        QList<FileResourceBase *> *artifactsToScan,
+        InputArtifactScannerContext::ScannerKeyCacheData &cache);
     void handleDependency(ResolvedDependency &dependency);
     void scanWithScannerPlugin(DependencyScanner *scanner, Artifact *inputArtifact,
                                FileResourceBase *fileToBeScanned, RawScanResult *scanResult);

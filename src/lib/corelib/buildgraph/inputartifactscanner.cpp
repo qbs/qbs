@@ -180,8 +180,8 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
         return;
     m_fileTagsForScanner
             = inputArtifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
-    InputArtifactScannerContext::CacheItem *lastPerFileCacheItem = nullptr;
-    InputArtifactScannerContext::CacheItem *lastPerPropsCacheItem = nullptr;
+    InputArtifactScannerContext::ScannerKeyCache *lastPerFileCacheItem = nullptr;
+    InputArtifactScannerContext::ScannerKeyCache *lastPerPropsCacheItem = nullptr;
     while (!filesToScan.empty()) {
         FileResourceBase *fileToBeScanned = filesToScan.takeFirst();
         const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -189,7 +189,7 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
             continue;
 
         for (DependencyScanner * const scanner : scanners) {
-            InputArtifactScannerContext::CacheItem *cacheItem;
+            InputArtifactScannerContext::ScannerKeyCache *cacheItem;
             if (scanner->cacheIsPerFile()) {
                 if (!lastPerFileCacheItem)
                     lastPerFileCacheItem = &m_context->cachePerFile[inputArtifact];
@@ -216,39 +216,43 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             = m_context->scannersCache[product];
     for (const FileTag &fileTag : artifact->fileTags()) {
         InputArtifactScannerContext::DependencyScannerCacheItem &cache = scannerCache[fileTag];
-        if (!cache.valid) {
-            cache.valid = true;
+        if (!cache) {
+            QList<DependencyScannerPtr> cacheScanners;
             const auto scanners = ScannerPluginManager::scannersForFileTag(fileTag);
-            transform(scanners, cache.scanners, [](const auto &scanner) {
-                return std::make_shared<PluginDependencyScanner>(scanner); });
+            transform(scanners, cacheScanners, [](const auto &scanner) {
+                return std::make_shared<PluginDependencyScanner>(scanner);
+            });
             for (const ResolvedScannerConstPtr &scanner : product->scanners) {
                 if (scanner->inputs.contains(fileTag)) {
-                    cache.scanners.push_back(
-                                std::make_shared<UserDependencyScanner>(scanner, engine));
+                    cacheScanners.push_back(
+                        std::make_shared<UserDependencyScanner>(scanner, engine));
                     break;
                 }
             }
+            cache = std::move(cacheScanners);
         }
-        for (const DependencyScannerPtr &scanner : std::as_const(cache.scanners))
+        for (const DependencyScannerPtr &scanner : std::as_const(*cache))
             scanners += scanner.get();
     }
     return scanners;
 }
 
-void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *scanner,
-        Artifact *inputArtifact, FileResourceBase *fileToBeScanned,
-        QList<FileResourceBase *> *filesToScan,
-        InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
+void InputArtifactScanner::scanForScannerFileDependencies(
+    DependencyScanner *scanner,
+    Artifact *inputArtifact,
+    FileResourceBase *fileToBeScanned,
+    QList<FileResourceBase *> *filesToScan,
+    InputArtifactScannerContext::ScannerKeyCacheItem &cache)
 {
     qCDebug(lcDepScan) << "file" << fileToBeScanned->filePath();
 
-    const bool cacheHit = cache.valid;
+    const bool cacheHit = !!cache;
     if (!cacheHit) {
-        cache.valid = true;
-        cache.searchPaths = scanner->collectSearchPaths(inputArtifact);
+        cache.emplace();
+        cache->searchPaths = scanner->collectSearchPaths(inputArtifact);
     }
     qCDebug(lcDepScan) << "include paths (cache" << (cacheHit ? "hit)" : "miss)");
-    for (const QString &s : std::as_const(cache.searchPaths))
+    for (const QString &s : std::as_const(cache->searchPaths))
         qCDebug(lcDepScan) << "    " << s;
 
     const QString &filePathToBeScanned = fileToBeScanned->filePath();
@@ -260,12 +264,14 @@ void InputArtifactScanner::scanForScannerFileDependencies(DependencyScanner *sca
         scanData.lastScanTime = FileTime::currentTime();
     }
 
-    resolveScanResultDependencies(inputArtifact, scanData.rawScanResult, filesToScan, cache);
+    resolveScanResultDependencies(inputArtifact, scanData.rawScanResult, filesToScan, *cache);
 }
 
-void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputArtifact,
-        const RawScanResult &scanResult, QList<FileResourceBase *> *artifactsToScan,
-        InputArtifactScannerContext::ScannerResolvedDependenciesCache &cache)
+void InputArtifactScanner::resolveScanResultDependencies(
+    const Artifact *inputArtifact,
+    const RawScanResult &scanResult,
+    QList<FileResourceBase *> *artifactsToScan,
+    InputArtifactScannerContext::ScannerKeyCacheData &cache)
 {
     auto getResolvedDependency = [inputArtifact, &cache](const RawScannedDependency &dependency)
             -> ResolvedDependency*
@@ -273,13 +279,13 @@ void InputArtifactScanner::resolveScanResultDependencies(const Artifact *inputAr
         const QString &dependencyFilePath = dependency.filePath();
         InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
                 = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
-        ResolvedDependency &resolvedDependency = cachedResolvedDependencyItem.resolvedDependency;
-        if (cachedResolvedDependencyItem.valid) {
+        if (cachedResolvedDependencyItem) {
+            ResolvedDependency &resolvedDependency = *cachedResolvedDependencyItem;
             if (resolvedDependency.filePath.isEmpty())
                 return nullptr;
             return &resolvedDependency;
         }
-        cachedResolvedDependencyItem.valid = true;
+        ResolvedDependency &resolvedDependency = cachedResolvedDependencyItem.emplace();
 
         if (FileInfo::isAbsolute(dependencyFilePath)) {
             resolveDepencency(dependency, inputArtifact->product.get(), &resolvedDependency);
@@ -395,12 +401,6 @@ void InputArtifactScanner::scanWithScannerPlugin(DependencyScanner *scanner,
     for (const QString &s : dependencies)
         scanResult->deps.emplace_back(s);
 }
-
-InputArtifactScannerContext::DependencyScannerCacheItem::DependencyScannerCacheItem() : valid(false)
-{
-}
-
-InputArtifactScannerContext::DependencyScannerCacheItem::~DependencyScannerCacheItem() = default;
 
 } // namespace Internal
 } // namespace qbs
