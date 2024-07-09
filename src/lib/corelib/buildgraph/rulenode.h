@@ -74,10 +74,10 @@ public:
         QStringList removedArtifacts;
     };
 
-    void apply(const Logger &logger,
-               const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-               const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
-               ApplicationResult *result);
+    ApplicationResult apply(
+        const Logger &logger,
+        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName);
     void removeOldInputArtifact(Artifact *artifact);
 
     void load(PersistentPool &pool) override;

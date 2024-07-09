@@ -536,8 +536,8 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
 
     QBS_CHECK(!m_evalContext->engine()->isActive());
 
-    RuleNode::ApplicationResult result;
-    ruleNode->apply(m_logger, m_productsByName, m_projectsByName, &result);
+    const RuleNode::ApplicationResult result = ruleNode->apply(
+        m_logger, m_productsByName, m_projectsByName);
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
     m_artifactsRemovedFromDisk << result.removedArtifacts;

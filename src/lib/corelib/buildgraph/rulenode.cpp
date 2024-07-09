@@ -74,11 +74,12 @@ QString RuleNode::toString() const
             + QLatin1String(" located at ") + m_rule->prepareScript.location().toString();
 }
 
-void RuleNode::apply(const Logger &logger,
-                     const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-                     const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
-                     ApplicationResult *result)
+RuleNode::ApplicationResult RuleNode::apply(
+    const Logger &logger,
+    const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+    const std::unordered_map<QString, const ResolvedProject *> &projectsByName)
 {
+    ApplicationResult result;
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet explicitlyDependsOn
             = RulesApplicator::collectExplicitlyDependsOn(m_rule.get(), product.get());
@@ -145,7 +146,7 @@ void RuleNode::apply(const Logger &logger,
 
     if (upToDate) {
         qCDebug(lcExec) << "rule is up to date. Skipping.";
-        return;
+        return result;
     }
 
     const bool mustApplyRule = !inputs.empty() || !m_rule->declaresInputs()
@@ -185,15 +186,15 @@ void RuleNode::apply(const Logger &logger,
     for (const auto &connection : connectionsToBreak)
         disconnect(connection.first, connection.second);
     if (!outputArtifactsToRemove.empty()) {
-        RulesApplicator::handleRemovedRuleOutputs(inputs, outputArtifactsToRemove,
-                                                  result->removedArtifacts, logger);
+        RulesApplicator::handleRemovedRuleOutputs(
+            inputs, outputArtifactsToRemove, result.removedArtifacts, logger);
     }
 
     if (mustApplyRule) {
         RulesApplicator applicator(product.lock(), productsByName, projectsByName, logger);
         applicator.applyRule(this, inputs, explicitlyDependsOn);
-        result->createdArtifacts = applicator.createdArtifacts();
-        result->invalidatedArtifacts = applicator.invalidatedArtifacts();
+        result.createdArtifacts = applicator.createdArtifacts();
+        result.invalidatedArtifacts = applicator.invalidatedArtifacts();
         m_lastApplicationTime = FileTime::currentTime();
         if (applicator.ruleUsesIo())
             m_needsToConsiderChangedInputs = true;
@@ -204,6 +205,7 @@ void RuleNode::apply(const Logger &logger,
     m_oldExplicitlyDependsOn = explicitlyDependsOn;
     m_oldAuxiliaryInputs = auxiliaryInputs;
     product->topLevelProject()->buildData->setDirty();
+    return result;
 }
 
 void RuleNode::load(PersistentPool &pool)
