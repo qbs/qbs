@@ -390,7 +390,7 @@ static void convertToPropertyType_impl(
                 actualBaseDir = v->value().toString();
                 baseDirIsFromExport = true;
             }
-            if (actualBaseDir.isEmpty()) {
+            if (actualBaseDir.isEmpty() && baseDirItem->type() == ItemType::Product) {
                 if (const VariantValueConstPtr itemSourceDir = baseDirItem->variantProperty(
                         StringConstants::sourceDirectoryProperty())) {
                     actualBaseDir = itemSourceDir->value().toString();
