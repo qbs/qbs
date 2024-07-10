@@ -9,6 +9,6 @@ QbsStaticLibrary {
     ]
     Export {
         Depends { name: "cpp" }
-        cpp.includePaths: "."
+        cpp.includePaths: exportingProduct.sourceDirectory
     }
 }
