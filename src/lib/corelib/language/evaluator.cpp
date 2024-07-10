@@ -90,14 +90,19 @@ static int getEvalPropertySafe(JSContext *ctx, JSPropertyDescriptor *desc,
 
 static bool debugProperties = false;
 
-static void printPathResolvingDeprecationWarning(ScriptEngine &engine, const Value &val)
+static JSValue handleDeprecatedPathResolving(ScriptEngine &engine, const Value &val)
 {
     const QString warning = Tr::tr(
         "Resolving path properties relative to the exporting product's location is "
         "deprecated.\nIn future versions of qbs, such properties will be resolved relative to the "
         "importing product's location.\n"
         "Explicitly use exportingProduct.sourceDirectory instead.");
-    engine.logger().printWarning({warning, val.location()});
+    try {
+        engine.handleDeprecation(Version(2, 7), warning, val.location());
+    } catch (const ErrorInfo &e) {
+        return engine.throwError(e.toString());
+    }
+    return JS_UNDEFINED;
 }
 
 Evaluator::Evaluator(ScriptEngine *scriptEngine)
@@ -418,8 +423,13 @@ static void convertToPropertyType_impl(
         }
         if (!actualBaseDir.isEmpty()) {
             const QString rawPath = getJsString(ctx, v);
-            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath))
-                printPathResolvingDeprecationWarning(*engine, *value);
+            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath)) {
+                const JSValue error = handleDeprecatedPathResolving(*engine, *value);
+                if (JS_IsError(engine->context(), error)) {
+                    v = error;
+                    return;
+                }
+            }
             v = engine->toScriptValue(
                 QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_FreeValue(ctx, v);
@@ -461,8 +471,13 @@ static void convertToPropertyType_impl(
             if (actualBaseDir.isEmpty())
                 continue;
             const QString rawPath = getJsString(ctx, elem);
-            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath))
-                printPathResolvingDeprecationWarning(*engine, *value);
+            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath)) {
+                const JSValue error = handleDeprecatedPathResolving(*engine, *value);
+                if (JS_IsError(engine->context(), error)) {
+                    v = error;
+                    return;
+                }
+            }
             const JSValue newElem = engine->toScriptValue(
                 QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_SetPropertyUint32(ctx, v, i, newElem);

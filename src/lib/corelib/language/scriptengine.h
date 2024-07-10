@@ -50,6 +50,7 @@
 #include <tools/porting.h>
 #include <tools/scripttools.h>
 #include <tools/set.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/span.h>
 #include <quickjs.h>
 
@@ -63,12 +64,14 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <stack>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
 
 namespace qbs {
+class Version;
 namespace Internal {
 class Artifact;
 class Evaluator;
@@ -121,6 +124,10 @@ public:
     void setEvalContext(EvalContext c) { m_evalContext = c; }
     EvalContext evalContext() const { return m_evalContext; }
     void checkContext(const QString &operation, const DubiousContextList &dubiousContexts);
+
+    void setSetupProjectParameters(const SetupProjectParameters &params) { m_setupParams = params; }
+    void handleDeprecation(
+        const Version &removalVersion, const QString &message, const CodeLocation &loc);
 
     void addPropertyRequestedInScript(const Property &property) {
         m_propertiesRequestedInScript += property;
@@ -408,6 +415,7 @@ private:
     QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;
     QVariantMap m_properties;
     std::recursive_mutex m_artifactsMutex;
+    std::optional<SetupProjectParameters> m_setupParams;
     bool m_lastLookupWasSuccess = false;
 };
 

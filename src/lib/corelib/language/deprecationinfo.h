@@ -61,6 +61,14 @@ public:
     {}
     DeprecationInfo() = default;
 
+    static bool isLastVersionBeforeRemoval(const Version &removalVersion)
+    {
+        const Version next(
+            LanguageInfo::qbsVersion().majorVersion(),
+            LanguageInfo::qbsVersion().minorVersion() + 1);
+        return removalVersion == next || removalVersion.minorVersion() == 0;
+    }
+
     bool isValid() const { return m_removalVersion.isValid(); }
     Version removalVersion() const { return m_removalVersion; }
 
@@ -91,12 +99,10 @@ public:
         case DeprecationWarningMode::On:
             logger.printWarning(error);
             break;
-        case DeprecationWarningMode::BeforeRemoval: {
-            const Version next(qbsVersion.majorVersion(), qbsVersion.minorVersion() + 1);
-            if (removalVersion() == next || removalVersion().minorVersion() == 0)
+        case DeprecationWarningMode::BeforeRemoval:
+            if (isLastVersionBeforeRemoval(removalVersion()))
                 logger.printWarning(error);
             break;
-        }
         case DeprecationWarningMode::Off:
             break;
         }

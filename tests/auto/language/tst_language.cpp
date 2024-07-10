@@ -1206,6 +1206,7 @@ void TestLanguage::exports()
 {
     bool exceptionCaught = false;
     try {
+        defaultParameters.setDeprecationWarningMode(DeprecationWarningMode::On);
         resolveProject("exports.qbs");
         QVERIFY(!!project);
         Set<CodeLocation> warningLocations;

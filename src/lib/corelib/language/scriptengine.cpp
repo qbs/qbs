@@ -39,11 +39,11 @@
 
 #include "scriptengine.h"
 
+#include "deprecationinfo.h"
 #include "filecontextbase.h"
 #include "jsimports.h"
-#include "propertymapinternal.h"
-#include "scriptimporter.h"
 #include "preparescriptobserver.h"
+#include "scriptimporter.h"
 
 #include <buildgraph/artifact.h>
 #include <buildgraph/rulenode.h>
@@ -53,10 +53,11 @@
 #include <tools/fileinfo.h>
 #include <tools/profiling.h>
 #include <tools/qbsassert.h>
-#include <tools/scripttools.h>
 #include <tools/qttools.h>
+#include <tools/scripttools.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
+#include <tools/version.h>
 
 #include <QtCore/qdatetime.h>
 #include <QtCore/qdebug.h>
@@ -346,6 +347,26 @@ void ScriptEngine::checkContext(const QString &operation,
             m_logger.printWarning(ErrorInfo(warning));
         }
         return;
+    }
+}
+
+void ScriptEngine::handleDeprecation(
+    const Version &removalVersion, const QString &message, const CodeLocation &loc)
+{
+    if (!m_setupParams)
+        return;
+    switch (m_setupParams->deprecationWarningMode()) {
+    case DeprecationWarningMode::Error:
+        throw ErrorInfo(message, loc);
+    case DeprecationWarningMode::BeforeRemoval:
+        if (!DeprecationInfo::isLastVersionBeforeRemoval(removalVersion))
+            break;
+        [[fallthrough]];
+    case DeprecationWarningMode::On:
+        m_logger.printWarning(ErrorInfo(message, loc));
+        break;
+    case DeprecationWarningMode::Off:
+        break;
     }
 }
 
