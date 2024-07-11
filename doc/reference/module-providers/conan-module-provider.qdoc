@@ -35,19 +35,8 @@
     This module provider allows integration with the \l{https://conan.io}{Conan} package manager.
 
     \section1 Prerequisites
-    In order to use this provider, you will need to install the
-    \l{https://github.com/qbs/qbs/blob/master/src/conan/extensions/generators/qbsdeps.py}{QbsDeps generator}
-    first. In order to do so, clone the \QBS repository and run the following command from the \QBS
-    source directory:
-    \code
-    $ conan config install src/conan/
-    \endcode
-    This will copy the generator to \c .conan2/extensions/generators/qbsdeps.py in the user's home
-    directory.
-    Alternatively, you can use \c curl to download the file:
-    \code
-    $ curl 'https://github.com/qbs/qbs/raw/master/src/conan/extensions/generators/qbsdeps.py' -o ~/.conan2/extensions/generators/qbsdeps.py
-    \endcode
+    In order to use this provider, you will need \c Conan version 2.5.0 or higher. Earlier versions
+    do not have the \c QbsDeps generator.
 
     \section1 Example
     For details on how to setup a project to use with Conan, see the \

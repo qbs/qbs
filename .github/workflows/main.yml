@@ -732,7 +732,6 @@ jobs:
       if: matrix.config.toolchain == 'clang_64'
       run: |
         brew install ninja
-        conan config install src/conan/
         ./scripts/setup-conan-profiles.sh
     - name: Install Host Qt
       if: matrix.config.toolchain == 'ios'
@@ -867,7 +866,6 @@ jobs:
     - name: Configure Conan
       if: matrix.config.toolchain == 'win64_msvc2019_64'
       run: |
-        conan config install src/conan/
         ./scripts/setup-conan-profiles.sh
       shell: bash
     - name: Setup Qbs
