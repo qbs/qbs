@@ -55,7 +55,6 @@ Project {
             dummy.cFlags: base.concat("PRODUCT_" + exportingProduct.name.toUpperCase())
             dummy.cxxFlags: ["-bar"]
             Properties {
-                condition: true
                 dummy.defines: base.concat(["DEF"])
             }
         }

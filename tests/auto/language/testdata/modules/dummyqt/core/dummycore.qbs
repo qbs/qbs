@@ -14,7 +14,6 @@ Module {
     dummy.varListProp: [{c: "qtcore"}]
 
     Properties {
-        condition: true
         dummy.productName: product.name
     }
 }

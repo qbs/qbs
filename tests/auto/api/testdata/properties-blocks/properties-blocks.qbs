@@ -2,7 +2,6 @@ Product {
     Depends { name: 'cpp' }
 
     Properties {
-        condition: true
         type: 'application'
         consoleApplication: true
         name: 'HelloWorld'

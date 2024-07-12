@@ -4,7 +4,6 @@ Module {
     Group {
         name: "module_group"
         Properties {
-            condition: true
             dummy.defines: [moduleDefine.toUpperCase(), name.toUpperCase()]
         }
     }

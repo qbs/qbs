@@ -164,13 +164,8 @@ private:
 static JSSourceValue::AltProperty getPropertyData(const Item *propertiesItem, const QString &name)
 {
     const ValuePtr value = propertiesItem->property(name);
-    if (!value) {
-        if (name == StringConstants::conditionProperty()) {
-            throw ErrorInfo(Tr::tr("Properties.condition must be provided."),
-                            propertiesItem->location());
-        }
+    if (!value)
         return {StringConstants::falseValue(), propertiesItem->location()};
-    }
     if (Q_UNLIKELY(value->type() != Value::JSSourceValueType)) {
         throw ErrorInfo(Tr::tr("Properties.%1 must be a value binding.").arg(name),
                     propertiesItem->location());

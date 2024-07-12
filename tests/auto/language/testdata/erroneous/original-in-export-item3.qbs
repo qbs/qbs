@@ -3,7 +3,6 @@ Project {
         name: "a"
         Export {
             Properties {
-                condition: true
                 x.y.z: original
             }
         }

@@ -43,7 +43,6 @@ Project {
         name: "overridden_list_property"
         Depends { name: "dummy" }
         Properties {
-            condition: true
             overrideListProperties: true
             dummy.listProp: ["PRODUCT_STUFF"]
         }

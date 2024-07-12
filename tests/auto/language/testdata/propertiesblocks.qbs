@@ -6,7 +6,6 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["SOMETHING"]
         Properties {
-            condition: true
             dummy.defines: ["OVERWRITTEN"]
         }
     }
@@ -14,7 +13,6 @@ Project {
         name: "property_set_indirect"
         Depends { name: "dummyqt.core" }
         Properties {
-            condition: true
             dummyqt.core.zort: "VAL"
         }
     }
@@ -22,7 +20,6 @@ Project {
         name: "property_overwrite_no_outer"
         Depends { name: "dummy" }
         Properties {
-            condition: true
             dummy.defines: ["OVERWRITTEN"]
         }
     }
@@ -31,7 +28,6 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["ONE"]
         Properties {
-            condition: true
             dummy.defines: outer.concat(["TWO"])
         }
     }
@@ -41,21 +37,18 @@ Project {
         property stringList myDefines: ["ONE"]
         dummy.defines: myDefines
         Properties {
-            condition: true
             dummy.defines: outer.concat(["TWO"])
         }
     }
     ProductBase {
         name: "property_append_to_indirect_derived_outer1"
         Properties {
-            condition: true
             dummy.cFlags: outer.concat("PROPS")
         }
     }
     ProductBase {
         name: "property_append_to_indirect_derived_outer2"
         Properties {
-            condition: true
             dummy.cFlags: outer.concat("PROPS")
         }
         dummy.cFlags: ["PRODUCT"]
@@ -63,7 +56,6 @@ Project {
     ProductBase {
         name: "property_append_to_indirect_derived_outer3"
         Properties {
-            condition: true
             dummy.cFlags: outer.concat("PROPS")
         }
         dummy.cFlags: base.concat("PRODUCT")
@@ -74,7 +66,6 @@ Project {
         property string justOne: "ONE"
         dummy.rpaths: [justOne]
         Properties {
-            condition: true
             dummy.rpaths: outer.concat(["TWO"])
         }
     }
@@ -83,7 +74,6 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["SOMETHING"]
         Properties {
-            condition: true
             dummy.defines: ["OVERWRITTEN"]
         }
         Properties {
@@ -95,7 +85,6 @@ Project {
         name: "multiple_exclusive_properties_no_outer"
         Depends { name: "dummy" }
         Properties {
-            condition: true
             dummy.defines: ["OVERWRITTEN"]
         }
         Properties {
@@ -108,7 +97,6 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["ONE"]
         Properties {
-            condition: true
             dummy.defines: outer.concat(["TWO"])
         }
         Properties {
@@ -121,7 +109,6 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["ONE"]
         Properties {
-            condition: true
             dummy.defines: outer.concat(["TWO"])
         }
         Properties {
@@ -129,7 +116,6 @@ Project {
             dummy.defines: outer.concat(["IMPOSSIBLE"])
         }
         Properties {
-            condition: true
             dummy.defines: outer.concat(["THREE"])
         }
     }

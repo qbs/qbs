@@ -41,7 +41,6 @@ DynamicLibrary {
         property string includeDir: exportingProduct.sourceDirectory
         property var config: exportingProduct.config
         Properties {
-            condition: true
             cpp.includePaths: [includeDir]
             cpp.dynamicLibraries: []
         }
@@ -49,7 +48,6 @@ DynamicLibrary {
         Depends { name: "local" }
         local.dummy: true
         Properties {
-            condition: true
             prefixMapping: [{
                 prefix: includeDir,
                 replacement: FileInfo.joinPaths(exportingProduct.qbs.installPrefix, exportingProduct.headersInstallDir)

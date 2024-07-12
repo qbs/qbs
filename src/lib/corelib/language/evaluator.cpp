@@ -835,6 +835,14 @@ private:
         JSValue *outerScriptValue = nullptr)
     {
         QBS_ASSERT(!alternative || value == alternative->value.get(), return JS_UNINITIALIZED);
+
+        for (Item *group = alternative ? alternative->value->scope() : nullptr;
+             group && group->type() == ItemType::Group;
+             group = group->parent()) {
+            if (!m_evaluator.boolValue(group, StringConstants::conditionProperty()))
+                return JS_UNINITIALIZED;
+        }
+
         ScopeChain scopeChain(m_evaluator);
         const JSValue maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
         if (JS_IsError(m_engine.context(), maybeExtraScope))
