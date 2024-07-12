@@ -427,9 +427,6 @@ void TestApi::buildProject_data()
     QTest::newRow("source files with the same base name but different extensions")
             << QString("same-base-name")
             << relativeExecutableFilePath("basename");
-    QTest::newRow("static library dependencies")
-            << QString("static-lib-deps")
-            << relativeExecutableFilePath("staticLibDeps");
     QTest::newRow("simple probes")
             << QString("simple-probe")
             << relativeExecutableFilePath("MyApp");

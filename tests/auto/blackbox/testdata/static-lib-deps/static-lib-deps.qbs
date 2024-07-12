@@ -1,4 +1,5 @@
 Project {
+    property bool useExport: true
     StaticLibrary {
         name: "a"
 
@@ -44,25 +45,45 @@ Project {
         ]
 
         Group {
-            condition: qbs.targetOS.includes("macos")
+            condition: qbs.targetOS.includes("darwin")
             files: ["d.mm"]
         }
 
         Properties {
             condition: qbs.targetOS.includes("windows")
             cpp.defines: ["WITH_SETUPAPI"]
-            cpp.staticLibraries: ["setupapi"]
+            cpp.staticLibraries: !project.useExport ? ["setupapi"] : []
         }
         Properties {
-            condition: qbs.targetOS.includes("macos")
-            cpp.defines: ["WITH_LEX_YACC"]
-            cpp.staticLibraries: ["l", "y"]
-            cpp.frameworks: ["Foundation"]
+            condition: qbs.targetOS.includes("darwin")
+            cpp.defines: ["WITH_ZLIB"]
+            cpp.staticLibraries: !project.useExport ? ["z"] : []
+            cpp.frameworks: !project.useExport ? ["Foundation"] : []
         }
         Properties {
-            condition: qbs.targetOS.includes("linux")
-            cpp.defines: ["WITH_PTHREAD"]
-            cpp.staticLibraries: ["pthread"]
+            condition: {
+                console.info(qbs.targetOS);
+                return qbs.targetOS.includes("linux")
+            }
+            cpp.defines: ["WITH_PTHREAD", "WITH_ZLIB"]
+            cpp.staticLibraries: !project.useExport ? ["pthread", "z"] : []
+        }
+        Export {
+            condition : project.useExport
+            Depends { name: "cpp" }
+            Properties {
+                condition: qbs.targetOS.contains("linux")
+                cpp.staticLibraries: ["pthread", "z"]
+            }
+            Properties {
+                condition: qbs.targetOS.contains("darwin")
+                cpp.staticLibraries: ["z"]
+                cpp.frameworks: ["Foundation"]
+            }
+            Properties {
+                condition: qbs.targetOS.contains("windows")
+                cpp.staticLibraries: ["setupapi"]
+            }
         }
     }
     StaticLibrary {
@@ -75,6 +96,9 @@ Project {
         files: [
             "e.cpp",
         ]
+        Export {
+            Depends { name: "d" }
+        }
     }
     CppApplication {
         name: "staticLibDeps"

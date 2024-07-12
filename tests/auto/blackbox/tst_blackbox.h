@@ -306,6 +306,8 @@ private slots:
     void scanResultInNonDependency();
     void setupBuildEnvironment();
     void setupRunEnvironment();
+    void staticLibDeps();
+    void staticLibDeps_data();
     void smartRelinking();
     void smartRelinking_data();
     void soVersion();

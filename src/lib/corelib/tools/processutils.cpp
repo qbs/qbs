@@ -45,7 +45,7 @@
 #   include <psapi.h>
 #elif defined(Q_OS_DARWIN)
 #   include <libproc.h>
-#elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX) || defined(Q_OS_HURD)
 #   include "fileinfo.h"
 #   include <unistd.h>
 #   include <cstdio>
@@ -87,9 +87,13 @@ QString processNameByPid(qint64 pid)
     char name[1024];
     proc_name(pid, name, sizeof(name) / sizeof(char));
     return QString::fromUtf8(name);
-#elif defined(Q_OS_LINUX)
+#elif defined(Q_OS_LINUX) || defined(Q_OS_HURD)
     char exePath[64];
+#ifdef PATH_MAX
     char buf[PATH_MAX];
+#else
+    char buf[4096];
+#endif
     memset(buf, 0, sizeof(buf));
     std::sprintf(exePath, "/proc/%lld/exe", pid);
     if (readlink(exePath, buf, sizeof(buf)) < 0)

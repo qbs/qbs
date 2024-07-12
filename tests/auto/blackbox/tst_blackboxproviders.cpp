@@ -86,12 +86,6 @@ void TestBlackboxProviders::conanProvider()
     if (executable.isEmpty())
         QSKIP("conan is not installed or not available in PATH.");
 
-    const auto generator = QDir::homePath() + "/.conan2/extensions/generators/qbsdeps.py";
-    if (!QFileInfo(generator).exists()) {
-        QSKIP(
-            "qbsdeps.py is not installed, call 'conan config install src/conan/ from qbs source'.");
-    }
-
     const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
     if (!QFileInfo(profilePath).exists())
         QSKIP("conan profile is not installed, run './scripts/setup-conan-profiles.sh'.");
