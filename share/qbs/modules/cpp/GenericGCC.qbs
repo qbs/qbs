@@ -447,20 +447,7 @@ CppModule {
                 });
             }
 
-            if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
-                var maxVersionParts = product.cpp.internalVersion ? 3 : 1;
-                for (var i = 0; i < maxVersionParts; ++i) {
-                    var symlink = {
-                        filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                     PathTools.dynamicLibraryFilePath(
-                                                         product, undefined, undefined, i)),
-                        fileTags: ["dynamiclibrary_symlink"]
-                    };
-                    if (i > 0 && artifacts[i-1].filePath == symlink.filePath)
-                        break; // Version number has less than three components.
-                    artifacts.push(symlink);
-                }
-            }
+            artifacts = artifacts.concat(Gcc.librarySymlinkArtifacts(product));
             if (!product.aggregate)
                 artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "dll"));
             return artifacts;

@@ -1090,6 +1090,66 @@ void TestBlackboxApple::infoPlistVariables()
              QStringLiteral("DEFAULT"));
 }
 
+void TestBlackboxApple::lipoSymlinks()
+{
+    QFETCH(bool, multiArch);
+    QFETCH(bool, multiVariant);
+
+    const auto xcodeVersion = findXcodeVersion();
+
+    if (!xcodeVersion)
+        QSKIP("requires Xcode profile");
+
+    QDir::setCurrent(testDataDir + "/lipo-symlinks");
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
+    // the test can't use xcode module to determine version itself
+    params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion->toString();
+    params.arguments << QStringLiteral("project.multiArch:%1").arg(multiArch ? "true" : "false");
+    params.arguments << QStringLiteral("project.multiVariant:%1")
+                            .arg(multiVariant ? "true" : "false");
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    const auto libraryDirPath = QStringList{{relativeBuildDir(), "install-root"}}.join("/");
+    const auto checkSymLink = [](const auto &path, const auto &targetPath) {
+        QFileInfo fi(path);
+        return fi.exists() && fi.isSymbolicLink() && fi.symLinkTarget() == targetPath;
+    };
+
+    const auto libraryPath
+        = QFileInfo(QStringList{{libraryDirPath, "libA.1.2.3.dylib"}}.join("/")).absoluteFilePath();
+
+    QVERIFY(QFileInfo(libraryPath).exists() && !QFileInfo(libraryPath).isSymbolicLink());
+    QVERIFY(checkSymLink(QStringList{{libraryDirPath, "libA.1.2.dylib"}}.join("/"), libraryPath));
+    QVERIFY(checkSymLink(QStringList{{libraryDirPath, "libA.1.dylib"}}.join("/"), libraryPath));
+    QVERIFY(checkSymLink(QStringList{{libraryDirPath, "libA.dylib"}}.join("/"), libraryPath));
+    if (multiArch && multiVariant) { // in this case there are 2 libs and 2 sets of symlinks
+        const auto debugLibraryPath
+            = QFileInfo(QStringList{{libraryDirPath, "libA_debug.1.2.3.dylib"}}.join("/"))
+                  .absoluteFilePath();
+        QVERIFY(
+            QFileInfo(debugLibraryPath).exists() && !QFileInfo(debugLibraryPath).isSymbolicLink());
+        QVERIFY(checkSymLink(
+            QStringList{{libraryDirPath, "libA_debug.1.2.dylib"}}.join("/"), debugLibraryPath));
+        QVERIFY(checkSymLink(
+            QStringList{{libraryDirPath, "libA_debug.1.dylib"}}.join("/"), debugLibraryPath));
+        QVERIFY(checkSymLink(
+            QStringList{{libraryDirPath, "libA_debug.dylib"}}.join("/"), debugLibraryPath));
+    }
+}
+
+void TestBlackboxApple::lipoSymlinks_data()
+{
+    QTest::addColumn<bool>("multiArch");
+    QTest::addColumn<bool>("multiVariant");
+
+    QTest::newRow("standalone") << false << false;
+    QTest::newRow("multiArch") << true << false;
+    QTest::newRow("multiVariant") << false << true;
+    QTest::newRow("multiArch, multiVariant") << true << true;
+}
+
 void TestBlackboxApple::objcArc()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/objc-arc"));

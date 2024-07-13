@@ -57,6 +57,9 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
                 alwaysUpdated: false
             };
         }));
+        buildVariants.forEach(function (variant) {
+            Array.prototype.push.apply(list, Gcc.librarySymlinkArtifacts(product, variant.suffix));
+        });
     }
 
     // Bundles should have a "normal" variant. In the case of frameworks, they cannot normally be
@@ -168,6 +171,8 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
             };
             cmd.silent = true;
         }
+
+        Array.prototype.push.apply(commands, Gcc.librarySymlinkCommands(outputs, outputs.primary[i]));
 
         commands.push(cmd);
     }

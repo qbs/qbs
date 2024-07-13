@@ -1319,6 +1319,43 @@ function separateDebugInfoCommandsDarwin(product, outputs, primaryOutputs) {
     return commands;
 }
 
+function librarySymlinkArtifacts(product, buildVariantSuffix) {
+    var artifacts = [];
+    if (product.cpp.shouldCreateSymlinks && (!product.bundle || !product.bundle.isBundle)) {
+        var maxVersionParts = product.cpp.internalVersion ? 3 : 1;
+        var primaryFileName =
+            PathTools.dynamicLibraryFilePath(product, buildVariantSuffix, undefined);
+        for (var i = 0; i < maxVersionParts; ++i) {
+            var symlink = {
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             PathTools.dynamicLibraryFilePath(
+                                                 product, buildVariantSuffix, undefined, i)),
+                fileTags: ["dynamiclibrary_symlink"],
+                cpp: { primaryFileName: primaryFileName }
+            };
+            if (i > 0 && artifacts[i-1].filePath == symlink.filePath)
+                break; // Version number has less than three components.
+            artifacts.push(symlink);
+        }
+    }
+    return artifacts;
+}
+
+function librarySymlinkCommands(outputs, primaryOutput) {
+    var commands = [];
+    // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
+    var links = outputs["dynamiclibrary_symlink"];
+    var symlinkCount = links ? links.length : 0;
+    for (i = 0; i < symlinkCount; ++i) {
+        var cmd = new Command("ln", ["-sf", links[i].cpp.primaryFileName, links[i].filePath]);
+        cmd.highlight = "filegen";
+        cmd.description = "creating symbolic link '" + links[i].fileName + "'";
+        cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
+        commands.push(cmd);
+    }
+    return commands;
+}
+
 function prepareLinker(project, product, inputs, outputs, input, output) {
     var i, primaryOutput, cmd, commands = [];
 
@@ -1376,19 +1413,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     if (outputs.dynamiclibrary) {
         Array.prototype.push.apply(commands, createSymbolCheckingCommands(product, outputs));
-
-        // Create symlinks from {libfoo, libfoo.1, libfoo.1.0} to libfoo.1.0.0
-        var links = outputs["dynamiclibrary_symlink"];
-        var symlinkCount = links ? links.length : 0;
-        for (i = 0; i < symlinkCount; ++i) {
-            cmd = new Command("ln", ["-sf", primaryOutput.fileName,
-                                     links[i].filePath]);
-            cmd.highlight = "filegen";
-            cmd.description = "creating symbolic link '"
-                    + links[i].fileName + "'";
-            cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
-            commands.push(cmd);
-        }
+        Array.prototype.push.apply(commands, librarySymlinkCommands(outputs, primaryOutput));
     }
 
     if (product.cpp.shouldSignArtifacts) {
