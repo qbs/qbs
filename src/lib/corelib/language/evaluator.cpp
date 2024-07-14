@@ -39,6 +39,7 @@
 
 #include "evaluator.h"
 
+#include "builtindeclarations.h"
 #include "filecontext.h"
 #include "filetags.h"
 #include "item.h"
@@ -748,6 +749,23 @@ private:
 
     JSValue handleAlternatives(JSSourceValue *value)
     {
+        if (!m_decl.isScalar() && !value->createdByPropertiesBlock()
+            && !value->alternatives().empty()) {
+            const QString warning
+                = Tr::tr(
+                      "Using list properties as fallback values is deprecated.\n"
+                      "In future versions of qbs, such properties will be considered "
+                      "unconditionally.\n"
+                      "If you want to keep the current semantics for this value, use an additional "
+                      "%1 item.")
+                      .arg(BuiltinDeclarations::instance().nameForType(ItemType::Properties));
+            try {
+                m_engine.handleDeprecation(Version(2, 7), warning, value->location());
+            } catch (const ErrorInfo &e) {
+                return m_engine.throwError(e.toString());
+            }
+        }
+
         JSValue outerScriptValue = JS_UNDEFINED;
         JSValueList lst;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {

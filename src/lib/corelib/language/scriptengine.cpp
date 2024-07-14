@@ -234,6 +234,7 @@ void ScriptEngine::reset()
         JS_FreeValue(m_context, it.value());
     }
     m_artifactsScriptValues.clear();
+    m_logger.clearWarnings();
 }
 
 void ScriptEngine::import(const FileContextBaseConstPtr &fileCtx, JSValue &targetObject,

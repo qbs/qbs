@@ -3110,11 +3110,27 @@ void TestLanguage::propertiesBlocks_data()
 
 void TestLanguage::propertiesBlocks()
 {
+    defaultParameters.setDeprecationWarningMode(DeprecationWarningMode::On);
     HANDLE_INIT_CLEANUP_DATATAGS("propertiesblocks.qbs");
     QFETCH(QString, propertyName);
     QFETCH(QVariant, expectedValue);
     QFETCH(QString, expectedStringValue);
     QVERIFY(!!project);
+
+    Set<CodeLocation> warningLocations;
+    for (const ErrorInfo &e : std::as_const(project->warningsEncountered)) {
+        const QString errStr = e.toString();
+        QVERIFY2(
+            errStr.contains("Using list properties as fallback values is deprecated"),
+            qPrintable(errStr));
+        for (const ErrorItem &ei : e.items())
+            warningLocations << ei.codeLocation();
+    }
+    const QList<int> lines{7, 8, 29, 38, 54, 61, 67, 75, 98, 110, 158};
+    QCOMPARE(int(warningLocations.size()), int(lines.size()));
+    for (const CodeLocation &loc : warningLocations)
+        QVERIFY2(lines.contains(loc.line()), qPrintable(QString::number(loc.line())));
+
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
