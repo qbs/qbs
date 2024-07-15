@@ -88,6 +88,7 @@ public:
         OriginPropertiesBlock = 0x40,
         OriginProfile = 0x80,
         OriginCommandLine = 0x100,
+        Fallback = 0x200,
     };
     Q_DECLARE_FLAGS(Flags, Flag)
 
@@ -118,6 +119,8 @@ public:
     void sortCandidates(const std::function<bool(const ValuePtr &v1, const ValuePtr &v2)> &less);
 
     bool createdByPropertiesBlock() const { return m_flags & OriginPropertiesBlock; }
+    void setFallback() { m_flags |= Fallback; }
+    bool isFallback() const { return m_flags & Fallback; }
     void markAsSetByProfile() { m_flags |= OriginProfile; }
     bool setByProfile() const { return m_flags & OriginProfile; }
     void markAsSetByCommandLine() { m_flags |= OriginCommandLine; }
@@ -203,7 +206,7 @@ public:
     using AltProperty = Alternative::PropertyData;
 
     const std::vector<Alternative> &alternatives() const { return m_alternatives; }
-    void addAlternative(const Alternative &alternative) { m_alternatives.push_back(alternative); }
+    void addAlternative(const Alternative &alternative);
     void clearAlternatives();
 
     void setScope(Item *scope, const QString &scopeName) override;

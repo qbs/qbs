@@ -66,7 +66,10 @@ QtModule {
         cpp.frameworks: base.concat(["UIKit", "QuartzCore", "CoreText", "CoreGraphics",
                                      "Foundation", "CoreFoundation", "AudioToolbox"])
     }
-    cpp.frameworks: base
+    Properties {
+        condition: undefined
+        cpp.frameworks: base
+    }
     @additionalContent@
 }
 

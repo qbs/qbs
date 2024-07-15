@@ -3126,7 +3126,7 @@ void TestLanguage::propertiesBlocks()
         for (const ErrorItem &ei : e.items())
             warningLocations << ei.codeLocation();
     }
-    const QList<int> lines{7, 8, 29, 38, 54, 61, 67, 75, 98, 110, 158};
+    const QList<int> lines{7, 8, 29, 38, 54, 61, 67, 102, 114};
     QCOMPARE(int(warningLocations.size()), int(lines.size()));
     for (const CodeLocation &loc : warningLocations)
         QVERIFY2(lines.contains(loc.line()), qPrintable(QString::number(loc.line())));

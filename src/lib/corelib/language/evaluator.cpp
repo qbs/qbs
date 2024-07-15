@@ -752,12 +752,11 @@ private:
         if (!m_decl.isScalar() && !value->createdByPropertiesBlock()
             && !value->alternatives().empty()) {
             const QString warning
-                = Tr::tr(
-                      "Using list properties as fallback values is deprecated.\n"
-                      "In future versions of qbs, such properties will be considered "
-                      "unconditionally.\n"
-                      "If you want to keep the current semantics for this value, use an additional "
-                      "%1 item.")
+                = Tr::tr("Using list properties as fallback values is deprecated.\n"
+                         "In future versions of qbs, such properties will be considered "
+                         "unconditionally.\n"
+                         "If you want to keep the current semantics for this value, use a fallback "
+                         "%1 item.")
                       .arg(BuiltinDeclarations::instance().nameForType(ItemType::Properties));
             try {
                 m_engine.handleDeprecation(Version(2, 7), warning, value->location());
@@ -769,6 +768,8 @@ private:
         JSValue outerScriptValue = JS_UNDEFINED;
         JSValueList lst;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
+            if (alternative.value->isFallback() && !lst.empty())
+                break;
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 outerScriptValue = evaluateJSSourceValue(value, nullptr);
@@ -883,8 +884,13 @@ private:
         if (alternative) {
             ScopedJsValue sv(
                 m_engine.context(),
-                m_engine.evaluate(
-                    JsValueOwner::Caller, alternative->condition.value, {}, 1, scopeChain.chain()));
+                alternative->value->isFallback() ? JS_NewBool(m_engine.context(), 1)
+                                                 : m_engine.evaluate(
+                                                       JsValueOwner::Caller,
+                                                       alternative->condition.value,
+                                                       {},
+                                                       1,
+                                                       scopeChain.chain()));
             if (JsException ex = m_engine.checkAndClearException(alternative->condition.location)) {
                 // This handles cases like the following:
                 //   Depends { name: "cpp" }

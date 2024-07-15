@@ -118,7 +118,10 @@
 
     The condition to be used for the other bindings in this item.
 
-    This is a mandatory property that has no default value.
+    \default true
+    \note The special value \c undefined can be used to indicate
+          that this condition should be considered true if and only if none of the other
+          Properties items matched for a given property binding.
 */
 
 /*!

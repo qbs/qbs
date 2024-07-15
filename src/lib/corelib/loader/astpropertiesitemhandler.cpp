@@ -157,6 +157,8 @@ private:
             value->setSourceUsesBase();
         }
         m_alternative.value = conditionalValue;
+        if (m_alternative.condition.value == QLatin1String("undefined"))
+            conditionalValue->setFallback();
         value->addAlternative(m_alternative);
     }
 };

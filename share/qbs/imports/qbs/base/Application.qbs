@@ -53,9 +53,12 @@ NativeBinary {
         aggregate: true
         multiplexedType: "android.nativelibrary"
     }
+    Properties {
+        condition: undefined
+        multiplexByQbsProperties: base
+        multiplexedType: base
+    }
     aggregate: base
-    multiplexByQbsProperties: base
-    multiplexedType: base
 
     installDir: isBundle ? "Applications" : "bin"
 

@@ -72,7 +72,6 @@ Project {
     Product {
         name: "multiple_exclusive_properties"
         Depends { name: "dummy" }
-        dummy.defines: ["SOMETHING"]
         Properties {
             dummy.defines: ["OVERWRITTEN"]
         }
@@ -80,11 +79,16 @@ Project {
             condition: false
             dummy.defines: ["IMPOSSIBLE"]
         }
+        Properties {
+            condition: undefined
+            dummy.defines: ["SOMETHING"]
+        }
     }
     Product {
         name: "multiple_exclusive_properties_no_outer"
         Depends { name: "dummy" }
         Properties {
+            condition: undefined
             dummy.defines: ["OVERWRITTEN"]
         }
         Properties {
@@ -155,7 +159,10 @@ Project {
             condition: true
             dummy.defines: base.concat("SUB")
         }
-        dummy.defines: ["GNAMPF"]
+        Properties {
+            condition: undefined
+            dummy.defines: ["GNAMPF"]
+        }
     }
     ProductBase {
         name: "inheritance_retain_base3"

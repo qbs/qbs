@@ -169,6 +169,16 @@ CodeLocation JSSourceValue::location() const
     return CodeLocation(m_file->filePath(), m_line, m_column);
 }
 
+void JSSourceValue::addAlternative(const Alternative &alternative)
+{
+    if (!m_alternatives.empty() && m_alternatives.back().value->isFallback()) {
+        QBS_CHECK(!alternative.value->isFallback());
+        m_alternatives.insert(std::prev(m_alternatives.end()), alternative);
+    } else {
+        m_alternatives.push_back(alternative);
+    }
+}
+
 void JSSourceValue::clearAlternatives()
 {
     m_alternatives.clear();
