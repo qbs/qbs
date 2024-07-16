@@ -134,19 +134,35 @@ static QStringList qbsToolchainFromDirName(const QString &dir)
     return {};
 }
 
-static Version msvcVersionFromDirName(const QString &dir)
+static Version vcVersionFromDirName(const QString &dir)
 {
     static const std::regex regexp("^msvc(\\d\\d\\d\\d).*$");
     std::smatch match;
     const std::string dirString = dir.toStdString();
     if (!std::regex_match(dirString, match, regexp))
         return Version{};
+    // see https://dev.to/yumetodo/list-of-mscver-and-mscfullver-8nd
     QMap<std::string, std::string> mapping{
-        std::make_pair("2005", "14"), std::make_pair("2008", "15"), std::make_pair("2010", "16"),
-        std::make_pair("2012", "17"), std::make_pair("2013", "18"), std::make_pair("2015", "19"),
-        std::make_pair("2017", "19.1"), std::make_pair("2019", "19.2")
-    };
+        std::make_pair("2005", "8"),
+        std::make_pair("2008", "9"),
+        std::make_pair("2010", "10"),
+        std::make_pair("2012", "11"),
+        std::make_pair("2013", "12"),
+        std::make_pair("2015", "14"),
+        std::make_pair("2017", "14.10"),
+        std::make_pair("2019", "14.20"),
+        std::make_pair("2022", "14.30")};
     return Version::fromString(QString::fromStdString(mapping.value(match[1].str())));
+}
+
+static Version vcVersionFromToolchainInstallPath(const QString &toolchainPath)
+{
+    // e.g. 14.40.33807\bin\Hostx64\x64
+    QDir dir(toolchainPath);
+    dir.cdUp();
+    dir.cdUp();
+    dir.cdUp();
+    return Version::fromString(dir.dirName());
 }
 
 static QString archFromDirName(const QString &dir)
@@ -183,9 +199,9 @@ QtEnvironment SetupQt::fetchEnvironment(const QString &qmakePath)
     if (qtDir.dirName() == QLatin1String("bin")) {
         qtDir.cdUp();
         env.qbsToolchain = qbsToolchainFromDirName(qtDir.dirName());
-        env.msvcVersion = msvcVersionFromDirName(qtDir.dirName());
+        env.vcVersion = vcVersionFromDirName(qtDir.dirName());
         env.architecture = archFromDirName(qtDir.dirName());
-        if (env.msvcVersion.isValid() && env.architecture.isEmpty())
+        if (env.vcVersion.isValid() && env.architecture.isEmpty())
             env.architecture = QStringLiteral("x86");
         env.targetPlatform = platformFromDirName(qtDir.dirName());
         qtDir.cdUp();
@@ -260,20 +276,21 @@ static Match compatibility(const QtEnvironment &env, const Profile &toolchainPro
                                          canonicalArchitecture(toolchainArchitecture)))
         return MatchNone;
 
-    if (env.msvcVersion.isValid()) {
+    if (toolchainType == QStringLiteral("msvc") && env.vcVersion.isValid()) {
         // We want to know for sure that MSVC compiler versions match,
         // because it's especially important for this toolchain
-        const Version compilerVersion = Version::fromString(
-            toolchainProfile.value(QStringLiteral("cpp.compilerVersion")).toString());
+        const Version compilerVersion = vcVersionFromToolchainInstallPath(
+            toolchainProfile.value(QStringLiteral("cpp.toolchainInstallPath")).toString());
 
-        static const Version vs2017Version{19, 1};
-        if (env.msvcVersion >= vs2017Version) {
-            if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
-                    || compilerVersion < vs2017Version) {
+        static const Version vs2017Version{14, 10};
+        if (env.vcVersion >= vs2017Version) {
+            if (env.vcVersion.majorVersion() != compilerVersion.majorVersion()
+                || compilerVersion < vs2017Version) {
                 return MatchNone;
             }
-        } else if (env.msvcVersion.majorVersion() != compilerVersion.majorVersion()
-                || env.msvcVersion.minorVersion() != compilerVersion.minorVersion()) {
+        } else if (
+            env.vcVersion.majorVersion() != compilerVersion.majorVersion()
+            || env.vcVersion.minorVersion() != compilerVersion.minorVersion()) {
             return MatchNone;
         }
     }

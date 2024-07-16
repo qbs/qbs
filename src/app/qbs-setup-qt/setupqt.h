@@ -60,7 +60,7 @@ public:
     QString architecture;
     QString targetPlatform;
     Version qtVersion;
-    Version msvcVersion;
+    Version vcVersion;
 };
 
 class SetupQt

@@ -80,7 +80,6 @@ static void setQtHelperProperties(Profile &p, const MSVC *msvc)
         targetArch = QStringLiteral("armv7");
 
     p.setValue(QStringLiteral("qbs.architecture"), canonicalArchitecture(targetArch));
-    p.setValue(QStringLiteral("cpp.compilerVersion"), msvc->compilerVersion.toString());
 }
 
 static void addMSVCPlatform(Settings *settings, std::vector<Profile> &profiles, QString name, MSVC *msvc)
@@ -170,14 +169,10 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
     std::transform(msvcs.begin(), msvcs.end(), std::back_inserter(msvcPtrs),
                    [] (MSVC &msvc) -> MSVC * { return &msvc; });
 
-    VsEnvironmentDetector envDetector;
-    envDetector.start(msvcPtrs);
-
     for (WinSDK &sdk : winSDKs) {
         const QString name = QLatin1String("WinSDK") + sdk.version + QLatin1Char('-')
                 + sdk.architecture;
         try {
-            sdk.init();
             addMSVCPlatform(settings, profiles, name, &sdk);
         } catch (const ErrorInfo &error) {
             qbsWarning() << Tr::tr("Failed to set up %1: %2").arg(name, error.toString());
@@ -200,7 +195,6 @@ void msvcProbe(Settings *settings, std::vector<Profile> &profiles)
         const QString name = QLatin1String("MSVC") + msvc.version + suffix + QLatin1Char('-')
                 + msvc.architecture;
         try {
-            msvc.init();
             addMSVCPlatform(settings, profiles, name, &msvc);
         } catch (const ErrorInfo &error) {
             qbsWarning() << Tr::tr("Failed to set up %1: %2").arg(name, error.toString());
