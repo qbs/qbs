@@ -610,6 +610,49 @@ void TestLanguage::dependencyOnAllProfiles()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::dependsItemInGroup_data()
+{
+    QTest::addColumn<bool>("enableGroup1");
+    QTest::addColumn<bool>("enableGroup2");
+    QTest::addColumn<bool>("enableDepends");
+    QTest::addColumn<bool>("dependencyExpected");
+
+    QTest::newRow("all disabled") << false << false << false << false;
+    QTest::newRow("only Depends enabled") << false << false << true << false;
+    QTest::newRow("only inner Group enabled") << false << true << false << false;
+    QTest::newRow("inner Group and Depends enabled") << false << true << true << false;
+    QTest::newRow("only outer Group enabled") << true << false << false << false;
+    QTest::newRow("only outer Group and Depends enabled") << true << false << true << false;
+    QTest::newRow("only Groups enabled") << true << true << false << false;
+    QTest::newRow("everything enabled") << true << true << true << true;
+}
+
+void TestLanguage::dependsItemInGroup()
+{
+    QFETCH(bool, enableGroup1);
+    QFETCH(bool, enableGroup2);
+    QFETCH(bool, enableDepends);
+    QFETCH(bool, dependencyExpected);
+
+    bool exceptionCaught = false;
+    try {
+        const QVariantMap overriddenValues{
+            std::make_pair("products.main.enableGroup1", enableGroup1),
+            std::make_pair("products.main.enableGroup2", enableGroup2),
+            std::make_pair("products.main.enableDepends", enableDepends)};
+        defaultParameters.setOverriddenValues(overriddenValues);
+        resolveProject("depends-item-in-group.qbs");
+        QVERIFY(project);
+        const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
+        QVERIFY(mainProduct);
+        QCOMPARE(mainProduct->dependencies.empty(), !dependencyExpected);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::derivedSubProject()
 {
     bool exceptionCaught = false;

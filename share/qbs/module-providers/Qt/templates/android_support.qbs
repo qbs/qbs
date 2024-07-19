@@ -32,58 +32,66 @@ Module {
     property bool _correctQtNetworkDependencies: Utilities.versionCompare(version, "5.15.0") > 0 &&
                                                  Utilities.versionCompare(version, "5.15.3") < 0
 
-    Depends { name: "Android.sdk"; condition: _enableSdkSupport }
-    Depends { name: "Android.ndk"; condition: _enableNdkSupport }
-    Depends { name: "java"; condition: _enableSdkSupport }
-    Depends { name: "cpp"; condition: _enableNdkSupport }
-
-    Properties {
-        condition: _enableNdkSupport && qbs.toolchain.contains("clang")
-        Android.ndk.appStl: "c++_shared"
-    }
-    Properties {
-        condition: _enableNdkSupport && !qbs.toolchain.contains("clang")
-        Android.ndk.appStl: "gnustl_shared"
-    }
-    Properties {
+    Group {
         condition: _enableSdkSupport
-        Android.sdk.customManifestProcessing: true
-        java._tagJniHeaders: false // prevent rule cycle
+        name: "helper sources from qt"
+
+        Depends { name: "Android.sdk" }
+        Depends { name: "java" }
+
+        Properties {
+            Android.sdk.customManifestProcessing: true
+            java._tagJniHeaders: false // prevent rule cycle
+            Android.sdk._bundledInAssets: _multiAbi
+        }
+
+        Properties {
+            condition: Utilities.versionCompare(version, "5.15") >= 0
+                       && Utilities.versionCompare(version, "6.0") < 0
+            java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "QtAndroid.jar")]
+        }
+        Properties {
+            condition: Utilities.versionCompare(version, "6.0") >= 0
+            java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "Qt6Android.jar")]
+            Android.sdk.minimumVersion: "23"
+        }
+        Properties {
+            condition: Utilities.versionCompare(version, "6.0") < 0
+            Android.sdk.minimumVersion: "21"
+        }
+
+        prefix: Qt.android_support._templatesBaseDir + "/java/"
+        Android.sdk.aidlSearchPaths: prefix + "src"
+        files: [
+            "**/*.java",
+            "**/*.aidl",
+        ]
     }
+
+    Group {
+        condition: _enableNdkSupport
+
+        Depends { name: "cpp" }
+        Depends { name: "Android.ndk" }
+
+        Properties {
+            Android.ndk.appStl: qbs.toolchain.contains("clang") ? "c++_shared" : "gnustl_shared"
+        }
+        Properties {
+            condition: _multiAbi
+            cpp.archSuffix: "_" + Android.ndk.abi
+        }
+
+        // "ANDROID_HAS_WSTRING" was removed from qtcore qstring.h in Qt 5.14.0
+        Properties {
+            condition: Utilities.versionCompare(version, "5.14.0") < 0 &&
+                       (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
+            cpp.defines: "ANDROID_HAS_WSTRING"
+        }
+    }
+
     readonly property string _qtAndroidJarFileName: Utilities.versionCompare(version, "6.0") >= 0 ?
                                                        "Qt6Android.jar" : "QtAndroid.jar"
-    Properties {
-        condition: _enableSdkSupport && Utilities.versionCompare(version, "5.15") >= 0
-                   && Utilities.versionCompare(version, "6.0") < 0
-        java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "QtAndroid.jar")]
-    }
-    Properties {
-        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
-        java.additionalClassPaths: [FileInfo.joinPaths(_qtInstallDir, "jar", "Qt6Android.jar")]
-    }
-    // "ANDROID_HAS_WSTRING" was removed from qtcore qstring.h in Qt 5.14.0
-    Properties {
-        condition: _enableNdkSupport && Utilities.versionCompare(version, "5.14.0") < 0 &&
-                   (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
-        cpp.defines: "ANDROID_HAS_WSTRING"
-    }
-    Properties {
-        condition: _enableSdkSupport
-        Android.sdk._bundledInAssets: _multiAbi
-    }
-    Properties {
-        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") < 0
-        Android.sdk.minimumVersion: "21"
-    }
-    Properties {
-        condition: _enableSdkSupport && Utilities.versionCompare(version, "6.0") >= 0
-        Android.sdk.minimumVersion: "23"
-    }
-
-    Properties {
-        condition: _enableNdkSupport
-        cpp.archSuffix: _multiAbi ? "_" + Android.ndk.abi : ""
-    }
 
     Rule {
         condition: _enableSdkSupport
@@ -523,17 +531,6 @@ Module {
 
             return cmds;
         }
-    }
-
-    Group {
-        condition: Qt.android_support._enableSdkSupport
-        name: "helper sources from qt"
-        prefix: Qt.android_support._templatesBaseDir + "/java/"
-        Android.sdk.aidlSearchPaths: prefix + "src"
-        files: [
-            "**/*.java",
-            "**/*.aidl",
-        ]
     }
 
     validate: {

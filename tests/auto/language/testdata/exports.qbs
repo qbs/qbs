@@ -132,8 +132,11 @@ Project {
         Export {
             property bool depend: false
             property var config: exportingProduct.config
-            Depends { condition: depend; name: "cpp" }
-            Properties { condition: depend; cpp.includePaths: ["."] }
+            Group {
+                condition: depend
+                Depends { name: "cpp" }
+                Properties { cpp.includePaths: ["."] }
+            }
         }
     }
     Product {

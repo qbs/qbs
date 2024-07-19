@@ -20,14 +20,17 @@ Module {
     Depends { name: "cpp" }
     Depends { name: "Sanitizers.address"; condition: config.contains("sanitize_address") }
 
-    Depends { name: "Qt.android_support"; condition: qbs.targetOS.contains("android") }
-    Properties {
+    Group {
         condition: qbs.targetOS.contains("android")
-        Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
-        Qt.android_support._qtInstallDir: FileInfo.path(installPath)
-        Qt.android_support.version: version
-        Qt.android_support.rccFilePath: Rcc.fullPath(product)
+        Depends { name: "Qt.android_support" }
+        Properties {
+            Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
+            Qt.android_support._qtInstallDir: FileInfo.path(installPath)
+            Qt.android_support.version: version
+            Qt.android_support.rccFilePath: Rcc.fullPath(product)
+        }
     }
+
     // qmlImportScanner is required by androiddeployqt even if the project doesn't
     // depend on qml. That's why the scannerName must be defined here and not in the
     // qml module

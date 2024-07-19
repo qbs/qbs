@@ -121,7 +121,9 @@ void GroupsHandler::gatherAssignedProperties(ItemValue *iv, const QualifiedId &p
 
 void GroupsHandler::markModuleTargetGroups(Item *group, const Item::Module &module)
 {
-    QBS_CHECK(group->type() == ItemType::Group);
+    if (group->type() != ItemType::Group)
+        return;
+
     if (m_loaderState.evaluator().boolValue(group, StringConstants::filesAreTargetsProperty())) {
         group->setProperty(StringConstants::modulePropertyInternal(),
                            VariantValue::create(module.name.toString()));

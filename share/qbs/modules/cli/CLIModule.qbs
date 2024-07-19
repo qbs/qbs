@@ -5,10 +5,10 @@ import qbs.ModUtils
 import "cli.js" as CLI
 
 Module {
-    Depends { name: "bundle"; condition: qbs.targetOS.includes("darwin") }
-    Properties {
+    Group {
         condition: qbs.targetOS.includes("darwin")
-        bundle.isBundle: false
+        Depends { name: "bundle" }
+        Properties { bundle.isBundle: false }
     }
 
     condition: false

@@ -202,16 +202,18 @@ Module {
     property string packageContentsDir: FileInfo.joinPaths(product.buildDirectory, packageType)
     property stringList aidlSearchPaths
 
-    Depends { name: "java"; condition: _enableRules }
-    Depends { name: "codesign"; condition: _enableRules }
-    Properties {
+    Group {
         condition: _enableRules
-        java.languageVersion: platformJavaVersion
-        java.runtimeVersion: platformJavaVersion
-        java.bootClassPaths: androidJarFilePath
-        codesign.apksignerFilePath: apksignerFilePath
-        codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
-        codesign.useApksigner: !_generateAab
+        Depends { name: "java" }
+        Depends { name: "codesign" }
+        Properties {
+            java.languageVersion: platformJavaVersion
+            java.runtimeVersion: platformJavaVersion
+            java.bootClassPaths: androidJarFilePath
+            codesign.apksignerFilePath: apksignerFilePath
+            codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
+            codesign.useApksigner: !_generateAab
+        }
     }
 
     validate: {

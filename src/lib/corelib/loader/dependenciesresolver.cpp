@@ -60,7 +60,6 @@
 
 #include <optional>
 #include <queue>
-#include <unordered_map>
 
 namespace qbs::Internal {
 namespace {
@@ -195,6 +194,7 @@ private:
 
 static bool haveSameSubProject(const ProductContext &p1, const ProductContext &p2);
 static QVariantMap safeToVariant(JSContext *ctx, const JSValue &v);
+static void collectDependsItems(Item *parent, std::queue<Item *> &dependsItems);
 
 } // namespace
 
@@ -343,10 +343,7 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
 
             // Now continue with the dependencies of the just-loaded module.
             std::queue<Item *> moduleDependsItems;
-            for (Item * const child : res.moduleItem->children()) {
-                if (child->type() == ItemType::Depends)
-                    moduleDependsItems.push(child);
-            }
+            collectDependsItems(res.moduleItem, moduleDependsItems);
             state.pendingResolvedDependencies.pop();
             stateStack().push_front(
                 {res.moduleItem, dependency, moduleDependsItems, {}, {},
@@ -811,9 +808,14 @@ void DependenciesResolver::adjustDependsItemForMultiplexing(Item *dependsItem)
 std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(Item *item)
 {
     Evaluator &evaluator = m_loaderState.evaluator();
-    if (!m_product.project->topLevelProject->checkItemCondition(item, evaluator)) {
-        qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
-        return {};
+    for (Item *current = item;
+         current->type() == ItemType::Depends || current->type() == ItemType::Group;
+         current = current->parent()) {
+        if (!m_loaderState.topLevelProject().checkItemCondition(
+                current, m_loaderState.evaluator())) {
+            qCDebug(lcModuleLoader) << "Depends item disabled, ignoring.";
+            return {};
+        }
     }
 
     const QString name = evaluator.stringValue(item, StringConstants::nameProperty());
@@ -1111,6 +1113,16 @@ QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
     return result;
 }
 
+void collectDependsItems(Item *parent, std::queue<Item *> &dependsItems)
+{
+    for (Item * const child : parent->children()) {
+        if (child->type() == ItemType::Depends)
+            dependsItems.push(child);
+        else if (child->type() == ItemType::Group)
+            collectDependsItems(child, dependsItems);
+    }
+}
+
 DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, LoaderState &loaderState)
     : m_product(product)
 {
@@ -1118,10 +1130,7 @@ DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, Loader
 
     // Initialize the state with the direct Depends items of the product item.
     DependenciesResolvingState newState{product.item,};
-    for (Item * const child : product.item->children()) {
-        if (child->type() == ItemType::Depends)
-            newState.pendingDependsItems.push(child);
-    }
+    collectDependsItems(product.item, newState.pendingDependsItems);
     stateStack.push_front(std::move(newState));
     stateStack.front().pendingResolvedDependencies.push(
         FullyResolvedDependsItem::makeBaseDependency());

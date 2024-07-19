@@ -1,8 +1,11 @@
 StaticLibrary {
     name: "l"
 
-    Depends { condition: qbs.targetOS.includes("darwin"); name: "bundle" }
-    Properties { condition: qbs.targetOS.includes("darwin"); bundle.isBundle: false }
+    Group {
+        condition: qbs.targetOS.includes("darwin")
+        Depends { name: "bundle" }
+        Properties { bundle.isBundle: false }
+    }
 
     aggregate: false
     property string variantSuffix

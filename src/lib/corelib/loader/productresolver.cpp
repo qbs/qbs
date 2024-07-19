@@ -845,8 +845,15 @@ void ProductResolverStage2::resolveGroupFully(Item *item, bool isEnabled)
         const GroupConstPtr m_oldGroup;
     };
     GroupContextSwitcher groupSwitcher(*this, group);
-    for (Item * const childItem : item->children())
-        resolveGroup(childItem);
+    for (Item * const childItem : item->children()) {
+        switch (childItem->type()) {
+        case ItemType::Group:
+            resolveGroup(childItem);
+            break;
+        default:
+            break;
+        }
+    }
 }
 
 SourceArtifactPtr ProductResolverStage2::createSourceArtifact(

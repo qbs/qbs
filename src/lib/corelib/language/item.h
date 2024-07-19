@@ -100,7 +100,18 @@ public:
             LoadContext &operator=(const LoadContext &) = default;
             LoadContext &operator=(LoadContext &&) = default;
 
-            Item *loadingItem() const { return dependsItem ? dependsItem->parent() : nullptr; }
+            Item *loadingItem() const
+            {
+                if (!dependsItem)
+                    return nullptr;
+                Item *loadingItem = dependsItem->parent();
+                while (loadingItem->type() == ItemType::Group)
+                    loadingItem = loadingItem->parent();
+                QBS_CHECK(
+                    loadingItem->type() == ItemType::ModuleInstance
+                    || loadingItem->type() == ItemType::Product);
+                return loadingItem;
+            }
             Item *dependsItem;
             ParametersWithPriority parameters;
         };

@@ -27,10 +27,10 @@ Module {
         description: "the version control system your project is using"
     }
 
-    Depends { name: "cpp"; condition: headerFileName }
-    Properties {
+    Group {
         condition: headerFileName
-        cpp.includePaths: [includeDir]
+        Depends { name: "cpp" }
+        Properties { cpp.includePaths: [includeDir] }
     }
 
     Probe {
