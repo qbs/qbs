@@ -253,7 +253,7 @@ UnixGCC {
 
         outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_symbols", "primary",
                          "debuginfo_dll","debuginfo_bundle","bundle.variant_symlink",
-                         "debuginfo_plist", "codesign.signed_artifact"]
+                         "debuginfo_plist", "codesign.signed_artifact", "dynamiclibrary_symlink"]
         outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
 
         prepare: Darwin.prepareLipo.apply(Darwin, arguments)

@@ -69,6 +69,8 @@ private slots:
     void iconsetApp();
     void infoPlist();
     void infoPlistVariables();
+    void lipoSymlinks();
+    void lipoSymlinks_data();
     void objcArc();
     void overrideInfoPlist();
     void xcode();
