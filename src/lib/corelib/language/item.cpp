@@ -212,7 +212,7 @@ void Item::adaptScopesOfClonedAlternatives(Item *clone) const
         };
     const std::function<Item *(Item *, const Item *, const Item *)> getClonedGroup =
         [&](Item *group, const Item *parent, const Item *clonedParent) -> Item * {
-        for (int i = 0; i < int(m_children.size()); ++i) {
+        for (int i = 0; i < int(parent->m_children.size()); ++i) {
             Item * const child = parent->m_children.at(i);
             Item * const clonedChild = clonedParent->m_children.at(i);
             QBS_CHECK(child->type() == clonedChild->type());
