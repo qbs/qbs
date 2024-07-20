@@ -791,6 +791,7 @@ jobs:
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
             testProfile: 'MSVC2022-x64',
+            conan_toolchain: 'msvc_64',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
@@ -799,6 +800,7 @@ jobs:
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
             testProfile: 'MSVC2022-x64',
+            conan_toolchain: '',
             qtVersion: '5.15.2',
             script: './scripts/test-qt.sh',
           }
@@ -807,6 +809,7 @@ jobs:
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
             testProfile: 'clang-cl-x86_64',
+            conan_toolchain: '',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
@@ -815,6 +818,7 @@ jobs:
             target: 'desktop',
             toolchain: 'win64_mingw',
             testProfile: 'mingw-qt',
+            conan_toolchain: 'mingw_64',
             qtVersion: '6.5.0',
             script: './scripts/test-qbs.sh',
           }
@@ -849,24 +853,18 @@ jobs:
     - name: Install MinGW
       uses: ./.github/actions/download-mingw
     - name: Install Ninja
-      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      if: matrix.config.conan_toolchain != ''
       run: |
         choco install ninja
-        echo "C:\\ProgramData\\chocolatey\\lib\\ninja\\tools" >> $GITHUB_PATH
       shell: bash
     - name: Install Conan
-      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      if: matrix.config.conan_toolchain != ''
       uses: turtlebrowser/get-conan@main
-    - name: Install Ninja
-      if: matrix.config.toolchain == 'win64_msvc2019_64'
-      run: |
-        choco install ninja
-        echo "C:\\ProgramData\\chocolatey\\lib\\ninja\\tools" >> $GITHUB_PATH
-      shell: bash
     - name: Configure Conan
-      if: matrix.config.toolchain == 'win64_msvc2019_64'
+      if: matrix.config.conan_toolchain != ''
       run: |
-        ./scripts/setup-conan-profiles.sh
+        ./scripts/setup-conan-profiles.sh --toolchain ${{ matrix.config.conan_toolchain }}
+        which ninja
       shell: bash
     - name: Setup Qbs
       run: |

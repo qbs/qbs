@@ -4248,7 +4248,13 @@ void TestBlackbox::exportsCMake()
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
     const auto buildEnv = jsonData.value(u"buildEnv").toObject();
     for (auto it = buildEnv.begin(), end = buildEnv.end(); it != end; ++it) {
-        env.insert(it.key(), it.value().toString());
+        if (it.key() == "PATH") {
+            auto paths = it.value().toString().split(HostOsInfo::pathListSeparator());
+            paths.append(env.value(it.key()).split(HostOsInfo::pathListSeparator()));
+            env.insert(it.key(), paths.join(HostOsInfo::pathListSeparator()));
+        } else {
+            env.insert(it.key(), it.value().toString());
+        }
     }
 
     const auto installPrefix = jsonData.value(u"installPrefix").toString();
