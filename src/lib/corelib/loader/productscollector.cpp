@@ -364,7 +364,7 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
 
     const bool hasExportItems = mergeExportItems(productContext);
 
-    setScopeForDescendants(productItem, productContext.scope);
+    setScopeForDescendants(productItem, productContext.scope, false);
 
     if (!hasExportItems)
         return;

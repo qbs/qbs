@@ -202,7 +202,7 @@ CodeSignModule {
 
     Group {
         name: "Provisioning Profiles"
-        prefix: codesign.provisioningProfilesPath + "/"
+        prefix: provisioningProfilesPath + "/"
         files: ["*.mobileprovision", "*.provisionprofile"]
     }
 

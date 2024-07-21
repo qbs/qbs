@@ -556,11 +556,13 @@ Item *createNonPresentModule(ItemPool &pool, const QString &name, const QString 
     return module;
 }
 
-void setScopeForDescendants(Item *item, Item *scope)
+void setScopeForDescendants(Item *item, Item *scope, bool insertIds)
 {
     for (Item * const child : item->children()) {
         child->setScope(scope);
-        setScopeForDescendants(child, scope);
+        if (insertIds && !child->id().isEmpty())
+            scope->setProperty(child->id(), ItemValue::create(child));
+        setScopeForDescendants(child, scope, insertIds);
     }
 }
 

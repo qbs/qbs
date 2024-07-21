@@ -235,11 +235,7 @@ void ModuleInstantiator::setupScope()
 
     if (!context.module->id().isEmpty())
         scope->setProperty(context.module->id(), ItemValue::create(context.module));
-    for (Item * const child : context.module->children()) {
-        child->setScope(scope);
-        if (!child->id().isEmpty())
-            scope->setProperty(child->id(), ItemValue::create(child));
-    }
+    setScopeForDescendants(context.module, scope, true);
     context.module->setScope(scope);
 
     if (context.exportingProduct) {

@@ -1175,6 +1175,9 @@ void ProductResolverStage2::resolveModule(const QualifiedId &moduleName, Item *i
         case ItemType::Scanner:
             resolveScanner(child, moduleContext);
             break;
+        case ItemType::Group:
+            resolveGroup(child);
+            break;
         default:
             break;
         }

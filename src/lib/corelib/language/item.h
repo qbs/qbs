@@ -232,7 +232,7 @@ inline bool operator<(const Item::Module &m1, const Item::Module &m2) { return m
 
 Item *createNonPresentModule(ItemPool &pool, const QString &name, const QString &reason,
                              Item *module);
-void setScopeForDescendants(Item *item, Item *scope);
+void setScopeForDescendants(Item *item, Item *scope, bool insertIds);
 
 // This mechanism is needed because Module items are shared between products (not doing so
 // would be prohibitively expensive).
