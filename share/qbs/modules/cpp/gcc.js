@@ -1609,3 +1609,123 @@ function pathPrefix(baseDir, prefix)
         path += prefix;
     return path;
 }
+
+function appLinkerOutputArtifacts(product)
+{
+    var app = {
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.applicationFilePath(product)),
+        fileTags: ["bundle.input", "application"].concat(
+            product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
+        bundle: {
+            _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                PathTools.bundleExecutableFilePath(product))
+        }
+    }
+    var artifacts = [app];
+    if (!product.aggregate)
+        artifacts = artifacts.concat(debugInfoArtifacts(product, undefined, "app"));
+    if (product.cpp.generateLinkerMapFile) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         product.targetName + product.cpp.linkerMapSuffix),
+            fileTags: ["mem_map"]
+        });
+    }
+    return artifacts;
+}
+
+function moduleLinkerOutputArtifacts(product, inputs)
+{
+    var app = {
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.loadableModuleFilePath(product)),
+        fileTags: ["bundle.input", "loadablemodule"]
+                .concat(product.cpp.shouldSignArtifacts
+                        ? ["codesign.signed_artifact"] : []),
+        bundle: {
+            _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                PathTools.bundleExecutableFilePath(product))
+        }
+    }
+    var artifacts = [app];
+    if (!product.aggregate)
+        artifacts = artifacts.concat(debugInfoArtifacts(product, undefined,
+                                                        "loadablemodule"));
+    return artifacts;
+}
+
+function staticLibLinkerOutputArtifacts(product)
+{
+    var tags = ["bundle.input", "staticlibrary"];
+    var objs = inputs["obj"];
+    var objCount = objs ? objs.length : 0;
+    for (var i = 0; i < objCount; ++i) {
+        var ft = objs[i].fileTags;
+        if (ft.includes("c_obj"))
+            tags.push("c_staticlibrary");
+        if (ft.includes("cpp_obj"))
+            tags.push("cpp_staticlibrary");
+    }
+    return [{
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.staticLibraryFilePath(product)),
+        fileTags: tags,
+        bundle: {
+            _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                PathTools.bundleExecutableFilePath(product))
+        }
+    }];
+}
+
+function staticLibLinkerCommands(project, product, inputs, outputs, input, output,
+                                 explicitlyDependsOn)
+{
+    var args = ['rcs', output.filePath];
+    for (var i in inputs.obj)
+        args.push(inputs.obj[i].filePath);
+    for (var i in inputs.res)
+        args.push(inputs.res[i].filePath);
+    var cmd = new Command(product.cpp.archiverPath, args);
+    cmd.description = 'creating ' + output.fileName;
+    cmd.highlight = 'linker'
+    cmd.jobPool = "linker";
+    cmd.responseFileUsagePrefix = '@';
+    return cmd;
+}
+
+function dynamicLibLinkerOutputArtifacts(product)
+{
+    var artifacts = [{
+        filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                     PathTools.dynamicLibraryFilePath(product)),
+        fileTags: ["bundle.input", "dynamiclibrary"]
+                .concat(product.cpp.shouldSignArtifacts
+                        ? ["codesign.signed_artifact"] : []),
+        bundle: {
+            _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
+                                                PathTools.bundleExecutableFilePath(product))
+        }
+    }];
+    if (product.cpp.imageFormat === "pe") {
+        artifacts.push({
+            fileTags: ["dynamiclibrary_import"],
+            filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                         PathTools.importLibraryFilePath(product)),
+            alwaysUpdated: false
+        });
+    } else {
+        // List of libfoo's public symbols for smart re-linking.
+        artifacts.push({
+            filePath: product.destinationDirectory + "/.sosymbols/"
+                      + PathTools.dynamicLibraryFilePath(product),
+            fileTags: ["dynamiclibrary_symbols"],
+            alwaysUpdated: false,
+        });
+    }
+
+    artifacts = artifacts.concat(librarySymlinkArtifacts(product));
+    if (!product.aggregate)
+        artifacts = artifacts.concat(debugInfoArtifacts(product, undefined, "dll"));
+    return artifacts;
+}

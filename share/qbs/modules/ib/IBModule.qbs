@@ -173,67 +173,21 @@ Module {
 
     Rule {
         inputs: ["nib", "storyboard"]
-
         outputFileTags: {
             var tags = ["partial_infoplist"];
             for (var i = 0; i < inputs.length; ++i)
                 tags = tags.uniqueConcat(ModUtils.allFileTags(Ib.ibtoolFileTaggers(inputs[i])));
             return tags;
         }
-
         outputArtifacts: Ib.ibtoolOutputArtifacts(product, inputs, input)
-
-        prepare: {
-            var cmd = new Command(ModUtils.moduleProperty(product, "ibtoolPath"),
-                                  Ib.ibtooldArguments(product, inputs, input, outputs));
-            cmd.description = "compiling " + input.fileName;
-
-            // Also display the language name of the nib/storyboard being compiled if it has one
-            var localizationKey = DarwinTools.localizationKey(input.filePath);
-            if (localizationKey)
-                cmd.description += ' (' + localizationKey + ')';
-
-            cmd.highlight = 'compiler';
-
-            // May not be strictly needed, but is set by some versions of Xcode
-            if (input.fileTags.includes("storyboard"))
-                cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" +
-                                     (product.moduleProperty("cpp", "minimumDarwinVersion") || ""));
-
-            cmd.stdoutFilterFunction = function(output) {
-                return "";
-            };
-
-            return cmd;
-        }
+        prepare: Ib.ibtoolCommands.apply(Ib, arguments)
     }
 
     Rule {
         inputs: ["assetcatalog"]
         multiplex: true
-
         outputArtifacts: Ib.actoolOutputArtifacts(product, inputs)
         outputFileTags: ["bundle.input", "compiled_assetcatalog", "partial_infoplist"]
-
-        prepare: {
-            var mkdir = new JavaScriptCommand();
-            mkdir.silent = true;
-            mkdir.sourceCode = function () {
-                File.makePath(FileInfo.joinPaths(product.buildDirectory, "actool.dir"));
-            };
-
-            var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
-                                  Ib.ibtooldArguments(product, inputs, input, outputs));
-            cmd.description = inputs["assetcatalog"].map(function (input) {
-                return "compiling " + input.fileName;
-            }).join('\n');
-            cmd.highlight = "compiler";
-
-            cmd.stdoutFilterFunction = function(output) {
-                return "";
-            };
-
-            return [mkdir, cmd];
-        }
+        prepare: Ib.compileAssetCatalogCommands.apply(Ib, arguments)
     }
 }

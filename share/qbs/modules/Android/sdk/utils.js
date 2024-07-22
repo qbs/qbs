@@ -226,6 +226,20 @@ function generateAapt2ResourceFileName(filePath) {
     return FileInfo.fileName(dir) + "_" + baseName + "." + suffix + ".flat";
 }
 
+function aapt2CompileResourceOutputs(product, inputs)
+{
+    var outputs = [];
+    var resources = inputs["android.resources"];
+    for (var i = 0; i < resources.length; ++i) {
+        var filePath = resources[i].filePath;
+        var resourceFileName = generateAapt2ResourceFileName(filePath);
+        var compiledName = FileInfo.joinPaths(product.Android.sdk.compiledResourcesDir,
+                                              resourceFileName);
+        outputs.push({filePath: compiledName, fileTags: "android.resources_compiled"});
+    }
+    return outputs;
+}
+
 function prepareAapt2CompileResource(project, product, inputs, outputs, input, output,
                                      explicitlyDependsOn) {
     var cmds = [];
@@ -243,6 +257,34 @@ function prepareAapt2CompileResource(project, product, inputs, outputs, input, o
     cmds.push(cmd);
 
     return cmds;
+}
+
+function aaptLinkOutputs(product, inputs)
+{
+    var artifacts = [];
+    artifacts.push({
+        filePath: product.Android.sdk.apkBaseName + (product.Android.sdk._generateAab ?
+                      ".apk_aab" : ".apk_apk"),
+        fileTags: ["android.apk_resources"]
+    });
+    var resources = inputs["android.resources_compiled"];
+    if (resources && resources.length) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
+                                         "R.java"),
+            fileTags: ["java.java"]
+        });
+    }
+    for (var rp in product.Android.sdk.extraResourcePackages) {
+        var resourcePackageName = product.Android.sdk.extraResourcePackages[rp];
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesBaseDir,
+                                         resourcePackageName.split('.').join('/'), "R.java"),
+            fileTags: ["java.java"]
+        });
+    }
+
+    return artifacts;
 }
 
 function prepareAapt2Link(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
@@ -293,6 +335,21 @@ function prepareAapt2Link(project, product, inputs, outputs, input, output, expl
     cmds.push(cmd);
 
     return cmds;
+}
+
+function aaptGenerateOutputs(product, inputs)
+{
+    var artifacts = [];
+    var resources = inputs["android.resources"];
+    if (resources && resources.length) {
+        artifacts.push({
+            filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
+                                         "R.java"),
+            fileTags: ["java.java"]
+        });
+    }
+
+    return artifacts;
 }
 
 function prepareAaptGenerate(project, product, inputs, outputs, input, output,
@@ -458,4 +515,127 @@ function elementHasBundledAttributes(element)
     return element.hasAttribute("android:name") &&
             (element.attribute("android:name") === "android.app.bundled_in_assets_resource_id") ||
             (element.attribute("android:name") === "android.app.bundled_in_lib_resource_id");
+}
+
+function deployStlOutputs(product, inputs)
+{
+    var deploymentData = stlDeploymentData(product, inputs, "stl");
+    var outputs = [];
+    for (var i = 0; i < deploymentData.outputFilePaths.length; ++i) {
+        outputs.push({filePath: deploymentData.outputFilePaths[i],
+                      fileTags: "android.stl_deployed"});
+    }
+    return outputs;
+}
+
+function deployStlCommands(product, inputs)
+{
+    var cmds = [];
+    var deploymentData = stlDeploymentData(product, inputs);
+    for (var i = 0; i < deploymentData.uniqueInputs.length; ++i) {
+        var input = deploymentData.uniqueInputs[i];
+        var stripArgs = ["--strip-all", "-o", deploymentData.outputFilePaths[i],
+                         input.filePath];
+        var cmd = new Command(input.cpp.stripPath, stripArgs);
+        cmd.description = "deploying " + input.fileName;
+        cmds.push(cmd);
+    }
+    return cmds;
+}
+
+function generateBuildConfigJavaCommands(product, output)
+{
+    var cmd = new JavaScriptCommand();
+    cmd.description = "generating BuildConfig.java";
+    cmd.sourceCode = function() {
+        var debugValue = product.qbs.buildVariant === "debug" ? "true" : "false";
+        var ofile = new TextFile(output.filePath, TextFile.WriteOnly);
+        ofile.writeLine("package " + product.Android.sdk.packageName +  ";")
+        ofile.writeLine("public final class BuildConfig {");
+        ofile.writeLine("    public final static boolean DEBUG = " + debugValue + ";");
+        ofile.writeLine("}");
+        ofile.close();
+    };
+    return [cmd];
+}
+
+function generateProcessedManifestCommands(project, product, inputs, outputs, input, output,
+                                           explicitlyDependsOn)
+{
+    var cmd = new JavaScriptCommand();
+    cmd.description = "ensuring correct package name in Android manifest file";
+    cmd.sourceCode = function() {
+        var manifestData = new Xml.DomDocument();
+        manifestData.load(input.filePath);
+        var rootElem = manifestData.documentElement();
+        if (!rootElem || !rootElem.isElement() || rootElem.tagName() !== "manifest")
+            throw "No manifest tag found in '" + input.filePath + "'.";
+
+        // Quick sanity check. Don't try to be fancy; let's not risk rejecting valid names.
+        var packageName = product.Android.sdk.packageName;
+        if (!packageName.match(/^[^.]+(?:\.[^.]+)+$/)) {
+            throw "Package name '" + packageName + "' is not valid. Please set "
+                    + "Android.sdk.packageName to a name following the "
+                    + "'com.mycompany.myproduct' pattern."
+        }
+        rootElem.setAttribute("package", packageName);
+        if (product.Android.sdk.versionCode !== undefined)
+            rootElem.setAttribute("android:versionCode", product.Android.sdk.versionCode);
+        if (product.Android.sdk.versionName !== undefined)
+            rootElem.setAttribute("android:versionName", product.Android.sdk.versionName);
+
+        if (product.Android.sdk._bundledInAssets) {
+            // Remove <meta-data android:name="android.app.bundled_in_assets_resource_id"
+            // android:resource="@array/bundled_in_assets"/>
+            // custom AndroidManifest.xml because assets are in rcc files for qt >= 5.14
+            var appElem = rootElem.firstChild("application");
+            if (!appElem || !appElem.isElement() || appElem.tagName() !== "application")
+                 throw "No application tag found in '" + input.filePath + "'.";
+            var activityElem = appElem.firstChild("activity");
+            if (!activityElem || !activityElem.isElement() ||
+                activityElem.tagName() !== "activity")
+                 throw "No activity tag found in '" + input.filePath + "'.";
+            var metaDataElem = activityElem.firstChild("meta-data");
+            while (metaDataElem && metaDataElem.isElement()) {
+                if (elementHasBundledAttributes(metaDataElem)) {
+                    var elemToRemove = metaDataElem;
+                    metaDataElem = metaDataElem.nextSibling("meta-data");
+                    activityElem.removeChild(elemToRemove);
+                } else {
+                    metaDataElem = metaDataElem.nextSibling("meta-data");
+                }
+            }
+        }
+
+        var usedSdkElem = rootElem.firstChild("uses-sdk");
+        if (!usedSdkElem || !usedSdkElem.isElement()) {
+            usedSdkElem = manifestData.createElement("uses-sdk");
+            rootElem.appendChild(usedSdkElem);
+        } else {
+            if (!usedSdkElem.isElement())
+                throw "Tag uses-sdk is not an element in '" + input.filePath + "'.";
+        }
+        usedSdkElem.setAttribute("android:minSdkVersion",
+                                 product.Android.sdk.minimumVersion);
+        usedSdkElem.setAttribute("android:targetSdkVersion",
+                                 product.Android.sdk.targetVersion);
+
+        rootElem.appendChild(usedSdkElem);
+        manifestData.save(output.filePath, 4);
+    }
+    return cmd;
+}
+
+function processAidlCommands(project, product, inputs, outputs, input, output,
+                             explicitlyDependsOn)
+{
+    var aidl = product.Android.sdk.aidlFilePath;
+    var args = ["-p" + product.Android.sdk.frameworkAidlFilePath];
+    var aidlSearchPaths = input.Android.sdk.aidlSearchPaths;
+    for (var i = 0; i < (aidlSearchPaths ? aidlSearchPaths.length : 0); ++i)
+        args.push("-I" + aidlSearchPaths[i]);
+    args.push(input.filePath, output.filePath);
+    var cmd = new Command(aidl, args);
+    cmd.description = "processing " + input.fileName;
+    return [cmd];
 }

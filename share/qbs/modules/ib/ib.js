@@ -270,6 +270,31 @@ function ibtoolOutputArtifacts(product, inputs, input) {
     return artifacts;
 }
 
+function ibtoolCommands(project, product, inputs, outputs, input, output, explicitlyDependsOn)
+{
+    var cmd = new Command(ModUtils.moduleProperty(product, "ibtoolPath"),
+                          ibtooldArguments(product, inputs, input, outputs));
+    cmd.description = "compiling " + input.fileName;
+
+    // Also display the language name of the nib/storyboard being compiled if it has one
+    var localizationKey = DarwinTools.localizationKey(input.filePath);
+    if (localizationKey)
+        cmd.description += ' (' + localizationKey + ')';
+
+    cmd.highlight = 'compiler';
+
+    // May not be strictly needed, but is set by some versions of Xcode
+    if (input.fileTags.includes("storyboard"))
+        cmd.environment.push("IBSC_MINIMUM_COMPATIBILITY_VERSION=" +
+                             (product.moduleProperty("cpp", "minimumDarwinVersion") || ""));
+
+    cmd.stdoutFilterFunction = function(output) {
+        return "";
+    };
+
+    return cmd;
+}
+
 function actoolOutputArtifacts(product, inputs) {
     // actool has no --dry-run option (rdar://21786925),
     // so compile to a fake temporary directory in order to extract the list of output files
@@ -364,4 +389,27 @@ function ibtoolVersion(ibtool) {
         process.close();
     }
     return version;
+}
+
+function compileAssetCatalogCommands(project, product, inputs, outputs, input, output,
+                                     explicitlyDependsOn)
+{
+    var mkdir = new JavaScriptCommand();
+    mkdir.silent = true;
+    mkdir.sourceCode = function () {
+        File.makePath(FileInfo.joinPaths(product.buildDirectory, "actool.dir"));
+    };
+
+    var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
+                          ibtooldArguments(product, inputs, input, outputs));
+    cmd.description = inputs["assetcatalog"].map(function (input) {
+        return "compiling " + input.fileName;
+    }).join('\n');
+    cmd.highlight = "compiler";
+
+    cmd.stdoutFilterFunction = function(output) {
+        return "";
+    };
+
+    return [mkdir, cmd];
 }

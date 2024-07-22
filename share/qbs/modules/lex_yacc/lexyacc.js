@@ -82,3 +82,77 @@ function yaccOutputFilePath(input, posixFileName, options)
     }
     return FileInfo.joinPaths(outDir, fileName);
 }
+
+function yaccOutputArtifacts(product, input)
+{
+    var src = {
+        fileTags: [product.lex_yacc.outputTag],
+        lex_yacc: {},
+    };
+    var options = readYaccOptions(input.filePath);
+    if (!options.output && input.lex_yacc.yaccOutputFilePath) {
+        options.output = input.lex_yacc.yaccOutputFilePath;
+        src.lex_yacc.useOutputFromModule = true;
+    }
+    var hdr = {
+        filePath: yaccOutputFilePath(input, "y.tab.h", options),
+        fileTags: ["hpp"],
+    };
+    src.filePath = yaccOutputFilePath(input, "y.tab.c", options);
+    src.cpp = {
+        includePaths: [].concat(input.cpp.includePaths, input.lex_yacc.outputDir),
+        warningLevel: input.lex_yacc.enableCompilerWarnings ? "all" : "none",
+    };
+    return [hdr, src];
+}
+
+function yaccCommands(project, product, inputs, outputs, input, output, explicitlyDependsOn)
+{
+    var args = input.lex_yacc.yaccFlags;
+    args.push("-d");
+    var impl = outputs[input.lex_yacc.outputTag][0];
+    if (impl.lex_yacc.useOutputFromModule)
+        args.push("-o" + input.lex_yacc.yaccOutputFilePath);
+    else if (input.lex_yacc.uniqueSymbolPrefix)
+        args.push("-b", input.baseName, "-p", input.baseName);
+    args.push(input.filePath);
+    var cmd = new Command(input.lex_yacc.yaccBinary, args);
+    cmd.workingDirectory = input.lex_yacc.outputDir;
+    cmd.description = "generating "
+            + impl.fileName
+            + " and " + outputs["hpp"][0].fileName;
+    return [cmd];
+}
+
+function lexOutputArtifacts(product, input)
+{
+    var output = {
+        fileTags: [product.lex_yacc.outputTag],
+        lex_yacc: {},
+    };
+    var options = readLexOptions(input.filePath);
+    if (!options.outfile && input.lex_yacc.lexOutputFilePath) {
+        options.outfile = input.lex_yacc.lexOutputFilePath;
+        output.lex_yacc.useOutfileFromModule = true;
+    }
+    output.filePath = lexOutputFilePath(input, "lex.yy.c", options);
+    output.cpp = {
+        includePaths: [].concat(input.cpp.includePaths, input.lex_yacc.outputDir),
+        warningLevel: input.lex_yacc.enableCompilerWarnings ? "all" : "none",
+    };
+    return [output];
+}
+
+function lexCommands(project, product, inputs, outputs, input, output, explicitlyDependsOn)
+{
+    var args = input.lex_yacc.lexFlags;
+    if (output.lex_yacc.useOutfileFromModule)
+        args.push("-o" + input.lex_yacc.lexOutputFilePath);
+    else if (input.lex_yacc.uniqueSymbolPrefix)
+        args.push("-P" + input.baseName, "-o" + output.filePath);
+    args.push(input.filePath);
+    var cmd = new Command(input.lex_yacc.lexBinary, args);
+    cmd.workingDirectory = input.lex_yacc.outputDir;
+    cmd.description = "generating " + output.fileName;
+    return [cmd];
+}

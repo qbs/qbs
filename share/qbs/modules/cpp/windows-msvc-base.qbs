@@ -167,7 +167,6 @@ CppModule {
         multiplex: true
         inputs: ['obj', 'res', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
-
         outputFileTags: {
             var tags = ["application", "debuginfo_app"];
             if (generateLinkerMapFile)
@@ -176,33 +175,7 @@ CppModule {
                 tags.push("codesign.signed_artifact");
             return tags;
         }
-        outputArtifacts: {
-            var app = {
-                fileTags: ["application"].concat(
-                    product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
-                filePath: FileInfo.joinPaths(
-                              product.destinationDirectory,
-                              PathTools.applicationFilePath(product))
-            };
-            var artifacts = [app];
-            if (product.cpp.debugInformation && product.cpp.separateDebugInformation) {
-                artifacts.push({
-                    fileTags: ["debuginfo_app"],
-                    filePath: app.filePath.substr(0, app.filePath.length - 4)
-                              + product.cpp.debugInfoSuffix
-                });
-            }
-            if (product.cpp.generateLinkerMapFile) {
-                artifacts.push({
-                    fileTags: ["mem_map"],
-                    filePath: FileInfo.joinPaths(
-                                  product.destinationDirectory,
-                                  product.targetName + product.cpp.linkerMapSuffix)
-                });
-            }
-            return artifacts;
-        }
-
+        outputArtifacts: MSVC.appLinkerOutputArtifacts(product)
         prepare: MSVC.prepareLinker.apply(MSVC, arguments)
     }
 
@@ -211,39 +184,13 @@ CppModule {
         multiplex: true
         inputs: ['obj', 'res', 'native.pe.manifest', 'def']
         inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
-
         outputFileTags: {
             var tags = ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"];
             if (shouldSignArtifacts)
                 tags.push("codesign.signed_artifact");
             return tags;
         }
-        outputArtifacts: {
-            var artifacts = [
-                {
-                    fileTags: ["dynamiclibrary"].concat(
-                        product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 PathTools.dynamicLibraryFilePath(product))
-                },
-                {
-                    fileTags: ["dynamiclibrary_import"],
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 PathTools.importLibraryFilePath(product)),
-                    alwaysUpdated: false
-                }
-            ];
-            if (product.cpp.debugInformation && product.cpp.separateDebugInformation) {
-                var lib = artifacts[0];
-                artifacts.push({
-                    fileTags: ["debuginfo_dll"],
-                    filePath: lib.filePath.substr(0, lib.filePath.length - 4)
-                              + product.cpp.debugInfoSuffix
-                });
-            }
-            return artifacts;
-        }
-
+        outputArtifacts: MSVC.dllLinkerOutputArtifacts(product)
         prepare: MSVC.prepareLinker.apply(MSVC, arguments)
     }
 
@@ -253,43 +200,8 @@ CppModule {
         inputs: ["obj", "res"]
         inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
         outputFileTags: ["staticlibrary", "debuginfo_cl"]
-        outputArtifacts: {
-            var artifacts = [
-                {
-                    fileTags: ["staticlibrary"],
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 PathTools.staticLibraryFilePath(product))
-                }
-            ];
-            if (product.cpp.debugInformation && product.cpp.separateDebugInformation) {
-                artifacts.push({
-                    fileTags: ["debuginfo_cl"],
-                    filePath: product.targetName + ".cl" + product.cpp.debugInfoSuffix
-                });
-            }
-            return artifacts;
-        }
-        prepare: {
-            var args = ['/nologo']
-            var lib = outputs["staticlibrary"][0];
-            var nativeOutputFileName = FileInfo.toWindowsSeparators(lib.filePath)
-            args.push('/OUT:' + nativeOutputFileName)
-            for (var i in inputs.obj) {
-                var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].filePath)
-                args.push(fileName)
-            }
-            for (var i in inputs.res) {
-                var fileName = FileInfo.toWindowsSeparators(inputs.res[i].filePath)
-                args.push(fileName)
-            }
-            var cmd = new Command("lib.exe", args);
-            cmd.description = 'creating ' + lib.fileName;
-            cmd.highlight = 'linker';
-            cmd.jobPool = "linker";
-            cmd.workingDirectory = FileInfo.path(lib.filePath)
-            cmd.responseFileUsagePrefix = '@';
-            return cmd;
-         }
+        outputArtifacts: MSVC.libtoolOutputArtifacts(product)
+        prepare: MSVC.libtoolCommands.apply(MSVC, arguments)
     }
 
     FileTagger {
@@ -319,22 +231,6 @@ CppModule {
         inputs: ["asm"]
         outputFileTags: Cpp.assemblerOutputTags(false)
         outputArtifacts: Cpp.assemblerOutputArtifacts(input)
-        prepare: {
-            var args = ["/nologo", "/c", "/Fo" + FileInfo.toWindowsSeparators(output.filePath)];
-            if (product.cpp.debugInformation)
-                args.push("/Zi");
-            args = args.concat(Cpp.collectMiscAssemblerArguments(input, "asm"));
-            args.push(FileInfo.toWindowsSeparators(input.filePath));
-            var cmd = new Command(product.cpp.assemblerPath, args);
-            cmd.description = "assembling " + input.fileName;
-            cmd.jobPool = "assembler";
-            cmd.inputFileName = input.fileName;
-            cmd.stdoutFilterFunction = function(output) {
-                var lines = output.split("\r\n").filter(function (s) {
-                    return !s.endsWith(inputFileName); });
-                return lines.join("\r\n");
-            };
-            return cmd;
-        }
+        prepare: MSVC.assemblerCommands.apply(MSVC, arguments)
     }
 }

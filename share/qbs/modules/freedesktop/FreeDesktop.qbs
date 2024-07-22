@@ -67,31 +67,7 @@ Module {
             filePath: input.fileName
         }
 
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating " + output.fileName + " from " + input.fileName;
-            cmd.highlight = "codegen";
-            cmd.sourceCode = function() {
-                var aggregateDesktopKeys = Fdo.parseDesktopFile(input.filePath);
-                var desktopKeys = ModUtils.moduleProperty(product, "desktopKeys") || {}
-                var mainSection = aggregateDesktopKeys['Desktop Entry'];
-                for (key in desktopKeys) {
-                    if (desktopKeys.hasOwnProperty(key)) {
-                        mainSection[key] = desktopKeys[key];
-                    }
-                }
-
-                var defaultValues = product.freedesktop.defaultDesktopKeys
-                for (key in defaultValues) {
-                    if (!(key in mainSection)) {
-                        mainSection[key] = defaultValues[key];
-                    }
-                }
-
-                Fdo.dumpDesktopFile(output.filePath, aggregateDesktopKeys);
-            }
-            return [cmd];
-        }
+        prepare: Fdo.generateDesktopFileCommands.apply(Fdo, arguments)
     }
 
     Group {

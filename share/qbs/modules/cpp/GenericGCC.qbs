@@ -422,41 +422,7 @@ CppModule {
                 tags.push("codesign.signed_artifact");
             return tags;
         }
-        outputArtifacts: {
-            var artifacts = [{
-                filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                             PathTools.dynamicLibraryFilePath(product)),
-                fileTags: ["bundle.input", "dynamiclibrary"]
-                        .concat(product.cpp.shouldSignArtifacts
-                                ? ["codesign.signed_artifact"] : []),
-                bundle: {
-                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                        PathTools.bundleExecutableFilePath(product))
-                }
-            }];
-            if (product.cpp.imageFormat === "pe") {
-                artifacts.push({
-                    fileTags: ["dynamiclibrary_import"],
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 PathTools.importLibraryFilePath(product)),
-                    alwaysUpdated: false
-                });
-            } else {
-                // List of libfoo's public symbols for smart re-linking.
-                artifacts.push({
-                    filePath: product.destinationDirectory + "/.sosymbols/"
-                              + PathTools.dynamicLibraryFilePath(product),
-                    fileTags: ["dynamiclibrary_symbols"],
-                    alwaysUpdated: false,
-                });
-            }
-
-            artifacts = artifacts.concat(Gcc.librarySymlinkArtifacts(product));
-            if (!product.aggregate)
-                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "dll"));
-            return artifacts;
-        }
-
+        outputArtifacts: Gcc.dynamicLibLinkerOutputArtifacts(product)
         prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
@@ -466,43 +432,9 @@ CppModule {
         multiplex: true
         inputs: ["obj", "res", "linkerscript"]
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
-
         outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
-        outputArtifacts: {
-            var tags = ["bundle.input", "staticlibrary"];
-            var objs = inputs["obj"];
-            var objCount = objs ? objs.length : 0;
-            for (var i = 0; i < objCount; ++i) {
-                var ft = objs[i].fileTags;
-                if (ft.includes("c_obj"))
-                    tags.push("c_staticlibrary");
-                if (ft.includes("cpp_obj"))
-                    tags.push("cpp_staticlibrary");
-            }
-            return [{
-                filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                             PathTools.staticLibraryFilePath(product)),
-                fileTags: tags,
-                bundle: {
-                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                        PathTools.bundleExecutableFilePath(product))
-                }
-            }];
-        }
-
-        prepare: {
-            var args = ['rcs', output.filePath];
-            for (var i in inputs.obj)
-                args.push(inputs.obj[i].filePath);
-            for (var i in inputs.res)
-                args.push(inputs.res[i].filePath);
-            var cmd = new Command(product.cpp.archiverPath, args);
-            cmd.description = 'creating ' + output.fileName;
-            cmd.highlight = 'linker'
-            cmd.jobPool = "linker";
-            cmd.responseFileUsagePrefix = '@';
-            return cmd;
-        }
+        outputArtifacts: Gcc.staticLibLinkerOutputArtifacts(product, inputs)
+        prepare: Gcc.staticLibLinkerCommands.apply(Gcc, arguments)
     }
 
     Rule {
@@ -526,25 +458,7 @@ CppModule {
                 tags.push("codesign.signed_artifact");
             return tags;
         }
-        outputArtifacts: {
-            var app = {
-                filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                             PathTools.loadableModuleFilePath(product)),
-                fileTags: ["bundle.input", "loadablemodule"]
-                        .concat(product.cpp.shouldSignArtifacts
-                                ? ["codesign.signed_artifact"] : []),
-                bundle: {
-                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                        PathTools.bundleExecutableFilePath(product))
-                }
-            }
-            var artifacts = [app];
-            if (!product.aggregate)
-                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined,
-                                                                    "loadablemodule"));
-            return artifacts;
-        }
-
+        outputArtifacts: Gcc.moduleLinkerOutputArtifacts(product)
         prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
@@ -561,7 +475,6 @@ CppModule {
             return tags;
         }
         inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
-
         outputFileTags: {
             var tags = ["bundle.input", "application", "debuginfo_app", "debuginfo_bundle",
                         "debuginfo_plist"];
@@ -571,30 +484,7 @@ CppModule {
                 tags.push("mem_map");
             return tags;
         }
-        outputArtifacts: {
-            var app = {
-                filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                             PathTools.applicationFilePath(product)),
-                fileTags: ["bundle.input", "application"].concat(
-                    product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
-                bundle: {
-                    _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                        PathTools.bundleExecutableFilePath(product))
-                }
-            }
-            var artifacts = [app];
-            if (!product.aggregate)
-                artifacts = artifacts.concat(Gcc.debugInfoArtifacts(product, undefined, "app"));
-            if (product.cpp.generateLinkerMapFile) {
-                artifacts.push({
-                    filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                                 product.targetName + product.cpp.linkerMapSuffix),
-                    fileTags: ["mem_map"]
-                });
-            }
-            return artifacts;
-        }
-
+        outputArtifacts: Gcc.appLinkerOutputArtifacts(product)
         prepare: Gcc.prepareLinker.apply(Gcc, arguments)
     }
 
