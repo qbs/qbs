@@ -61,7 +61,7 @@ PathProbe {
 
         return result;
     }
-    nameFilter: PathTools.libraryNameFilter(qbs.targetOS)
+    nameFilter: PathTools.libraryNameFilter()
     platformEnvironmentPaths: {
         if (qbs.targetOS.contains("windows"))
             return [ "PATH" ];

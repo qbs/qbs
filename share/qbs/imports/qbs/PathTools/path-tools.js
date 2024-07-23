@@ -235,8 +235,12 @@ function prependOrSetPath(path, pathList, separator) {
 
 function librarySuffixes(targetOS, types, forImport) {
     if (targetOS.includes("windows")) {
-        if (forImport)
-            return [".lib"];
+        if (forImport) {
+            return []
+                .concat(types.includes("shared") ? [".lib"] : [])
+                // mingw uses .a for static libs
+                .concat(types.includes("static") ? [".lib", ".a"] : []);
+        }
         return [].concat(types.includes("shared") ? [".dll"] : []);
     }
     if (targetOS.includes("darwin")) {
@@ -249,8 +253,6 @@ function librarySuffixes(targetOS, types, forImport) {
         .concat(types.includes("static") ? [".a"] : []);
 }
 
-function libraryNameFilter(targetOS) {
-    if (targetOS.contains("unix"))
-        return function(name) { return "lib" + name; }
-    return function(name) { return name; }
+function libraryNameFilter() {
+    return function(name) { return [name, "lib" + name]; }
 }

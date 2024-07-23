@@ -104,7 +104,7 @@ function findLibs(libnames, libdirs, libtypes, targetOS, forImport) {
             undefined, // selectors
             [libraryName],
             suffixes,
-            PathTools.libraryNameFilter(targetOS),
+            PathTools.libraryNameFilter(),
             undefined, // candidateFilter
             libdirs, // searchPaths
             undefined, // pathSuffixes
