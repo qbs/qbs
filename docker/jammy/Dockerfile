@@ -76,7 +76,7 @@ RUN apt-get update -qq && \
     update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100 && \
     update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-15 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
-    pip install beautifulsoup4 lxml protobuf==3.19.1 pyyaml
+    pip install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -108,6 +108,9 @@ RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
     qbs-setup-qt /opt/Qt/${QT_VERSION}/gcc_64/bin/qmake qt-clang_64 && \
     qbs config profiles.qt-clang_64.baseProfile clang && \
     qbs config defaultProfile qt-gcc_64
+
+# Configure Conan
+RUN conan profile detect --name qbs-test
 
 # Switch back to root user for the entrypoint script.
 USER root
