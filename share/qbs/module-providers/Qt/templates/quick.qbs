@@ -30,8 +30,6 @@
 
 import qbs.File
 import qbs.FileInfo
-import qbs.Process
-import qbs.TextFile
 import qbs.Utilities
 import 'quick.js' as QC
 
@@ -100,19 +98,7 @@ QtModule {
             filePath: input.fileName + ".json"
             fileTags: ["qt.quick.qrcinfo"]
         }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.silent = true;
-            cmd.sourceCode = function() {
-                var content = QC.contentFromQrc(product, input.filePath);
-                content.qrcFilePath = input.filePath;
-
-                var tf = new TextFile(output.filePath, TextFile.WriteOnly);
-                tf.write(JSON.stringify(content));
-                tf.close();
-            }
-            return cmd;
-        }
+        prepare: QC.generateCompilerInputCommands(product, input, output)
     }
 
     Rule {
@@ -120,98 +106,7 @@ QtModule {
         inputs: ["qt.quick.qrcinfo"]
         outputFileTags: ["cpp", "qrc"]
         multiplex: true
-        outputArtifacts: {
-            var infos = [];
-            inputs["qt.quick.qrcinfo"].forEach(function (input) {
-                var tf = new TextFile(input.filePath, TextFile.ReadOnly);
-                infos.push(JSON.parse(tf.readAll()));
-                tf.close();
-            });
-
-            var result = [];
-            infos.forEach(function (info) {
-                if (info.newQrcFileName) {
-                    result.push({
-                        filePath: info.newQrcFileName,
-                        fileTags: ["qrc"]
-                    });
-                }
-                info.qmlJsFiles.forEach(function (qmlJsFile) {
-                    result.push({
-                        filePath: qmlJsFile.output,
-                        fileTags: ["cpp"]
-                    });
-                });
-            });
-            result.push({
-                filePath: product.Qt.quick._generatedLoaderFileName,
-                fileTags: ["cpp"]
-            });
-            return result;
-        }
-        prepare: {
-            var infos = [];
-            inputs["qt.quick.qrcinfo"].forEach(function (input) {
-                var tf = new TextFile(input.filePath, TextFile.ReadOnly);
-                infos.push(JSON.parse(tf.readAll()));
-                tf.close();
-            });
-
-            var cmds = [];
-            var qmlCompiler = product.Qt.quick.compilerFilePath;
-            var useCacheGen = product.Qt.quick._compilerIsQmlCacheGen;
-            var cmd;
-            var loaderFlags = [];
-
-            function findOutput(fileName) {
-                for (var k in outputs) {
-                    for (var i in outputs[k]) {
-                        if (outputs[k][i].fileName === fileName)
-                            return outputs[k][i];
-                    }
-                }
-                throw new Error("Qt Quick compiler rule: Cannot find output artifact "
-                                + fileName + ".");
-            }
-
-            infos.forEach(function (info) {
-                if (info.newQrcFileName) {
-                    loaderFlags.push("--resource-file-mapping="
-                                     + FileInfo.fileName(info.qrcFilePath)
-                                     + '=' + info.newQrcFileName);
-                    // Qt 5.15 doesn't really filter anyting but merely copies the qrc
-                    // content to the new location
-                    var args = ["--filter-resource-file",
-                                info.qrcFilePath];
-                    if (useCacheGen)
-                        args.push("-o");
-                    args.push(findOutput(info.newQrcFileName).filePath);
-                    cmd = new Command(qmlCompiler, args);
-                    cmd.description = "generating " + info.newQrcFileName;
-                    cmds.push(cmd);
-                } else {
-                    loaderFlags.push("--resource-file-mapping=" + info.qrcFilePath);
-                }
-                info.qmlJsFiles.forEach(function (qmlJsFile) {
-                    var args = ["--resource=" + info.qrcFilePath, qmlJsFile.input];
-                    if (useCacheGen)
-                        args.push("-o");
-                    args.push(findOutput(qmlJsFile.output).filePath);
-                    cmd = new Command(qmlCompiler, args);
-                    cmd.description = "generating " + qmlJsFile.output;
-                    cmd.workingDirectory = FileInfo.path(info.qrcFilePath);
-                    cmds.push(cmd);
-                });
-            });
-
-            var args = loaderFlags.concat(infos.map(function (info) { return info.qrcFilePath; }));
-            if (useCacheGen)
-                args.push("-o");
-            args.push(findOutput(product.Qt.quick._generatedLoaderFileName).filePath);
-            cmd = new Command(qmlCompiler, args);
-            cmd.description = "generating loader source";
-            cmds.push(cmd);
-            return cmds;
-        }
+        outputArtifacts: QC.compilerOutputArtifacts(product, inputs)
+        prepare: QC.compilerCommands.apply(QC, arguments)
     }
 }

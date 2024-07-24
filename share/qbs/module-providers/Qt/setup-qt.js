@@ -409,6 +409,9 @@ function setupOneQt(moduleName, qtInfo, outputBaseDir, uniquify, location) {
             copyTemplateFile("android_support.qbs",
                             FileInfo.joinPaths(qbsQtModuleBaseDir, "android_support"),
                             qtProps, androidAbi, location, allFiles);
+            copyTemplateFile("android_support.js",
+                            FileInfo.joinPaths(qbsQtModuleBaseDir, "android_support"),
+                            qtProps, androidAbi, location, allFiles);
             relativeSearchPaths.push(relativeSearchPath);
             return relativeSearchPaths;
         } else if (moduleName === "qmlcache") {
@@ -430,6 +433,8 @@ function setupOneQt(moduleName, qtInfo, outputBaseDir, uniquify, location) {
 
             if (module.qbsName === "core") {
                 moduleTemplateFileName = "core.qbs";
+                copyTemplateFile("core.js", qbsQtModuleDir, qtProps, androidAbi, location,
+                                 allFiles);
                 copyTemplateFile("moc.js", qbsQtModuleDir, qtProps, androidAbi, location,
                                  allFiles);
                 copyTemplateFile("qdoc.js", qbsQtModuleDir, qtProps, androidAbi, location,

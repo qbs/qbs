@@ -82,3 +82,15 @@ function outputArtifacts(product, input) {
     };
     return tracker.artifacts(ModUtils.moduleProperty(product, "qdocOutputDir"));
 }
+
+function commands(product, input)
+{
+    var outputDir = product.Qt.core.qdocOutputDir;
+    var args = qdocArgs(product, input, outputDir);
+    var cmd = new Command(product.Qt.core.binPath + '/' + product.Qt.core.qdocName, args);
+    cmd.description = 'qdoc ' + input.fileName;
+    cmd.highlight = 'filegen';
+    cmd.environment = product.Qt.core.qdocEnvironment;
+    cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
+    return cmd;
+}

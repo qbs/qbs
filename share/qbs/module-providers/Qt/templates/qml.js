@@ -103,3 +103,100 @@ function getLibsForPlugin(pluginData, product)
         prlFile.close();
     }
 }
+
+function typeRegistrarCommands(project, product, inputs, outputs, input, output,
+                               explicitlyDependsOn)
+{
+    var versionParts = product.Qt.qml._importVersionParts;
+    var args = [
+        "--generate-qmltypes=" + outputs["qt.qml.types"][0].filePath,
+        "--import-name=" + product.Qt.qml.importName,
+        "--major-version=" + versionParts[0],
+        "--minor-version=" + (versionParts.length > 1 ? versionParts[1] : "0")
+    ];
+    var foreignTypes = product.Qt.qml.extraMetaTypesFiles || [];
+    var metaTypeArtifactsFromDeps = explicitlyDependsOn["qt.core.metatypes"] || [];
+    var filePathFromArtifact = function(a) { return a.filePath; };
+    foreignTypes = foreignTypes.concat(metaTypeArtifactsFromDeps.map(filePathFromArtifact));
+    if (foreignTypes.length > 0)
+        args.push("--foreign-types=" + foreignTypes.join(","));
+    args.push("-o", outputs.cpp[0].filePath);
+    args = args.concat(inputs["qt.core.metatypes"].map(filePathFromArtifact));
+    var cmd = new Command(product.Qt.core.qmlLibExecPath + "/qmltyperegistrar", args);
+    cmd.description = "running qmltyperegistrar";
+    cmd.highlight = "codegen";
+    return cmd;
+}
+
+function generatePluginImportOutputArtifacts(product, inputs)
+{
+    var list = [];
+    if (inputs["qt.qml.qml"])
+        list.push({ filePath: "qml_plugin_import.cpp", fileTags: ["cpp"] });
+    list.push({
+        filePath: product.Qt.core.qtBuildVariant === "debug"
+                      ? product.Qt.qml.pluginListFilePathDebug
+                      : product.Qt.qml.pluginListFilePathRelease,
+        fileTags: ["qt.qml.pluginlist"]
+    });
+    return list;
+}
+
+function generatePluginImportCommands(project, product, inputs, outputs, input, output,
+                                      explicitlyDependsOn)
+{
+    var cmd = new JavaScriptCommand();
+    if (inputs["qt.qml.qml"])
+        cmd.description = "creating " + outputs["cpp"][0].fileName;
+    else
+        cmd.silent = true;
+    cmd.sourceCode = function() {
+        var qmlInputs = inputs["qt.qml.qml"];
+        if (!qmlInputs)
+            qmlInputs = [];
+        var scannerData = Qml.scannerData(product.Qt.qml.qmlImportScannerFilePath,
+                qmlInputs.map(function(inp) { return inp.filePath; }),
+                product.Qt.qml.qmlPath, Host.os());
+        var cppFile;
+        var listFile;
+        try {
+            if (qmlInputs.length > 0)
+                cppFile = new TextFile(outputs["cpp"][0].filePath, TextFile.WriteOnly);
+            listFile = new TextFile(outputs["qt.qml.pluginlist"][0].filePath,
+                                    TextFile.WriteOnly);
+            if (cppFile)
+                cppFile.writeLine("#include <QtPlugin>");
+            var plugins = { };
+            var libsWithUniqueObjects = [];
+            for (var p in scannerData) {
+                var plugin = scannerData[p].plugin;
+                if (!plugin || plugins[plugin])
+                    continue;
+                plugins[plugin] = true;
+                var className = scannerData[p].classname;
+                if (!className) {
+                    throw "QML plugin '" + plugin + "' is missing a classname entry. " +
+                          "Please add one to the qmldir file.";
+                }
+                if (cppFile)
+                    cppFile.writeLine("Q_IMPORT_PLUGIN(" + className + ")");
+                var libs = Qml.getLibsForPlugin(scannerData[p], product);
+                for (var i = 0; i < libs.length; ++i) {
+                    var lib = libs[i];
+                    if (!lib.endsWith(product.cpp.objectSuffix)
+                            || (!libsWithUniqueObjects.contains(lib)
+                                && !product.cpp.staticLibraries.contains(FileInfo.cleanPath(lib)))) {
+                        libsWithUniqueObjects.push(lib);
+                    }
+                }
+            }
+            listFile.write(libsWithUniqueObjects.join("\n"));
+        } finally {
+            if (cppFile)
+                cppFile.close();
+            if (listFile)
+                listFile.close();
+        };
+    };
+    return [cmd];
+}

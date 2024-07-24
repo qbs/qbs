@@ -115,3 +115,26 @@ function commands(project, product, inputs, outputs, input, output)
     cmd.highlight = 'codegen';
     return cmd;
 }
+
+function generateMocCppCommands(inputs, output)
+{
+    var cmd = new JavaScriptCommand();
+    cmd.description = "creating " + output.fileName;
+    cmd.highlight = "codegen";
+    cmd.sourceCode = function() {
+        ModUtils.mergeCFiles(inputs["moc_cpp"], output.filePath);
+    };
+    return [cmd];
+}
+
+function generateMetaTypesCommands(inputs, output)
+{
+    var inputFilePaths = inputs["qt.core.metatypes.in"].map(function(a) {
+        return a.filePath;
+    });
+    var cmd = new Command(fullPath(product),
+        ["--collect-json", "-o", output.filePath].concat(inputFilePaths));
+    cmd.description = "generating " + output.fileName;
+    cmd.highlight = "codegen";
+    return cmd;
+}

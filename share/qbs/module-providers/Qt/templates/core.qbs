@@ -2,7 +2,7 @@ import qbs.FileInfo
 import qbs.ModUtils
 import qbs.TextFile
 import qbs.Utilities
-import qbs.Xml
+import "core.js" as Core
 import "moc.js" as Moc
 import "qdoc.js" as Qdoc
 import "rcc.js" as Rcc
@@ -352,15 +352,7 @@ Module {
             filePath: "amalgamated_moc_" + product.targetName + ".cpp"
             fileTags: ["cpp", "unmocable"]
         }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "creating " + output.fileName;
-            cmd.highlight = "codegen";
-            cmd.sourceCode = function() {
-                ModUtils.mergeCFiles(inputs["moc_cpp"], output.filePath);
-            };
-            return [cmd];
-        }
+        prepare: Moc.generateMocCppCommands(inputs, output)
     }
 
     Rule {
@@ -372,16 +364,7 @@ Module {
             qbs.install: product.Qt.core.metaTypesInstallDir
             qbs.installDir: product.Qt.core.metaTypesInstallDir
         }
-        prepare: {
-            var inputFilePaths = inputs["qt.core.metatypes.in"].map(function(a) {
-                return a.filePath;
-            });
-            var cmd = new Command(Moc.fullPath(product),
-                ["--collect-json", "-o", output.filePath].concat(inputFilePaths));
-            cmd.description = "generating " + output.fileName;
-            cmd.highlight = "codegen";
-            return cmd;
-        }
+        prepare: Moc.generateMetaTypesCommands(inputs, output)
     }
 
     property path resourceSourceBase
@@ -394,81 +377,14 @@ Module {
             filePath: product.Qt.core.resourceFileBaseName + ".qrc"
             fileTags: ["qrc"]
         }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating " + output.fileName;
-            cmd.sourceCode = function() {
-                var doc = new Xml.DomDocument("RCC");
-
-                var rccNode = doc.createElement("RCC");
-                rccNode.setAttribute("version", "1.0");
-                doc.appendChild(rccNode);
-
-                var inputsByPrefix = {}
-                for (var i = 0; i < inputs["qt.core.resource_data"].length; ++i) {
-                    var inp = inputs["qt.core.resource_data"][i];
-                    var prefix = inp.Qt.core.resourcePrefix;
-                    var inputsList = inputsByPrefix[prefix] || [];
-                    inputsList.push(inp);
-                    inputsByPrefix[prefix] = inputsList;
-                }
-
-                for (var prefix in inputsByPrefix) {
-                    var qresourceNode = doc.createElement("qresource");
-                    qresourceNode.setAttribute("prefix", prefix);
-                    rccNode.appendChild(qresourceNode);
-
-                    for (var i = 0; i < inputsByPrefix[prefix].length; ++i) {
-                        var inp = inputsByPrefix[prefix][i];
-                        var fullResPath = inp.filePath;
-                        var baseDir = inp.Qt.core.resourceSourceBase;
-                        var resAlias = baseDir
-                            ? FileInfo.relativePath(baseDir, fullResPath) : inp.fileName;
-
-                        var fileNode = doc.createElement("file");
-                        fileNode.setAttribute("alias", resAlias);
-                        qresourceNode.appendChild(fileNode);
-
-                        var fileTextNode = doc.createTextNode(fullResPath);
-                        fileNode.appendChild(fileTextNode);
-                    }
-                }
-
-                doc.save(output.filePath, 4);
-            };
-            return [cmd];
-        }
+        prepare: Rcc.generateQrcFileCommands.apply(Rcc, arguments)
     }
 
     Rule {
         inputs: ["qrc"]
         outputFileTags: ["cpp", "cpp_intermediate_object"]
-        outputArtifacts: {
-            var artifact = {
-                filePath: "qrc_" + input.completeBaseName + ".cpp",
-                fileTags: ["cpp"]
-            };
-            if (input.Qt.core.enableBigResources)
-                artifact.fileTags.push("cpp_intermediate_object");
-            return [artifact];
-        }
-        prepare: {
-            var args = [input.filePath,
-                        "-name", FileInfo.completeBaseName(input.filePath),
-                        "-o", output.filePath];
-            if (input.Qt.core.enableBigResources)
-                args.push("-pass", "1");
-            if (product.Qt.core.disabledFeatures.contains("zstd")
-                    && Utilities.versionCompare(product.Qt.core.version, "5.13") >= 0) {
-                args.push("--no-zstd");
-            }
-            var cmd = new Command(Rcc.fullPath(product), args);
-            cmd.description = "rcc "
-                + (input.Qt.core.enableBigResources ? "(pass 1) " : "")
-                + input.fileName;
-            cmd.highlight = 'codegen';
-            return cmd;
-        }
+        outputArtifacts: Rcc.rccOutputArtifacts(input)
+        prepare: Rcc.rccCommands(product, input, output)
     }
 
     Rule {
@@ -477,32 +393,7 @@ Module {
             filePath: input.completeBaseName + ".2" + input.cpp.objectSuffix
             fileTags: ["obj"]
         }
-        prepare: {
-            function findChild(artifact, predicate) {
-                var children = artifact.children;
-                var len = children.length;
-                for (var i = 0; i < len; ++i) {
-                    var child = children[i];
-                    if (predicate(child))
-                        return child;
-                    child = findChild(child, predicate);
-                    if (child)
-                        return child;
-                }
-                return undefined;
-            }
-            var qrcArtifact = findChild(input, function(c) { return c.fileTags.contains("qrc"); });
-            var cppArtifact = findChild(input, function(c) { return c.fileTags.contains("cpp"); });
-            var cmd = new Command(Rcc.fullPath(product),
-                                  [qrcArtifact.filePath,
-                                   "-temp", input.filePath,
-                                   "-name", FileInfo.completeBaseName(input.filePath),
-                                   "-o", output.filePath,
-                                   "-pass", "2"]);
-            cmd.description = "rcc (pass 2) " + qrcArtifact.fileName;
-            cmd.highlight = 'codegen';
-            return cmd;
-        }
+        prepare: Rcc.rccPass2Commands(product, input, output)
     }
 
     Rule {
@@ -517,38 +408,15 @@ Module {
             fileTags: ["qm"]
         }
 
-        prepare: {
-            var inputFilePaths;
-            if (product.Qt.core.lreleaseMultiplexMode)
-                inputFilePaths = inputs["ts"].map(function(artifact) { return artifact.filePath; });
-            else
-                inputFilePaths = [input.filePath];
-            var args = ['-silent', '-qm', output.filePath].concat(inputFilePaths);
-            var cmd = new Command(product.Qt.core.binPath + '/'
-                                  + product.Qt.core.lreleaseName, args);
-            cmd.description = 'creating ' + output.fileName;
-            cmd.highlight = 'filegen';
-            return cmd;
-        }
+        prepare: Core.lreleaseCommands.apply(Core, arguments)
     }
 
     Rule {
         inputs: "qdocconf-main"
         explicitlyDependsOn: ["qdoc", "qdocconf"]
-
         outputFileTags: ModUtils.allFileTags(Qdoc.qdocFileTaggers())
         outputArtifacts: Qdoc.outputArtifacts(product, input)
-
-        prepare: {
-            var outputDir = product.Qt.core.qdocOutputDir;
-            var args = Qdoc.qdocArgs(product, input, outputDir);
-            var cmd = new Command(product.Qt.core.binPath + '/' + product.Qt.core.qdocName, args);
-            cmd.description = 'qdoc ' + input.fileName;
-            cmd.highlight = 'filegen';
-            cmd.environment = product.Qt.core.qdocEnvironment;
-            cmd.environment.push("OUTDIR=" + outputDir); // Qt 4 replacement for -outputdir
-            return cmd;
-        }
+        prepare: Qdoc.commands(product, input)
     }
 
     Rule {
@@ -561,20 +429,7 @@ Module {
             fileTags: ["qch"]
         }
 
-        prepare: {
-            var args = [input.filePath];
-            args = args.concat(product.Qt.core.helpGeneratorArgs);
-            args.push("-o");
-            args.push(output.filePath);
-            var cmd = new Command(
-                product.Qt.core.helpGeneratorLibExecPath + "/qhelpgenerator", args);
-            cmd.description = 'qhelpgenerator ' + input.fileName;
-            cmd.highlight = 'filegen';
-            cmd.stdoutFilterFunction = function(output) {
-                return "";
-            };
-            return cmd;
-        }
+        prepare: Core.qhelpGeneratorCommands(product, input, output)
     }
 
     @additionalContent@
