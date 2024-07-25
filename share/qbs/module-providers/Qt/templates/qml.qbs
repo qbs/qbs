@@ -72,26 +72,27 @@ QtModule {
     }
     property string typesInstallDir
     property stringList extraMetaTypesFiles
-    Properties  {
+
+
+    Group {
         condition: importName
-        Qt.core.generateMetaTypesFile: true
-    }
-    Rule {
-        condition: importName
-        inputs: "qt.core.metatypes"
-        multiplex: true
-        explicitlyDependsOnFromDependencies: "qt.core.metatypes"
-        Artifact {
-            filePath: product.targetName.toLowerCase() + "_qmltyperegistrations.cpp"
-            fileTags: ["cpp", "unmocable"]
+        Properties { Qt.core.generateMetaTypesFile: true }
+        Rule {
+            inputs: "qt.core.metatypes"
+            multiplex: true
+            explicitlyDependsOnFromDependencies: "qt.core.metatypes"
+            Artifact {
+                filePath: product.targetName.toLowerCase() + "_qmltyperegistrations.cpp"
+                fileTags: ["cpp", "unmocable"]
+            }
+            Artifact {
+                filePath: product.Qt.qml.typesFileName
+                fileTags: "qt.qml.types"
+                qbs.install: product.Qt.qml.typesInstallDir
+                qbs.installDir: product.Qt.qml.typesInstallDir
+            }
+            prepare: Qml.typeRegistrarCommands.apply(Qml, arguments)
         }
-        Artifact {
-            filePath: product.Qt.qml.typesFileName
-            fileTags: "qt.qml.types"
-            qbs.install: product.Qt.qml.typesInstallDir
-            qbs.installDir: product.Qt.qml.typesInstallDir
-        }
-        prepare: Qml.typeRegistrarCommands.apply(Qml, arguments)
     }
 
     Rule {

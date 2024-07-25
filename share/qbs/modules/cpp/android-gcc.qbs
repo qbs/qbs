@@ -71,13 +71,6 @@ LinuxGCC {
                                                   staticLibrarySuffix))
         : undefined
 
-    Group {
-        name: "Android STL"
-        condition: product.cpp.sharedStlFilePath && product.cpp.shouldLink
-        files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
-        fileTags: "android.stl"
-    }
-
     toolchainInstallPath: FileInfo.joinPaths(Android.ndk.ndkDir, "toolchains",
                                              "llvm", "prebuilt",
                                              Android.ndk.hostArch, "bin")
@@ -160,18 +153,28 @@ LinuxGCC {
 
     endianness: "little"
 
-    Rule {
+    Group {
         condition: shouldLink
-        inputs: "dynamiclibrary"
-        Artifact {
-            filePath: FileInfo.joinPaths("stripped-libs", input.fileName)
-            fileTags: "android.nativelibrary"
+
+        Group {
+            name: "Android STL"
+            condition: product.cpp.sharedStlFilePath
+            files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
+            fileTags: "android.stl"
         }
-        prepare: {
-            var stripArgs = ["--strip-all", "-o", output.filePath, input.filePath];
-            var stripCmd = new Command(product.cpp.stripPath, stripArgs);
-            stripCmd.description = "stripping unneeded symbols from " + input.fileName;
-            return stripCmd;
+
+        Rule {
+            inputs: "dynamiclibrary"
+            Artifact {
+                filePath: FileInfo.joinPaths("stripped-libs", input.fileName)
+                fileTags: "android.nativelibrary"
+            }
+            prepare: {
+                var stripArgs = ["--strip-all", "-o", output.filePath, input.filePath];
+                var stripCmd = new Command(product.cpp.stripPath, stripArgs);
+                stripCmd.description = "stripping unneeded symbols from " + input.fileName;
+                return stripCmd;
+            }
         }
     }
 

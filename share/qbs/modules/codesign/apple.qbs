@@ -216,27 +216,29 @@ CodeSignModule {
         patterns: ["*.mobileprovision", "*.provisionprofile"]
     }
 
-    Rule {
-        multiplex: true
-        condition: product.codesign.enableCodeSigning &&
-                   product.codesign._provisioningProfileAllowed
-        inputs: ["codesign.provisioningprofile"]
-        outputFileTags: ["codesign.embedded_provisioningprofile"]
-        outputArtifacts: CodeSign.generateAppleProvisioningProfileOutputs(product, inputs)
-        prepare: CodeSign.generateAppleProvisioningProfileCommands.apply(CodeSign, arguments)
-    }
+    Group {
+        condition: enableCodeSigning
 
-    Rule {
-        multiplex: true
-        condition: product.codesign.enableCodeSigning
-        inputs: ["codesign.entitlements", "codesign.embedded_provisioningprofile"]
+        Rule {
+            multiplex: true
+            inputs: ["codesign.entitlements", "codesign.embedded_provisioningprofile"]
 
-        Artifact {
-            filePath: FileInfo.joinPaths(product.destinationDirectory,
-                                         product.targetName + ".xcent")
-            fileTags: ["codesign.xcent"]
+            Artifact {
+                filePath: FileInfo.joinPaths(product.destinationDirectory,
+                                             product.targetName + ".xcent")
+                fileTags: ["codesign.xcent"]
+            }
+
+            prepare: CodeSign.generateAppleEntitlementsCommands(CodeSign, arguments)
         }
 
-        prepare: CodeSign.generateAppleEntitlementsCommands(CodeSign, arguments)
+        Rule {
+            multiplex: true
+            condition: product.codesign._provisioningProfileAllowed
+            inputs: ["codesign.provisioningprofile"]
+            outputFileTags: ["codesign.embedded_provisioningprofile"]
+            outputArtifacts: CodeSign.generateAppleProvisioningProfileOutputs(product, inputs)
+            prepare: CodeSign.generateAppleProvisioningProfileCommands.apply(CodeSign, arguments)
+        }
     }
 }

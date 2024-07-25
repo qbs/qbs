@@ -31,6 +31,9 @@ Module {
     property bool _correctQtNetworkDependencies: Utilities.versionCompare(version, "5.15.0") > 0 &&
                                                  Utilities.versionCompare(version, "5.15.3") < 0
 
+    readonly property string _qtAndroidJarFileName: Utilities.versionCompare(version, "6.0") >= 0 ?
+                                                       "Qt6Android.jar" : "QtAndroid.jar"
+
     Group {
         condition: _enableSdkSupport
         name: "helper sources from qt"
@@ -65,6 +68,46 @@ Module {
             "**/*.java",
             "**/*.aidl",
         ]
+
+        Rule {
+            multiplex: true
+            property stringList inputTags: ["android.nativelibrary", "qrc"]
+            inputsFromDependencies: inputTags
+            inputs: product.aggregate ? [] : inputTags
+            Artifact {
+                filePath: "androiddeployqt.json"
+                fileTags: "qt_androiddeployqt_input"
+            }
+            prepare: Impl.prepareDeployQtCommands.apply(Impl, arguments)
+        }
+
+        // We use the manifest template from the Qt installation if and only if the project
+        // does not provide a manifest file.
+        Rule {
+            multiplex: true
+            requiresInputs: false
+            inputs: "android.manifest"
+            excludedInputs: "qt.android_manifest"
+            outputFileTags: ["android.manifest", "qt.android_manifest"]
+            outputArtifacts: Impl.qtManifestOutputArtifacts(inputs)
+            prepare: Impl.qtManifestCommands(product, output)
+        }
+
+        Rule {
+            multiplex: true
+            property stringList defaultInputs: ["qt_androiddeployqt_input",
+                                                "android.manifest_processed"]
+            property stringList allInputs: ["qt_androiddeployqt_input", "android.manifest_processed",
+                                            "android.nativelibrary"]
+            inputsFromDependencies: "android.nativelibrary"
+            inputs: product.aggregate ? defaultInputs : allInputs
+            outputFileTags: [
+                "android.manifest_final", "android.resources", "android.assets", "bundled_jar",
+                "android.deployqt_list",
+            ]
+            outputArtifacts: Impl.deployQtOutputArtifacts(product)
+            prepare: Impl.deployQtCommands.apply(Impl, arguments)
+        }
     }
 
     Group {
@@ -87,52 +130,6 @@ Module {
                        (Android.ndk.abi === "armeabi-v7a" || Android.ndk.abi === "x86")
             cpp.defines: "ANDROID_HAS_WSTRING"
         }
-    }
-
-    readonly property string _qtAndroidJarFileName: Utilities.versionCompare(version, "6.0") >= 0 ?
-                                                       "Qt6Android.jar" : "QtAndroid.jar"
-
-    Rule {
-        condition: _enableSdkSupport
-        multiplex: true
-        property stringList inputTags: ["android.nativelibrary", "qrc"]
-        inputsFromDependencies: inputTags
-        inputs: product.aggregate ? [] : inputTags
-        Artifact {
-            filePath: "androiddeployqt.json"
-            fileTags: "qt_androiddeployqt_input"
-        }
-        prepare: Impl.prepareDeployQtCommands.apply(Impl, arguments)
-    }
-
-    // We use the manifest template from the Qt installation if and only if the project
-    // does not provide a manifest file.
-    Rule {
-        condition: _enableSdkSupport
-        multiplex: true
-        requiresInputs: false
-        inputs: "android.manifest"
-        excludedInputs: "qt.android_manifest"
-        outputFileTags: ["android.manifest", "qt.android_manifest"]
-        outputArtifacts: Impl.qtManifestOutputArtifacts(inputs)
-        prepare: Impl.qtManifestCommands(product, output)
-    }
-
-    Rule {
-        condition: _enableSdkSupport
-        multiplex: true
-        property stringList defaultInputs: ["qt_androiddeployqt_input",
-                                            "android.manifest_processed"]
-        property stringList allInputs: ["qt_androiddeployqt_input", "android.manifest_processed",
-                                        "android.nativelibrary"]
-        inputsFromDependencies: "android.nativelibrary"
-        inputs: product.aggregate ? defaultInputs : allInputs
-        outputFileTags: [
-            "android.manifest_final", "android.resources", "android.assets", "bundled_jar",
-            "android.deployqt_list",
-        ]
-        outputArtifacts: Impl.deployQtOutputArtifacts(product)
-        prepare: Impl.deployQtCommands.apply(Impl, arguments)
     }
 
     validate: {

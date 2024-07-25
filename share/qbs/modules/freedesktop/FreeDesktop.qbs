@@ -56,43 +56,40 @@ Module {
         fileTags: [ "freedesktop.desktopfile_source" ]
     }
 
-    Rule {
+
+    Group {
         condition: _fdoSupported
 
-        inputs: [ "freedesktop.desktopfile_source" ]
-        outputFileTags: [ "freedesktop.desktopfile" ]
+        qbs.install: true
 
-        Artifact {
-            fileTags: [ "freedesktop.desktopfile" ]
-            filePath: input.fileName
+        Group {
+            fileTagsFilter: [ "freedesktop.desktopfile" ]
+            qbs.installDir: "share/applications"
+        }
+        Group {
+            fileTagsFilter: [ "freedesktop.appIcon" ]
+            qbs.installDir: "share/icons/hicolor/scalable/apps"
+        }
+        Group {
+            fileTagsFilter: [ "freedesktop.appstream" ]
+            qbs.installDir: "share/metainfo"
         }
 
-        prepare: Fdo.generateDesktopFileCommands.apply(Fdo, arguments)
-    }
+        Rule {
+            inputs: [ "freedesktop.desktopfile_source" ]
+            outputFileTags: [ "freedesktop.desktopfile" ]
 
-    Group {
-        condition: product.freedesktop._fdoSupported
-        fileTagsFilter: [ "freedesktop.desktopfile" ]
-        qbs.install: true
-        qbs.installDir: "share/applications"
-    }
+            Artifact {
+                fileTags: [ "freedesktop.desktopfile" ]
+                filePath: input.fileName
+            }
 
-    Group {
-        condition: product.freedesktop._fdoSupported
-        fileTagsFilter: [ "freedesktop.appIcon" ]
-        qbs.install: true
-        qbs.installDir: "share/icons/hicolor/scalable/apps"
+            prepare: Fdo.generateDesktopFileCommands.apply(Fdo, arguments)
+        }
     }
 
     FileTagger {
         patterns: [ "*.metainfo.xml", "*.appdata.xml" ]
         fileTags: [ "freedesktop.appstream" ]
-    }
-
-    Group {
-        condition: product.freedesktop._fdoSupported
-        fileTagsFilter: [ "freedesktop.appstream" ]
-        qbs.install: true
-        qbs.installDir: "share/metainfo"
     }
 }

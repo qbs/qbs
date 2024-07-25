@@ -95,9 +95,8 @@ Module {
     property string manifestFile: defaultManifestFile
     readonly property string defaultManifestFile: FileInfo.joinPaths(sourceSetDir,
                                                                    "AndroidManifest.xml")
-
+    property bool customManifestProcessing: false
     property bool _enableRules: !product.multiplexConfigurationId && !!packageName
-
     property bool _bundledInAssets: true
 
     Group {
@@ -204,8 +203,10 @@ Module {
 
     Group {
         condition: _enableRules
+
         Depends { name: "java" }
         Depends { name: "codesign" }
+
         Properties {
             java.languageVersion: platformJavaVersion
             java.runtimeVersion: platformJavaVersion
@@ -213,6 +214,143 @@ Module {
             codesign.apksignerFilePath: apksignerFilePath
             codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
             codesign.useApksigner: !_generateAab
+        }
+
+        Rule {
+            inputs: ["android.aidl"]
+            Artifact {
+                filePath: FileInfo.joinPaths(Utilities.getHash(input.filePath),
+                                             input.completeBaseName + ".java")
+                fileTags: ["java.java"]
+            }
+            prepare: SdkUtils.processAidlCommands.apply(SdkUtils, arguments)
+        }
+        Rule {
+            inputs: "android.manifest"
+            Artifact {
+                filePath: FileInfo.joinPaths("processed_manifest", input.fileName)
+                fileTags: "android.manifest_processed"
+            }
+            prepare: SdkUtils.generateProcessedManifestCommands.apply(SdkUtils, arguments)
+        }
+        Rule {
+            multiplex: true
+            Artifact {
+                filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
+                                             "BuildConfig.java")
+                fileTags: ["java.java"]
+            }
+            prepare: SdkUtils.generateBuildConfigJavaCommands(product, output)
+        }
+        Rule {
+            multiplex: true
+            inputs: ["java.class"]
+            inputsFromDependencies: ["java.jar", "bundled_jar"]
+            Artifact {
+                filePath: product.Android.sdk._generateAab ?
+                              FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "dex",
+                                                 "classes.dex") :
+                              FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "classes.dex")
+                fileTags: ["android.dex"]
+            }
+            prepare: SdkUtils.prepareDex.apply(SdkUtils, arguments)
+        }
+        Rule {
+            property stringList inputTags: "android.nativelibrary"
+            inputsFromDependencies: inputTags
+            inputs: product.aggregate ? [] : inputTags
+            Artifact {
+                filePath: FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "lib",
+                                             input.Android.ndk.abi, product.Android.sdk._archInName ?
+                                                 input.baseName + "_" + input.Android.ndk.abi + ".so" :
+                                                 input.fileName)
+                fileTags: "android.nativelibrary_deployed"
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "copying " + input.fileName + " for packaging";
+                cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
+                return cmd;
+            }
+        }
+        Rule {
+            multiplex: true
+            property stringList inputTags: "android.stl"
+            inputsFromDependencies: inputTags
+            inputs: product.aggregate ? [] : inputTags
+            outputFileTags: "android.stl_deployed"
+            outputArtifacts: SdkUtils.deployStlOutputs(product, inputs)
+            prepare: SdkUtils.deployStlCommands(product, inputs)
+        }
+
+        Group {
+            condition: product.Android.sdk._enableAapt2
+            Rule {
+                inputs: ["android.resources"]
+                outputFileTags: ["android.resources_compiled"]
+                outputArtifacts: SdkUtils.aapt2CompileResourceOutputs(product, inputs)
+                prepare: SdkUtils.prepareAapt2CompileResource.apply(SdkUtils, arguments)
+            }
+            Rule {
+                multiplex: true
+                inputs: ["android.resources_compiled", "android.assets", "android.manifest_final"]
+                outputFileTags: ["java.java", "android.apk_resources"]
+                outputArtifacts: SdkUtils.aaptLinkOutputs(product, inputs)
+                prepare: SdkUtils.prepareAapt2Link.apply(SdkUtils, arguments)
+            }
+            Rule {
+                condition: product.Android.sdk._generateAab
+                multiplex: true
+                inputs: [
+                    "android.apk_resources", "android.manifest_final",
+                    "android.dex", "android.stl_deployed",
+                    "android.nativelibrary_deployed"
+                ]
+                Artifact {
+                    filePath: product.Android.sdk.apkBaseName + ".aab_unsigned"
+                    fileTags: "android.package_unsigned"
+                }
+                prepare: SdkUtils.prepareBundletoolPackage.apply(SdkUtils, arguments)
+            }
+            Rule {
+                condition: !product.Android.sdk._generateAab
+                multiplex: true
+                inputs: [
+                    "android.apk_resources", "android.manifest_final",
+                    "android.dex", "android.stl_deployed",
+                    "android.nativelibrary_deployed"
+                ]
+                Artifact {
+                    filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
+                    fileTags: "android.package_unsigned"
+                }
+                prepare: SdkUtils.prepareApkPackage.apply(SdkUtils, arguments)
+            }
+        }
+
+        Group {
+            condition: !product.Android.sdk._enableAapt2
+            Rule {
+                multiplex: true
+                inputs: ["android.resources", "android.assets", "android.manifest_final"]
+                outputFileTags: ["java.java"]
+                outputArtifacts: SdkUtils.aaptGenerateOutputs(product, inputs)
+                prepare: SdkUtils.prepareAaptGenerate.apply(SdkUtils, arguments)
+            }
+            Rule {
+                condition: !product.Android.sdk._generateAab
+                multiplex: true
+                inputs: [
+                    "android.resources", "android.assets", "android.manifest_final",
+                    "android.dex", "android.stl_deployed",
+                    "android.nativelibrary_deployed"
+                ]
+                Artifact {
+                    filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
+                    fileTags: "android.package_unsigned"
+                }
+                prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
+            }
         }
     }
 
@@ -254,158 +392,9 @@ Module {
         property bool embedJar: true
     }
 
-    Rule {
-        condition: _enableRules
-        inputs: ["android.aidl"]
-        Artifact {
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.filePath),
-                                         input.completeBaseName + ".java")
-            fileTags: ["java.java"]
-        }
-        prepare: SdkUtils.processAidlCommands.apply(SdkUtils, arguments)
-    }
-
-    property bool customManifestProcessing: false
     Group {
         condition: !product.Android.sdk.customManifestProcessing
         fileTagsFilter: "android.manifest_processed"
         fileTags: "android.manifest_final"
-    }
-    Rule {
-        condition: _enableRules
-        inputs: "android.manifest"
-        Artifact {
-            filePath: FileInfo.joinPaths("processed_manifest", input.fileName)
-            fileTags: "android.manifest_processed"
-        }
-        prepare: SdkUtils.generateProcessedManifestCommands.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules && !_enableAapt2
-        multiplex: true
-        inputs: ["android.resources", "android.assets", "android.manifest_final"]
-        outputFileTags: ["java.java"]
-        outputArtifacts: SdkUtils.aaptGenerateOutputs(product, inputs)
-        prepare: SdkUtils.prepareAaptGenerate.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules && _enableAapt2
-        inputs: ["android.resources"]
-        outputFileTags: ["android.resources_compiled"]
-        outputArtifacts: SdkUtils.aapt2CompileResourceOutputs(product, inputs)
-        prepare: SdkUtils.prepareAapt2CompileResource.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules && _enableAapt2
-        multiplex: true
-        inputs: ["android.resources_compiled", "android.assets", "android.manifest_final"]
-        outputFileTags: ["java.java", "android.apk_resources"]
-        outputArtifacts: SdkUtils.aaptLinkOutputs(product, inputs)
-        prepare: SdkUtils.prepareAapt2Link.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules
-        multiplex: true
-        Artifact {
-            filePath: FileInfo.joinPaths(product.Android.sdk.generatedJavaFilesDir,
-                                         "BuildConfig.java")
-            fileTags: ["java.java"]
-        }
-        prepare: SdkUtils.generateBuildConfigJavaCommands(product, output)
-    }
-
-    Rule {
-        condition: _enableRules
-        multiplex: true
-        inputs: ["java.class"]
-        inputsFromDependencies: ["java.jar", "bundled_jar"]
-        Artifact {
-            filePath: product.Android.sdk._generateAab ?
-                          FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "dex",
-                                             "classes.dex") :
-                          FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "classes.dex")
-            fileTags: ["android.dex"]
-        }
-        prepare: SdkUtils.prepareDex.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules
-        property stringList inputTags: "android.nativelibrary"
-        inputsFromDependencies: inputTags
-        inputs: product.aggregate ? [] : inputTags
-        Artifact {
-            filePath: FileInfo.joinPaths(product.Android.sdk.packageContentsDir, "lib",
-                                         input.Android.ndk.abi, product.Android.sdk._archInName ?
-                                             input.baseName + "_" + input.Android.ndk.abi + ".so" :
-                                             input.fileName)
-            fileTags: "android.nativelibrary_deployed"
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "copying " + input.fileName + " for packaging";
-            cmd.sourceCode = function() { File.copy(input.filePath, output.filePath); };
-            return cmd;
-        }
-    }
-
-    Rule {
-        condition: _enableRules
-        multiplex: true
-        property stringList inputTags: "android.stl"
-        inputsFromDependencies: inputTags
-        inputs: product.aggregate ? [] : inputTags
-        outputFileTags: "android.stl_deployed"
-        outputArtifacts: SdkUtils.deployStlOutputs(product, inputs)
-        prepare: SdkUtils.deployStlCommands(product, inputs)
-    }
-
-    Rule {
-        condition: _enableRules && !_enableAapt2 && !_generateAab
-        multiplex: true
-        inputs: [
-            "android.resources", "android.assets", "android.manifest_final",
-            "android.dex", "android.stl_deployed",
-            "android.nativelibrary_deployed"
-        ]
-        Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
-            fileTags: "android.package_unsigned"
-        }
-        prepare: SdkUtils.prepareAaptPackage.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules && _enableAapt2 && !_generateAab
-        multiplex: true
-        inputs: [
-            "android.apk_resources", "android.manifest_final",
-            "android.dex", "android.stl_deployed",
-            "android.nativelibrary_deployed"
-        ]
-        Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".apk_unsigned"
-            fileTags: "android.package_unsigned"
-        }
-        prepare: SdkUtils.prepareApkPackage.apply(SdkUtils, arguments)
-    }
-
-    Rule {
-        condition: _enableRules && _enableAapt2 && _generateAab
-        multiplex: true
-        inputs: [
-            "android.apk_resources", "android.manifest_final",
-            "android.dex", "android.stl_deployed",
-            "android.nativelibrary_deployed"
-        ]
-        Artifact {
-            filePath: product.Android.sdk.apkBaseName + ".aab_unsigned"
-            fileTags: "android.package_unsigned"
-        }
-        prepare: SdkUtils.prepareBundletoolPackage.apply(SdkUtils, arguments)
     }
 }

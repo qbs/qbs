@@ -322,27 +322,28 @@ Module {
     property bool enableMoc: !(product.multiplexed || product.aggregate)
                              || product.multiplexConfigurationId
 
-    Rule {
-        name: "QtCoreMocRuleCpp"
+    Group {
         condition: enableMoc
-        property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
-        property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
-        inputs: [objcppInput, cppInput]
-        auxiliaryInputs: "qt_plugin_metadata"
-        excludedInputs: "unmocable"
-        outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in"]
-        outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
-        prepare: Moc.commands.apply(Moc, arguments)
-    }
-    Rule {
-        name: "QtCoreMocRuleHpp"
-        condition: enableMoc
-        inputs: "hpp"
-        auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
-        excludedInputs: "unmocable"
-        outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable", "qt.core.metatypes.in"]
-        outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
-        prepare: Moc.commands.apply(Moc, arguments)
+        Rule {
+            name: "QtCoreMocRuleCpp"
+            property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
+            property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
+            inputs: [objcppInput, cppInput]
+            auxiliaryInputs: "qt_plugin_metadata"
+            excludedInputs: "unmocable"
+            outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in"]
+            outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
+            prepare: Moc.commands.apply(Moc, arguments)
+        }
+        Rule {
+            name: "QtCoreMocRuleHpp"
+            inputs: "hpp"
+            auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"];
+            excludedInputs: "unmocable"
+            outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable", "qt.core.metatypes.in"]
+            outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
+            prepare: Moc.commands.apply(Moc, arguments)
+        }
     }
 
     Rule {

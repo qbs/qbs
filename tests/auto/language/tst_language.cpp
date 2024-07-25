@@ -3740,7 +3740,7 @@ void TestLanguage::wildcards()
         QVERIFY(!!product);
         GroupPtr group;
         if (useGroup) {
-            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 3 : 2));
+            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 4 : 2));
             for (const GroupPtr &rg : product->groups) {
                 if (rg->name == groupName) {
                     group = rg;
@@ -3748,7 +3748,7 @@ void TestLanguage::wildcards()
                 }
             }
         } else {
-            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 2 : 1));
+            QCOMPARE(product->groups.size(), size_t(HostOsInfo::isMacosHost() ? 3 : 1));
             group = product->groups.front();
         }
         QVERIFY(!!group);

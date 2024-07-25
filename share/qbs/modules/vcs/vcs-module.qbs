@@ -31,6 +31,31 @@ Module {
         condition: headerFileName
         Depends { name: "cpp" }
         Properties { cpp.includePaths: [includeDir] }
+        Rule {
+            multiplex: true
+            Artifact {
+                filePath: FileInfo.joinPaths(product.vcs.includeDir, product.vcs.headerFileName)
+                fileTags: ["hpp"]
+            }
+            prepare: {
+                var cmd = new JavaScriptCommand();
+                cmd.description = "generating " + output.fileName;
+                cmd.highlight = "codegen";
+                cmd.repoState = product.vcs.repoState;
+                cmd.sourceCode = function() {
+                    var f = new TextFile(output.filePath, TextFile.WriteOnly);
+                    try {
+                        f.writeLine("#ifndef VCS_REPO_STATE_H");
+                        f.writeLine("#define VCS_REPO_STATE_H");
+                        f.writeLine('#define VCS_REPO_STATE "' + (repoState ? repoState : "none") + '"')
+                        f.writeLine("#endif");
+                    } finally {
+                        f.close();
+                    }
+                };
+                return [cmd];
+            }
+        }
     }
 
     Probe {
@@ -122,33 +147,6 @@ Module {
             } finally {
                 proc.close();
             }
-        }
-    }
-
-    Rule {
-        condition: headerFileName
-        multiplex: true
-        Artifact {
-            filePath: FileInfo.joinPaths(product.vcs.includeDir, product.vcs.headerFileName)
-            fileTags: ["hpp"]
-        }
-        prepare: {
-            var cmd = new JavaScriptCommand();
-            cmd.description = "generating " + output.fileName;
-            cmd.highlight = "codegen";
-            cmd.repoState = product.vcs.repoState;
-            cmd.sourceCode = function() {
-                var f = new TextFile(output.filePath, TextFile.WriteOnly);
-                try {
-                    f.writeLine("#ifndef VCS_REPO_STATE_H");
-                    f.writeLine("#define VCS_REPO_STATE_H");
-                    f.writeLine('#define VCS_REPO_STATE "' + (repoState ? repoState : "none") + '"')
-                    f.writeLine("#endif");
-                } finally {
-                    f.close();
-                }
-            };
-            return [cmd];
         }
     }
 }

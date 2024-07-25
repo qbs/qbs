@@ -125,8 +125,8 @@ public:
 private:
     void resolveProductFully();
     void createProductConfig();
-    void resolveGroup(Item *item);
-    void resolveGroupFully(Item *item, bool isEnabled);
+    void resolveGroup(Item *item, ModuleContext *moduleContext);
+    void resolveGroupFully(Item *item, bool isEnabled, ModuleContext *moduleContext);
     QVariantMap resolveAdditionalModuleProperties(const Item *group,
                                                   const QVariantMap &currentValues);
     SourceArtifactPtr createSourceArtifact(const QString &fileName, const GroupPtr &group,
@@ -649,7 +649,7 @@ void ProductResolverStage2::resolveProductFully()
             resolveJobLimit(m_loaderState, child, nullptr, &m_product, nullptr);
             break;
         case ItemType::Group:
-            resolveGroup(child);
+            resolveGroup(child, nullptr);
             break;
         case ItemType::Export:
             resolveExport(child);
@@ -686,14 +686,14 @@ void ProductResolverStage2::createProductConfig()
         m_product.item, m_product.item, QVariantMap(), true, true);
 }
 
-void ProductResolverStage2::resolveGroup(Item *item)
+void ProductResolverStage2::resolveGroup(Item *item, ModuleContext *moduleContext)
 {
     const bool parentEnabled = m_currentGroup ? m_currentGroup->enabled
                                               : m_product.product->enabled;
     const bool isEnabled = parentEnabled
             && m_loaderState.evaluator().boolValue(item, StringConstants::conditionProperty());
     try {
-        resolveGroupFully(item, isEnabled);
+        resolveGroupFully(item, isEnabled, moduleContext);
     } catch (const ErrorInfo &error) {
         if (!isEnabled) {
             qCDebug(lcProjectResolver) << "error resolving group at" << item->location()
@@ -706,7 +706,8 @@ void ProductResolverStage2::resolveGroup(Item *item)
     }
 }
 
-void ProductResolverStage2::resolveGroupFully(Item *item, bool isEnabled)
+void ProductResolverStage2::resolveGroupFully(
+    Item *item, bool isEnabled, ModuleContext *moduleContext)
 {
     AccumulatingTimer groupTimer(m_loaderState.parameters().logElapsedTime()
                                  ? &m_product.timingData.groupsResolving
@@ -848,7 +849,11 @@ void ProductResolverStage2::resolveGroupFully(Item *item, bool isEnabled)
     for (Item * const childItem : item->children()) {
         switch (childItem->type()) {
         case ItemType::Group:
-            resolveGroup(childItem);
+            resolveGroup(childItem, moduleContext);
+            break;
+        case ItemType::Rule:
+            if (isEnabled)
+                resolveRule(m_loaderState, childItem, m_product.project, &m_product, moduleContext);
             break;
         default:
             break;
@@ -1183,7 +1188,7 @@ void ProductResolverStage2::resolveModule(const QualifiedId &moduleName, Item *i
             resolveScanner(child, moduleContext);
             break;
         case ItemType::Group:
-            resolveGroup(child);
+            resolveGroup(child, &moduleContext);
             break;
         default:
             break;

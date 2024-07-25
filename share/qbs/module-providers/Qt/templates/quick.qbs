@@ -91,22 +91,24 @@ QtModule {
         priority: 100
     }
 
-    Rule {
+    Group {
         condition: useCompiler
-        inputs: ["qt.quick.qrc"]
-        Artifact {
-            filePath: input.fileName + ".json"
-            fileTags: ["qt.quick.qrcinfo"]
-        }
-        prepare: QC.generateCompilerInputCommands(product, input, output)
-    }
 
-    Rule {
-        condition: useCompiler
-        inputs: ["qt.quick.qrcinfo"]
-        outputFileTags: ["cpp", "qrc"]
-        multiplex: true
-        outputArtifacts: QC.compilerOutputArtifacts(product, inputs)
-        prepare: QC.compilerCommands.apply(QC, arguments)
+        Rule {
+            inputs: ["qt.quick.qrc"]
+            Artifact {
+                filePath: input.fileName + ".json"
+                fileTags: ["qt.quick.qrcinfo"]
+            }
+            prepare: QC.generateCompilerInputCommands(product, input, output)
+        }
+
+        Rule {
+            inputs: ["qt.quick.qrcinfo"]
+            outputFileTags: ["cpp", "qrc"]
+            multiplex: true
+            outputArtifacts: QC.compilerOutputArtifacts(product, inputs)
+            prepare: QC.compilerCommands.apply(QC, arguments)
+        }
     }
 }

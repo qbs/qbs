@@ -2749,14 +2749,38 @@ void TestBlackbox::rpathlinkDeduplication()
     QCOMPARE(m_qbsStdout.count((linkFlag + libDir).toUtf8()), 1);
 }
 
+void TestBlackbox::ruleConditions_data()
+{
+    QTest::addColumn<bool>("enableGroup");
+    QTest::addColumn<bool>("enableRule");
+    QTest::addColumn<bool>("fileShouldExist");
+
+    QTest::newRow("all off") << false << false << false;
+    QTest::newRow("group off, rule on") << false << true << false;
+    QTest::newRow("group on, rule off") << true << false << false;
+    QTest::newRow("all on") << true << true << true;
+}
+
 void TestBlackbox::ruleConditions()
 {
+    QFETCH(bool, enableGroup);
+    QFETCH(bool, enableRule);
+    QFETCH(bool, fileShouldExist);
+
     QDir::setCurrent(testDataDir + "/ruleConditions");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(QFileInfo(relativeExecutableFilePath("zorted")).exists());
-    QVERIFY(QFileInfo(relativeExecutableFilePath("unzorted")).exists());
-    QVERIFY(QFileInfo(relativeProductBuildDir("zorted") + "/zorted.foo.narf.zort").exists());
-    QVERIFY(!QFileInfo(relativeProductBuildDir("unzorted") + "/unzorted.foo.narf.zort").exists());
+    rmDirR(relativeBuildDir());
+
+    static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
+    const QStringList args{
+        "modules.narfzort.enableGroup:" + b2s(enableGroup),
+        "modules.narfzort.enableRule:" + b2s(enableRule)};
+
+    QCOMPARE(runQbs(args), 0);
+    QVERIFY(QFileInfo(relativeExecutableFilePath("ruleConditions")).exists());
+    QCOMPARE(
+        QFileInfo(relativeProductBuildDir("ruleConditions") + "/ruleConditions.foo.narf.zort")
+            .exists(),
+        fileShouldExist);
 }
 
 void TestBlackbox::ruleConnectionWithExcludedInputs()
