@@ -91,7 +91,6 @@ const platformMap = {
     'Emscripten': undefined,
     'Arduino': 'none',
     'Neutrino': 'qnx',
-    'baremetal': 'none',
     'VxWorks': 'vxworks',
 }
 
@@ -183,7 +182,8 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
     const targetOS = Utilities.canonicalPlatform(platform);
 
     writeLine("    readonly property string architecture: " + ModUtils.toJSLiteral(architecture));
-    writeLine("    readonly property string platform: " + ModUtils.toJSLiteral(platform));
+    if (platform !== undefined)
+        writeLine("    readonly property string platform: " + ModUtils.toJSLiteral(platform));
     writeLine("    condition: true");
     if (architecture !== undefined) {
         writeLine("    && (!qbs.architecture || qbs.architecture === architecture)");
