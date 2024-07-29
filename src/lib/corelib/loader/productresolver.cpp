@@ -848,6 +848,10 @@ void ProductResolverStage2::resolveGroupFully(
     GroupContextSwitcher groupSwitcher(*this, group);
     for (Item * const childItem : item->children()) {
         switch (childItem->type()) {
+        case ItemType::FileTagger:
+            if (isEnabled)
+                resolveFileTagger(m_loaderState, childItem, nullptr, &m_product);
+            break;
         case ItemType::Group:
             resolveGroup(childItem, moduleContext);
             break;

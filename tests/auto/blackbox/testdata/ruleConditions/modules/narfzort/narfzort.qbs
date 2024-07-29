@@ -4,14 +4,16 @@ import qbs.TextFile
 Module {
     property bool enableGroup
     property bool enableRule
-
-    FileTagger {
-        patterns: "*.narf"
-        fileTags: ["narf"]
-    }
+    property bool enableTagger
 
     Group {
         condition: enableGroup
+
+        FileTagger {
+            condition: product.narfzort.enableTagger
+            patterns: "*.narf"
+            fileTags: ["narf"]
+        }
 
         Rule {
             condition: product.narfzort.enableRule

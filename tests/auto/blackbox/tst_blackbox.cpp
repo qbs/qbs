@@ -2753,18 +2753,24 @@ void TestBlackbox::ruleConditions_data()
 {
     QTest::addColumn<bool>("enableGroup");
     QTest::addColumn<bool>("enableRule");
+    QTest::addColumn<bool>("enableTagger");
     QTest::addColumn<bool>("fileShouldExist");
 
-    QTest::newRow("all off") << false << false << false;
-    QTest::newRow("group off, rule on") << false << true << false;
-    QTest::newRow("group on, rule off") << true << false << false;
-    QTest::newRow("all on") << true << true << true;
+    QTest::newRow("all off") << false << false << false << false;
+    QTest::newRow("group off, rule off, tagger on") << false << false << true << false;
+    QTest::newRow("group off, rule on, tagger off") << false << true << false << false;
+    QTest::newRow("group off, rule on, tagger on") << false << true << true << false;
+    QTest::newRow("group on, rule off, tagger off") << true << false << false << false;
+    QTest::newRow("group on, rule off, tagger on") << true << false << true << false;
+    QTest::newRow("group on, rule on, tagger off") << true << true << false << false;
+    QTest::newRow("all on") << true << true << true << true;
 }
 
 void TestBlackbox::ruleConditions()
 {
     QFETCH(bool, enableGroup);
     QFETCH(bool, enableRule);
+    QFETCH(bool, enableTagger);
     QFETCH(bool, fileShouldExist);
 
     QDir::setCurrent(testDataDir + "/ruleConditions");
@@ -2773,7 +2779,8 @@ void TestBlackbox::ruleConditions()
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
     const QStringList args{
         "modules.narfzort.enableGroup:" + b2s(enableGroup),
-        "modules.narfzort.enableRule:" + b2s(enableRule)};
+        "modules.narfzort.enableRule:" + b2s(enableRule),
+        "modules.narfzort.enableTagger:" + b2s(enableTagger)};
 
     QCOMPARE(runQbs(args), 0);
     QVERIFY(QFileInfo(relativeExecutableFilePath("ruleConditions")).exists());

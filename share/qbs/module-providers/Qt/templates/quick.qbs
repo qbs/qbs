@@ -84,15 +84,14 @@ QtModule {
         scan: QC.scanQrc(product, input.filePath)
     }
 
-    FileTagger {
-        condition: useCompiler
-        patterns: "*.qrc"
-        fileTags: ["qt.quick.qrc"]
-        priority: 100
-    }
-
     Group {
         condition: useCompiler
+
+        FileTagger {
+            patterns: "*.qrc"
+            fileTags: ["qt.quick.qrc"]
+            priority: 100
+        }
 
         Rule {
             inputs: ["qt.quick.qrc"]
