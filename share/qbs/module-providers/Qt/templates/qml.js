@@ -142,6 +142,45 @@ function generatePluginImportOutputArtifacts(product, inputs)
     return list;
 }
 
+function getCppLibsAndFrameworks(cpp)
+{
+    var libs = {"frameworks": {}, "libraries": {}};
+    for (var i = 0; i < cpp.frameworks.length; ++i)
+        libs.frameworks[cpp.frameworks[i]] = true;
+    for (var i = 0; i < cpp.staticLibraries.length; ++i)
+        libs.libraries[cpp.staticLibraries[i]] = true;
+    for (var i = 0; i < cpp.dynamicLibraries.length; ++i)
+        libs.libraries[cpp.dynamicLibraries[i]] = true;
+    return libs;
+}
+
+function getUniqueLibs(libs, seen)
+{
+    var uniqueLibs = [];
+    for (var i = 0; i < libs.length; ++i) {
+        if (libs[i] == "-framework") {
+            var frameworkName = libs[i + 1];
+            if (frameworkName && !seen.frameworks[frameworkName]) {
+                seen.frameworks[frameworkName] = true;
+                uniqueLibs.push("-framework", frameworkName);
+            }
+            ++i; // Skip framework name
+        } else {
+            var libName;
+            if (libs[i].startsWith("-l"))
+                libName = libs[i].substr(2);
+            else
+                libName = libs[i];
+            if (!seen.libraries[libName]) {
+                seen.libraries[libName] = true;
+                uniqueLibs.push(libs[i]);
+            }
+        }
+    }
+
+    return uniqueLibs;
+}
+
 function generatePluginImportCommands(project, product, inputs, outputs, input, output,
                                       explicitlyDependsOn)
 {
@@ -167,7 +206,9 @@ function generatePluginImportCommands(project, product, inputs, outputs, input, 
             if (cppFile)
                 cppFile.writeLine("#include <QtPlugin>");
             var plugins = { };
+            var seen = Qml.getCppLibsAndFrameworks(product.cpp);
             var libsWithUniqueObjects = [];
+
             for (var p in scannerData) {
                 var plugin = scannerData[p].plugin;
                 if (!plugin || plugins[plugin])
@@ -181,14 +222,8 @@ function generatePluginImportCommands(project, product, inputs, outputs, input, 
                 if (cppFile)
                     cppFile.writeLine("Q_IMPORT_PLUGIN(" + className + ")");
                 var libs = Qml.getLibsForPlugin(scannerData[p], product);
-                for (var i = 0; i < libs.length; ++i) {
-                    var lib = libs[i];
-                    if (!lib.endsWith(product.cpp.objectSuffix)
-                            || (!libsWithUniqueObjects.contains(lib)
-                                && !product.cpp.staticLibraries.contains(FileInfo.cleanPath(lib)))) {
-                        libsWithUniqueObjects.push(lib);
-                    }
-                }
+                var uniqueLibs = Qml.getUniqueLibs(libs, seen);
+                libsWithUniqueObjects = libsWithUniqueObjects.concat(uniqueLibs);
             }
             listFile.write(libsWithUniqueObjects.join("\n"));
         } finally {
