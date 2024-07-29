@@ -10,6 +10,7 @@ x-default-service: &linux
     - WITH_ARCHIVE
     - WITH_TESTS
     - CLCACHE_DIR
+    - GITHUB_ACTIONS
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache
@@ -21,7 +22,7 @@ services:
   jammy-qt6: &jammy-qt6
     << : *linux
     hostname: jammy-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-1
     build:
       dockerfile: docker/jammy/Dockerfile
       context: .
@@ -32,7 +33,7 @@ services:
   jammy-qt5:
     << : *linux
     hostname: jammy-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-5.15.2_2.1.2-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-5.15.2_2.1.2-1
     build:
       dockerfile: docker/jammy/Dockerfile
       context: .

@@ -91,7 +91,6 @@ const platformMap = {
     'Emscripten': undefined,
     'Arduino': 'none',
     'Neutrino': 'qnx',
-    'baremetal': 'none',
     'VxWorks': 'vxworks',
 }
 
@@ -105,7 +104,7 @@ function findLibs(libnames, libdirs, libtypes, targetOS, forImport) {
             undefined, // selectors
             [libraryName],
             suffixes,
-            PathTools.libraryNameFilter(targetOS),
+            PathTools.libraryNameFilter(),
             undefined, // candidateFilter
             libdirs, // searchPaths
             undefined, // pathSuffixes
@@ -183,7 +182,8 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
     const targetOS = Utilities.canonicalPlatform(platform);
 
     writeLine("    readonly property string architecture: " + ModUtils.toJSLiteral(architecture));
-    writeLine("    readonly property string platform: " + ModUtils.toJSLiteral(platform));
+    if (platform !== undefined)
+        writeLine("    readonly property string platform: " + ModUtils.toJSLiteral(platform));
     writeLine("    condition: true");
     if (architecture !== undefined) {
         writeLine("    && (!qbs.architecture || qbs.architecture === architecture)");
@@ -204,26 +204,28 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
             + "; version: " + ModUtils.toJSLiteral(dep.version) + "}");
     });
 
-    writeLine("    readonly property stringList hostBinDirs: (" + ModUtils.toJSLiteral(moduleInfo.build_bindirs) + ")");
-    // target bindirs
-    writeLine("    readonly property stringList binDirs: (" + ModUtils.toJSLiteral(cppInfo.bindirs) + ")");
+    const buildBindirs = FileInfo.fromNativeSeparators(moduleInfo.build_bindirs);
+    writeLine("    readonly property stringList hostBinDirs: (" + ModUtils.toJSLiteral(buildBindirs) + ")");
+    const targetBindirs = FileInfo.fromNativeSeparators(cppInfo.bindirs);
+    writeLine("    readonly property stringList binDirs: (" + ModUtils.toJSLiteral(targetBindirs) + ")");
 
     // TODO: there's a weird issue with system include dirs with xcode-less clang - incorrect include order?
-    writeCppProperty("includePaths", cppInfo.includedirs);
-    writeCppProperty("frameworkPaths", cppInfo.frameworkdirs);
+    writeCppProperty("includePaths", FileInfo.fromNativeSeparators(cppInfo.includedirs));
+    writeCppProperty("frameworkPaths", FileInfo.fromNativeSeparators(cppInfo.frameworkdirs));
     writeCppProperty("frameworks", cppInfo.frameworks);
     writeCppProperty("defines", cppInfo.defines);
     writeCppProperty("cFlags", cppInfo.cflags);
     writeCppProperty("cxxFlags", cppInfo.cxxflags);
     writeCppProperty("linkerFlags", (cppInfo.sharedlinkflags || []).concat(cppInfo.exelinkflags || []));
 
-    writeProperty("resources", cppInfo.resdirs);
+    writeProperty("resources", FileInfo.fromNativeSeparators(cppInfo.resdirs));
 
     const isForImport = targetOS.includes("windows")
     const libraryTypes = getLibraryTypes(moduleInfo.options);
     libraryTypes.forEach(function(libraryType){
         const cppInfoLibs = cppInfo.libs === null ? [] : cppInfo.libs;
-        const libs = findLibs(cppInfoLibs, cppInfo.libdirs, libraryType, targetOS, isForImport)
+        const libdirs = FileInfo.fromNativeSeparators(cppInfo.libdirs);
+        const libs = findLibs(cppInfoLibs, libdirs, libraryType, targetOS, isForImport)
             .concat(cppInfo.system_libs === null ? [] : cppInfo.system_libs);
         const property = libraryType === "shared" ? "dynamicLibraries" : "staticLibraries";
         writeCppProperty(property, libs);

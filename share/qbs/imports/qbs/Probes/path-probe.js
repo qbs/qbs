@@ -88,7 +88,7 @@ function configure(selectors, names, nameSuffixes, nameFilter, candidateFilter,
 
     if (nameFilter) {
         selectors.forEach(function(selector) {
-            selector.names = selector.names.map(nameFilter);
+            selector.names = ModUtils.concatAll.apply(undefined, selector.names.map(nameFilter));
         });
     }
 

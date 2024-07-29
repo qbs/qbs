@@ -42,21 +42,44 @@ set -eu
 case "$OSTYPE" in
     *darwin*)
         HOST_OS=mac_x64
+        TOOLCHAIN=clang_64
         ;;
     msys)
         HOST_OS=win_x64
+        TOOLCHAIN=msvc_64
         ;;
     *)
         HOST_OS=
         ;;
 esac
 
+while [ $# -gt 0 ]; do
+    case "$1" in
+        --host)
+            HOST_OS="$2"
+            shift
+            ;;
+        --toolchain)
+            TOOLCHAIN=$(echo $2 | tr '[A-Z]' '[a-z]')
+            shift
+            ;;
+    esac
+    shift
+done
+
 if [ -z "${HOST_OS}" ]; then
-    exit 0
+    echo "No --host specified or auto-detection failed." >&2
+    exit 1
+fi
+
+if [ -z "${TOOLCHAIN}" ]; then
+    echo "No --toolchain specified or auto-detection failed." >&2
+    exit 1
 fi
 
 echo $HOST_OS
+echo $TOOLCHAIN
 
 mkdir -p "${HOME}/.conan2/profiles"
 SCRIPT_DIR=$( cd "$(dirname "$0")" ; pwd -P )
-cp ${SCRIPT_DIR}/conan-profiles/${HOST_OS}/* "${HOME}/.conan2/profiles"
+cp ${SCRIPT_DIR}/conan-profiles/${HOST_OS}/${TOOLCHAIN}/* "${HOME}/.conan2/profiles"
