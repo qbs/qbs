@@ -139,7 +139,7 @@ private:
                                  std::vector<ExportedProperty> &properties);
     QVariantMap evaluateModuleValues(Item *item, bool lookupPrototype = true);
 
-    void resolveScanner(Item *item, ModuleContext &moduleContext);
+    void resolveScanner(Item *item, ModuleContext *moduleContext);
     void resolveModules();
     void resolveModule(const QualifiedId &moduleName, Item *item, bool isProduct,
                        const QVariantMap &parameters, JobLimits &jobLimits);
@@ -642,6 +642,9 @@ void ProductResolverStage2::resolveProductFully()
         case ItemType::Rule:
             resolveRule(m_loaderState, child, m_product.project, &m_product, nullptr);
             break;
+        case ItemType::Scanner:
+            resolveScanner(child, nullptr);
+            break;
         case ItemType::FileTagger:
             resolveFileTagger(m_loaderState, child, nullptr, &m_product);
             break;
@@ -1119,7 +1122,7 @@ QVariantMap ProductResolverStage2::evaluateModuleValues(Item *item, bool lookupP
     return moduleValues;
 }
 
-void ProductResolverStage2::resolveScanner(Item *item, ModuleContext &moduleContext)
+void ProductResolverStage2::resolveScanner(Item *item, ModuleContext *moduleContext)
 {
     Evaluator &evaluator = m_loaderState.evaluator();
     if (!evaluator.boolValue(item, StringConstants::conditionProperty())) {
@@ -1128,7 +1131,7 @@ void ProductResolverStage2::resolveScanner(Item *item, ModuleContext &moduleCont
     }
 
     ResolvedScannerPtr scanner = ResolvedScanner::create();
-    scanner->module = moduleContext.module;
+    scanner->module = moduleContext ? moduleContext->module : m_product.project->dummyModule;
     scanner->inputs = evaluator.fileTagsValue(item, StringConstants::inputsProperty());
     scanner->recursive = evaluator.boolValue(item, StringConstants::recursiveProperty());
     scanner->searchPathsScript.initialize(m_loaderState.topLevelProject().scriptFunctionValue(
@@ -1189,7 +1192,7 @@ void ProductResolverStage2::resolveModule(const QualifiedId &moduleName, Item *i
             resolveJobLimit(m_loaderState, child, nullptr, nullptr, &moduleContext);
             break;
         case ItemType::Scanner:
-            resolveScanner(child, moduleContext);
+            resolveScanner(child, &moduleContext);
             break;
         case ItemType::Group:
             resolveGroup(child, &moduleContext);

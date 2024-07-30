@@ -32,7 +32,7 @@
     \ingroup list-of-items
     \keyword QML.Scanner
 
-    \brief Creates custom dependency scanners in modules.
+    \brief Creates custom dependency scanners in products or modules.
 
     A Scanner item can appear inside a \l{Module} item, and allows to extract
     dependencies for artifacts from the artifacts' file contents.

@@ -302,6 +302,7 @@ private slots:
     void runMultiplexed();
     void sanitizer_data();
     void sanitizer();
+    void scannerItem_data();
     void scannerItem();
     void scanResultInOtherProduct();
     void scanResultInNonDependency();

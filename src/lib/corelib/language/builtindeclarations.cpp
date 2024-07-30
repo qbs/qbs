@@ -389,16 +389,17 @@ void BuiltinDeclarations::addProbeItem()
 void BuiltinDeclarations::addProductItem()
 {
     ItemDeclaration item(ItemType::Product);
-    item.setAllowedChildTypes(ItemDeclaration::TypeNames()
-            << ItemType::Depends
-            << ItemType::Group
-            << ItemType::FileTagger
-            << ItemType::JobLimit
-            << ItemType::Export
-            << ItemType::Probe
-            << ItemType::Profile
-            << ItemType::PropertyOptions
-            << ItemType::Rule);
+    item.setAllowedChildTypes(
+        {ItemType::Depends,
+         ItemType::Export,
+         ItemType::FileTagger,
+         ItemType::Group,
+         ItemType::JobLimit,
+         ItemType::Probe,
+         ItemType::Profile,
+         ItemType::PropertyOptions,
+         ItemType::Rule,
+         ItemType::Scanner});
     item << conditionProperty();
     item << PropertyDeclaration(StringConstants::typeProperty(), PropertyDeclaration::StringList,
                                 StringConstants::emptyArrayValue());

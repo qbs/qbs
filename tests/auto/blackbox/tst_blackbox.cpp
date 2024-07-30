@@ -2913,22 +2913,47 @@ void TestBlackbox::sanitizer()
     }
 }
 
+void TestBlackbox::scannerItem_data()
+{
+    QTest::addColumn<bool>("inProduct");
+    QTest::addColumn<bool>("inModule");
+    QTest::addColumn<bool>("successExpected");
+
+    QTest::newRow("no scanners") << false << false << false;
+    QTest::newRow("product scanner") << true << false << true;
+    QTest::newRow("module scanner") << false << true << true;
+}
+
 void TestBlackbox::scannerItem()
 {
+    QFETCH(bool, inProduct);
+    QFETCH(bool, inModule);
+    QFETCH(bool, successExpected);
+
+    static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
+
     QDir::setCurrent(testDataDir + "/scanner-item");
-    QCOMPARE(runQbs(), 0);
+    rmDirR(relativeBuildDir());
+
+    const QbsRunParameters params(
+        {"-f",
+         "scanner-item.qbs",
+         "products.scanner-item.productScanner:" + b2s(inProduct),
+         "products.scanner-item.moduleScanner:" + b2s(inModule)});
+    QCOMPARE(runQbs(params), 0);
+
     QVERIFY2(m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("subdir1/file.inc");
-    QCOMPARE(runQbs(), 0);
-    QVERIFY2(m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(m_qbsStdout.contains("handling file1.in"), successExpected);
     QVERIFY2(!m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
     WAIT_FOR_NEW_TIMESTAMP();
     touch("subdir2/file.inc");
-    QCOMPARE(runQbs(), 0);
+    QCOMPARE(runQbs(params), 0);
     QVERIFY2(!m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());
-    QVERIFY2(m_qbsStdout.contains("handling file2.in"), m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.contains("handling file2.in"), successExpected);
 }
 
 void TestBlackbox::scanResultInOtherProduct()
