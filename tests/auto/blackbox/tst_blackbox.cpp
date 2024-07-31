@@ -2917,17 +2917,20 @@ void TestBlackbox::scannerItem_data()
 {
     QTest::addColumn<bool>("inProduct");
     QTest::addColumn<bool>("inModule");
+    QTest::addColumn<bool>("enableGroup");
     QTest::addColumn<bool>("successExpected");
 
-    QTest::newRow("no scanners") << false << false << false;
-    QTest::newRow("product scanner") << true << false << true;
-    QTest::newRow("module scanner") << false << true << true;
+    QTest::newRow("all off") << false << false << false << false;
+    QTest::newRow("product scanner") << true << false << false << true;
+    QTest::newRow("module scanner, group off") << false << true << false << false;
+    QTest::newRow("module scanner, group on") << false << true << true << true;
 }
 
 void TestBlackbox::scannerItem()
 {
     QFETCH(bool, inProduct);
     QFETCH(bool, inModule);
+    QFETCH(bool, enableGroup);
     QFETCH(bool, successExpected);
 
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
@@ -2939,7 +2942,8 @@ void TestBlackbox::scannerItem()
         {"-f",
          "scanner-item.qbs",
          "products.scanner-item.productScanner:" + b2s(inProduct),
-         "products.scanner-item.moduleScanner:" + b2s(inModule)});
+         "products.scanner-item.moduleScanner:" + b2s(inModule),
+         "products.scanner-item.enableGroup:" + b2s(enableGroup)});
     QCOMPARE(runQbs(params), 0);
 
     QVERIFY2(m_qbsStdout.contains("handling file1.in"), m_qbsStdout.constData());

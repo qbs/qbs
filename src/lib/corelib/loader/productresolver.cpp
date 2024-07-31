@@ -862,6 +862,10 @@ void ProductResolverStage2::resolveGroupFully(
             if (isEnabled)
                 resolveRule(m_loaderState, childItem, m_product.project, &m_product, moduleContext);
             break;
+        case ItemType::Scanner:
+            if (isEnabled)
+                resolveScanner(childItem, moduleContext);
+            break;
         default:
             break;
         }

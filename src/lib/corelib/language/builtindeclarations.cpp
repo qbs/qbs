@@ -282,7 +282,11 @@ void BuiltinDeclarations::addGroupItem()
 {
     ItemDeclaration item(ItemType::Group);
     item.setAllowedChildTypes(
-        {ItemType::Depends, ItemType::FileTagger, ItemType::Group, ItemType::Rule});
+        {ItemType::Depends,
+         ItemType::FileTagger,
+         ItemType::Group,
+         ItemType::Rule,
+         ItemType::Scanner});
     item << conditionProperty();
     item << PropertyDeclaration(StringConstants::nameProperty(), PropertyDeclaration::String,
                                 QString(), PropertyDeclaration::PropertyNotAvailableInConfig);

@@ -77,13 +77,6 @@ QtModule {
     property bool compilerAvailable: File.exists(compilerFilePath);
     property bool useCompiler: compilerAvailable && !_compilerIsQmlCacheGen
 
-    Scanner {
-        condition: useCompiler
-        inputs: 'qt.quick.qrc'
-        searchPaths: [FileInfo.path(input.filePath)]
-        scan: QC.scanQrc(product, input.filePath)
-    }
-
     Group {
         condition: useCompiler
 
@@ -91,6 +84,12 @@ QtModule {
             patterns: "*.qrc"
             fileTags: ["qt.quick.qrc"]
             priority: 100
+        }
+
+        Scanner {
+            inputs: 'qt.quick.qrc'
+            searchPaths: [FileInfo.path(input.filePath)]
+            scan: QC.scanQrc(product, input.filePath)
         }
 
         Rule {

@@ -1,5 +1,8 @@
 import "../../TheScanner.qbs" as TheScanner
 
 Module {
-    TheScanner { condition: product.moduleScanner }
+    Group {
+        condition: product.enableGroup
+        TheScanner { condition: product.moduleScanner }
+    }
 }

@@ -7,6 +7,7 @@ Product {
 
     property bool productScanner
     property bool moduleScanner
+    property bool enableGroup
 
     Group {
         files: ["subdir1/file1.in", "subdir2/file2.in"]
