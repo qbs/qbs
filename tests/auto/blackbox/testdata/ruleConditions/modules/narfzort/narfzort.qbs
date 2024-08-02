@@ -10,13 +10,13 @@ Module {
         condition: enableGroup
 
         FileTagger {
-            condition: product.narfzort.enableTagger
+            condition: module.enableTagger
             patterns: "*.narf"
             fileTags: ["narf"]
         }
 
         Rule {
-            condition: product.narfzort.enableRule
+            condition: module.enableRule
             inputs: ["narf"]
             outputFileTags: ["zort"]
             outputArtifacts: [{

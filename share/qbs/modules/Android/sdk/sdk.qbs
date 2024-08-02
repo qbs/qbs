@@ -284,7 +284,7 @@ Module {
         }
 
         Group {
-            condition: product.Android.sdk._enableAapt2
+            condition: module._enableAapt2
             Rule {
                 inputs: ["android.resources"]
                 outputFileTags: ["android.resources_compiled"]
@@ -299,7 +299,7 @@ Module {
                 prepare: SdkUtils.prepareAapt2Link.apply(SdkUtils, arguments)
             }
             Rule {
-                condition: product.Android.sdk._generateAab
+                condition: module._generateAab
                 multiplex: true
                 inputs: [
                     "android.apk_resources", "android.manifest_final",
@@ -313,7 +313,7 @@ Module {
                 prepare: SdkUtils.prepareBundletoolPackage.apply(SdkUtils, arguments)
             }
             Rule {
-                condition: !product.Android.sdk._generateAab
+                condition: !module._generateAab
                 multiplex: true
                 inputs: [
                     "android.apk_resources", "android.manifest_final",
@@ -329,7 +329,7 @@ Module {
         }
 
         Group {
-            condition: !product.Android.sdk._enableAapt2
+            condition: !module._enableAapt2
             Rule {
                 multiplex: true
                 inputs: ["android.resources", "android.assets", "android.manifest_final"]
@@ -338,7 +338,7 @@ Module {
                 prepare: SdkUtils.prepareAaptGenerate.apply(SdkUtils, arguments)
             }
             Rule {
-                condition: !product.Android.sdk._generateAab
+                condition: !module._generateAab
                 multiplex: true
                 inputs: [
                     "android.resources", "android.assets", "android.manifest_final",

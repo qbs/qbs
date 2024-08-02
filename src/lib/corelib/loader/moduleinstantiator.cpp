@@ -233,8 +233,10 @@ void ModuleInstantiator::setupScope()
     else
         QBS_CHECK(context.moduleName.toString() == StringConstants::qbsModule()); // Dummy product.
 
+    const ItemValuePtr moduleItemValue = ItemValue::create(context.module);
+    scope->setProperty(StringConstants::moduleVar(), moduleItemValue);
     if (!context.module->id().isEmpty())
-        scope->setProperty(context.module->id(), ItemValue::create(context.module));
+        scope->setProperty(context.module->id(), moduleItemValue);
     setScopeForDescendants(context.module, scope, true);
     context.module->setScope(scope);
 

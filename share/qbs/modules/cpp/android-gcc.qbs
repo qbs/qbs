@@ -158,8 +158,8 @@ LinuxGCC {
 
         Group {
             name: "Android STL"
-            condition: product.cpp.sharedStlFilePath
-            files: product.cpp.sharedStlFilePath ? [product.cpp.sharedStlFilePath] : []
+            condition: module.sharedStlFilePath
+            files: module.sharedStlFilePath ? [module.sharedStlFilePath] : []
             fileTags: "android.stl"
         }
 

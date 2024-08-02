@@ -1747,6 +1747,7 @@
         \li \l exportingProduct
         \li \l filePath
         \li \l importingProduct
+        \li \l module
         \li \l original
         \li \l outer
         \li \l path
@@ -1806,6 +1807,23 @@
     }
     \endcode
     Usually, you should use the \l product variable instead for consistency with \l Module items.
+
+    \section2 \c module
+
+    This value holds the properties of the module that contains the current item:
+    \code
+    Module {
+        property bool enableGroup
+        property bool enableRule
+        Group {
+            condition: enableGroup // available without qualification because Module is a direct parent item
+            Rule {
+                condition: module.enableRule // Shortcut for product.<module name>.enableRule
+                // ...
+            }
+        }
+    }
+    \endcode
 
     \section2 \c original
     On the right-hand side of a module property binding, this refers to the value of the property

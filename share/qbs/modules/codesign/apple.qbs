@@ -234,7 +234,7 @@ CodeSignModule {
 
         Rule {
             multiplex: true
-            condition: product.codesign._provisioningProfileAllowed
+            condition: module._provisioningProfileAllowed
             inputs: ["codesign.provisioningprofile"]
             outputFileTags: ["codesign.embedded_provisioningprofile"]
             outputArtifacts: CodeSign.generateAppleProvisioningProfileOutputs(product, inputs)
