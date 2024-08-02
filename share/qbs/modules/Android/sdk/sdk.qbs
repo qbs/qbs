@@ -99,41 +99,6 @@ Module {
     property bool _enableRules: !product.multiplexConfigurationId && !!packageName
     property bool _bundledInAssets: true
 
-    Group {
-        name: "java sources"
-        condition: product.Android.sdk.automaticSources
-        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.sourcesDir + '/')
-        files: "**/*.java"
-    }
-
-    Group {
-        name: "android resources"
-        condition: product.Android.sdk.automaticSources
-        fileTags: ["android.resources"]
-        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.resourcesDir + '/')
-        files: "**/*"
-    }
-
-    Group {
-        name: "android assets"
-        condition: product.Android.sdk.automaticSources
-        fileTags: ["android.assets"]
-        prefix: FileInfo.resolvePath(product.sourceDirectory, product.Android.sdk.assetsDir + '/')
-        files: "**/*"
-    }
-
-    Group {
-        name: "manifest"
-        condition: product.Android.sdk.automaticSources
-        fileTags: ["android.manifest"]
-        files: product.Android.sdk.manifestFile
-               && product.Android.sdk.manifestFile !== product.Android.sdk.defaultManifestFile
-               ? [product.Android.sdk.manifestFile]
-               : (File.exists(product.Android.sdk.defaultManifestFile)
-                  ? [product.Android.sdk.defaultManifestFile] : [])
-    }
-
-
     // Internal properties.
     property int platformVersion: {
         if (platform) {
@@ -200,6 +165,41 @@ Module {
                                                            "compiled_resources")
     property string packageContentsDir: FileInfo.joinPaths(product.buildDirectory, packageType)
     property stringList aidlSearchPaths
+
+    Group {
+        condition: automaticSources
+
+        Group {
+            name: "java sources"
+            prefix: FileInfo.resolvePath(product.sourceDirectory, module.sourcesDir + '/')
+            files: "**/*.java"
+        }
+        Group {
+            name: "android resources"
+            fileTags: ["android.resources"]
+            prefix: FileInfo.resolvePath(product.sourceDirectory, module.resourcesDir + '/')
+            files: "**/*"
+        }
+        Group {
+            name: "android assets"
+            fileTags: ["android.assets"]
+            prefix: FileInfo.resolvePath(product.sourceDirectory, module.assetsDir + '/')
+            files: "**/*"
+        }
+        Group {
+            name: "manifest"
+            fileTags: ["android.manifest"]
+            files: module.manifestFile && module.manifestFile !== module.defaultManifestFile
+                   ? [module.manifestFile]
+                   : File.exists(module.defaultManifestFile ? [module.defaultManifestFile] : [])
+        }
+    }
+
+    Group {
+        condition: !customManifestProcessing
+        fileTagsFilter: "android.manifest_processed"
+        fileTags: "android.manifest_final"
+    }
 
     Group {
         condition: _enableRules
@@ -388,11 +388,5 @@ Module {
 
     Parameter {
         property bool embedJar: true
-    }
-
-    Group {
-        condition: !product.Android.sdk.customManifestProcessing
-        fileTagsFilter: "android.manifest_processed"
-        fileTags: "android.manifest_final"
     }
 }
