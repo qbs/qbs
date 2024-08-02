@@ -33,10 +33,10 @@
     \ingroup list-of-items
     \keyword QML.Group
 
-    \brief Groups files in a product.
+    \brief Groups files and other items in a product or module.
 
-    This item is attached to a \l{Product}{product} and used to group files that
-    have something in common.
+    This item is attached to a \l{Product}{product} or \l{Module}{module} and used to group files
+    and other items that have something in common.
 
     For example:
 
@@ -101,10 +101,11 @@
     sources to be added to the products depending on the said module, unless
     the \l{filesAreTargets} property is set.
 
-    Groups can be nested. In this case, child groups inherit the module
-    properties and \l{FileTagger}{file tags} as well as the prefix of their
-    parent group. The \l{condition} of a child group gets logically
-    ANDed with the one of its parent group.
+    Groups can contain other items, namely \l Depends, \l FileTagger, \l Rule and \l Scanner items.
+    They can also contain other groups, that is, they can be nested. The \l{condition} of
+    a groups's child item gets logically ANDed with the one of the parent group. Additionally,
+    if the child item is a group itself, the child group inherits the module properties and
+    \l{FileTagger}{file tags} as well as the prefix of its parent group.
 */
 
 /*!
