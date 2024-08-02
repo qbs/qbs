@@ -30,7 +30,7 @@ Module {
     Group {
         condition: headerFileName
         Depends { name: "cpp" }
-        Properties { cpp.includePaths: [includeDir] }
+        product.cpp.includePaths: [includeDir]
         Rule {
             multiplex: true
             Artifact {

@@ -23,12 +23,10 @@ Module {
     Group {
         condition: qbs.targetOS.contains("android")
         Depends { name: "Qt.android_support" }
-        Properties {
-            Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
-            Qt.android_support._qtInstallDir: FileInfo.path(installPath)
-            Qt.android_support.version: version
-            Qt.android_support.rccFilePath: Rcc.fullPath(product)
-        }
+        product.Qt.android_support._qtBinaryDir: FileInfo.path(binPath)
+        product.Qt.android_support._qtInstallDir: FileInfo.path(installPath)
+        product.Qt.android_support.version: version
+        product.Qt.android_support.rccFilePath: Rcc.fullPath(product)
     }
 
     // qmlImportScanner is required by androiddeployqt even if the project doesn't

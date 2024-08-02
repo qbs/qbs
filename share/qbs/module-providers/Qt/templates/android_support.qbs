@@ -41,11 +41,9 @@ Module {
         Depends { name: "Android.sdk" }
         Depends { name: "java" }
 
-        Properties {
-            Android.sdk.customManifestProcessing: true
-            java._tagJniHeaders: false // prevent rule cycle
-            Android.sdk._bundledInAssets: _multiAbi
-        }
+        product.Android.sdk.customManifestProcessing: true
+        product.Android.sdk._bundledInAssets: _multiAbi
+        product.java._tagJniHeaders: false // prevent rule cycle
 
         Properties {
             condition: Utilities.versionCompare(version, "5.15") >= 0
@@ -116,9 +114,7 @@ Module {
         Depends { name: "cpp" }
         Depends { name: "Android.ndk" }
 
-        Properties {
-            Android.ndk.appStl: qbs.toolchain.contains("clang") ? "c++_shared" : "gnustl_shared"
-        }
+        product.Android.ndk.appStl: qbs.toolchain.contains("clang") ? "c++_shared" : "gnustl_shared"
         Properties {
             condition: _multiAbi
             cpp.archSuffix: "_" + Android.ndk.abi

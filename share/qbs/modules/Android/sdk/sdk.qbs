@@ -207,14 +207,12 @@ Module {
         Depends { name: "java" }
         Depends { name: "codesign" }
 
-        Properties {
-            java.languageVersion: platformJavaVersion
-            java.runtimeVersion: platformJavaVersion
-            java.bootClassPaths: androidJarFilePath
-            codesign.apksignerFilePath: apksignerFilePath
-            codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
-            codesign.useApksigner: !_generateAab
-        }
+        product.java.languageVersion: platformJavaVersion
+        product.java.runtimeVersion: platformJavaVersion
+        product.java.bootClassPaths: androidJarFilePath
+        product.codesign.apksignerFilePath: apksignerFilePath
+        product.codesign._packageName: apkBaseName + (_generateAab ? ".aab" : ".apk")
+        product.codesign.useApksigner: !_generateAab
 
         Rule {
             inputs: ["android.aidl"]

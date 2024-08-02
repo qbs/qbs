@@ -3190,28 +3190,34 @@ void TestLanguage::propertiesBlocks()
 void TestLanguage::propertiesBlockInGroup_data()
 {
     QTest::addColumn<bool>("withGroup");
+    QTest::addColumn<QString>("moduleGroup");
     QTest::addColumn<QStringList>("expectedValue");
 
-    QTest::newRow("with group") << true
-                                << QStringList{
-                                       "BASEDEF",
-                                       "FEATURE_ENABLED",
-                                       "THE_GROUP",
-                                       "MODULE_DEFINE",
-                                       "MODULE_GROUP"};
-    QTest::newRow("without group")
-        << false << QStringList{"BASEDEF", "MODULE_DEFINE", "MODULE_GROUP"};
+    QTest::newRow("with group, use primary module group")
+        << true << "module_group"
+        << QStringList{"BASEDEF", "FEATURE_ENABLED", "THE_GROUP", "MODULE_DEFINE", "MODULE_GROUP"};
+    QTest::newRow("with group, use alternative module group")
+        << true << "module_group_alt"
+        << QStringList{
+               "BASEDEF", "FEATURE_ENABLED", "THE_GROUP", "MODULE_DEFINE", "MODULE_GROUP_ALT"};
+    QTest::newRow("without group, use primary module group")
+        << false << "module_group" << QStringList{"BASEDEF", "MODULE_DEFINE", "MODULE_GROUP"};
+    QTest::newRow("without group, use alternative module group")
+        << false << "module_group_alt"
+        << QStringList{"BASEDEF", "MODULE_DEFINE", "MODULE_GROUP_ALT"};
 }
 
 void TestLanguage::propertiesBlockInGroup()
 {
     QFETCH(bool, withGroup);
+    QFETCH(QString, moduleGroup);
     QFETCH(QStringList, expectedValue);
 
     bool exceptionCaught = false;
     try {
         defaultParameters.setOverriddenValues(
-            {std::make_pair(QString("products.in-group.featureEnabled"), withGroup)});
+            {std::make_pair(QString("products.in-group.featureEnabled"), withGroup),
+             std::make_pair(QString("modules.module_with_group.group"), moduleGroup)});
         resolveProject("properties-block-in-group.qbs");
         QVERIFY(!!project);
         QCOMPARE(project->allProducts().size(), size_t(1));

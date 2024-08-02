@@ -39,6 +39,7 @@
 #include "astpropertiesitemhandler.h"
 
 #include <language/item.h>
+#include <language/itempool.h>
 #include <language/value.h>
 
 #include <logging/translator.h>
@@ -49,9 +50,13 @@
 namespace qbs {
 namespace Internal {
 
-ASTPropertiesItemHandler::ASTPropertiesItemHandler(Item *parentItem, ItemPool &itemPool)
-    : m_parentItem(parentItem), m_itemPool(itemPool)
+ASTPropertiesItemHandler::ASTPropertiesItemHandler(
+    Item *parentItem, ItemPool &itemPool, Logger &logger)
+    : m_parentItem(parentItem)
+    , m_itemPool(itemPool)
+    , m_logger(logger)
 {
+    prepareGroup();
 }
 
 void ASTPropertiesItemHandler::handlePropertiesItems()
@@ -59,6 +64,33 @@ void ASTPropertiesItemHandler::handlePropertiesItems()
     // TODO: Simply forbid Properties items to have child items and get rid of this check.
     if (m_parentItem->type() != ItemType::Properties)
         setupAlternatives();
+}
+
+void ASTPropertiesItemHandler::prepareGroup()
+{
+    if (m_parentItem->type() != ItemType::Group)
+        return;
+
+    // Syntactic sugar: If we encounter property bindings of the form "product.x.y: z",
+    // we transform them into "x.y: z" and put them in a newly created Properties item,
+    // thus making sure they will be applied "globally".
+    Item::PropertyMap &props = m_parentItem->properties();
+    for (auto it = props.begin(); it != props.end(); ++it) {
+        if (it.value()->type() != Value::ItemValueType
+            || it.key() != StringConstants::productVar()) {
+            continue;
+        }
+
+        Item * const valueItem = static_cast<ItemValue *>(it.value().get())->item();
+        Item * const propertiesItem = m_itemPool.allocateItem(ItemType::Properties);
+        propertiesItem->setFile(m_parentItem->file());
+        propertiesItem->setProperties(valueItem->properties());
+        propertiesItem->setupForBuiltinType(DeprecationWarningMode::Off, m_logger);
+        Item::addChild(m_parentItem, propertiesItem);
+
+        props.erase(it);
+        break;
+    }
 }
 
 void ASTPropertiesItemHandler::setupAlternatives()

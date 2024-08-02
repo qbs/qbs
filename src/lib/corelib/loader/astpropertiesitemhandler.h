@@ -43,20 +43,23 @@ namespace qbs {
 namespace Internal {
 class Item;
 class ItemPool;
+class Logger;
 
 class ASTPropertiesItemHandler
 {
 public:
-    ASTPropertiesItemHandler(Item *parentItem, ItemPool &itemPool);
+    ASTPropertiesItemHandler(Item *parentItem, ItemPool &itemPool, Logger &logger);
 
     void handlePropertiesItems();
 
 private:
+    void prepareGroup();
     void setupAlternatives();
     void handlePropertiesBlock(const Item *propertiesItem);
 
     Item * const m_parentItem;
     ItemPool &m_itemPool;
+    Logger &m_logger;
 };
 
 } // namespace Internal

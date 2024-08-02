@@ -76,7 +76,7 @@ QtModule {
 
     Group {
         condition: importName
-        Properties { Qt.core.generateMetaTypesFile: true }
+        product.Qt.core.generateMetaTypesFile: true
         Rule {
             inputs: "qt.core.metatypes"
             multiplex: true

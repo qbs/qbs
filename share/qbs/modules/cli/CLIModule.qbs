@@ -8,7 +8,7 @@ Module {
     Group {
         condition: qbs.targetOS.includes("darwin")
         Depends { name: "bundle" }
-        Properties { bundle.isBundle: false }
+        product.bundle.isBundle: false
     }
 
     condition: false

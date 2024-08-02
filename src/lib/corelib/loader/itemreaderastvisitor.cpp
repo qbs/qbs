@@ -162,7 +162,7 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
         m_visitorState.setMostDerivingItem(mdi);
     }
 
-    ASTPropertiesItemHandler(item, *m_itemPool).handlePropertiesItems();
+    ASTPropertiesItemHandler(item, *m_itemPool, m_logger).handlePropertiesItems();
 
     // Inheritance resolving, part 2 (depends on alternatives having been set up).
     if (baseItem) {
