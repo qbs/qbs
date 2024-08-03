@@ -45,13 +45,13 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
-      run: docker-compose pull ${{ matrix.config.image }}
+      run: docker compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
-      run: docker-compose run ${{ matrix.config.image }} ccache -s
+      run: docker compose run ${{ matrix.config.image }} ccache -s
     - name: Build Qbs
-      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
+      run: docker compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run ${{ matrix.config.image }} ccache -s
+      run: docker compose run ${{ matrix.config.image }} ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v4'
       with:
@@ -126,13 +126,13 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
-      run: docker-compose pull ${{ matrix.config.image }}
+      run: docker compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
-      run: docker-compose run ${{ matrix.config.image }} ccache -s
+      run: docker compose run ${{ matrix.config.image }} ccache -s
     - name: Build Qbs
-      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
+      run: docker compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run ${{ matrix.config.image }} ccache -s
+      run: docker compose run ${{ matrix.config.image }} ccache -s
 
   clang-format:
     name: Check Style
@@ -433,9 +433,9 @@ jobs:
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
-      run: docker-compose pull ${{ matrix.config.image }}
+      run: docker compose pull ${{ matrix.config.image }}
     - name: Run tests
-      run: docker-compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
+      run: docker compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
 
   test-baremetal:
     name: Run Baremetal tests (Linux)
@@ -454,23 +454,23 @@ jobs:
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-linux-jammy-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
-      run: docker-compose pull jammy-baremetal
+      run: docker compose pull jammy-baremetal
     - name: arm-none-eabi-gcc-10_3
-      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-10_3 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: avr-gcc-5_4
-      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: msp430-gcc-4_6
-      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: riscv64-unknown-elf-gcc-10_2
-      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_2 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_2 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-hcs8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-stm8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: xtensa-lx106-elf-gcc-10_3
-      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-10_3 docker-compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-10_3 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
 
   test-baremetal-windows:
     name: Run Baremetal tests (Windows)
