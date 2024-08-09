@@ -38,7 +38,7 @@
     This item is attached to a \l{Product}{product} or \l{Module}{module} and used to group files
     and other items that have something in common.
 
-    For example:
+    \section1 Typical Uses of Groups by Example
 
     \code
     Application {
@@ -74,6 +74,9 @@
         }
     }
     \endcode
+
+    \section1 Wildcards
+
     When specifying files, you can use the wildcards \c "*", \c "?" and \c "[]", which
     have their
     \l{https://en.wikipedia.org/wiki/Wildcard_character#File_and_directory_patterns}{usual meaning}
@@ -84,6 +87,65 @@
     directories and subdirectories.
     For example:
     \snippet reference/items/language/group.qbs 0
+
+    \section1 Attaching Module Properties to Source Files
+
+    Within a \c Group item, module properties can be attached either to all files in the
+    product, or to only the files in that group. The following example demonstrates both:
+    \code
+    Product {
+        // ...
+        Group {
+            condition: project.hasSpecialFeature
+            cpp.defines: "FEATURE_SPECIFIC"
+            product.cpp.defines: "WITH_FEATURE"
+            files: "feature.cpp"
+        }
+    }
+    \endcode
+    Here, the macro \c "FEATURE_SPECIFIC" will only be visible inside \c feature.cpp, whereas
+    \c "WITH_FEATURE" applies to all source files in the product.
+
+    A group-level property binding starting with \c "product." is semantically equivalent
+    to putting the same property binding without that prefix inside a top-level \l Properties item
+    with the same condition as the group. The above example could therefore also have been written
+    like this:
+    \code
+    Product {
+        // ...
+        Group {
+            condition: project.hasSpecialFeature
+            cpp.defines: "FEATURE_SPECIFIC"
+            files: "feature.cpp"
+        }
+        Properties {
+            condition: project.hasSpecialFeature
+            cpp.defines: "WITH_FEATURE"
+        }
+    }
+    \endcode
+    Obviously, the original variant is to be preferred, as it does not duplicate the condition
+    and keeps related code close together.
+
+    It should be noted that there is a third way to write the same example, with a \l Properties
+    item inside the group:
+    \code
+    Product {
+        // ...
+        Group {
+            condition: project.hasSpecialFeature
+            cpp.defines: "FEATURE_SPECIFIC"
+            files: "feature.cpp"
+            Properties {
+                cpp.defines: "WITH_FEATURE"
+            }
+        }
+    }
+    \endcode
+    This construct just adds verbosity here, but might be useful in cases where the product-level
+    property binding is dependent on an additional condition.
+
+    \section1 Attaching Module Properties to Generated Files
 
     A group can also be used to attach properties to build artifacts such as executables or
     libraries. In the following example, an application is installed to "<install root>/bin".
@@ -97,9 +159,13 @@
     }
     \endcode
 
+    \section1 Groups in Modules
+
     Groups may also appear in \l{Module}{modules}, which causes the respective
     sources to be added to the products depending on the said module, unless
     the \l{filesAreTargets} property is set.
+
+    \section1 Grouping Related Items
 
     Groups can contain other items, namely \l Depends, \l FileTagger, \l Rule and \l Scanner items.
     They can also contain other groups, that is, they can be nested. The \l{condition} of
