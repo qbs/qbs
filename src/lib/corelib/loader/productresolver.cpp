@@ -802,6 +802,8 @@ void ProductResolverStage2::resolveGroupFully(
     }
 
     const CodeLocation filesLocation = item->property(StringConstants::filesProperty())->location();
+    if (filesLocation.line() > 0 || item->location() == m_product.item->location())
+        group->files.emplace();
     const VariantValueConstPtr moduleProp = item->variantProperty(
                 StringConstants::modulePropertyInternal());
     if (moduleProp)
@@ -904,7 +906,8 @@ SourceArtifactPtr ProductResolverStage2::createSourceArtifact(
     artifact->properties = group->properties;
     artifact->targetOfModule = group->targetOfModule;
     artifact->fromWildcard = wildcard;
-    group->files.push_back(artifact);
+    QBS_CHECK(group->files);
+    group->files->push_back(artifact);
     return artifact;
 }
 

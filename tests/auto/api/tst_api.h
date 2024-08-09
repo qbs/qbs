@@ -93,6 +93,7 @@ private slots:
     void fileTagger();
     void fileTagsFilterOverride();
     void generatedFilesList();
+    void groupVisibility();
     void infiniteLoopBuilding();
     void infiniteLoopBuilding_data();
     void infiniteLoopResolving();

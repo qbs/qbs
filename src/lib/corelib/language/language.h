@@ -69,6 +69,7 @@
 
 #include <memory>
 #include <mutex>
+#include <optional>
 #include <vector>
 
 namespace qbs {
@@ -295,7 +296,7 @@ public:
     QString name;
     bool enabled = true;
     QString prefix;
-    std::vector<SourceArtifactPtr> files;
+    std::optional<std::vector<SourceArtifactPtr>> files;
     std::unique_ptr<SourceWildCards> wildcards;
     PropertyMapPtr properties;
     FileTags fileTags;

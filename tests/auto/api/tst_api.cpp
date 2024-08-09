@@ -648,7 +648,7 @@ void TestApi::changeContent()
         product = projectData.allProducts().front();
     };
     resolve();
-    QVERIFY(product.groups().size() >= 8);
+    QVERIFY(product.groups().size() >= 5);
 
     // Error handling: Invalid product.
     qbs::ErrorInfo errorInfo = project.addGroup(qbs::ProductData(), "blubb");
@@ -1408,6 +1408,26 @@ void TestApi::generatedFilesList()
         QCOMPARE(allParents.size(), 6); //build with "-pthread" support
     else
         QCOMPARE(allParents.size(), 3);
+}
+
+void TestApi::groupVisibility()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters(
+        "group-visibility/group-visibility.qbs");
+    std::unique_ptr<qbs::SetupProjectJob> job(
+        qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(job.get());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+    qbs::ProjectData project = job->project().projectData();
+    QCOMPARE(project.allProducts().size(), 1);
+    qbs::ProductData product = project.allProducts().front();
+    const QList<qbs::GroupData> groups = product.groups();
+    QCOMPARE(groups.size(), 3);
+    for (const qbs::GroupData &g : groups) {
+        QVERIFY2(
+            g.name().contains("should be visible") || g.name() == "group-visibility",
+            qPrintable(g.name()));
+    }
 }
 
 void TestApi::infiniteLoopBuilding()

@@ -95,7 +95,8 @@ static void addModuleProperties(QJsonObject &obj, const PropertyMap &properties,
 
 /*!
  * \class GroupData
- * \brief The \c GroupData class corresponds to the Group item in a qbs source file.
+ * \brief The \c GroupData class corresponds to a Group item in a qbs source file that has its
+ *        \c files property set.
  */
 
 GroupData::GroupData() : d(new GroupDataPrivate)

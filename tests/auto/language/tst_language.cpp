@@ -884,8 +884,9 @@ void TestLanguage::enumerateProjectProperties()
         auto product = products.values().front();
         auto files = product->groups.front()->files;
         QCOMPARE(product->groups.size(), size_t(1));
-        QCOMPARE(files.size(), size_t(1));
-        auto fileName = FileInfo::fileName(files.front()->absoluteFilePath);
+        QVERIFY(files);
+        QCOMPARE(files->size(), size_t(1));
+        auto fileName = FileInfo::fileName(files->front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -2711,15 +2712,17 @@ void TestLanguage::outerInGroup()
         GroupPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
-        QCOMPARE(group->files.size(), size_t(1));
-        SourceArtifactConstPtr artifact = group->files.front();
+        QVERIFY(group->files);
+        QCOMPARE(group->files->size(), size_t(1));
+        SourceArtifactConstPtr artifact = group->files->front();
         QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere"));
         group = product->groups.at(1);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("Special Group"));
-        QCOMPARE(group->files.size(), size_t(1));
-        artifact = group->files.front();
+        QVERIFY(group->files);
+        QCOMPARE(group->files->size(), size_t(1));
+        artifact = group->files->front();
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
     } catch (const ErrorInfo &e) {
@@ -3304,7 +3307,8 @@ void TestLanguage::relaxedErrorMode()
         QVERIFY(missingFile->enabled);
         QCOMPARE(missingFile->groups.size(), size_t(1));
         QVERIFY(missingFile->groups.front()->enabled);
-        QCOMPARE(missingFile->groups.front()->files.size(), size_t(2));
+        QVERIFY(missingFile->groups.front()->files);
+        QCOMPARE(missingFile->groups.front()->files->size(), size_t(2));
         const ResolvedProductConstPtr fine = productMap.value("fine");
         QVERIFY(fine->enabled);
         QCOMPARE(fine->allFiles().size(), size_t(1));
@@ -3460,8 +3464,9 @@ void TestLanguage::fileTags()
     QCOMPARE(product->groups.size(), numberOfGroups);
     GroupPtr group = *(product->groups.end() - 1);
     QVERIFY(!!group);
-    QCOMPARE(group->files.size(), size_t(1));
-    SourceArtifactConstPtr sourceFile = group->files.front();
+    QVERIFY(group->files);
+    QCOMPARE(group->files->size(), size_t(1));
+    SourceArtifactConstPtr sourceFile = group->files->front();
     QStringList fileTags = sourceFile->fileTags.toStringList();
     fileTags.sort();
     QCOMPARE(fileTags, expectedFileTags);
@@ -3700,10 +3705,11 @@ void TestLanguage::wildcards()
             group = product->groups.front();
         }
         QVERIFY(!!group);
-        QCOMPARE(group->files.size(), expected.size()); // we assume all files are wildcards
+        QVERIFY(group->files);
+        QCOMPARE(group->files->size(), expected.size()); // we assume all files are wildcards
         QVERIFY(!!group->wildcards);
         QStringList actualFilePaths;
-        for (const SourceArtifactPtr &artifact : group->files) {
+        for (const SourceArtifactPtr &artifact : *group->files) {
             QString str = artifact->absoluteFilePath;
             int idx = str.indexOf(m_wildcardsTestDirPath);
             if (idx != -1)

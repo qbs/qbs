@@ -306,8 +306,10 @@ void ResolvedProduct::accept(BuildGraphVisitor *visitor) const
 std::vector<SourceArtifactPtr> ResolvedProduct::allFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
-    for (const auto &group : groups)
-        lst << group->files;
+    for (const auto &group : groups) {
+        if (group->files)
+            lst << *group->files;
+    }
     return lst;
 }
 
@@ -319,8 +321,8 @@ std::vector<SourceArtifactPtr> ResolvedProduct::allEnabledFiles() const
 {
     std::vector<SourceArtifactPtr> lst;
     for (const auto &group : groups) {
-        if (group->enabled)
-            lst << group->files;
+        if (group->enabled && group->files)
+            lst << *group->files;
     }
     return lst;
 }
@@ -489,11 +491,13 @@ QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
 
 void ResolvedGroup::restoreWildcards(const QString &buildDir)
 {
+    if (!files)
+        return;
     if (wildcards) {
         wildcards->buildDir = buildDir;
         wildcards->prefix = prefix;
         wildcards->baseDir = FileInfo::path(location.filePath());
-        for (const auto &sourceArtifact : files) {
+        for (const auto &sourceArtifact : *files) {
             if (sourceArtifact->fromWildcard)
                 wildcards->expandedFiles += sourceArtifact->absoluteFilePath;
         }

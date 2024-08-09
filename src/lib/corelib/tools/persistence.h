@@ -54,6 +54,7 @@
 #include <QtCore/qvariant.h>
 
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <unordered_map>
 #include <vector>
@@ -551,6 +552,29 @@ struct PPHelper<std::unordered_map<K, V, H>>
         const auto count = pool->load<quint32>();
         for (std::size_t i = 0; i < count; ++i)
             map.insert(pool->load<std::pair<K, V>>());
+    }
+};
+
+template<typename T>
+struct PPHelper<std::optional<T>>
+{
+    static const inline int ValueMarker = -2;
+    static const inline int NoValueMarker = -1;
+
+    static void store(const std::optional<T> &v, PersistentPool *pool)
+    {
+        if (v) {
+            pool->store(ValueMarker);
+            pool->store(*v);
+        } else {
+            pool->store(NoValueMarker);
+        }
+    }
+    static void load(std::optional<T> &v, PersistentPool *pool)
+    {
+        const int marker = pool->load<int>();
+        if (marker == ValueMarker)
+            v = pool->load<T>();
     }
 };
 
