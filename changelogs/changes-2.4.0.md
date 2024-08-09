@@ -9,6 +9,13 @@
 * The pkg-config based fallback provider was removed.
 * It is no longer allowed to attach a QML id to a module item.
 
+# Apple support
+* Fixed symlinks for multi-arch binaries on Apple platforms (QBS-1797).
+
+# C/C++ Support
+* Added new cpp.importPrivateLibraries property that controls whether to automatically import
+  external libraries from dependencies.
+
 # Documentation
 * Added more tutorials.
 

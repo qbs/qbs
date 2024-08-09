@@ -46,13 +46,13 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
-      run: docker-compose pull jammy-qt6
+      run: docker compose pull jammy-qt6
     - name: Print ccache stats
-      run: docker-compose run jammy-qt6 ccache -s
+      run: docker compose run jammy-qt6 ccache -s
     - name: Build Qbs
-      run: docker-compose run jammy-qt6 ${{ matrix.config.script }}
+      run: docker compose run jammy-qt6 ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker-compose run jammy-qt6 ccache -s
+      run: docker compose run jammy-qt6 ccache -s
     - name: Get archive name
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
@@ -143,12 +143,12 @@ jobs:
         key: ${{ runner.os }}-release-msvc-docker-clcache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-release-msvc-docker-clcache
     - name: Pull the Windows Image
-      run: docker-compose pull windows
+      run: docker compose pull windows
     - name: Print clcache stats
-      run: docker-compose run --rm windows clcache -s
+      run: docker compose run --rm windows clcache -s
     - name: Build Qbs
       run: >
-        docker-compose run --rm windows qbs build
+        docker compose run --rm windows qbs build
         -p dist
         qbs.buildVariant:release
         modules.cpp.compilerWrapper:clcache
@@ -159,7 +159,7 @@ jobs:
         project.withDocumentation:true
         config:release profile:qt64
     - name: Print clcache stats
-      run: docker-compose run --rm windows clcache -s
+      run: docker compose run --rm windows clcache -s
     - name: Get archive name
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
