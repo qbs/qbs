@@ -676,124 +676,60 @@ void TestLanguage::disabledPropertiesItem_data()
     QTest::addColumn<bool>("setInLower");
     QTest::addColumn<QString>("expectedValue");
     QTest::addColumn<QStringList>("expectedListValue");
+    QTest::addColumn<QStringList>("expectedProductValue");
 
-    QTest::newRow("default") << false << false << false << false << QString("default")
-                             << QStringList{
-                                    "N_GREATER_7",
-                                    "N_GREATER_6",
-                                    "N_GREATER_5",
-                                    "N_LESS_20",
-                                    "N_NON_ZERO"};
-    QTest::newRow("lower only") << false << false << false << true << QString("default_fromLower")
-                                << QStringList{
-                                       "N_GREATER_7",
-                                       "N_GREATER_6",
-                                       "N_GREATER_5",
-                                       "N_LESS_20",
-                                       "WITH_LOWER_PROP",
-                                       "N_NON_ZERO"};
-    QTest::newRow("higher2 only") << false << false << true << false << QString()
-                                  << QStringList{
-                                         "N_GREATER_7",
-                                         "WITH_HIGHER2_PROP",
-                                         "N_GREATER_6",
-                                         "N_GREATER_5",
-                                         "N_LESS_20",
-                                         "N_NON_ZERO"};
-    QTest::newRow("lower and higher2") << false << false << true << true << QString()
-                                       << QStringList{
-                                              "N_GREATER_7",
-                                              "WITH_HIGHER2_PROP",
-                                              "N_GREATER_6",
-                                              "N_GREATER_5",
-                                              "N_LESS_20",
-                                              "WITH_LOWER_PROP",
-                                              "N_NON_ZERO"};
-    QTest::newRow("higher1 only") << false << true << false << false << QString("fromHigher1")
-                                  << QStringList{
-                                         "N_GREATER_7",
-                                         "N_GREATER_6",
-                                         "WITH_HIGHER1_PROP",
-                                         "N_GREATER_5",
-                                         "N_LESS_20",
-                                         "N_NON_ZERO"};
-    QTest::newRow("lower and higher1") << false << true << false << true << QString("fromHigher1")
-                                       << QStringList{
-                                              "N_GREATER_7",
-                                              "N_GREATER_6",
-                                              "WITH_HIGHER1_PROP",
-                                              "N_GREATER_5",
-                                              "N_LESS_20",
-                                              "WITH_LOWER_PROP",
-                                              "N_NON_ZERO"};
-    QTest::newRow("product only") << true << false << false << false << QString("fromProduct")
-                                  << QStringList{
-                                         "WITH_PRODUCT_PROP",
-                                         "N_GREATER_7",
-                                         "N_GREATER_6",
-                                         "N_GREATER_5",
-                                         "N_LESS_20",
-                                         "N_NON_ZERO"};
-    QTest::newRow("product and lower") << true << false << false << true << QString("fromProduct")
-                                       << QStringList{
-                                              "WITH_PRODUCT_PROP",
-                                              "N_GREATER_7",
-                                              "N_GREATER_6",
-                                              "N_GREATER_5",
-                                              "N_LESS_20",
-                                              "WITH_LOWER_PROP",
-                                              "N_NON_ZERO"};
-    QTest::newRow("product and higher2") << true << false << true << false << QString("fromProduct")
-                                         << QStringList{
-                                                "WITH_PRODUCT_PROP",
-                                                "N_GREATER_7",
-                                                "WITH_HIGHER2_PROP",
-                                                "N_GREATER_6",
-                                                "N_GREATER_5",
-                                                "N_LESS_20",
-                                                "N_NON_ZERO"};
+    QTest::newRow("default")
+        << false << false << false << false << QString("default")
+        << QStringList{"N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("lower only")
+        << false << false << false << true << QString("default_fromLower")
+        << QStringList{"N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("higher2 only")
+        << false << false << true << false << QString()
+        << QStringList{"N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("lower and higher2")
+        << false << false << true << true << QString()
+        << QStringList{"N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("higher1 only")
+        << false << true << false << false << QString("fromHigher1")
+        << QStringList{"N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("lower and higher1")
+        << false << true << false << true << QString("fromHigher1")
+        << QStringList{"N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition2"};
+    QTest::newRow("product only")
+        << true << false << false << false << QString("fromProduct")
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
+    QTest::newRow("product and lower")
+        << true << false << false << true << QString("fromProduct")
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
+    QTest::newRow("product and higher2")
+        << true << false << true << false << QString("fromProduct")
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
     QTest::newRow("product, higher2 and lower")
         << true << false << true << true << QString("fromProduct")
-        << QStringList{
-               "WITH_PRODUCT_PROP",
-               "N_GREATER_7",
-               "WITH_HIGHER2_PROP",
-               "N_GREATER_6",
-               "N_GREATER_5",
-               "N_LESS_20",
-               "WITH_LOWER_PROP",
-               "N_NON_ZERO"};
-    QTest::newRow("product and higher1") << true << true << false << false << QString("fromProduct")
-                                         << QStringList{
-                                                "WITH_PRODUCT_PROP",
-                                                "N_GREATER_7",
-                                                "N_GREATER_6",
-                                                "WITH_HIGHER1_PROP",
-                                                "N_GREATER_5",
-                                                "N_LESS_20",
-                                                "N_NON_ZERO"};
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
+    QTest::newRow("product and higher1")
+        << true << true << false << false << QString("fromProduct")
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
     QTest::newRow("product, higher1 and higher2")
         << true << true << true << false << QString("fromProduct")
-        << QStringList{
-               "WITH_PRODUCT_PROP",
-               "N_GREATER_7",
-               "WITH_HIGHER2_PROP",
-               "N_GREATER_6",
-               "WITH_HIGHER1_PROP",
-               "N_GREATER_5",
-               "N_LESS_20",
-               "N_NON_ZERO"};
-    QTest::newRow("all") << true << true << true << true << QString("fromProduct")
-                         << QStringList{
-                                "WITH_PRODUCT_PROP",
-                                "N_GREATER_7",
-                                "WITH_HIGHER2_PROP",
-                                "N_GREATER_6",
-                                "WITH_HIGHER1_PROP",
-                                "N_GREATER_5",
-                                "N_LESS_20",
-                                "WITH_LOWER_PROP",
-                                "N_NON_ZERO"};
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
+    QTest::newRow("all")
+        << true << true << true << true << QString("fromProduct")
+        << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
+        << QStringList{"condition1", "condition2"};
 }
 
 void TestLanguage::disabledPropertiesItem()
@@ -804,6 +740,7 @@ void TestLanguage::disabledPropertiesItem()
     QFETCH(bool, setInProduct);
     QFETCH(QString, expectedValue);
     QFETCH(QStringList, expectedListValue);
+    QFETCH(QStringList, expectedProductValue);
 
     QVariantMap overriddenValues;
     overriddenValues.insert("modules.lower.setProp", setInLower);
@@ -828,6 +765,7 @@ void TestLanguage::disabledPropertiesItem()
     QCOMPARE(p->moduleProperties->moduleProperty("lower", "prop").toString(), expectedValue);
     QCOMPARE(
         p->moduleProperties->moduleProperty("lower", "listProp").toStringList(), expectedListValue);
+    QCOMPARE(p->productProperties.value("productProp").toStringList(), expectedProductValue);
 }
 
 void TestLanguage::disabledSubProject()

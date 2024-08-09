@@ -6,14 +6,17 @@ Product {
 
     property bool setProp
     property string value: "fromProduct"
+    property stringList productProp: "default"
     lower.n: 10
-    Properties {
+    Group {
         condition: setProp
-        lower.prop: value
-        lower.listProp: "WITH_PRODUCT_PROP"
+        product.lower.prop: value
+        product.lower.listProp: "WITH_PRODUCT_PROP"
+        product.productProp: "condition1"
     }
-    Properties {
+    Group {
         condition: lower.n > 7
-        lower.listProp: "N_GREATER_7"
+        product.lower.listProp: "N_GREATER_7"
+        product.productProp: "condition2"
     }
 }
