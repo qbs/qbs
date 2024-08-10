@@ -14,9 +14,14 @@ x-default-service: &linux
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache
+    - /cores:/cores
   network_mode: bridge
   cap_add:
       - SYS_PTRACE
+  ulimits:
+    core:
+      soft: -1
+      hard: -1
 
 services:
   jammy-qt6: &jammy-qt6

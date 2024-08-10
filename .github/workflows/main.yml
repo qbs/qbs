@@ -432,10 +432,18 @@ jobs:
         path: ./
     - name: Unpack artifact
       run: mkdir -p release/install-root/ && tar xzf qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz -C release/install-root/
+    - name: Setup Coredumps
+      run: |
+        sudo bash -c 'echo "/cores/core.%e.%t.%p" > /proc/sys/kernel/core_pattern'
+        sudo mkdir /cores
+        sudo chmod 777 /cores
     - name: Pull the Docker Image
       run: docker compose pull ${{ matrix.config.image }}
     - name: Run tests
       run: docker compose run ${{ matrix.config.image }} ${{ matrix.config.script }} release/install-root/usr/local/bin
+    - name: Coredump on failure
+      if: ${{ failure() }}
+      run: docker compose run ${{ matrix.config.image }} ./scripts/print-cores.sh
 
   test-baremetal:
     name: Run Baremetal tests (Linux)
