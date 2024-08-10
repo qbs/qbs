@@ -5,6 +5,7 @@
 
 # CI
 * CI now covers Conan tests for all platforms. Conan is also included in Linux images now.
+* GDB is now included in Linux images.
 
 # Contributors
 * Christian Kandeler

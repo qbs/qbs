@@ -46,6 +46,7 @@ RUN apt-get update -qq && \
         curl \
         flex \
         git \
+        gdb \
         help2man \
         icoutils \
         libcapnp-dev \

@@ -22,7 +22,7 @@ services:
   jammy-qt6: &jammy-qt6
     << : *linux
     hostname: jammy-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-6.5.3_2.1.2-2
     build:
       dockerfile: docker/jammy/Dockerfile
       context: .
@@ -33,7 +33,7 @@ services:
   jammy-qt5:
     << : *linux
     hostname: jammy-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-5.15.2_2.1.2-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-5.15.2_2.1.2-2
     build:
       dockerfile: docker/jammy/Dockerfile
       context: .
@@ -58,7 +58,7 @@ services:
   jammy-android-515:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-5.15.2-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-5.15.2-1
     build:
       dockerfile: docker/jammy/test-android.Dockerfile
       context: .
@@ -69,7 +69,7 @@ services:
   jammy-android-62:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.2.4-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.2.4-1
     build:
       dockerfile: docker/jammy/test-android.Dockerfile
       context: .
@@ -80,7 +80,7 @@ services:
   jammy-android-65:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.5.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-6.5.0-1
     build:
       dockerfile: docker/jammy/test-android.Dockerfile
       context: .
@@ -91,7 +91,7 @@ services:
   jammy-android-ndk-r19c:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r19c-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r19c-1
     build:
       dockerfile: docker/jammy/test-android-no-qt.Dockerfile
       context: .
@@ -101,7 +101,7 @@ services:
   jammy-android-ndk-r21e:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r21e-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r21e-1
     build:
       dockerfile: docker/jammy/test-android-no-qt.Dockerfile
       context: .
@@ -111,7 +111,7 @@ services:
   jammy-android-ndk-r23:
     << : *linux
     hostname: jammy-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r23-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-android-ndk-r23-1
     build:
       dockerfile: docker/jammy/test-android-no-qt.Dockerfile
       context: .
@@ -129,7 +129,7 @@ services:
   jammy-qt4:
     << : *linux
     hostname: jammy-qt4
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt4-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt4-1
     build:
       dockerfile: docker/jammy/test-qt4.Dockerfile
       context: .
