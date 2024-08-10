@@ -167,9 +167,9 @@ private:
 
     SessionPacketReader m_packetReader;
     LspServer m_lspServer;
+    SessionLogSink m_logSink;
     Project m_project;
     ProjectData m_projectData;
-    SessionLogSink m_logSink;
     std::unique_ptr<Settings> m_settings;
     QJsonObject m_resolveRequest;
     QStringList m_moduleProperties;
