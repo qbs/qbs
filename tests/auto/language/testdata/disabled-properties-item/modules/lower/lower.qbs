@@ -4,13 +4,13 @@ Module {
     property string prop: "default"
     property stringList listProp
     property int n: 0
-    Properties {
+    Group {
         condition: setProp
-        prop: outer + "_" + value
-        listProp: "WITH_LOWER_PROP"
+        module.prop: outer + "_" + value
+        module.listProp: "WITH_LOWER_PROP"
     }
-    Properties {
+    Group {
         condition: n
-        listProp: ["N_NON_ZERO"]
+        module.listProp: ["N_NON_ZERO"]
     }
 }

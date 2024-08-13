@@ -1161,6 +1161,8 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("module-property-binding-in-project")
         << "Module properties cannot be set in Project items";
     QTest::newRow("module-with-id") << "Module items cannot have an id property";
+    QTest::newRow("module-var-in-product")
+        << "module-var-in-product.qbs:4:19 Use of 'module' is only allowed in Module items";
 }
 
 void TestLanguage::erroneousFiles()
