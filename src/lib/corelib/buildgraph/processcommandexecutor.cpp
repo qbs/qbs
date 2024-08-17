@@ -211,7 +211,7 @@ void ProcessCommandExecutor::cancel(const qbs::ErrorInfo &reason)
 QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
         const QString &filterFunctionSource)
 {
-    QString output = QString::fromLocal8Bit(_output);
+    QString output = !_output.isNull() ? QString::fromLocal8Bit(_output) : QStringLiteral("");
     if (filterFunctionSource.isEmpty())
         return output;
 
