@@ -265,8 +265,6 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPath) {
     var isDarwin = product.qbs.targetOS.includes("darwin");
     var libraryDependencies = collectLibraryDependencies(product, isDarwin);
-    var frameworks = product.cpp.frameworks;
-    var weakFrameworks = product.cpp.weakFrameworks;
     var rpaths = (product.cpp.useRPaths !== false) ? product.cpp.rpaths : undefined;
     var systemRunPaths = product.cpp.systemRunPaths || [];
     var canonicalSystemRunPaths = systemRunPaths.map(function(p) {
@@ -432,22 +430,6 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
 
     args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
     args = args.concat(Cpp.collectResourceObjectPaths(inputs));
-
-    for (i in frameworks) {
-        frameworkExecutablePath = PathTools.frameworkExecutablePath(frameworks[i]);
-        if (FileInfo.isAbsolutePath(frameworkExecutablePath))
-            args.push(frameworkExecutablePath);
-        else
-            args = args.concat(['-framework', frameworks[i]]);
-    }
-
-    for (i in weakFrameworks) {
-        frameworkExecutablePath = PathTools.frameworkExecutablePath(weakFrameworks[i]);
-        if (FileInfo.isAbsolutePath(frameworkExecutablePath))
-            args = args.concat(['-weak_library', frameworkExecutablePath]);
-        else
-            args = args.concat(['-weak_framework', weakFrameworks[i]]);
-    }
 
     var wholeArchiveActive = false;
     var prevLib;
