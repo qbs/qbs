@@ -36,5 +36,6 @@ RUN sudo add-apt-repository ppa:ubuntuhandbook1/ppa -y && \
     apt-get update -qq && \
     apt-get install -qq -y \
         build-essential \
+        gdb \
         libqt4-dev \
         qt4-dev-tools
