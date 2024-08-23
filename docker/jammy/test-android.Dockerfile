@@ -35,6 +35,7 @@ RUN apt-get update -qq && \
     apt-get install -qq -y --no-install-recommends \
         ca-certificates \
         curl \
+        gdb \
         libasan5 \
         libglib2.0-0 \
         locales \
