@@ -382,6 +382,13 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
             VariantValue::create(moduleName.toString()));
     }
 
+    const bool condition = m_loaderState.evaluator().boolValue(
+        providerItem, StringConstants::conditionProperty());
+    if (!condition) {
+        qCDebug(lcModuleLoader) << "Provider condition is false, skipping";
+        return {{}, isEager};
+    }
+
     ProbesResolver(m_loaderState).resolveProbes(product, providerItem);
 
     EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),

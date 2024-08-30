@@ -247,6 +247,16 @@ void TestBlackboxProviders::probeInModuleProvider()
     QVERIFY2(!m_qbsStdout.contains("Running probe"), m_qbsStdout);
 }
 
+void TestBlackboxProviders::providersCondition()
+{
+    QDir::setCurrent(testDataDir + "/providers-condition");
+
+    QbsRunParameters params("resolve");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("p1.qbsmetatestmodule.prop: from_provider_a"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains(("p1.qbsothermodule.prop: from_provider_b")), m_qbsStdout);
+}
+
 // Tests whether it is possible to set providers properties in a Product or from command-line
 void TestBlackboxProviders::providersProperties()
 {
