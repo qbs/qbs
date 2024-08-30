@@ -387,6 +387,7 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
     EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
                                         EvalContext::ModuleProvider);
 
+    checkPropertyDeclarations(providerItem, m_loaderState);
     checkAllowedValues(providerItem);
     auto searchPaths = m_loaderState.evaluator().stringListValue(
         providerItem, QStringLiteral("relativeSearchPaths"));

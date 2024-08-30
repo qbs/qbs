@@ -419,7 +419,9 @@ void TestBlackboxProviders::qbspkgconfigModuleProvider()
 void TestBlackboxProviders::removalVersion()
 {
     QDir::setCurrent(testDataDir + "/removal-version");
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
     QVERIFY(m_qbsStderr.contains(
         "Property 'deprecated' was scheduled for removal in version 2.2.0, but is still present"));
 }

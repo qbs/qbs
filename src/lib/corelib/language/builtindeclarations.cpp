@@ -332,6 +332,7 @@ void BuiltinDeclarations::addModuleProviderItem()
 {
     ItemDeclaration item(ItemType::ModuleProvider);
     item << nameProperty()
+         << conditionProperty()
          << PropertyDeclaration(QStringLiteral("outputBaseDir"), PropertyDeclaration::String)
          << PropertyDeclaration(StringConstants::isEagerProperty(),
                                 PropertyDeclaration::Boolean,
