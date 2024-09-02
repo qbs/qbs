@@ -34,7 +34,7 @@ function parseDesktopFile(filePath) {
     var file = new TextFile(filePath);
     var fileValues = {};
     var currentSection = {};
-    var sectionRex = /\[(.+)\]/g;
+    var sectionRex = /^\[(.+)\]$/g;
     while (!file.atEof()) {
         var line = file.readLine().trim();
         if (line.length == 0) continue;

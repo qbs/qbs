@@ -4566,6 +4566,10 @@ void TestBlackbox::freedesktop()
     QVERIFY(lines.contains("Icon=myapp.png"));
     // Untouched line:
     QVERIFY(lines.contains("Terminal=false"));
+    // Untouched localized line:
+    QVERIFY(lines.contains("GenericName[fr]=Éditeur d'images"));
+    // Untouched localized line:
+    QVERIFY(lines.contains("Comment[fr]=Créer des images et éditer des photographies"));
 
     // Check AppStream file
     QVERIFY(QFile::exists(defaultInstallRoot +
