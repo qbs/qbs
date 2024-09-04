@@ -139,6 +139,17 @@ services:
       dockerfile: docker/jammy/test-qt4.Dockerfile
       context: .
 
+  jammy-qt6-wasm:
+    << : *linux
+    hostname: jammy-qt6-wasm
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:jammy-qt6-wasm-6.7.0-0
+    build:
+      dockerfile: docker/jammy/test-qt6-wasm.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.7.0
+        EMSCRIPTEN_VERSION: 3.1.50
+
   leap:
     << : *linux
     hostname: leap
