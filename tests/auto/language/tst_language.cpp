@@ -1634,6 +1634,8 @@ void TestLanguage::idUsage()
         QVERIFY(!!product5);
         QCOMPARE(product5->moduleProperties->moduleProperty("deepdummy.deep.moat", "zort")
                  .toString(), QString("zort in dummy"));
+        QCOMPARE(int(product5->allEnabledFiles().size()), 1);
+        QVERIFY(product5->allEnabledFiles().at(0)->absoluteFilePath.endsWith("dummy.txt"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

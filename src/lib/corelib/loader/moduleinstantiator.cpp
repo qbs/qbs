@@ -56,9 +56,14 @@
 
 namespace qbs::Internal {
 
-static std::pair<const Item *, Item *>
-getOrSetModuleInstanceItem(Item *container, Item *moduleItem, const QualifiedId &moduleName,
-                           const QString &id, bool replace, LoaderState &loaderState);
+static std::pair<const Item *, Item *> getOrSetModuleInstanceItem(
+    Item *container,
+    Item *moduleItem,
+    const QualifiedId &moduleName,
+    const QString &id,
+    bool replace,
+    LoaderState &loaderState,
+    ProductContext *product);
 
 class ModuleInstantiator
 {
@@ -109,10 +114,12 @@ void ModuleInstantiator::instantiate()
     //  }
     // It's debatable whether that's a good feature, but it has been working (accidentally?)
     // for a long time, and removing it now would break a lot of existing projects.
+    // Note that we omit this extra step if the Depends item has an id, as those should not
+    // spread outside the loading item.
     exchangePlaceholderItem(context.loadingItem, moduleItemForItemValues);
 
     if (!context.alreadyLoaded && context.product.item
-            && context.product.item != context.loadingItem) {
+        && context.product.item != context.loadingItem && context.id.isEmpty()) {
         exchangePlaceholderItem(context.product.item, moduleItemForItemValues);
     }
 }
@@ -123,7 +130,13 @@ void ModuleInstantiator::exchangePlaceholderItem(Item *loadingItem, Item *module
     // Evict a possibly existing placeholder item, and return it to us, so we can merge its values
     // into the instance.
     const auto &[oldItem, newItem] = getOrSetModuleInstanceItem(
-        loadingItem, moduleItemForItemValues, context.moduleName, context.id, true, loaderState);
+        loadingItem,
+        moduleItemForItemValues,
+        context.moduleName,
+        context.id,
+        true,
+        loaderState,
+        &context.product);
 
     // The new item always exists, even if we don't have a module item. In that case, the
     // function created a placeholder item for us, which we then have to turn into a
@@ -188,7 +201,8 @@ void ModuleInstantiator::exchangePlaceholderItem(Item *loadingItem, Item *module
 Item *retrieveModuleInstanceItem(Item *containerItem, const QualifiedId &name,
                                  LoaderState &loaderState)
 {
-    return getOrSetModuleInstanceItem(containerItem, nullptr, name, {}, false, loaderState).second;
+    return getOrSetModuleInstanceItem(containerItem, nullptr, name, {}, false, loaderState, nullptr)
+        .second;
 }
 
 Item *retrieveQbsItem(Item *containerItem, LoaderState &loaderState)
@@ -298,8 +312,13 @@ void instantiateModule(const InstantiationContext &context, LoaderState &loaderS
 // In all cases, the first returned item is the existing one, and the second returned item
 // is the new one. Depending on the use case, they might be null and might also be the same item.
 std::pair<const Item *, Item *> getOrSetModuleInstanceItem(
-    Item *container, Item *moduleItem, const QualifiedId &moduleName, const QString &id,
-    bool replace, LoaderState &loaderState)
+    Item *container,
+    Item *moduleItem,
+    const QualifiedId &moduleName,
+    const QString &id,
+    bool replace,
+    LoaderState &loaderState,
+    ProductContext *product)
 {
     Item *instance = container;
     const QualifiedId itemValueName
@@ -332,6 +351,25 @@ std::pair<const Item *, Item *> getOrSetModuleInstanceItem(
             instance = newItem;
         }
     }
+
+    // If the Depends item has an id, make sure it now points to the module. Otherwise nested
+    // child items will still get the Depends item when referring to it.
+    if (!id.isEmpty()
+        && (container->type() == ItemType::Product
+            || container->type() == ItemType::ModuleInstance)) {
+        Item * const scope = container->type() == ItemType::Product ? product->scope
+                                                                    : container->scope();
+        QBS_CHECK(scope);
+        const ValuePtr idValue = scope->property(id);
+        QBS_CHECK(idValue);
+        QBS_CHECK(idValue->type() == Value::ItemValueType);
+        const auto idIv = static_cast<ItemValue *>(idValue.get());
+        if (idIv->item()->type() != ItemType::ModuleInstance) {
+            QBS_CHECK(idIv->item()->type() == ItemType::Depends);
+            scope->setProperty(id, ItemValue::create(moduleItem));
+        }
+    }
+
     return {nullptr, instance};
 }
 

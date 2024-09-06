@@ -24,6 +24,12 @@ Project {
 
     Product {
         name: "product5"
-        Depends { name: "deepdummy.deep.moat" }
+        Depends { name: "deepdummy.deep.moat"; id: moat }
+        Group {
+            Group {
+                condition: moat.present
+                files: "dummy.txt"
+            }
+        }
     }
 }
