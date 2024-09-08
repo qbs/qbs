@@ -418,6 +418,13 @@ jobs:
             profile: '',
             script: './scripts/test-qt4.sh',
           }
+        - {
+            name: 'Run WebAssembly tests',
+            image: 'jammy-qt6-wasm',
+            suffix: 'linux-jammy',
+            profile: '',
+            script: './scripts/test-wasm.sh',
+          }
 
     env:
       QBS_TEST_SOURCE_ROOT: 'tests'
