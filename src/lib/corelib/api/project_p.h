@@ -68,14 +68,16 @@ public:
     }
 
     ProjectData projectData();
-    BuildJob *buildProducts(const QVector<ResolvedProductPtr> &products, const BuildOptions &options,
-                            bool needsDepencencyResolving,
-                            QObject *jobOwner);
+    BuildJob *buildProducts(
+        const QVector<ResolvedProductPtr> &products,
+        const BuildOptions &options,
+        QObject *jobOwner);
     CleanJob *cleanProducts(const QVector<ResolvedProductPtr> &products, const CleanOptions &options,
                             QObject *jobOwner);
-    InstallJob *installProducts(const QVector<ResolvedProductPtr> &products,
-                                const InstallOptions &options, bool needsDepencencyResolving,
-                                QObject *jobOwner);
+    InstallJob *installProducts(
+        const QVector<ResolvedProductPtr> &products,
+        const InstallOptions &options,
+        QObject *jobOwner);
     QVector<ResolvedProductPtr> internalProducts(const QList<ProductData> &products) const;
     QVector<ResolvedProductPtr> allEnabledInternalProducts(bool includingNonDefault) const;
     ResolvedProductPtr internalProduct(const ProductData &product) const;

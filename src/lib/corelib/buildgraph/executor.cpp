@@ -148,7 +148,7 @@ void Executor::retrieveSourceFileTimestamp(Artifact *artifact) const
 void Executor::build()
 {
     try {
-        m_partialBuild = size_t(m_productsToBuild.size()) != m_allProducts.size();
+        m_partialBuild = size_t(m_primaryProducts.size()) != m_allProducts.size();
         doBuild();
     } catch (const ErrorInfo &e) {
         handleError(e);
@@ -167,10 +167,26 @@ void Executor::setProject(const TopLevelProjectPtr &project)
 
 void Executor::setProducts(const QVector<ResolvedProductPtr> &productsToBuild)
 {
-    m_productsToBuild = productsToBuild;
+    m_primaryProducts = productsToBuild;
+    setupAuxiliaryProducts();
     m_productsByName.clear();
-    for (const ResolvedProductPtr &p : productsToBuild)
+    for (const ResolvedProductPtr &p : m_buildableProducts)
         m_productsByName.insert(std::make_pair(p->uniqueName(), p.get()));
+}
+
+void Executor::setupAuxiliaryProducts()
+{
+    m_buildableProducts = m_primaryProducts;
+    if (int(m_primaryProducts.size()) == int(m_allProducts.size()))
+        return;
+
+    for (int i = 0; i < m_buildableProducts.size(); ++i) {
+        const ResolvedProductPtr product = m_buildableProducts.at(i);
+        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies)) {
+            if (!contains(m_buildableProducts, dependency))
+                m_buildableProducts.push_back(dependency);
+        }
+    }
 }
 
 class ProductPrioritySetter
@@ -243,7 +259,7 @@ void Executor::doBuild()
                 if (file->fileType() != FileResourceBase::FileTypeArtifact)
                     continue;
                 auto const artifact = static_cast<const Artifact *>(file);
-                if (contains(m_productsToBuild, artifact->product.lock())) {
+                if (contains(m_buildableProducts, artifact->product.lock())) {
                     m_tagsOfFilesToConsider.unite(artifact->fileTags());
                     m_productsOfFilesToConsider << artifact->product.lock();
                 }
@@ -253,7 +269,7 @@ void Executor::doBuild()
 
     setState(ExecutorRunning);
 
-    if (m_productsToBuild.empty()) {
+    if (m_primaryProducts.empty()) {
         qCDebug(lcExec) << "No products to build, finishing.";
         QTimer::singleShot(0, this, &Executor::finish); // Don't call back on the caller.
         return;
@@ -270,11 +286,13 @@ void Executor::doBuild()
 
     InstallOptions installOptions;
     installOptions.setDryRun(m_buildOptions.dryRun());
-    installOptions.setInstallRoot(m_productsToBuild.front()->moduleProperties
-            ->qbsPropertyValue(StringConstants::installRootProperty()).toString());
+    installOptions.setInstallRoot(
+        m_buildableProducts.front()
+            ->moduleProperties->qbsPropertyValue(StringConstants::installRootProperty())
+            .toString());
     installOptions.setKeepGoing(m_buildOptions.keepGoing());
-    m_productInstaller = new ProductInstaller(m_project, m_productsToBuild, installOptions,
-                                              m_progressObserver, m_logger);
+    m_productInstaller = new ProductInstaller(
+        m_project, m_buildableProducts, installOptions, m_progressObserver, m_logger);
     if (m_buildOptions.removeExistingInstallation())
         m_productInstaller->removeInstallRoot();
 
@@ -696,7 +714,7 @@ bool Executor::transformerHasMatchingInputFiles(const TransformerConstPtr &trans
 void Executor::setupJobLimits()
 {
     Settings settings(m_buildOptions.settingsDirectory());
-    for (const auto &p : std::as_const(m_productsToBuild)) {
+    for (const auto &p : std::as_const(m_buildableProducts)) {
         const Preferences prefs(&settings, p->profile());
         const JobLimits &jobLimitsFromSettings = prefs.jobLimits();
         JobLimits effectiveJobLimits;
@@ -733,7 +751,7 @@ void Executor::setupProgressObserver()
     if (!m_progressObserver)
         return;
     int totalEffort = 1; // For the effort after the last rule application;
-    for (const auto &product : std::as_const(m_productsToBuild)) {
+    for (const auto &product : std::as_const(m_buildableProducts)) {
         QBS_CHECK(product->buildData);
         const auto filtered = filterByType<RuleNode>(product->buildData->allNodes());
         totalEffort += std::distance(filtered.begin(), filtered.end());
@@ -744,8 +762,9 @@ void Executor::setupProgressObserver()
 void Executor::doSanityChecks()
 {
     QBS_CHECK(m_project);
-    QBS_CHECK(!m_productsToBuild.empty());
-    for (const auto &product : std::as_const(m_productsToBuild)) {
+    QBS_CHECK(!m_primaryProducts.empty());
+    QBS_CHECK(m_buildableProducts.size() >= m_primaryProducts.size());
+    for (const auto &product : std::as_const(m_buildableProducts)) {
         QBS_CHECK(product->buildData);
         QBS_CHECK(product->topLevelProject() == m_project.get());
     }
@@ -1083,7 +1102,7 @@ void Executor::checkForUnbuiltProducts()
     if (m_buildOptions.executeRulesOnly())
         return;
     std::vector<ResolvedProductPtr> unbuiltProducts;
-    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_primaryProducts)) {
         bool productBuilt = true;
         for (BuildGraphNode *rootNode : std::as_const(product->buildData->rootNodes())) {
             if (rootNode->buildState != BuildGraphNode::Built) {
@@ -1117,7 +1136,7 @@ void Executor::checkForUnbuiltProducts()
 
 bool Executor::checkNodeProduct(BuildGraphNode *node)
 {
-    if (!m_partialBuild || contains(m_productsToBuild, node->product.lock()))
+    if (!m_partialBuild || contains(m_buildableProducts, node->product.lock()))
         return true;
 
     // TODO: Turn this into a warning once we have a reliable C++ scanner.
@@ -1203,7 +1222,7 @@ void Executor::prepareAllNodes()
                 node->buildState = BuildGraphNode::Untouched;
         }
     }
-    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_buildableProducts)) {
         QBS_CHECK(product->buildData);
         for (Artifact * const artifact : filterByType<Artifact>(product->buildData->allNodes()))
             prepareArtifact(artifact);
@@ -1307,7 +1326,7 @@ void Executor::prepareProducts()
 {
     ProductPrioritySetter prioritySetter(m_allProducts);
     prioritySetter.apply();
-    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild)) {
+    for (const ResolvedProductPtr &product : std::as_const(m_buildableProducts)) {
         EnvironmentScriptRunner(product.get(), m_evalContext.get(), m_project->environment)
                 .setupForBuild();
     }
@@ -1316,7 +1335,7 @@ void Executor::prepareProducts()
 void Executor::setupRootNodes()
 {
     m_roots.clear();
-    for (const ResolvedProductPtr &product : std::as_const(m_productsToBuild))
+    for (const ResolvedProductPtr &product : std::as_const(m_primaryProducts))
         m_roots += product->buildData->rootNodes();
 }
 

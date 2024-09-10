@@ -3333,6 +3333,16 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::partiallyBuiltDependency()
+{
+    QDir::setCurrent(testDataDir + "/partially-built-dependency");
+    QCOMPARE(runQbs(QbsRunParameters({"-p", "p"})), 0);
+    QCOMPARE(m_qbsStdout.count("generating main.cpp"), 1);
+    QCOMPARE(m_qbsStdout.count("copying main.cpp"), 1);
+    QCOMPARE(m_qbsStdout.count("compiling main.cpp"), 1);
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::pathProbe_data()
 {
     QTest::addColumn<QString>("projectFile");

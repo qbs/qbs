@@ -94,6 +94,7 @@ signals:
     void finished();
 
 private:
+    void setupAuxiliaryProducts();
     void onJobFinished(const qbs::ErrorInfo &err);
     void finish();
     void checkForCancellation();
@@ -170,7 +171,8 @@ private:
     QList<ExecutorJob*> m_availableJobs;
     ExecutorState m_state;
     TopLevelProjectPtr m_project;
-    QVector<ResolvedProductPtr> m_productsToBuild;
+    QVector<ResolvedProductPtr> m_primaryProducts;
+    QVector<ResolvedProductPtr> m_buildableProducts;
     std::vector<ResolvedProductPtr> m_allProducts;
     std::unordered_map<QString, const ResolvedProduct *> m_productsByName;
     std::unordered_map<QString, const ResolvedProject *> m_projectsByName;

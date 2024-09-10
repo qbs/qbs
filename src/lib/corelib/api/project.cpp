@@ -127,27 +127,11 @@ ProjectData ProjectPrivate::projectData()
     return m_projectData;
 }
 
-static void addDependencies(QVector<ResolvedProductPtr> &products)
+BuildJob *ProjectPrivate::buildProducts(
+    const QVector<ResolvedProductPtr> &products, const BuildOptions &options, QObject *jobOwner)
 {
-    for (int i = 0; i < products.size(); ++i) {
-        const ResolvedProductPtr &product = products.at(i);
-        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies)) {
-            if (!products.contains(dependency))
-                products.push_back(dependency);
-        }
-    }
-}
-
-BuildJob *ProjectPrivate::buildProducts(const QVector<ResolvedProductPtr> &products,
-                                        const BuildOptions &options, bool needsDepencencyResolving,
-                                        QObject *jobOwner)
-{
-    QVector<ResolvedProductPtr> productsToBuild = products;
-    if (needsDepencencyResolving)
-        addDependencies(productsToBuild);
-
     const auto job = new BuildJob(logger, jobOwner);
-    job->build(internalProject, productsToBuild, options);
+    job->build(internalProject, products, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
 }
@@ -161,14 +145,11 @@ CleanJob *ProjectPrivate::cleanProducts(const QVector<ResolvedProductPtr> &produ
     return job;
 }
 
-InstallJob *ProjectPrivate::installProducts(const QVector<ResolvedProductPtr> &products,
-        const InstallOptions &options, bool needsDepencencyResolving, QObject *jobOwner)
+InstallJob *ProjectPrivate::installProducts(
+    const QVector<ResolvedProductPtr> &products, const InstallOptions &options, QObject *jobOwner)
 {
-    QVector<ResolvedProductPtr> productsToInstall = products;
-    if (needsDepencencyResolving)
-        addDependencies(productsToInstall);
     const auto job = new InstallJob(logger, jobOwner);
-    job->install(internalProject, productsToInstall, options);
+    job->install(internalProject, products, options);
     QBS_ASSERT(job->state() == AbstractJob::StateRunning,);
     return job;
 }
@@ -829,21 +810,21 @@ BuildJob *Project::buildAllProducts(const BuildOptions &options, ProductSelectio
 {
     QBS_ASSERT(isValid(), return nullptr);
     const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
-    return d->buildProducts(d->allEnabledInternalProducts(includingNonDefault), options,
-                            !includingNonDefault, jobOwner);
+    return d->buildProducts(d->allEnabledInternalProducts(includingNonDefault), options, jobOwner);
 }
 
 /*!
  * \brief Causes the specified list of products to be built.
  * Use this function if you only want to build some products, not the whole project. If any of
- * the products in \a products depend on other products, those will also be built.
+ * the products in \a products depend on other products, those will also be built to the extent
+ * that it is necessary.
  * The function will finish immediately, returning a \c BuildJob identifiying the operation.
  */
 BuildJob *Project::buildSomeProducts(const QList<ProductData> &products,
                                      const BuildOptions &options, QObject *jobOwner) const
 {
     QBS_ASSERT(isValid(), return nullptr);
-    return d->buildProducts(d->internalProducts(products), options, true, jobOwner);
+    return d->buildProducts(d->internalProducts(products), options, jobOwner);
 }
 
 /*!
@@ -899,8 +880,8 @@ InstallJob *Project::installAllProducts(const InstallOptions &options,
 {
     QBS_ASSERT(isValid(), return nullptr);
     const bool includingNonDefault = productSelection == ProductSelectionWithNonDefault;
-    return d->installProducts(d->allEnabledInternalProducts(includingNonDefault), options,
-                              !includingNonDefault, jobOwner);
+    return d->installProducts(
+        d->allEnabledInternalProducts(includingNonDefault), options, jobOwner);
 }
 
 /*!
@@ -911,7 +892,7 @@ InstallJob *Project::installSomeProducts(const QList<ProductData> &products,
                                          const InstallOptions &options, QObject *jobOwner) const
 {
     QBS_ASSERT(isValid(), return nullptr);
-    return d->installProducts(d->internalProducts(products), options, true, jobOwner);
+    return d->installProducts(d->internalProducts(products), options, jobOwner);
 }
 
 /*!
