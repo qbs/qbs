@@ -805,7 +805,7 @@ bool BuildGraphLoader::checkForPropertyChanges(const ResolvedProductPtr &restore
                               << restoredProduct->uniqueName();
         m_productsWhoseArtifactsNeedUpdate << restoredProduct->uniqueName();
     }
-    if (restoredProduct->moduleProperties != newlyResolvedProduct->moduleProperties) {
+    if (*restoredProduct->moduleProperties != *newlyResolvedProduct->moduleProperties) {
         qCDebug(lcBuildGraph) << "module properties changed for product"
                               << restoredProduct->uniqueName();
         m_productsWhoseArtifactsNeedUpdate << restoredProduct->uniqueName();
