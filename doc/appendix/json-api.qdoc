@@ -381,19 +381,22 @@
     cancel has already finished (i.e. there is a race condition), the reply
     received by client code will not contain a cancellation-related error.
 
-    \section1 Adding and Removing Source Files
+    \section1 Adding, Removing and Renaming Source Files
 
-    Source files can be added to and removed from \QBS project files with
-    the \c add-files and \c remove-files messages, respectively. These two
+    Source files can be added to, removed from and renamed in \QBS project files with
+    the \c add-files, \c remove-files and \c rename-files messages, respectively. These two
     requests have the same set of properties:
     \table
     \header \li Property  \li Type
-    \row    \li files     \li \l FilePath list
+    \row    \li files     \li see below
     \row    \li group     \li string
     \row    \li product   \li string
     \endtable
 
-    The \c files property specifies which files should be added or removed.
+    The \c files property specifies which files should be added, removed or renamed.
+    For the \c add-files and \c remove-files messages, this is a \c FilePath list.
+    For the \c rename-files message, this is a list of objects with two properties
+    \c source-path and \c target-path, each of which is a \c FilePath.
 
     The \c product property corresponds to the \c full-display-name of
     a \l ProductData and specifies to which product to apply the operation.
@@ -401,8 +404,8 @@
     The \c group property corresponds to the \c name of a \l GroupData
     and specifies to which group in the product to apply the operation.
 
-    After the operation has finished, \QBS replies with a \c files-added
-    and \c files-removed message, respectively. Again, the properties are
+    After the operation has finished, \QBS replies with a \c files-added,
+    \c files-removed and \c files-renamed message, respectively. Again, the properties are
     the same:
     \table
     \header \li Property       \li Type                     \li Mandatory

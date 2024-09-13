@@ -6833,7 +6833,7 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 5);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 6);
     QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure
@@ -7346,6 +7346,88 @@ void TestBlackbox::qbsSession()
     QVERIFY(compiledFile2);
     QVERIFY(!compiledLib);
     QVERIFY(compiledMain);
+
+    // Rename a file and re-build.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QVERIFY(QFile::rename("lib.cpp", "theLib.cpp"));
+    QJsonObject renameFilesRequest;
+    renameFilesRequest.insert("type", "rename-files");
+    renameFilesRequest.insert("product", "theLib");
+    renameFilesRequest.insert("group", "sources");
+    QJsonObject sourceAndTarget(
+        {qMakePair(QString("source-path"), QJsonValue(QDir::currentPath() + "/lib.cpp")),
+         qMakePair(QString("target-path"), QJsonValue(QDir::currentPath() + "/theLib.cpp"))});
+    renameFilesRequest.insert("files", QJsonArray{sourceAndTarget});
+    sendPacket(renameFilesRequest);
+    receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type").toString(), QString("files-renamed"));
+    error = receivedMessage.value("error").toObject();
+    if (!error.isEmpty())
+        qDebug() << error;
+    QVERIFY(error.isEmpty());
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+            const QJsonObject projectData = receivedMessage.value("project-data").toObject();
+            QJsonArray products = projectData.value("products").toArray();
+            bool hasOldFile = false;
+            bool hasNewFile = false;
+            for (const QJsonValue v : products) {
+                const QJsonObject product = v.toObject();
+                const QString productName = product.value("full-display-name").toString();
+                const QJsonArray groups = product.value("groups").toArray();
+                for (const QJsonValue &v : groups) {
+                    const QJsonObject group = v.toObject();
+                    const QString groupName = group.value("name").toString();
+                    const QJsonArray sourceArtifacts = group.value("source-artifacts").toArray();
+                    for (const QJsonValue &v : sourceArtifacts) {
+                        const QString filePath = v.toObject().value("file-path").toString();
+                        if (filePath.endsWith("lib.cpp")) {
+                            hasOldFile = true;
+                        } else if (filePath.endsWith("theLib.cpp")) {
+                            QCOMPARE(productName, QString("theLib"));
+                            QCOMPARE(groupName, QString("sources"));
+                            hasNewFile = true;
+                        }
+                    }
+                }
+            }
+            QVERIFY(!hasOldFile);
+            QVERIFY(hasNewFile);
+        }
+    }
+    QVERIFY(receivedReply);
+
+    receivedReply = false;
+    compiledLib = false;
+    sendPacket(buildRequest);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-built") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        } else if (
+            msgType == "command-description"
+            && receivedMessage.value("message").toString().contains("compiling theLib.cpp")) {
+            compiledLib = true;
+        }
+    }
+    QVERIFY(receivedReply);
+    QVERIFY(compiledLib);
 
     // Get generated files.
     QJsonObject genFilesRequestPerFile;

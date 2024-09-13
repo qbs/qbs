@@ -99,10 +99,9 @@ QJsonObject SessionPacket::helloMessage(const QString &lspSocket)
 {
     return QJsonObject{
         {StringConstants::type(), QLatin1String("hello")},
-        {QLatin1String("api-level"), 5},
+        {QLatin1String("api-level"), 6},
         {QLatin1String("api-compat-level"), 2},
-        {QLatin1String("lsp-socket"), lspSocket}
-    };
+        {QLatin1String("lsp-socket"), lspSocket}};
 }
 
 bool SessionPacket::isComplete() const
