@@ -86,7 +86,7 @@ static void addModuleProperties(QJsonObject &obj, const PropertyMap &properties,
     QJsonObject propertyValues;
     for (const QString &prop : propertyNames) {
         const QVariant v = getModuleProperty(properties, prop);
-        if (v.isValid())
+        if (v.isValid() && !v.isNull())
             propertyValues.insert(prop, QJsonValue::fromVariant(v));
     }
     if (!propertyValues.isEmpty())

@@ -159,6 +159,7 @@
     will be sent in the reply message. For instance, if the project to be resolved
     is C++-based and the client code is interested in which C++ version the
     code uses, then \c module-properties would contain \c{"cpp.cxxLanguageVersion"}.
+    Properties that have the value \c undefined will not be sent.
 
     The \c overridden-properties property is used to override the values of
     module, product or project properties. The possible ways to specify

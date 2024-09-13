@@ -2,6 +2,9 @@
 * Fixed possible crash when exiting Qbs Session (QBS-1803).
 * Fixed possible "undefined" value passed to the filterFunction in ProcessCommandExecutor.
 
+# JSON API
+* Undefined module properties are omitted now.
+
 # Docker
 * Linux images now contain GNU Debugger.
 
