@@ -382,6 +382,8 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
             VariantValue::create(moduleName.toString()));
     }
 
+    ProbesResolver(m_loaderState).resolveProbes(product, providerItem);
+
     const bool condition = m_loaderState.evaluator().boolValue(
         providerItem, StringConstants::conditionProperty());
     if (!condition) {
@@ -389,10 +391,8 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
         return {{}, isEager};
     }
 
-    ProbesResolver(m_loaderState).resolveProbes(product, providerItem);
-
-    EvalContextSwitcher contextSwitcher(m_loaderState.evaluator().engine(),
-                                        EvalContext::ModuleProvider);
+    EvalContextSwitcher contextSwitcher(
+        m_loaderState.evaluator().engine(), EvalContext::ModuleProvider);
 
     checkPropertyDeclarations(providerItem, m_loaderState);
     checkAllowedValues(providerItem);

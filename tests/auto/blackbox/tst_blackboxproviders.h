@@ -51,6 +51,7 @@ private slots:
     void nonEagerModuleProvider();
     void probeInModuleProvider();
     void providersCondition();
+    void providersConditionProbes();
     void providersProperties();
     void qbsModulePropertiesInProviders();
     void qbsModuleProviders_data();

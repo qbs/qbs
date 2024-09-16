@@ -37,5 +37,6 @@ Probe {
 
     configure: {
         qtInfos = QmakeProbeConfigure.configure(qmakePaths);
+        found = qtInfos.length > 0;
     }
 }
