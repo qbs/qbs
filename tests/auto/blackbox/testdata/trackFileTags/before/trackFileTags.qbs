@@ -13,6 +13,9 @@ Project {
         name: 'someapp'
         type: 'application'
         consoleApplication: true
+
+        property bool dummy: { console.info("object suffix: " + cpp.objectSuffix); }
+
         Depends { name: 'cpp' }
         Group {
             files: [ "main.cpp" ]

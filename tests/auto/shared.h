@@ -298,16 +298,17 @@ inline void copyFileAndUpdateTimestamp(const QString &source, const QString &tar
     touch(target);
 }
 
-inline QString objectFileName(const QString &baseName, const QString &profileName)
+inline QString parsedObjectSuffix(const QByteArray &output)
 {
-    const SettingsPtr s = settings();
-    qbs::Profile profile(profileName, s.get());
-
-    const auto tcList = profileToolchain(profile);
-    const bool isMsvc = tcList.contains("msvc")
-            || (tcList.isEmpty() && qbs::Internal::HostOsInfo::isWindowsHost());
-    const QString suffix = isMsvc ? "obj" : "o";
-    return baseName + '.' + suffix;
+    const QByteArray marker = "object suffix: ";
+    const int markerOffset = output.indexOf(marker);
+    if (markerOffset == -1)
+        return ".fail";
+    const int suffixOffset = markerOffset + marker.size();
+    const int newlineOffset = output.indexOf('\n', suffixOffset);
+    if (newlineOffset == -1)
+        return ".fail";
+    return QString::fromLocal8Bit(output.mid(suffixOffset, newlineOffset - suffixOffset).trimmed());
 }
 
 inline QString inputDirHash(const QString &dir)

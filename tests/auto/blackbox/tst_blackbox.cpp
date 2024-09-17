@@ -1743,11 +1743,21 @@ static bool symlinkExists(const QString &linkFilePath)
 
 void TestBlackbox::clean()
 {
+    QDir::setCurrent(testDataDir + "/clean");
+
+    // Can't clean without a build graph.
+    QbsRunParameters failParams("clean");
+    failParams.expectFailure = true;
+    QVERIFY(runQbs(failParams) != 0);
+
+    // Default behavior: Remove all.
+    QCOMPARE(runQbs(), 0);
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QString appObjectFilePath = relativeProductBuildDir("app") + '/' + inputDirHash(".")
-            + objectFileName("/main.cpp", profileName());
+                                      + "/main.cpp" + objectSuffix;
     const QString appExeFilePath = relativeExecutableFilePath("app");
     const QString depObjectFilePath = relativeProductBuildDir("dep") + '/' + inputDirHash(".")
-            + objectFileName("/dep.cpp", profileName());
+                                      + "/dep.cpp" + objectSuffix;
     const QString depLibBase = relativeProductBuildDir("dep")
             + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
     QString depLibFilePath;
@@ -1767,17 +1777,7 @@ void TestBlackbox::clean()
     } else {
         depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     }
-
-    QDir::setCurrent(testDataDir + "/clean");
-
-    // Can't clean without a build graph.
-    QbsRunParameters failParams("clean");
-    failParams.expectFailure = true;
-    QVERIFY(runQbs(failParams) != 0);
-
-    // Default behavior: Remove all.
-    QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(appObjectFilePath));
+    QVERIFY2(regularFileExists(appObjectFilePath), qPrintable(appObjectFilePath));
     QVERIFY(regularFileExists(appExeFilePath));
     QCOMPARE(runQbs(QbsRunParameters(QStringLiteral("clean"))), 0);
     QVERIFY(!QFile(appObjectFilePath).exists());
@@ -2264,14 +2264,14 @@ void TestBlackbox::trackAddFile()
     QCOMPARE(runQbs({"resolve"}), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
     QCOMPARE(runQbs(runParams), 0);
 
     output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
-    QString unchangedObjectFile = relativeBuildDir()
-            + objectFileName("/someapp/narf.cpp", profileName());
+    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" + objectSuffix;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2387,7 +2387,6 @@ void TestBlackbox::trackGroupConditionChange()
 
 void TestBlackbox::trackRemoveFile()
 {
-    QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackAddFile");
     if (QFile::exists("work"))
         rmDirR("work");
@@ -2400,12 +2399,12 @@ void TestBlackbox::trackRemoveFile()
         QSKIP("Cannot run binaries in cross-compiled build");
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
     QCOMPARE(runQbs(runParams), 0);
-    output = m_qbsStdout.split('\n');
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
+    QList<QByteArray> output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "Hello World!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "NARF!");
     QCOMPARE(output.takeFirst().trimmed().constData(), "ZORT!");
-    QString unchangedObjectFile = relativeBuildDir()
-            + objectFileName("/someapp/narf.cpp", profileName());
+    QString unchangedObjectFile = relativeBuildDir() + "/someapp/narf.cpp" + objectSuffix;
     QDateTime unchangedObjectFileTime1 = QFileInfo(unchangedObjectFile).lastModified();
 
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2429,8 +2428,7 @@ void TestBlackbox::trackRemoveFile()
     QCOMPARE(unchangedObjectFileTime1, unchangedObjectFileTime2);
 
     // the object file for the removed cpp file should have vanished too
-    QVERIFY(!regularFileExists(relativeBuildDir()
-                               + objectFileName("/someapp/zort.cpp", profileName())));
+    QVERIFY(!regularFileExists(relativeBuildDir() + "/someapp/zort.cpp" + objectSuffix));
 }
 
 void TestBlackbox::trackAddFileTag()
@@ -2462,7 +2460,6 @@ void TestBlackbox::trackAddFileTag()
 
 void TestBlackbox::trackRemoveFileTag()
 {
-    QList<QByteArray> output;
     QDir::setCurrent(testDataDir + "/trackFileTags");
     if (QFile::exists("work"))
         rmDirR("work");
@@ -2472,15 +2469,17 @@ void TestBlackbox::trackRemoveFileTag()
     QCOMPARE(runQbs({"resolve"}), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
     QCOMPARE(runQbs(runParams), 0);
 
     // check if the artifacts are here that will become stale in the 2nd step
-    QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + '/' + inputDirHash(".")
-                              + objectFileName("/main_foo.cpp", profileName())));
+    QVERIFY(regularFileExists(
+        relativeProductBuildDir("someapp") + '/' + inputDirHash(".") + "/main_foo.cpp"
+        + objectSuffix));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"));
     QVERIFY(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"));
-    output = m_qbsStdout.split('\n');
+    QList<QByteArray> output = m_qbsStdout.split('\n');
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's 15 foo here");
 
     WAIT_FOR_NEW_TIMESTAMP();
@@ -2489,11 +2488,15 @@ void TestBlackbox::trackRemoveFileTag()
     touch("trackFileTags.qbs");
     QCOMPARE(runQbs(runParams), 0);
     output = m_qbsStdout.split('\n');
+    QVERIFY(!output.isEmpty());
     QCOMPARE(output.takeFirst().trimmed().constData(), "there's no foo here");
 
     // check if stale artifacts have been removed
-    QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + '/' + inputDirHash(".")
-                               + objectFileName("/main_foo.cpp", profileName())), false);
+    QCOMPARE(
+        regularFileExists(
+            relativeProductBuildDir("someapp") + '/' + inputDirHash(".") + "/main_foo.cpp"
+            + objectSuffix),
+        false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main_foo.cpp"), false);
     QCOMPARE(regularFileExists(relativeProductBuildDir("someapp") + "/main.foo"), false);
 }
@@ -2658,13 +2661,15 @@ void TestBlackbox::reproducibleBuild()
     QCOMPARE(runQbs(params), 0);
     const bool isGcc = m_qbsStdout.contains("is gcc: true");
     const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     if (isNotGcc)
         QSKIP("reproducible builds only supported for gcc");
     QVERIFY(isGcc);
 
     QCOMPARE(runQbs(), 0);
-    QFile object(relativeProductBuildDir("the product") + '/' + inputDirHash(".") + '/'
-                 + objectFileName("file1.cpp", profileName()));
+    QFile object(
+        relativeProductBuildDir("the product") + '/' + inputDirHash(".") + '/' + "file1.cpp"
+        + objectSuffix);
     QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
     const QByteArray oldContents = object.readAll();
     object.close();
@@ -6976,13 +6981,15 @@ void TestBlackbox::qbsSession()
     resolveMessage.insert("data-mode", "only-if-changed");
     resolveMessage.insert("max-job-count", 2);
     resolveMessage.insert("log-time", true);
-    resolveMessage.insert("module-properties",
-                          QJsonArray::fromStringList({"cpp.cxxLanguageVersion"}));
+    resolveMessage.insert(
+        "module-properties",
+        QJsonArray::fromStringList({"cpp.cxxLanguageVersion", "cpp.objectSuffix"}));
     sendPacket(resolveMessage);
     bool receivedLogData = false;
     bool receivedStartedSignal = false;
     bool receivedProgressData = false;
     bool receivedReply = false;
+    QString objectSuffix;
     while (!receivedReply) {
         receivedMessage = getNextSessionPacket(sessionProc, incomingData);
         QVERIFY(!receivedMessage.isEmpty());
@@ -7002,6 +7009,10 @@ void TestBlackbox::qbsSession()
                 const QString productName = product.value("name").toString();
                 QVERIFY(!productName.isEmpty());
                 QVERIFY2(product.value("is-enabled").toBool(), qPrintable(productName));
+                objectSuffix = product.value("module-properties")
+                                   .toObject()
+                                   .value("cpp.objectSuffix")
+                                   .toString();
                 bool theLib = false;
                 bool theApp = false;
                 if (productName == "theLib")
@@ -7577,8 +7588,8 @@ void TestBlackbox::qbsSession()
         QCOMPARE(result.value("source-file"), QDir::currentPath() + "/main.cpp");
         const QJsonArray generatedFiles = result.value("generated-files").toArray();
         QCOMPARE(generatedFiles.count(), 1);
-        QCOMPARE(QFileInfo(generatedFiles.first().toString()).fileName(),
-                 objectFileName("main.cpp", profileName()));
+        QCOMPARE(
+            QFileInfo(generatedFiles.first().toString()).fileName(), "main.cpp" + objectSuffix);
         receivedReply = true;
     }
     QVERIFY(receivedReply);

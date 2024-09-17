@@ -692,10 +692,12 @@ void TestBlackboxQt::track_qobject_change()
     QDir::setCurrent(testDataDir + "/trackQObjChange");
     copyFileAndUpdateTimestamp("bla_qobject.h", "bla.h");
     QCOMPARE(runQbs(), 0);
+
+    const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QString productFilePath = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
-    QString moc_bla_objectFileName = relativeProductBuildDir("i") + '/'
-            + inputDirHash("qt.headers") + objectFileName("/moc_bla.cpp", profileName());
+    QString moc_bla_objectFileName = relativeProductBuildDir("i") + '/' + inputDirHash("qt.headers")
+                                     + "/moc_bla.cpp" + objectSuffix;
     QVERIFY2(regularFileExists(moc_bla_objectFileName), qPrintable(moc_bla_objectFileName));
 
     WAIT_FOR_NEW_TIMESTAMP();

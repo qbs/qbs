@@ -5,6 +5,10 @@ CppApplication {
     Probe {
         id: checker
         property bool isGcc: qbs.toolchain.contains("gcc") && !qbs.toolchain.contains("clang")
-        configure: { console.info("is gcc: " + isGcc); }
+        property string objectSuffix: cpp.objectSuffix
+        configure: {
+            console.info("is gcc: " + isGcc);
+            console.info("object suffix: " + objectSuffix);
+        }
     }
 }
