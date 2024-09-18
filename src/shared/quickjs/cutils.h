@@ -30,6 +30,7 @@
 #include <inttypes.h>
 
 #if defined(_MSC_VER)
+#include <intrin.h>
 #include <BaseTsd.h>
 typedef SSIZE_T ssize_t;
 #else
@@ -148,7 +149,11 @@ static inline int64_t min_int64(int64_t a, int64_t b)
 static inline int clz32(unsigned int a)
 {
 #ifdef _MSC_VER
+#if defined(_M_ARM) || defined(_M_ARM64)
+    return _CountLeadingZeros(a);
+#else
     return (int) __lzcnt(a);
+#endif
 #else
     return __builtin_clz(a);
 #endif
@@ -158,7 +163,11 @@ static inline int clz32(unsigned int a)
 static inline int clz64(uint64_t a)
 {
 #ifdef _MSC_VER
+#if defined(_M_ARM) || defined(_M_ARM64)
+    return _CountLeadingZeros64(a);
+#else
     return (int) __lzcnt64(a);
+#endif
 #else
     return __builtin_clzll(a);
 #endif
@@ -168,7 +177,11 @@ static inline int clz64(uint64_t a)
 static inline int ctz32(unsigned int a)
 {
 #ifdef _MSC_VER
+#if defined(_M_ARM) || defined(_M_ARM64)
+    return _CountTrailingZeros(a);
+#else
     return (int) _tzcnt_u32(a);
+#endif
 #else
     return __builtin_ctz(a);
 #endif
@@ -178,7 +191,11 @@ static inline int ctz32(unsigned int a)
 static inline int ctz64(uint64_t a)
 {
 #ifdef _MSC_VER
+#if defined(_M_ARM) || defined(_M_ARM64)
+    return _CountTrailingZeros64(a);
+#else
     return (int) _tzcnt_u64(a);
+#endif
 #else
     return __builtin_ctzll(a);
 #endif
