@@ -362,24 +362,4 @@ inline bool copyDllExportHeader(const QString &srcDataDir, const QString &target
     return sourceFile.copy(targetPath);
 }
 
-inline qbs::Internal::HostOsInfo::HostOs targetOs()
-{
-    const SettingsPtr s = settings();
-    const qbs::Profile buildProfile(profileName(), s.get());
-    const QString targetPlatform = buildProfile.value("qbs.targetPlatform").toString();
-    if (!targetPlatform.isEmpty()) {
-        const auto targetOS = qbs::Internal::HostOsInfo::canonicalOSIdentifiers(targetPlatform);
-        if (qbs::Internal::contains(targetOS, "windows"))
-            return qbs::Internal::HostOsInfo::HostOsWindows;
-        if (qbs::Internal::contains(targetOS, "linux"))
-            return qbs::Internal::HostOsInfo::HostOsLinux;
-        if (qbs::Internal::contains(targetOS, "macos"))
-            return qbs::Internal::HostOsInfo::HostOsMacos;
-        if (qbs::Internal::contains(targetOS, "unix"))
-            return qbs::Internal::HostOsInfo::HostOsOtherUnix;
-        return qbs::Internal::HostOsInfo::HostOsOther;
-    }
-    return qbs::Internal::HostOsInfo::hostOs();
-}
-
 #endif // Include guard.

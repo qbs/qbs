@@ -2,21 +2,33 @@ import qbs.FileInfo
 import qbs.TextFile
 
 Project {
-    condition: qbs.targetOS.includes("windows")
+    property bool dummy: { console.info("is Windows: " + qbs.targetOS.includes("windows")); }
 
     NSISSetup {
+        name: "inst"
+        destinationDirectory: project.buildDirectory
+
         Depends { name: "app" }
         Depends { name: "lib" }
-        name: "inst"
+
+        Properties {
+            condition: nsis.present
+            nsis.defines: ["buildDirectory=" + FileInfo.toWindowsSeparators(project.buildDirectory)]
+        }
+
         files: ["hello.nsi"]
-        nsis.defines: ["buildDirectory=" + FileInfo.toWindowsSeparators(project.buildDirectory)]
-        destinationDirectory: project.buildDirectory
     }
 
     Application {
         Depends { name: "cpp" }
         name: "app"
         files: ["main.c"]
+
+        Properties {
+            condition: qbs.targetOS.includes("darwin")
+            bundle.isBundle: false
+        }
+
         Group {
             fileTagsFilter: product.type
             qbs.install: true
@@ -28,6 +40,12 @@ Project {
         Depends { name: "cpp" }
         name: "lib"
         files: ["main.c"]
+
+        Properties {
+            condition: qbs.targetOS.includes("darwin")
+            bundle.isBundle: false
+        }
+
         Group {
             fileTagsFilter: product.type
             qbs.install: true
