@@ -22,7 +22,7 @@ QtModule {
         }
         Artifact {
             filePath: input.baseName + ".cpp"
-            fileTags: ["cpp", "unmocable"]
+            fileTags: ["cpp", "unmocable", "qt.untranslatable"]
         }
 
         prepare: {

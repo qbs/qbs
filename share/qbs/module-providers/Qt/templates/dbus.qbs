@@ -19,7 +19,7 @@ QtModule {
         }
         Artifact {
             filePath: DBus.outputFileName(input, "_adaptor.cpp")
-            fileTags: ["cpp"]
+            fileTags: ["cpp", "qt.untranslatable"]
         }
 
         prepare: DBus.createCommands(product, input, outputs, "-a")
@@ -35,7 +35,7 @@ QtModule {
         }
         Artifact {
             filePath: DBus.outputFileName(input, "_interface.cpp")
-            fileTags: ["cpp"]
+            fileTags: ["cpp", "qt.untranslatable"]
         }
 
         prepare: DBus.createCommands(product, input, outputs, "-p")

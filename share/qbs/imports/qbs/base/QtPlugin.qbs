@@ -32,7 +32,7 @@ QtModule {
         Artifact {
             filePath: product.targetName + "_qt_plugin_import_"
                       + product.moduleProperty(product.moduleName, "qtModuleName") + ".cpp"
-            fileTags: "cpp"
+            fileTags: ["cpp", "qt.untranslatable"]
         }
 
         prepare: {

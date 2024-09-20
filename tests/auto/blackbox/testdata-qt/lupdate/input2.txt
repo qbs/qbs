@@ -1,0 +1,12 @@
+#include <QObject>
+
+class C : public QObject
+{
+    Q_OBJECT
+
+public:
+    C()
+    {
+        auto s = tr("ignored message");
+    }
+};

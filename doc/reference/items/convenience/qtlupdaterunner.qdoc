@@ -1,0 +1,99 @@
+/****************************************************************************
+**
+** Copyright (C) 2024 The Qt Company Ltd.
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+/*!
+    \previouspage QtGuiApplication
+    \nextpage StaticLibrary
+    \qmltype QtLupdateRunner
+    \inqmlmodule QbsConvenienceItems
+    \ingroup list-of-items
+    \keyword QML.QtLupdateRunner
+    \since 2.6
+
+    \brief A product that updates all Qt translation files in the project.
+
+    A QtLupdateRunner has a dependency on all \l{Product}{products} that have
+    a Qt dependency.
+
+    Building the QtLupdateRunner product will run the
+    \l{https://doc.qt.io/qt-6/linguist-lupdate.html}{lupdate} tool on eligible
+    source files from these products in order to update the project's translation
+    files with regard to the translatable strings in these sources.
+
+    The \l{Product::}{builtByDefault} property is set to \c false by default,
+    so updating the translation files has to be explicitly requested.
+
+    The default name of the product is \c "lupdate-runner".
+
+    To use this feature:
+
+    \list 1
+        \li Instantiate a \c QtLupdateRunner in your project, typically at
+            the top level:
+            \code
+            Project {
+                // ...
+                QtLupdateRunner { }
+                // ...
+            }
+            \endcode
+        \li Trigger the translation files update by building the product:
+            \code
+            qbs build -p lupdate-runner
+            \endcode
+    \endlist
+
+    \section2 Relevant File Tags
+
+    \table
+    \header
+        \li Tag
+        \li Since
+        \li Description
+    \row
+        \li \c{"qt.untranslatable"}
+        \li 2.6
+        \li Attach this tag to source files that lupdate should not consider.
+    \endtable
+*/
+
+/*!
+    \qmlproperty bool QtLupdateRunner::limitToSubProject
+
+    By default, only the source files of products that live in the same sub-project that
+    QtLupdateRunner was instantiated in are looked at.
+    Set this property to \c false to consider all products in the project.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty stringList QtLupdateRunner::extraArguments
+
+    Additional arguments to pass to the \c lupdate tool.
+
+    \nodefaultvalue
+*/
+

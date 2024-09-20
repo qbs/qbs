@@ -33,7 +33,9 @@
 #include <tools/preferences.h>
 #include <tools/profile.h>
 
+#include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
@@ -222,6 +224,127 @@ void TestBlackboxQt::lrelease()
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/lrelease-test.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
     QVERIFY(!regularFileExists(relativeProductBuildDir("lrelease-test") + "/hu.qm"));
+}
+
+void TestBlackboxQt::lupdate()
+{
+    QDir::setCurrent(testDataDir + "/lupdate");
+
+    // Initial run.
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 4 source text"), m_qbsStdout.constData());
+    QFile jsonFile(relativeProductBuildDir("lupdate-runner") + "/lupdate.json");
+    QVERIFY2(jsonFile.open(QIODevice::ReadOnly), qPrintable(jsonFile.fileName()));
+    QJsonDocument jsonDoc = QJsonDocument::fromJson(jsonFile.readAll());
+    QVERIFY(jsonDoc.isObject());
+    QJsonObject mainObj = jsonDoc.object();
+    QJsonArray tsFiles = mainObj.value("translations").toArray();
+    QCOMPARE(tsFiles.size(), 1);
+    QJsonArray mainSources = mainObj.value("sources").toArray();
+    QCOMPARE(mainSources.size(), 1);
+    QVERIFY(mainSources.at(0).toString().endsWith(".ui"));
+    QJsonArray subProjects = mainObj.value("subProjects").toArray();
+    QCOMPARE(subProjects.size(), 3);
+    for (const QJsonValue &v : subProjects) {
+        const QJsonObject subProject = v.toObject();
+        const QString name = subProject.value("projectFile").toString();
+        QVERIFY2(name == "cxx 1" || name == "cxx 2" || name == "cxx 3", qPrintable(name));
+        const QJsonArray includePaths = subProject.value("includePaths").toArray();
+        bool hasSubdir = false;
+        bool hasP1Headers = false;
+        bool hasP2Headers = false;
+        for (const QJsonValue &v : includePaths) {
+            const QString vString = v.toString();
+            if (vString.contains("subdir"))
+                hasSubdir = true;
+            else if (vString.contains("qt1."))
+                hasP1Headers = true;
+            else if (vString.contains("qt2."))
+                hasP2Headers = true;
+        }
+        QVERIFY(hasP1Headers != hasP2Headers);
+        if (hasSubdir) {
+            QVERIFY(hasP1Headers);
+            QVERIFY(!hasP2Headers);
+        }
+        const QJsonArray sources = subProject.value("sources").toArray();
+        const int expectedSourceCount = hasSubdir ? 1 : 3;
+        if (sources.size() != expectedSourceCount)
+            qDebug() << sources;
+        QCOMPARE(sources.size(), expectedSourceCount);
+    }
+    jsonFile.close();
+
+    // Run again. The JSON file should not get updated.
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 4 source text"), m_qbsStdout.constData());
+
+    // Add source file, verify that the JSON file gets updated.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("lupdate.qbs", "/*\"qt2-new.cpp\"*/", "\"qt2-new.cpp\"");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 5 source text"), m_qbsStdout.constData());
+
+    // Change include paths, verify that the JSON file gets updated and the sources re-grouped.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE(
+        "lupdate.qbs", "/*cpp.includePaths: \"subdir\"*/", "cpp.includePaths: \"subdir\"");
+    REPLACE_IN_FILE("lupdate.qbs", "cpp.includePaths: outer.concat(\"subdir\")", "");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 5 source text"), m_qbsStdout.constData());
+    QVERIFY2(jsonFile.open(QIODevice::ReadOnly), qPrintable(jsonFile.fileName()));
+    jsonDoc = QJsonDocument::fromJson(jsonFile.readAll());
+    QVERIFY(jsonDoc.isObject());
+    mainObj = jsonDoc.object();
+    tsFiles = mainObj.value("translations").toArray();
+    QCOMPARE(tsFiles.size(), 1);
+    mainSources = mainObj.value("sources").toArray();
+    QCOMPARE(mainSources.size(), 1);
+    QVERIFY(mainSources.at(0).toString().endsWith(".ui"));
+    subProjects = mainObj.value("subProjects").toArray();
+    QCOMPARE(subProjects.size(), 2);
+    for (const QJsonValue &v : subProjects) {
+        const QJsonObject subProject = v.toObject();
+        const QString name = subProject.value("projectFile").toString();
+        QVERIFY2(name == "cxx 1" || name == "cxx 2", qPrintable(name));
+        const QJsonArray includePaths = subProject.value("includePaths").toArray();
+        const QJsonArray sources = subProject.value("sources").toArray();
+        const int expectedSourceCount = 4;
+        if (sources.size() != expectedSourceCount)
+            qDebug() << sources;
+        QCOMPARE(sources.size(), expectedSourceCount);
+    }
+
+    // Change an unrelated property. The JSON file should not get updated.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("lupdate.qbs", "// cpp.cxxLanguageVersion:", "cpp.cxxLanguageVersion:");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("Resolving"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 5 source text"), m_qbsStdout.constData());
+
+    // Change a source file. The JSON file should not get updated.
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("qt2-main.cpp", "// auto s2", "auto s2");
+    QCOMPARE(runQbs(QbsRunParameters(QStringList{"-p", "lupdate-runner"})), 0);
+    QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("creating lupdate project file"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("updating translation files"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("Found 6 source text"), m_qbsStdout.constData());
 }
 
 void TestBlackboxQt::metaTypes_data()

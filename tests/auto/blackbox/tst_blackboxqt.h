@@ -51,6 +51,7 @@ private slots:
     void includedMocCpp();
     void linkerVariant();
     void lrelease();
+    void lupdate();
     void metaTypes_data();
     void metaTypes();
     void mixedBuildVariants();

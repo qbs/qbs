@@ -83,7 +83,7 @@ QtModule {
             explicitlyDependsOnFromDependencies: "qt.core.metatypes"
             Artifact {
                 filePath: product.targetName.toLowerCase() + "_qmltyperegistrations.cpp"
-                fileTags: ["cpp", "unmocable"]
+                fileTags: ["cpp", "unmocable", "qt.untranslatable"]
             }
             Artifact {
                 filePath: product.Qt.qml.typesFileName
@@ -100,7 +100,7 @@ QtModule {
         multiplex: true
         requiresInputs: false
         inputs: ["qt.qml.qml"]
-        outputFileTags: ["cpp", "qt.qml.pluginlist"]
+        outputFileTags: ["cpp", "qt.qml.pluginlist", "qt.untranslatable"]
         outputArtifacts: Qml.generatePluginImportOutputArtifacts(product, inputs)
         prepare: Qml.generatePluginImportCommands.apply(Qml, arguments)
     }

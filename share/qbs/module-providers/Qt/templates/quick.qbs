@@ -103,7 +103,7 @@ QtModule {
 
         Rule {
             inputs: ["qt.quick.qrcinfo"]
-            outputFileTags: ["cpp", "qrc"]
+            outputFileTags: ["cpp", "qrc", "qt.untranslatable"]
             multiplex: true
             outputArtifacts: QC.compilerOutputArtifacts(product, inputs)
             prepare: QC.compilerCommands.apply(QC, arguments)
