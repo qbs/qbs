@@ -86,10 +86,18 @@ public:
         }
     };
 
+    using FilterFunction
+        = std::function<bool(const PropertyMapConstPtr &, const PropertyMapConstPtr)>;
     ScanData &findScanData(
-            const FileResourceBase *file,
-            const DependencyScanner *scanner,
-            const PropertyMapConstPtr &moduleProperties);
+        const FileResourceBase *file,
+        const QString &scannerId,
+        const PropertyMapConstPtr &moduleProperties,
+        const FilterFunction &filter);
+
+    ScanData &findScanData(
+        const FileResourceBase *file,
+        const DependencyScanner *scanner,
+        const PropertyMapConstPtr &moduleProperties);
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

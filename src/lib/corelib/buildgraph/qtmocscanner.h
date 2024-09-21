@@ -76,7 +76,6 @@ private:
     const ResolvedProductPtr &m_product;
     JSValue m_targetScriptValue;
     QHash<QString, QString> m_includedMocCppFiles;
-    ScannerPlugin *m_cppScanner = nullptr;
 };
 
 } // namespace Internal

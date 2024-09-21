@@ -72,15 +72,6 @@ typedef void  (*scanClose_f)                (void *opaq);
   */
 typedef const char *(*scanNext_f)           (void *opaq, int *size, int *flags);
 
-/**
-  * Returns a list of type hints for the scanned file.
-  * May return null.
-  *
-  * Example: if a C++ header file contains Q_OBJECT,
-  * the type hint 'moc_hpp' is returned.
-  */
-typedef const char** (*scanAdditionalFileTags_f) (void *opaq, int *size);
-
 enum ScannerFlags
 {
     NoScannerFlags = 0x00,
@@ -91,12 +82,11 @@ enum ScannerFlags
 class ScannerPlugin
 {
 public:
-    const char  *name;
-    const char  *fileTags; // CSV
-    scanOpen_f  open;
+    const char *name;
+    const char *fileTags; // CSV
+    scanOpen_f open;
     scanClose_f close;
-    scanNext_f  next;
-    scanAdditionalFileTags_f additionalFileTags;
+    scanNext_f next;
     int flags;
 };
 

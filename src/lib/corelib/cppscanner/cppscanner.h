@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2024 Ivan Komissarov (abbapoh@gmail.com).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,47 +38,75 @@
 **
 ****************************************************************************/
 
-#include "rawscanresults.h"
+#include <tools/qbs_export.h>
+#include <tools/span.h>
 
-#include "filedependency.h"
-#include "depscanner.h"
+#include <QtCore/qbytearray.h>
+#include <QtCore/qlist.h>
+#include <QtCore/qstring.h>
 
-#include <utility>
+#ifdef Q_OS_UNIX
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#else
+#include <QtCore/qfile.h>
+#endif
 
-namespace qbs {
-namespace Internal {
+namespace qbs::Internal {
 
-RawScanResults::ScanData &RawScanResults::findScanData(
-    const FileResourceBase *file,
-    const QString &scannerId,
-    const PropertyMapConstPtr &moduleProperties,
-    const FilterFunction &filter)
+struct QBS_EXPORT ScanResult
 {
-    std::vector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
-    for (auto &scanData : scanDataForFile) {
-        if (scannerId != scanData.scannerId)
-            continue;
-        if (!filter(moduleProperties, scanData.moduleProperties))
-            continue;
-        return scanData;
+    char *fileName = nullptr;
+    int size = 0;
+    int flags = 0;
+};
+
+struct QBS_EXPORT CppScannerContext
+{
+    enum FileType { FT_UNKNOWN, FT_HPP, FT_CPP, FT_C, FT_OBJC, FT_OBJCPP, FT_RC };
+
+    CppScannerContext() = default;
+    CppScannerContext(const CppScannerContext &other) = delete;
+    CppScannerContext(CppScannerContext &&other) = delete;
+    CppScannerContext &operator=(const CppScannerContext &other) = delete;
+    CppScannerContext &operator=(CppScannerContext &&other) = delete;
+    ~CppScannerContext()
+    {
+#ifdef Q_OS_UNIX
+        if (fileContent)
+            munmap(fileContent, mapl);
+        if (fd)
+            close(fd);
+#endif
     }
-    ScanData newScanData;
-    newScanData.scannerId = scannerId;
-    newScanData.moduleProperties = moduleProperties;
-    scanDataForFile.push_back(std::move(newScanData));
-    return scanDataForFile.back();
-}
 
-RawScanResults::ScanData &RawScanResults::findScanData(
-    const FileResourceBase *file,
-    const DependencyScanner *scanner,
-    const PropertyMapConstPtr &moduleProperties)
-{
-    auto predicate = [scanner](const PropertyMapConstPtr &lhs, const PropertyMapConstPtr &rhs) {
-        return scanner->areModulePropertiesCompatible(lhs, rhs);
-    };
-    return findScanData(file, scanner->id(), moduleProperties, predicate);
-}
+#ifdef Q_OS_WIN
+    QFile file;
+#endif
+#ifdef Q_OS_UNIX
+    int fd{0};
+    size_t mapl{0};
+#endif
 
-} // namespace Internal
-} // namespace qbs
+    QString fileName;
+    // TODO: use string_view;
+    char *fileContent{nullptr};
+    FileType fileType{FT_UNKNOWN};
+    QList<ScanResult> includedFiles;
+    bool hasQObjectMacro{false};
+    bool hasPluginMetaDataMacro{false};
+};
+
+QBS_EXPORT bool scanCppFile(
+    CppScannerContext &context,
+    QStringView filePath,
+    std::string_view fileTags,
+    bool scanForFileTags,
+    bool scanForDependencies);
+
+span<const std::string_view> additionalFileTags(const CppScannerContext &context);
+
+} // namespace qbs::Internal

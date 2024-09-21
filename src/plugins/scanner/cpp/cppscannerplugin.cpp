@@ -37,47 +37,72 @@
 **
 ****************************************************************************/
 
-#include "rawscanresults.h"
+#include "../scanner.h"
+#include "cpp_global.h"
+#include <cppscanner/cppscanner.h>
 
-#include "filedependency.h"
-#include "depscanner.h"
+#include <tools/qbspluginmanager.h>
+#include <tools/scannerpluginmanager.h>
 
-#include <utility>
-
-namespace qbs {
-namespace Internal {
-
-RawScanResults::ScanData &RawScanResults::findScanData(
-    const FileResourceBase *file,
-    const QString &scannerId,
-    const PropertyMapConstPtr &moduleProperties,
-    const FilterFunction &filter)
+struct Opaq : public qbs::Internal::CppScannerContext
 {
-    std::vector<ScanData> &scanDataForFile = m_rawScanData[file->filePath()];
-    for (auto &scanData : scanDataForFile) {
-        if (scannerId != scanData.scannerId)
-            continue;
-        if (!filter(moduleProperties, scanData.moduleProperties))
-            continue;
-        return scanData;
+    int currentResultIndex{0};
+};
+
+static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
+{
+    std::unique_ptr<Opaq> opaq(new Opaq);
+    const bool ok = scanCppFile(
+        *opaq,
+        QStringView(filePath),
+        std::string_view(fileTags),
+        flags & ScanForFileTagsFlag,
+        flags & ScanForDependenciesFlag);
+    if (!ok)
+        return nullptr;
+    return opaq.release();
+}
+
+static void closeScanner(void *ptr)
+{
+    const auto opaque = static_cast<Opaq *>(ptr);
+    delete opaque;
+}
+
+static const char *next(void *opaq, int *size, int *flags)
+{
+    const auto opaque = static_cast<Opaq *>(opaq);
+    if (opaque->currentResultIndex < opaque->includedFiles.size()) {
+        const auto &result = opaque->includedFiles.at(opaque->currentResultIndex);
+        ++opaque->currentResultIndex;
+        *size = result.size;
+        *flags = result.flags;
+        return result.fileName;
     }
-    ScanData newScanData;
-    newScanData.scannerId = scannerId;
-    newScanData.moduleProperties = moduleProperties;
-    scanDataForFile.push_back(std::move(newScanData));
-    return scanDataForFile.back();
+    *size = 0;
+    *flags = 0;
+    return nullptr;
 }
 
-RawScanResults::ScanData &RawScanResults::findScanData(
-    const FileResourceBase *file,
-    const DependencyScanner *scanner,
-    const PropertyMapConstPtr &moduleProperties)
+ScannerPlugin includeScanner = {
+    "include_scanner",
+    "cpp,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src,rc",
+    openScanner,
+    closeScanner,
+    next,
+    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies};
+
+ScannerPlugin *cppScanners[] = {&includeScanner, nullptr};
+
+static void QbsCppScannerPluginLoad()
 {
-    auto predicate = [scanner](const PropertyMapConstPtr &lhs, const PropertyMapConstPtr &rhs) {
-        return scanner->areModulePropertiesCompatible(lhs, rhs);
-    };
-    return findScanData(file, scanner->id(), moduleProperties, predicate);
+    qbs::Internal::ScannerPluginManager::instance()->registerPlugins(cppScanners);
 }
 
-} // namespace Internal
-} // namespace qbs
+static void QbsCppScannerPluginUnload() {}
+
+QBS_REGISTER_STATIC_PLUGIN(
+    extern "C" CPPSCANNER_EXPORT,
+    qbs_cpp_scanner,
+    QbsCppScannerPluginLoad,
+    QbsCppScannerPluginUnload)

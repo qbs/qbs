@@ -162,22 +162,8 @@ static const char *nextQrc(void *opaq, int *size, int *flags)
     return nullptr;
 }
 
-static const char **additionalFileTagsQrc(void *, int *size)
-{
-    *size = 0;
-    return nullptr;
-}
-
-ScannerPlugin qrcScanner =
-{
-    "qt_qrc_scanner",
-    "qrc",
-    openScannerQrc,
-    closeScannerQrc,
-    nextQrc,
-    additionalFileTagsQrc,
-    NoScannerFlags
-};
+ScannerPlugin qrcScanner = {
+    "qt_qrc_scanner", "qrc", openScannerQrc, closeScannerQrc, nextQrc, NoScannerFlags};
 
 ScannerPlugin *qtScanners[] = {&qrcScanner, nullptr};
 

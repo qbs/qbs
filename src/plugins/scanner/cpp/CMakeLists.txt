@@ -1,12 +1,7 @@
 set(SOURCES
     ../scanner.h
-    CPlusPlusForwardDeclarations.h
-    Lexer.cpp
-    Lexer.h
-    Token.cpp
-    Token.h
     cpp_global.h
-    cppscanner.cpp
+    cppscannerplugin.cpp
     )
 
 add_qbs_plugin(qbs_cpp_scanner

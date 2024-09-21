@@ -25,6 +25,7 @@ QbsLibrary {
             defines.push("QBS_ENABLE_UNIT_TESTS");
         if (qbsbuildconfig.systemSettingsDir)
             defines.push('QBS_SYSTEM_SETTINGS_DIR="' + qbsbuildconfig.systemSettingsDir + '"');
+        defines.push("CPLUSPLUS_NO_PARSER");
         return defines;
     }
 
@@ -537,6 +538,19 @@ QbsLibrary {
         files: [
             "applecodesignutils.cpp",
             "applecodesignutils.h"
+        ]
+    }
+    Group {
+        name: "Cpp Scanner"
+        prefix: "cppscanner/"
+        files: [
+            "CPlusPlusForwardDeclarations.h",
+            "Lexer.cpp",
+            "Lexer.h",
+            "Token.cpp",
+            "Token.h",
+            "cppscanner.cpp",
+            "cppscanner.h",
         ]
     }
 }
