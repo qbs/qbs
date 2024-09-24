@@ -35,6 +35,7 @@ import "freedesktop.js" as Fdo
 Module {
     property string name: product.name
     property string appName: name
+    property string hicolorRoot: undefined
 
     property var desktopKeys
 
@@ -67,8 +68,10 @@ Module {
             qbs.installDir: "share/applications"
         }
         Group {
+            condition: product.freedesktop.hicolorRoot !== undefined
             fileTagsFilter: [ "freedesktop.appIcon" ]
-            qbs.installDir: "share/icons/hicolor/scalable/apps"
+            qbs.installDir: "share/icons/hicolor"
+            qbs.installSourceBase: product.freedesktop.hicolorRoot
         }
         Group {
             fileTagsFilter: [ "freedesktop.appstream" ]

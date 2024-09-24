@@ -4703,9 +4703,20 @@ void TestBlackbox::freedesktop()
     QVERIFY(QFile::exists(defaultInstallRoot +
                           "/usr/local/share/metainfo/myapp.appdata.xml"));
 
-    // Check icon file
-    QVERIFY(QFile::exists(defaultInstallRoot +
-                          "/usr/local/share/icons/hicolor/scalable/apps/myapp.png"));
+    // Check hicolor icon files
+    QVERIFY(
+        QFile::exists(defaultInstallRoot + "/usr/local/share/icons/hicolor/48x48/apps/myapp.png"));
+    QVERIFY(QFile::exists(
+        defaultInstallRoot + "/usr/local/share/icons/hicolor/48x48@2/apps/myapp.png"));
+    QVERIFY(
+        QFile::exists(defaultInstallRoot + "/usr/local/share/icons/hicolor/64x64/apps/myapp.png"));
+    QVERIFY(QFile::exists(
+        defaultInstallRoot + "/usr/local/share/icons/hicolor/64x64@2/apps/myapp.png"));
+    QVERIFY(QFile::exists(
+        defaultInstallRoot
+        + "/usr/local/share/icons/hicolor/64x64/mimetypes/application-format.png"));
+    QVERIFY(QFile::exists(
+        defaultInstallRoot + "/usr/local/share/icons/hicolor/scalable/apps/myapp.png"));
 }
 
 void TestBlackbox::installedTransformerOutput()

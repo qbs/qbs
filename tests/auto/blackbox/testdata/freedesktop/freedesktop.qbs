@@ -14,9 +14,19 @@ Project {
         freedesktop.desktopKeys: ({
             'Icon': "myapp.png"
         })
+        freedesktop.hicolorRoot: project.sourceDirectory + "/icons/"
 
         Group {
-            files: "myapp.png"
+            name: "hicolor"
+            prefix: project.sourceDirectory + "/icons/"
+            files: [
+                "48x48/apps/myapp.png",
+                "48x48@2/apps/myapp.png",
+                "64x64/apps/myapp.png",
+                "64x64@2/apps/myapp.png",
+                "64x64/mimetypes/application-format.png",
+                "scalable/apps/myapp.png",
+            ]
             fileTags: "freedesktop.appIcon"
         }
     }

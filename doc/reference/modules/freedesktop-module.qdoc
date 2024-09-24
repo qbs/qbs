@@ -74,9 +74,19 @@
             'X-Application-Version': product.version,
         })
 
-        // Declare the application icon
+        // Define the source directory for application icons
+        freedesktop.hicolorRoot: project.sourceDirectory + "/icons/"
+
+        // Declare the application icons
         Group {
-            files: "icons/my-application.svg"
+            prefix: project.sourceDirectory + "/icons/"
+            files: [
+                "32x32/apps/my-application.png",
+                "32x32@2/apps/my-application.png",
+                "32x32/mimetypes/application-format.png",
+                ...
+                "scalable/apps/my-application.svg",
+            ]
             fileTags: "freedesktop.appIcon"
         }
     }
@@ -113,8 +123,14 @@
         \li \c{"freedesktop.appIcon"}
         \li -
         \li 1.16
-        \li Source files with this tag are application icons and will be
-            installed under \l{qbs::}{installPrefix}\c{/share/icons/hicolor/scalable/apps}
+        \li Source files with this tag are application icons compliant with the
+            \l{https://specifications.freedesktop.org/icon-theme-spec/}{freedesktop.org Icon Theme Specification}.
+            These icons will be installed under \l{qbs::}{installPrefix}\c{/share/icons/hicolor} in their
+            respective resolution-based directories (e.g., \c{48x48/apps/}, \c{256x256/apps/}),
+            ensuring compatibility with desktop environments following this specification.
+
+            \note After Qbs version 2.5, the \c{hicolorRoot} property must be set to define the source directory for
+            these icons. Without setting this property, icons will not be installed.
     \endtable
 */
 
@@ -137,4 +153,19 @@
     same key, this property will take precedence.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string freedesktop::hicolorRoot
+
+    Defines the source directory for application icons, which are installed
+    according to the \l{https://specifications.freedesktop.org/icon-theme-spec/}{freedesktop.org Icon Theme Specification}.
+    It is used with the \c{freedesktop.appIcon} tag to install icons into the
+    \c{share/icons/hicolor} directory structure (e.g., \c{48x48/apps/}, \c{256x256/apps/}).
+
+    If \c{hicolorRoot} is not set, icons will not be installed. Set this property
+    to the path containing your icon files.
+
+    \nodefaultvalue
+    \since 2.5
 */
