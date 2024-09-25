@@ -79,7 +79,7 @@ static void doScanCppFile(
     const QLatin1String qnamespaceLiteral("Q_NAMESPACE");
     const QLatin1String pluginMetaDataLiteral("Q_PLUGIN_METADATA");
 
-    const TokenComparator tc(context.fileContent);
+    const TokenComparator tc(context.fileContent.data());
     Token tk;
     Token oldTk;
     ScanResult scanResult;
@@ -98,12 +98,12 @@ static void doScanCppFile(
 
                     if (!tk.newline()
                         && (tk.is(T_STRING_LITERAL) || tk.is(T_ANGLE_STRING_LITERAL))) {
-                        scanResult.size = int(tk.length() - 2);
                         if (tk.is(T_STRING_LITERAL))
                             scanResult.flags = SC_LOCAL_INCLUDE_FLAG;
                         else
                             scanResult.flags = SC_GLOBAL_INCLUDE_FLAG;
-                        scanResult.fileName = context.fileContent + tk.begin() + 1;
+                        scanResult.fileName = context.fileContent.substr(
+                            tk.begin() + 1, size_t(tk.length() - 2));
                         context.includedFiles.push_back(scanResult);
                     }
                 }
@@ -173,6 +173,7 @@ bool scanCppFile(
     void *vmap = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, context.fd, 0);
     if (vmap == MAP_FAILED) // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
         return false;
+    context.vmap = vmap;
 #else
     context.file.setFileName(context.fileName);
     if (!context.file.open(QFile::ReadOnly))
@@ -184,16 +185,17 @@ bool scanCppFile(
     if (!vmap)
         return false;
 
-    context.fileContent = reinterpret_cast<char *>(vmap);
+    std::string_view fileContent{reinterpret_cast<char *>(vmap), mapl};
 
     // Check for UTF-8 Byte Order Mark (BOM). Skip if found.
-    if (mapl >= 3 && context.fileContent[0] == char(0xef) && context.fileContent[1] == char(0xbb)
-        && context.fileContent[2] == char(0xbf)) {
-        context.fileContent += 3;
-        mapl -= 3;
+    if (fileContent.size() >= 3 && fileContent[0] == char(0xef) && fileContent[1] == char(0xbb)
+        && fileContent[2] == char(0xbf)) {
+        fileContent = fileContent.substr(3);
     }
 
-    CPlusPlus::Lexer lex(context.fileContent, context.fileContent + mapl);
+    context.fileContent = fileContent;
+
+    CPlusPlus::Lexer lex(fileContent.data(), fileContent.data() + fileContent.size());
     doScanCppFile(context, lex, scanForFileTags, scanForDependencies);
     return true;
 }

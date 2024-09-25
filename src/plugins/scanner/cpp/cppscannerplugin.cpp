@@ -75,9 +75,9 @@ static const char *next(void *opaq, int *size, int *flags)
     if (opaque->currentResultIndex < opaque->includedFiles.size()) {
         const auto &result = opaque->includedFiles.at(opaque->currentResultIndex);
         ++opaque->currentResultIndex;
-        *size = result.size;
+        *size = static_cast<int>(result.fileName.size());
         *flags = result.flags;
-        return result.fileName;
+        return result.fileName.data();
     }
     *size = 0;
     *flags = 0;

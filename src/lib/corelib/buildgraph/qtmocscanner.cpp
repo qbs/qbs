@@ -128,7 +128,8 @@ static RawScanResult runScannerForArtifact(const Artifact *artifact)
         QString baseDirOfInFilePath = artifact->dirPath();
         for (const auto &scanResult : context.includedFiles) {
             int flags = scanResult.flags;
-            QString includedFilePath = QString::fromLocal8Bit(scanResult.fileName, scanResult.size);
+            QString includedFilePath = QString::fromLocal8Bit(
+                scanResult.fileName.data(), scanResult.fileName.size());
             if (includedFilePath.isEmpty())
                 continue;
             bool isLocalInclude = (flags & SC_LOCAL_INCLUDE_FLAG);

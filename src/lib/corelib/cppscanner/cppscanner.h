@@ -59,8 +59,7 @@ namespace qbs::Internal {
 
 struct QBS_EXPORT ScanResult
 {
-    char *fileName = nullptr;
-    int size = 0;
+    std::string_view fileName;
     int flags = 0;
 };
 
@@ -76,8 +75,8 @@ struct QBS_EXPORT CppScannerContext
     ~CppScannerContext()
     {
 #ifdef Q_OS_UNIX
-        if (fileContent)
-            munmap(fileContent, mapl);
+        if (vmap)
+            munmap(vmap, mapl);
         if (fd)
             close(fd);
 #endif
@@ -88,12 +87,12 @@ struct QBS_EXPORT CppScannerContext
 #endif
 #ifdef Q_OS_UNIX
     int fd{0};
+    void *vmap{nullptr};
     size_t mapl{0};
 #endif
 
     QString fileName;
-    // TODO: use string_view;
-    char *fileContent{nullptr};
+    std::string_view fileContent;
     FileType fileType{FT_UNKNOWN};
     QList<ScanResult> includedFiles;
     bool hasQObjectMacro{false};
