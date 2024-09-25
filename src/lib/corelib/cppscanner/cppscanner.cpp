@@ -65,8 +65,8 @@ public:
     }
 };
 
-static void scanCppFile(
-    CppScannerContext *opaque,
+static void doScanCppFile(
+    CppScannerContext &context,
     CPlusPlus::Lexer &yylex,
     bool scanForFileTags,
     bool scanForDependencies)
@@ -79,7 +79,7 @@ static void scanCppFile(
     const QLatin1String qnamespaceLiteral("Q_NAMESPACE");
     const QLatin1String pluginMetaDataLiteral("Q_PLUGIN_METADATA");
 
-    const TokenComparator tc(opaque->fileContent);
+    const TokenComparator tc(context.fileContent);
     Token tk;
     Token oldTk;
     ScanResult scanResult;
@@ -103,8 +103,8 @@ static void scanCppFile(
                             scanResult.flags = SC_LOCAL_INCLUDE_FLAG;
                         else
                             scanResult.flags = SC_GLOBAL_INCLUDE_FLAG;
-                        scanResult.fileName = opaque->fileContent + tk.begin() + 1;
-                        opaque->includedFiles.push_back(scanResult);
+                        scanResult.fileName = context.fileContent + tk.begin() + 1;
+                        context.includedFiles.push_back(scanResult);
                     }
                 }
             }
@@ -116,14 +116,14 @@ static void scanCppFile(
                 } else {
                     if (tc.equals(tk, qobjectLiteral) || tc.equals(tk, qgadgetLiteral)
                         || tc.equals(tk, qnamespaceLiteral)) {
-                        opaque->hasQObjectMacro = true;
+                        context.hasQObjectMacro = true;
                     } else if (tc.equals(tk, pluginMetaDataLiteral)) {
-                        opaque->hasPluginMetaDataMacro = true;
+                        context.hasPluginMetaDataMacro = true;
                     }
-                    if (!scanForDependencies && opaque->hasQObjectMacro
-                        && (opaque->hasPluginMetaDataMacro
-                            || opaque->fileType == CppScannerContext::FT_CPP
-                            || opaque->fileType == CppScannerContext::FT_OBJCPP))
+                    if (!scanForDependencies && context.hasQObjectMacro
+                        && (context.hasPluginMetaDataMacro
+                            || context.fileType == CppScannerContext::FT_CPP
+                            || context.fileType == CppScannerContext::FT_OBJCPP))
                         break;
                 }
             }
@@ -140,62 +140,61 @@ bool scanCppFile(
     bool scanForFileTags,
     bool scanForDependencies)
 {
-    auto opaque = &context;
-    opaque->fileName = filePath.toString();
+    context.fileName = filePath.toString();
     const QList<QByteArray> &tagList
         = QByteArray::fromRawData(fileTags.data(), fileTags.size()).split(',');
     if (tagList.contains("hpp"))
-        opaque->fileType = CppScannerContext::FT_HPP;
+        context.fileType = CppScannerContext::FT_HPP;
     else if (tagList.contains("cpp"))
-        opaque->fileType = CppScannerContext::FT_CPP;
+        context.fileType = CppScannerContext::FT_CPP;
     else if (tagList.contains("objcpp"))
-        opaque->fileType = CppScannerContext::FT_OBJCPP;
+        context.fileType = CppScannerContext::FT_OBJCPP;
     else
-        opaque->fileType = CppScannerContext::FT_UNKNOWN;
+        context.fileType = CppScannerContext::FT_UNKNOWN;
 
     size_t mapl = 0;
 #ifdef Q_OS_UNIX
-    QString filePathS = opaque->fileName;
+    QString filePathS = context.fileName;
 
-    opaque->fd = ::open(qPrintable(filePathS), O_RDONLY);
-    if (opaque->fd == -1) {
-        opaque->fd = 0;
+    context.fd = ::open(qPrintable(filePathS), O_RDONLY);
+    if (context.fd == -1) {
+        context.fd = 0;
         return false;
     }
 
     struct stat s
     {};
-    int r = fstat(opaque->fd, &s);
+    int r = fstat(context.fd, &s);
     if (r != 0)
         return false;
     mapl = s.st_size;
-    opaque->mapl = mapl;
+    context.mapl = mapl;
 
-    void *vmap = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
+    void *vmap = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, context.fd, 0);
     if (vmap == MAP_FAILED) // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
         return false;
 #else
-    opaque->file.setFileName(opaque->fileName);
-    if (!opaque->file.open(QFile::ReadOnly))
+    context.file.setFileName(context.fileName);
+    if (!context.file.open(QFile::ReadOnly))
         return false;
 
-    uchar *vmap = opaque->file.map(0, opaque->file.size());
-    mapl = opaque->file.size();
+    uchar *vmap = context.file.map(0, context.file.size());
+    mapl = context.file.size();
 #endif
     if (!vmap)
         return false;
 
-    opaque->fileContent = reinterpret_cast<char *>(vmap);
+    context.fileContent = reinterpret_cast<char *>(vmap);
 
     // Check for UTF-8 Byte Order Mark (BOM). Skip if found.
-    if (mapl >= 3 && opaque->fileContent[0] == char(0xef) && opaque->fileContent[1] == char(0xbb)
-        && opaque->fileContent[2] == char(0xbf)) {
-        opaque->fileContent += 3;
+    if (mapl >= 3 && context.fileContent[0] == char(0xef) && context.fileContent[1] == char(0xbb)
+        && context.fileContent[2] == char(0xbf)) {
+        context.fileContent += 3;
         mapl -= 3;
     }
 
     CPlusPlus::Lexer lex(context.fileContent, context.fileContent + mapl);
-    scanCppFile(opaque, lex, scanForFileTags, scanForDependencies);
+    doScanCppFile(context, lex, scanForFileTags, scanForDependencies);
     return true;
 }
 
