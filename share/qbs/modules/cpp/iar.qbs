@@ -131,6 +131,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
         outputArtifacts: Cpp.compilerOutputArtifacts(input)
         prepare: IAR.prepareCompiler.apply(IAR, arguments)

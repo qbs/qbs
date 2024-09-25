@@ -67,6 +67,7 @@ MingwBaseModule {
     Rule {
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.resourceCompilerOutputTags()
         outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: {

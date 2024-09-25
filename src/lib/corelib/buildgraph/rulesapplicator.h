@@ -48,7 +48,6 @@
 #include <logging/logger.h>
 #include <quickjs.h>
 
-#include <QtCore/qflags.h>
 #include <QtCore/qhash.h>
 #include <QtCore/qstring.h>
 
@@ -76,16 +75,16 @@ public:
 
     void applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
                    const ArtifactSet &explicitlyDependsOn);
-    static void handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-            const ArtifactSet &artifactsToRemove, QStringList &removedArtifacts,
-            const Logger &logger);
-    static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
+    static void handleRemovedRuleOutputs(
+        const ArtifactSet &inputArtifacts,
+        const ArtifactSet &artifactsToRemove,
+        QStringList &removedArtifacts,
+        const Logger &logger);
     static ArtifactSet collectExplicitlyDependsOn(const Rule *rule, const ResolvedProduct *product);
 
-    enum InputsSourceFlag { CurrentProduct = 1, Dependencies = 2 };
-    Q_DECLARE_FLAGS(InputsSources, InputsSourceFlag)
-
 private:
+    enum InputsSources { CurrentProduct, Dependencies };
+
     void doApply(const ArtifactSet &inputArtifacts, JSValue prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
 
@@ -130,8 +129,6 @@ private:
     Logger m_logger;
     bool m_ruleUsesIo = false;
 };
-
-Q_DECLARE_OPERATORS_FOR_FLAGS(RulesApplicator::InputsSources)
 
 } // namespace Internal
 } // namespace qbs

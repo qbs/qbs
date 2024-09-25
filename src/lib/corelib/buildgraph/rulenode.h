@@ -88,24 +88,26 @@ public:
 private:
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_rule, m_oldInputArtifacts, m_oldExplicitlyDependsOn,
-                                     m_oldAuxiliaryInputs, m_lastApplicationTime,
-                                     m_needsToConsiderChangedInputs);
+        pool.serializationOp<opType>(
+            m_rule,
+            m_oldInputArtifacts,
+            m_oldExplicitlyDependsOn,
+            m_lastApplicationTime,
+            m_needsToConsiderChangedInputs);
     }
 
     ArtifactSet currentInputArtifacts() const;
-    ArtifactSet changedInputArtifacts(const ArtifactSet &allCompatibleInputs,
-                                      const ArtifactSet &explicitlyDependsOn, const ArtifactSet &auxiliaryInputs) const;
+    ArtifactSet changedInputArtifacts(
+        const ArtifactSet &allCompatibleInputs, const ArtifactSet &explicitlyDependsOn) const;
 
     RuleConstPtr m_rule;
 
-    // These three can contain null pointers, which represent a "dummy artifact" encoding
+    // These two can contain null pointers, which represent a "dummy artifact" encoding
     // the information that an artifact that used to be in here has ceased to exist.
     // This is okay, because no code outside this class has access to these sets, so
     // we cannot break any assumptions about non-nullness.
     ArtifactSet m_oldInputArtifacts;
     ArtifactSet m_oldExplicitlyDependsOn;
-    ArtifactSet m_oldAuxiliaryInputs;
 
     FileTime m_lastApplicationTime;
     bool m_needsToConsiderChangedInputs = false;

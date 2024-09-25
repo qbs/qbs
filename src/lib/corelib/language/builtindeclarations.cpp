@@ -543,6 +543,9 @@ void BuiltinDeclarations::addRuleItem()
                                 PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::auxiliaryInputsProperty(),
                                       PropertyDeclaration::StringList);
+    item << PropertyDeclaration(
+        StringConstants::auxiliaryInputsFromDependenciesProperty(),
+        PropertyDeclaration::StringList);
     PropertyDeclaration excludedAuxInputs(StringConstants::excludedAuxiliaryInputsProperty(),
                                           PropertyDeclaration::StringList);
     excludedAuxInputs.setDeprecationInfo(DeprecationInfo(Version(1, 14),

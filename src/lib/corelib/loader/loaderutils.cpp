@@ -719,6 +719,8 @@ void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,
         rule->requiresInputs = rule->declaresInputs();
     rule->auxiliaryInputs
         = evaluator.fileTagsValue(item, StringConstants::auxiliaryInputsProperty());
+    rule->auxiliaryInputsFromDependencies = evaluator.fileTagsValue(
+        item, StringConstants::auxiliaryInputsFromDependenciesProperty());
     rule->excludedInputs
         = evaluator.fileTagsValue(item, StringConstants::excludedInputsProperty());
     if (rule->excludedInputs.empty()) {

@@ -39,6 +39,7 @@
 #include "rulesapplicator.h"
 
 #include "buildgraph.h"
+#include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
 #include "rulecommands.h"
@@ -151,13 +152,6 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         removedArtifacts << artifact->filePath();
         delete artifact;
     }
-}
-
-ArtifactSet RulesApplicator::collectAuxiliaryInputs(const Rule *rule,
-                                                    const ResolvedProduct *product)
-{
-    return collectAdditionalInputs(rule->auxiliaryInputs, rule, product,
-                                   CurrentProduct | Dependencies);
 }
 
 static void copyProperty(JSContext *ctx, const QString &name, const JSValue &src, JSValue dst)
@@ -351,15 +345,16 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
             // 2) An artifact marked with filesAreTargets: true inside a Group inside of a
             // Module also ends up in the results returned by product->lookupArtifactsByFileTag,
             // so it should be considered conceptually as a "dependent product artifact".
-            if ((inputsSources.testFlag(CurrentProduct) && !dependency->isTargetOfModule())
-                 || (inputsSources.testFlag(Dependencies) && dependency->isTargetOfModule())) {
+            if ((inputsSources == CurrentProduct && !dependency->isTargetOfModule())
+                || (inputsSources == Dependencies && dependency->isTargetOfModule())) {
                 artifacts << dependency;
             }
         }
 
-        if (inputsSources.testFlag(Dependencies)) {
+        if (inputsSources == Dependencies) {
             for (const auto &depProduct : product->dependencies) {
-                for (Artifact * const ta : depProduct->targetArtifacts()) {
+                for (Artifact * const ta :
+                     filterByType<Artifact>(depProduct->buildData->allNodes())) {
                     if (ta->fileTags().contains(fileTag)
                             && !ta->fileTags().intersects(rule->excludedInputs)) {
                         artifacts << ta;

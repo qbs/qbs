@@ -180,6 +180,7 @@ Module {
         id: candleCompiler
         inputs: ["wxs"]
         auxiliaryInputs: ["wxi", "installable"]
+        auxiliaryInputsFromDependencies: ["wxi", "installable"]
 
         Artifact {
             fileTags: ["wixobj"]
@@ -335,6 +336,7 @@ Module {
         multiplex: true
         inputs: ["wixobj", "wxl"]
         auxiliaryInputs: ["installable"]
+        auxiliaryInputsFromDependencies: ["installable"]
         inputsFromDependencies: product.type.includes("wixsetup") ? ["msi"] : []
 
         outputArtifacts: {

@@ -66,6 +66,7 @@ public:
     QBS_STRING_CONSTANT(alwaysRunProperty, "alwaysRun")
     QBS_STRING_CONSTANT(artifactsProperty, "artifacts")
     QBS_STRING_CONSTANT(auxiliaryInputsProperty, "auxiliaryInputs")
+    QBS_STRING_CONSTANT(auxiliaryInputsFromDependenciesProperty, "auxiliaryInputsFromDependencies")
     QBS_STRING_CONSTANT(baseNameProperty, "baseName")
     QBS_STRING_CONSTANT(baseProfileProperty, "baseProfile")
     QBS_STRING_CONSTANT(buildDirectoryProperty, "buildDirectory")

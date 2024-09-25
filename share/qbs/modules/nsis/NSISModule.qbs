@@ -146,6 +146,7 @@ Module {
         multiplex: true
         inputs: ["nsi"]
         auxiliaryInputs: ["installable"]
+        auxiliaryInputsFromDependencies: ["installable"]
 
         Artifact {
             fileTags: ["nsissetup", "application"]

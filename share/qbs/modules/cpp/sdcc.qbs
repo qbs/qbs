@@ -128,6 +128,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: SDCC.extraCompilerOutputTags().concat(
                             Cpp.compilerOutputTags(generateCompilerListingFiles))
         outputArtifacts: SDCC.extraCompilerOutputArtifacts(input).concat(

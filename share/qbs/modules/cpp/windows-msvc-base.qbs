@@ -127,6 +127,7 @@ CppModule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("c", true)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", true)
         prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
@@ -137,6 +138,7 @@ CppModule {
         inputs: ["cpp_pch_src"]
         explicitlyDependsOn: ["c_pch"]  // to prevent vc--0.pdb conflict
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", true)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", true)
         prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
@@ -146,6 +148,7 @@ CppModule {
         name: "compiler"
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
         outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
         outputArtifacts: Cpp.compilerOutputArtifacts(input)
@@ -212,6 +215,7 @@ CppModule {
     Rule {
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.resourceCompilerOutputTags()
         outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: {

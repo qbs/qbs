@@ -103,6 +103,7 @@ Module {
         id: innoSetupCompiler
         inputs: ["innosetup.iss"]
         auxiliaryInputs: ["installable"]
+        auxiliaryInputsFromDependencies: ["installable"]
 
         Artifact {
             fileTags: ["innosetup.exe", "application"]

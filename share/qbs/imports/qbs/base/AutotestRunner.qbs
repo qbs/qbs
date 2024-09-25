@@ -56,7 +56,7 @@ Product {
 
     Rule {
         inputsFromDependencies: "application"
-        auxiliaryInputs: product.auxiliaryInputs
+        auxiliaryInputsFromDependencies: product.auxiliaryInputs
         outputFileTags: "autotest-result"
         prepare: {
             // TODO: This is hacky. Possible solution: Add autotest tag to application

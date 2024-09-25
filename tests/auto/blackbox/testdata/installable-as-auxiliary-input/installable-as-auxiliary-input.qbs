@@ -16,7 +16,7 @@ Project {
         Depends { name: "installed-header" }
         Rule {
             multiplex: true
-            auxiliaryInputs: ["installable"]
+            auxiliaryInputsFromDependencies: ["installable"]
             Artifact { filePath: "main.cpp"; fileTags: "cpp" }
             prepare: {
                 var cmd = new JavaScriptCommand();

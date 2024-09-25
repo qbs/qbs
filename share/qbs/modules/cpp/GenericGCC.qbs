@@ -488,6 +488,7 @@ CppModule {
         name: "compiler"
         inputs: ["cpp", "c", "objcpp", "objc", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
         outputFileTags: Cpp.compilerOutputTags(false).concat(["c_obj", "cpp_obj"])
         outputArtifacts: Cpp.compilerOutputArtifacts(input, inputs)
@@ -506,6 +507,7 @@ CppModule {
         condition: useCPrecompiledHeader
         inputs: ["c_pch_src"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("c", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "c", false)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
@@ -515,6 +517,7 @@ CppModule {
         condition: useCxxPrecompiledHeader
         inputs: ["cpp_pch_src"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("cpp", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "cpp", false)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
@@ -524,6 +527,7 @@ CppModule {
         condition: useObjcPrecompiledHeader
         inputs: ["objc_pch_src"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("objc", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objc", false)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
@@ -533,6 +537,7 @@ CppModule {
         condition: useObjcxxPrecompiledHeader
         inputs: ["objcpp_pch_src"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.precompiledHeaderOutputTags("objcpp", false)
         outputArtifacts: Cpp.precompiledHeaderOutputArtifacts(input, product, "objcpp", false)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)

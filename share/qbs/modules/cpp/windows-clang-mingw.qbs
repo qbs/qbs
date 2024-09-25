@@ -88,6 +88,7 @@ MingwBaseModule {
     Rule {
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
 
         Artifact {
             filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),

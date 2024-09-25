@@ -377,11 +377,9 @@ static bool areRulesCompatible(const RuleNode *ruleNode, const RuleNode *depende
         return false;
     if (ruleNode->rule()->inputsFromDependencies.intersects(outTags))
         return true;
-    if (!dependencyRule->product->fileTags.intersects(outTags))
-        return false;
     if (ruleNode->rule()->explicitlyDependsOnFromDependencies.intersects(outTags))
         return true;
-    return ruleNode->rule()->auxiliaryInputs.intersects(outTags);
+    return ruleNode->rule()->auxiliaryInputsFromDependencies.intersects(outTags);
 }
 
 void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &product)
@@ -451,11 +449,12 @@ void BuildDataResolver::connectRulesToDependencies(const ResolvedProductPtr &pro
             for (RuleNode *ruleNode : ruleNodes) {
                 static const FileTag installableTag("installable");
                 if (areRulesCompatible(ruleNode, depRuleNode)
-                        || ((ruleNode->rule()->inputsFromDependencies.contains(installableTag)
-                             || ruleNode->rule()->auxiliaryInputs.contains(installableTag)
-                             || ruleNode->rule()->explicitlyDependsOnFromDependencies.contains(
-                                 installableTag))
-                            && isRootRuleNode(depRuleNode))) {
+                    || ((ruleNode->rule()->inputsFromDependencies.contains(installableTag)
+                         || ruleNode->rule()->auxiliaryInputsFromDependencies.contains(
+                             installableTag)
+                         || ruleNode->rule()->explicitlyDependsOnFromDependencies.contains(
+                             installableTag))
+                        && isRootRuleNode(depRuleNode))) {
                     connect(ruleNode, depRuleNode);
                 }
             }

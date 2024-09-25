@@ -142,6 +142,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
         outputArtifacts: Cpp.compilerOutputArtifacts(input)
         prepare: WATCOM.prepareCompiler.apply(WATCOM, arguments)
@@ -151,6 +152,7 @@ CppModule {
         id: rccCompiler
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.resourceCompilerOutputTags()
         outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: WATCOM.prepareResourceCompiler.apply(WATCOM, arguments)

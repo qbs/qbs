@@ -143,6 +143,7 @@ CppModule {
         id: compiler
         inputs: ["cpp", "c"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: DMC.depsOutputTags().concat(
                             Cpp.compilerOutputTags(generateCompilerListingFiles))
         outputArtifacts: DMC.depsOutputArtifacts(input, product).concat(
@@ -155,6 +156,7 @@ CppModule {
         id: rccCompiler
         inputs: ["rc"]
         auxiliaryInputs: ["hpp"]
+        auxiliaryInputsFromDependencies: ["hpp"]
         outputFileTags: Cpp.resourceCompilerOutputTags()
         outputArtifacts: Cpp.resourceCompilerOutputArtifacts(input)
         prepare: DMC.prepareRccCompiler.apply(DMC, arguments)
