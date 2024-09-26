@@ -195,12 +195,13 @@ function(add_qbs_plugin target_name)
         message(FATAL_ERROR "add_qbs_plugin had unparsed arguments")
     endif()
 
-    add_library(${target_name} SHARED ${_arg_SOURCES})
+    add_library(${target_name} MODULE ${_arg_SOURCES})
     target_compile_definitions(
         ${target_name} PRIVATE ${_arg_DEFINES} ${DEFAULT_DEFINES} PUBLIC ${_arg_PUBLIC_DEFINES})
     target_include_directories(
         ${target_name} PRIVATE ${_arg_INCLUDES} PUBLIC ${_arg_PUBLIC_INCLUDES})
     target_link_libraries(${target_name} PRIVATE ${_arg_DEPENDS} PUBLIC ${_arg_PUBLIC_DEPENDS})
+    add_dependencies(qbs ${target_name})
 
     set_target_properties(${target_name} PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${QBS_OUTPUT_PREFIX}${QBS_PLUGINS_INSTALL_DIR}
