@@ -1,7 +1,7 @@
 #
 # Baremetal toolchains for testing Qbs
 #
-FROM ubuntu:jammy
+FROM ubuntu:noble
 LABEL Description="Ubuntu baremetal test environment for Qbs"
 
 # Allow colored output on command line.
@@ -22,6 +22,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         gosu \
         sudo && \
+    userdel ubuntu && \
     groupadd -g ${USER_UID} ${USER_NAME} && \
     useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME} && \
     usermod -a -G sudo ${USER_NAME} && \
@@ -36,11 +37,9 @@ RUN apt-get update -qq && \
         libasan5 \
         libglib2.0-0 \
         libgssapi-krb5-2 \
-        libgl1-mesa-glx \
         gcc-arm-none-eabi \
         gcc-avr \
         avr-libc \
-        gcc-msp430 \
         sdcc \
         binutils-xtensa-lx106 \
         gcc-xtensa-lx106 \

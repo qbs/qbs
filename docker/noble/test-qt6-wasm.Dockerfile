@@ -1,7 +1,7 @@
 #
 # Testing Qbs with Web Assembly
 #
-FROM ubuntu:jammy
+FROM ubuntu:noble
 LABEL Description="Ubuntu wasm test environment for Qbs"
 ARG QT_VERSION
 ARG EMSCRIPTEN_VERSION
@@ -23,8 +23,8 @@ RUN apt-get update -qq && \
     apt-get install -qq -y \
         ca-certificates \
         gosu \
-        software-properties-common \
         sudo && \
+    userdel ubuntu && \
     groupadd -g ${USER_UID} ${USER_NAME} && \
     useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME} && \
     usermod -a -G sudo ${USER_NAME} && \
@@ -36,6 +36,7 @@ ENTRYPOINT ["/sbin/entrypoint.sh"]
 RUN sudo apt-get update -qq && \
     apt-get install -qq -y \
         curl \
+        libglib2.0-0 \
         locales \
         p7zip-full \
         python3 \

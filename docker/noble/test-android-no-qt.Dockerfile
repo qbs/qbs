@@ -1,7 +1,7 @@
 #
 # Android SDK/NDK for testing Qbs
 #
-FROM ubuntu:jammy
+FROM ubuntu:noble
 LABEL Description="Ubuntu test environment for Qbs for Android"
 
 # Allow colored output on command line.
@@ -22,6 +22,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         gosu \
         sudo && \
+    userdel ubuntu && \
     groupadd -g ${USER_UID} ${USER_NAME} && \
     useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME} && \
     usermod -a -G sudo ${USER_NAME} && \

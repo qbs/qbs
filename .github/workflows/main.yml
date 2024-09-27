@@ -16,16 +16,16 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Build on Linux (Jammy, gcc)',
-            image: 'jammy-qt6',
+            name: 'Build on Linux (Noble, gcc)',
+            image: 'noble-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableBundledQt:true
-                      products.qbs_archive.targetName:qbs-linux-jammy-${{ github.run_id }}
+                      products.qbs_archive.targetName:qbs-linux-noble-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: 'gcc-qt6-jammy',
-            suffix: 'linux-jammy',
+            cacheid: 'gcc-qt6-noble',
+            suffix: 'linux-noble',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -69,19 +69,19 @@ jobs:
         - {
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
-            image: 'jammy-qt6',
+            image: 'noble-qt6',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
             cacheid: 'clang',
           }
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
-            image: 'jammy-qt6',
+            image: 'noble-qt6',
             cacheid: 'cmake',
           }
         - {
             name: 'Build on Linux (gcc, ASAN)',
-            image: 'jammy-qt6',
+            image: 'noble-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
@@ -91,7 +91,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, UBSAN)',
-            image: 'jammy-qt6',
+            image: 'noble-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
@@ -101,7 +101,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, Qt 5.15)',
-            image: 'jammy-qt5',
+            image: 'noble-qt5',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
@@ -343,85 +343,50 @@ jobs:
         config:
         - {
             name: 'Run Linux tests (gcc, Qt 6)',
-            image: 'jammy-qt6',
-            suffix: 'linux-jammy',
+            image: 'noble-qt6',
+            suffix: 'linux-noble',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Run Linux tests (clang, Qt 6)',
-            image: 'jammy-qt6',
-            suffix: 'linux-jammy',
+            image: 'noble-qt6',
+            suffix: 'linux-noble',
             profile: 'qt-clang_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Run Linux tests (gcc, Qt 5)',
-            image: 'jammy-qt5',
-            suffix: 'linux-jammy',
+            image: 'noble-qt5',
+            suffix: 'linux-noble',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
-          }
-        - {
-            name: 'Run Linux tests (gcc, Qt 6.5 static)',
-            image: 'jammy-qt6-static',
-            suffix: 'linux-jammy',
-            profile: 'qt-gcc_64',
-            script: './scripts/test-qt.sh',
-          }
-        - {
-            name: 'Run Android tests (Qt 5.15)',
-            image: 'jammy-android-515',
-            suffix: 'linux-jammy',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
-          }
-        - {
-            name: 'Run Android tests (Qt 6.2)',
-            image: 'jammy-android-62',
-            suffix: 'linux-jammy',
-            profile: '',
-            script: './scripts/test-qt-for-android.sh',
           }
         - {
               name: 'Run Android tests (Qt 6.5)',
-              image: 'jammy-android-65',
-              suffix: 'linux-jammy',
+              image: 'noble-android-65',
+              suffix: 'linux-noble',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
-            }
-        - {
-            name: 'Run Android tests (ndk r19c)',
-            image: 'jammy-android-ndk-r19c',
-            suffix: 'linux-jammy',
-            profile: '',
-            script: './scripts/test-for-android.sh',
           }
         - {
-            name: 'Run Android tests (ndk r21e)',
-            image: 'jammy-android-ndk-r21e',
-            suffix: 'linux-jammy',
+            name: 'Run Android tests (Qt 5.15)',
+            image: 'noble-android-515',
+            suffix: 'linux-noble',
             profile: '',
-            script: './scripts/test-for-android.sh',
+            script: './scripts/test-qt-for-android.sh',
           }
         - {
-            name: 'Run Android tests (ndk r23)',
-            image: 'jammy-android-ndk-r23',
-            suffix: 'linux-jammy',
+            name: 'Run Android tests (ndk r25)',
+            image: 'noble-android-ndk-r25',
+            suffix: 'linux-noble',
             profile: '',
             script: './scripts/test-for-android.sh',
-          }
-        - {
-            name: 'Run Linux tests (Qt 4.8.7)',
-            image: 'jammy-qt4',
-            suffix: 'linux-jammy',
-            profile: '',
-            script: './scripts/test-qt4.sh',
           }
         - {
             name: 'Run WebAssembly tests',
-            image: 'jammy-qt6-wasm',
-            suffix: 'linux-jammy',
+            image: 'noble-qt6-wasm',
+            suffix: 'linux-noble',
             profile: '',
             script: './scripts/test-wasm.sh',
           }
@@ -464,179 +429,26 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: qbs-linux-jammy-${{ github.run_id }}.tar.gz
+        name: qbs-linux-noble-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xzf qbs-linux-jammy-${{ github.run_id }}.tar.gz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-noble-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
-      run: docker compose pull jammy-baremetal
-    - name: arm-none-eabi-gcc-10_3
-      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-10_3 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: avr-gcc-5_4
-      run: QBS_AUTOTEST_PROFILE=avr-gcc-5_4 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: msp430-gcc-4_6
-      run: QBS_AUTOTEST_PROFILE=msp430-gcc-4_6 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: riscv64-unknown-elf-gcc-10_2
-      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_2 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: docker compose pull noble-baremetal
+    - name: arm-none-eabi-gcc-13_2
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: avr-gcc-7_3
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-7_3 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: riscv64-unknown-elf-gcc-13_2
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-hcs8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-hcs8 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-mcs51 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
     - name: sdcc-4_0_0-stm8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: xtensa-lx106-elf-gcc-10_3
-      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-10_3 docker compose run jammy-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-
-  test-baremetal-windows:
-    name: Run Baremetal tests (Windows)
-    runs-on: [self-hosted, windows, x64]
-    timeout-minutes: 30
-    needs: build-windows
-    # baremetal VM is down, disable the workflow for now
-    if: 'false'
-    env:
-      QBS_TEST_SOURCE_ROOT: 'tests'
-      QT_ASSUME_STDERR_HAS_CONSOLE: 1
-      QTEST_FUNCTION_TIMEOUT: 9000000
-    steps:
-    - uses: actions/checkout@v1
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: qbs-windows-${{ github.run_id }}.zip
-        path: ./
-    - name: Unpack artifact
-      run: mkdir -p release/install-root/ && unzip qbs-windows-${{ github.run_id }}.zip -d release/install-root/
-      shell: bash
-    - name: keil-9_53_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=keil-9_53_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: keil-5_60_0-mcs251
-      run: QBS_AUTOTEST_PROFILE=keil-5_60_0-mcs251 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: keil-7_57_0-c166
-      run: QBS_AUTOTEST_PROFILE=keil-7_57_0-c166 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: keil-5_30_0-arm
-      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: keil-llvm-5_30_0-arm
-      run: QBS_AUTOTEST_PROFILE=keil-5_30_0-arm scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-8_50_5-arm
-      run: QBS_AUTOTEST_PROFILE=iar-8_50_5-arm scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-10_30_1-mcs51
-      run: QBS_AUTOTEST_PROFILE=iar-10_30_1-mcs51 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-7_30_1-avr
-      run: QBS_AUTOTEST_PROFILE=iar-7_30_1-avr scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-4_30_2-avr32
-      run: QBS_AUTOTEST_PROFILE=iar-4_30_2-avr32 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-7_20_1-msp430
-      run: QBS_AUTOTEST_PROFILE=iar-7_20_1-msp430 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-3_11_2_234-stm8
-      run: QBS_AUTOTEST_PROFILE=iar-3_11_2_234-stm8 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-4_20_1-rx
-      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rx scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-4_20_1-rl78
-      run: QBS_AUTOTEST_PROFILE=iar-4_20_1-rl78 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-5_10_1-v850
-      run: QBS_AUTOTEST_PROFILE=iar-5_10_1-v850 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-2_21_1-rh850
-      run: QBS_AUTOTEST_PROFILE=iar-2_21_1-rh850 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-2_30_1-sh
-      run: QBS_AUTOTEST_PROFILE=iar-2_30_1-sh scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-4_81_1-78k
-      run: QBS_AUTOTEST_PROFILE=iar-4_81_1-78k scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-4_10_1-hcs12
-      run: QBS_AUTOTEST_PROFILE=iar-4_10_1-hcs12 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-1_40_2-r32c
-      run: QBS_AUTOTEST_PROFILE=iar-1_40_2-r32c scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-3_71_1-m16c
-      run: QBS_AUTOTEST_PROFILE=iar-3_71_1-m16c scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-1_21_1-riscv
-      run: QBS_AUTOTEST_PROFILE=iar-1_21_1-riscv scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: iar-3_30_1-cr16
-      run: QBS_AUTOTEST_PROFILE=iar-3_30_1-cr16 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: sdcc-4_0_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-mcs51 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: sdcc-4_0_0-stm8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-stm8 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: sdcc-4_0_0-hcs8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_0_0-hcs8 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: avr-gcc-4_6_2
-      run: QBS_AUTOTEST_PROFILE=avr-gcc-4_6_2 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: avr32-gcc-4_4_3
-      run: QBS_AUTOTEST_PROFILE=avr32-gcc-4_4_3 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: m32c-elf-gcc-4_7_3
-      run: QBS_AUTOTEST_PROFILE=m32c-elf-gcc-4_7_3 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: m32r-elf-gcc-4_8_0
-      run: QBS_AUTOTEST_PROFILE=m32r-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: m68k-elf-gcc-4_8_0
-      run: QBS_AUTOTEST_PROFILE=m68k-elf-gcc-4_8_0 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: msp430-elf-gcc-8_3_1
-      run: QBS_AUTOTEST_PROFILE=msp430-elf-gcc-8_3_1 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: riscv64-unknown-elf-gcc-10_1_0
-      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-10_1_0 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: v850-elf-gcc-4_7_2
-      run: QBS_AUTOTEST_PROFILE=v850-elf-gcc-4_7_2 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: arm-none-eabi-gcc-9_3_1
-      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-9_3_1 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: xtensa-lx106-elf-gcc-5_2_0
-      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-5_2_0 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: xtensa-esp32-elf-gcc-8_4_0
-      run: QBS_AUTOTEST_PROFILE=xtensa-esp32-elf-gcc-8_4_0 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: rl78-elf-gcc-4_9_2_202002-GNURL78
-      run: QBS_AUTOTEST_PROFILE=rl78-elf-gcc-4_9_2_202002-GNURL78 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: rx-elf-gcc-8_3_0_202004-GNURX
-      run: QBS_AUTOTEST_PROFILE=rx-elf-gcc-8_3_0_202004-GNURX scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: cosmic-4_3_11-arm
-      run: QBS_AUTOTEST_PROFILE=cosmic-4_3_11-arm scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: cosmic-4_5_2-stm8
-      run: QBS_AUTOTEST_PROFILE=cosmic-4_5_2-stm8 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: cosmic-4_6_3-hcs8
-      run: QBS_AUTOTEST_PROFILE=cosmic-4_6_3-hcs8 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: cosmic-4_8_11-hcs12
-      run: QBS_AUTOTEST_PROFILE=cosmic-4_8_11-hcs12 scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
-    - name: cosmic-4_1_0-m68k
-      run: QBS_AUTOTEST_PROFILE=cosmic-4_1_0-m68k scripts/test-baremetal.sh release/install-root/bin
-      shell: bash
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-stm8 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: xtensa-lx106-elf-gcc-13_2
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
 
   test-macos:
     name: ${{ matrix.config.name }}

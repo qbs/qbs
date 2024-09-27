@@ -64,6 +64,10 @@ Module {
                     || (isClang() && !qbs.hostOS.contains("darwin") && versionAtLeast("10"))) {
                 flags.push("-Wno-deprecated-copy");
             }
+            // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105616
+            if (enableAddressSanitizer && !isClang() && versionAtLeast("13")) {
+                flags.push("-Wno-maybe-uninitialized");
+            }
             return flags;
         }
         cpp.driverFlags: {

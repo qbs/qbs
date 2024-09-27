@@ -1,7 +1,7 @@
 #
 # Install Qt and Qbs for Linux
 #
-FROM ubuntu:jammy
+FROM ubuntu:noble
 LABEL Description="Ubuntu development environment for Qbs with Qt and various dependencies for testing Qbs modules and functionality"
 ARG QT_VERSION
 ARG QTCREATOR_VERSION
@@ -24,6 +24,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         gosu \
         sudo && \
+    userdel ubuntu && \
     groupadd -g ${USER_UID} ${USER_NAME} && \
     useradd -s /bin/bash -u ${USER_UID} -g ${USER_NAME} -o -c "" -m ${USER_NAME} && \
     usermod -a -G sudo ${USER_NAME} && \
@@ -32,7 +33,7 @@ RUN apt-get update -qq && \
 COPY docker/entrypoint.sh /sbin/entrypoint.sh
 ENTRYPOINT ["/sbin/entrypoint.sh"]
 
-# # Qbs build dependencies
+# Qbs build dependencies
 RUN apt-get update -qq && \
     DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y --no-install-recommends \
         bison \
@@ -40,8 +41,8 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-15 \
-        clang-tidy-15 \
+        clang-18 \
+        clang-tidy-18 \
         cmake \
         curl \
         flex \
@@ -50,11 +51,11 @@ RUN apt-get update -qq && \
         help2man \
         icoutils \
         libcapnp-dev \
+        libclang-rt-18-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \
         libgl1-mesa-dev \
-        libgl1-mesa-glx \
         libnanopb-dev \
         libprotobuf-dev \
         libgrpc++-dev \
@@ -69,15 +70,23 @@ RUN apt-get update -qq && \
         psmisc \
         python3-pip \
         python3-setuptools \
+        python3-venv \
         p7zip-full \
         subversion \
         unzip \
         zip && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-15 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-15 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-15 100 && \
-    update-alternatives --install /usr/bin/python python /usr/bin/python3 100 && \
-    pip install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-18 100 && \
+    update-alternatives --install /usr/bin/python python /usr/bin/python3 100
+
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-18
+
+# Set up Python
+RUN python3 -m venv /venv && \
+    /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan
+
+ENV PATH=/venv/bin:${PATH}
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -85,8 +94,6 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
-
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-15
 
 #
 # Install Qt and Qbs for Linux from qt.io
@@ -98,7 +105,6 @@ RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qttools qtx11ex
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
 
 ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:${PATH}
-
 
 # Configure Qbs
 USER $USER_NAME
