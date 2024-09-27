@@ -52,7 +52,7 @@ struct Opaq : public qbs::Internal::CppScannerContext
 static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
 {
     std::unique_ptr<Opaq> opaq(new Opaq);
-    const bool ok = scanCppFile(
+    const bool ok = qbs::Internal::scanCppFile(
         *opaq,
         QStringView(filePath),
         std::string_view(fileTags),
