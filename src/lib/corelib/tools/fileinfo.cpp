@@ -475,7 +475,10 @@ bool removeDirectoryWithContents(const QString &path, QString *errorMessage)
  */
 static QByteArray storedLinkTarget(const QString &filePath)
 {
-    QByteArray result;
+    // A nasty workaround for GCC13 bug (see QTBUG-103782), it complains about type punning
+    // in Qt5 QByteArray::Data, so we use std::vector<char> as a buffer to readlink below.
+    // See also  https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105709
+    std::vector<char> result;
 
 #ifdef Q_OS_UNIX
     const QByteArray nativeFilePath = QFile::encodeName(filePath);
@@ -507,7 +510,7 @@ static QByteArray storedLinkTarget(const QString &filePath)
     Q_UNUSED(filePath);
 #endif // Q_OS_UNIX
 
-    return result;
+    return {result.data(), static_cast<decltype(std::declval<QByteArray>().size())>(result.size())};
 }
 
 static bool createSymLink(const QByteArray &path1, const QString &path2)
