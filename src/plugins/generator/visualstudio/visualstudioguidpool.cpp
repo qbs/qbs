@@ -31,15 +31,17 @@
 #include "visualstudioguidpool.h"
 #include <tools/filesaver.h>
 #include <tools/iosutils.h>
-#include <QtCore/quuid.h>
 
 #include <fstream>
 #include <map>
 #include <memory>
 
-#include <json.h>
-
-using namespace Json;
+#include <QtCore/qfile.h>
+#include <QtCore/qjsondocument.h>
+#include <QtCore/qjsonobject.h>
+#include <QtCore/qmap.h>
+#include <QtCore/quuid.h>
+#include <QtCore/qvariant.h>
 
 namespace qbs {
 
@@ -56,15 +58,13 @@ VisualStudioGuidPool::VisualStudioGuidPool(const std::string &storeFilePath)
     // Read any existing GUIDs from the on-disk store
     std::ifstream file(Internal::utf8_to_native_path(d->storeFilePath = storeFilePath));
     if (file.is_open()) {
-        const auto data = JsonDocument::fromJson(std::string {
+        const auto data = std::string(
             std::istreambuf_iterator<std::ifstream::char_type>(file),
-            std::istreambuf_iterator<std::ifstream::char_type>()
-        }).object();
-        for (auto it = data.constBegin(), end = data.constEnd(); it != end; ++it) {
-            d->productGuids.insert({
-                it.key(),
-                QUuid(QString::fromStdString(it.value().toString()))
-            });
+            std::istreambuf_iterator<std::ifstream::char_type>());
+        const auto json = QJsonDocument::fromJson(QByteArray(data.data(), data.size())).object();
+
+        for (auto it = json.begin(), end = json.end(); it != end; ++it) {
+            d->productGuids.insert({it.key().toStdString(), QUuid(it.value().toString())});
         }
     }
 }
@@ -73,12 +73,12 @@ VisualStudioGuidPool::~VisualStudioGuidPool()
 {
     Internal::FileSaver file(d->storeFilePath);
     if (file.open()) {
-        JsonObject productData;
+        QJsonObject productData;
         for (const auto &it : d->productGuids)
-            productData.insert(it.first, it.second.toString().toStdString());
+            productData[QString::fromStdString(it.first)] = it.second.toString();
 
-        const auto data = JsonDocument(productData).toJson();
-        file.write({data.data(), data.size()});
+        const auto data = QJsonDocument(productData).toJson();
+        file.write({data.data(), size_t(data.size())});
         file.commit();
     }
 }
@@ -86,7 +86,7 @@ VisualStudioGuidPool::~VisualStudioGuidPool()
 QUuid VisualStudioGuidPool::drawProductGuid(const std::string &productName)
 {
     if (d->productGuids.find(productName) == d->productGuids.cend())
-        d->productGuids.insert({ productName, QUuid::createUuid() });
+        d->productGuids.insert({productName, QUuid::createUuid()});
     return d->productGuids.at(productName);
 }
 

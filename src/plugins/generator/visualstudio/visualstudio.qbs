@@ -1,7 +1,6 @@
 import "../../qbsplugin.qbs" as QbsPlugin
 
 QbsPlugin {
-    Depends { name: "qbsjson" }
     Depends { name: "qbsmsbuild" }
 
     name: "visualstudiogenerator"
