@@ -20,6 +20,6 @@ set(SOURCES
     )
 
 add_qbs_plugin(visualstudiogenerator
-    DEPENDS qbscore qbsmsbuild qbsjson
+    DEPENDS qbscore qbsmsbuild
     SOURCES ${SOURCES}
     )

@@ -108,7 +108,7 @@ set(ARCHS_MSP430_SOURCES
 list_transform_prepend(ARCHS_MSP430_SOURCES archs/msp430/)
 
 add_qbs_plugin(iarewgenerator
-    DEPENDS qbscore qbsjson
+    DEPENDS qbscore
     SOURCES
         ${COMMON_SOURCES}
         ${ARCHS_ARM_SOURCES}

@@ -72,7 +72,7 @@ set(ARCHS_MCS51_SOURCES
 list_transform_prepend(ARCHS_MCS51_SOURCES archs/mcs51/)
 
 add_qbs_plugin(keiluvgenerator
-    DEPENDS qbscore qbsjson
+    DEPENDS qbscore
     SOURCES
         ${COMMON_SOURCES}
         ${ARCHS_ARM_SOURCES}

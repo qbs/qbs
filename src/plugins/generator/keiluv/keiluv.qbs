@@ -1,8 +1,6 @@
 import "../../qbsplugin.qbs" as QbsPlugin
 
 QbsPlugin {
-    Depends { name: "qbsjson" }
-
     name: "keiluvgenerator"
 
     files: ["keiluvgeneratorplugin.cpp"]
