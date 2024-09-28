@@ -226,6 +226,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         pluginPath: ModUtils.toJSLiteral(qtProps.pluginPath),
         incPath: ModUtils.toJSLiteral(qtProps.includePath),
         docPath: ModUtils.toJSLiteral(qtProps.documentationPath),
+        translationsPath: ModUtils.toJSLiteral(qtProps.translationsPath),
         helpGeneratorLibExecPath: ModUtils.toJSLiteral(qtProps.helpGeneratorLibExecPath),
         mkspecName: ModUtils.toJSLiteral(qtProps.mkspecName),
         mkspecPath: ModUtils.toJSLiteral(qtProps.mkspecPath),

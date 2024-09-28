@@ -60,6 +60,7 @@ Module {
     property string qdocName: versionMajor >= 5 ? "qdoc" : "qdoc3"
     property stringList qdocEnvironment
     property path docPath: @docPath@
+    property path translationsPath: @translationsPath@
     property string helpGeneratorLibExecPath: @helpGeneratorLibExecPath@
     property stringList helpGeneratorArgs: versionMajor >= 5 ? ["-platform", "minimal"] : []
     property var versionParts: version ? version.split('.').map(function(item) { return parseInt(item, 10); }) : []

@@ -247,13 +247,13 @@ function getQtProperties(qmakeFilePath) {
     var qtProps = {};
     qtProps.installPrefixPath = pathQueryValue(queryResult, "QT_INSTALL_PREFIX");
     qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
+    qtProps.translationsPath = pathQueryValue(queryResult, "QT_INSTALL_TRANSLATIONS");
     qtProps.includePath = pathQueryValue(queryResult, "QT_INSTALL_HEADERS");
     qtProps.libraryPath = pathQueryValue(queryResult, "QT_INSTALL_LIBS");
     qtProps.hostLibraryPath = pathQueryValue(queryResult, "QT_HOST_LIBS");
     qtProps.binaryPath = pathQueryValue(queryResult, "QT_HOST_BINS")
             || pathQueryValue(queryResult, "QT_INSTALL_BINS");
     qtProps.installPath = pathQueryValue(queryResult, "QT_INSTALL_BINS");
-    qtProps.documentationPath = pathQueryValue(queryResult, "QT_INSTALL_DOCS");
     qtProps.pluginPath = pathQueryValue(queryResult, "QT_INSTALL_PLUGINS");
     qtProps.qmlPath = pathQueryValue(queryResult, "QT_INSTALL_QML");
     qtProps.qmlImportPath = pathQueryValue(queryResult, "QT_INSTALL_IMPORTS");

@@ -484,6 +484,16 @@
 */
 
 /*!
+    \qmlproperty path Qt.core::translationsPath
+
+    This property provides the absolute path to the directory where the Qt
+    translation files (.qm) are installed.
+
+    \nodefaultvalue
+    \since 2.5
+*/
+
+/*!
     \qmlproperty string Qt.core::version
 
     The Qt version.
