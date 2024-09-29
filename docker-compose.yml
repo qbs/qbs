@@ -10,7 +10,6 @@ x-default-service: &linux
     - WITH_ARCHIVE
     - WITH_TESTS
     - CLCACHE_DIR
-    - GITHUB_ACTIONS
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache

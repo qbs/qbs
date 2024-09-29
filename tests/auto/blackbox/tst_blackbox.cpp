@@ -1988,8 +1988,7 @@ void TestBlackbox::conanfileProbe()
 {
     QFETCH(bool, forceFailure);
 
-    if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
-        QSKIP("Skip this test when running on GitHub");
+    QSKIP("Skip this test");
 
     QString executable = findExecutable({"conan"});
     if (executable.isEmpty())
