@@ -191,7 +191,7 @@ Module {
             fileTags: ["android.manifest"]
             files: module.manifestFile && module.manifestFile !== module.defaultManifestFile
                    ? [module.manifestFile]
-                   : File.exists(module.defaultManifestFile ? [module.defaultManifestFile] : [])
+                   : (File.exists(module.defaultManifestFile) ? [module.defaultManifestFile] : [])
         }
     }
 
