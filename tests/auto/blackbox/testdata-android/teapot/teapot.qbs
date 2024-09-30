@@ -44,6 +44,7 @@ Project {
                 }
             }
         }
+        property string ndkDir: ndkHelperProbe.dir
 
         Group {
             id: ndkhelper_sources
@@ -57,7 +58,7 @@ Project {
 
         Export {
             Depends { name: "cpp" }
-            cpp.includePaths: [ndkhelper_sources.prefix]
+            cpp.includePaths: [exportingProduct.ndkDir]
             cpp.dynamicLibraries: ["log", "android", "EGL", "GLESv2"]
         }
     }
