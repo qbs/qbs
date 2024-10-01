@@ -1,2 +1,3 @@
+leak:QThread::QThread
 leak:QThreadPrivate::QThreadPrivate
 leak:QArrayData::allocate
