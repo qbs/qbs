@@ -121,6 +121,7 @@ private slots:
     void jsExtensions();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();
+    void keepLoadingDependencies();
     void localProfileAsTopLevelProfile();
     void moduleMergingVariantValues();
     void moduleNameCollisions_data();

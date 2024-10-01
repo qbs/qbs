@@ -360,6 +360,7 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
             Item::Modules &modules = m_product.item->modules();
 
             // Unwind.
+            bool unwound = false;
             while (stateStack().size() > 1) {
                 const auto loadingItemModule = std::find_if(
                     modules.begin(), modules.end(), [&](const Item::Module &m) {
@@ -371,10 +372,13 @@ HandleDependency DependenciesResolver::handleResolvedDependencies()
                 }
                 modules.erase(loadingItemModule, modules.end());
                 stateStack().pop_front();
+                unwound = true;
             }
 
             m_product.handleError(e);
-            return HandleDependency::Ignore;
+            if (unwound)
+                return HandleDependency::Ignore;
+            continue;
         }
     }
     return HandleDependency::Ignore;

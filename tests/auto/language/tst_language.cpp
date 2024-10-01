@@ -1892,6 +1892,21 @@ void TestLanguage::jsImportUsedInMultipleScopes()
     QVERIFY(!exceptionCaught);
 }
 
+void TestLanguage::keepLoadingDependencies()
+{
+    QString error;
+    try {
+        resolveProject("keep-loading-dependencies.qbs");
+        QFAIL("Should not get here!");
+    } catch (const ErrorInfo &e) {
+        error = e.toString();
+    }
+    QVERIFY2(error.contains("Dependency 'none.m1' not found"), qPrintable(error));
+    QVERIFY2(error.contains("Dependency 'none.m2' not found"), qPrintable(error));
+    QVERIFY2(error.contains("Dependency 'none.m3' not found"), qPrintable(error));
+    QVERIFY2(!error.contains("QBS_CHECK"), qPrintable(error));
+}
+
 void TestLanguage::localProfileAsTopLevelProfile()
 {
     bool exceptionCaught = false;
