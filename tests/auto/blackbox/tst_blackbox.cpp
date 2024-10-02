@@ -8548,6 +8548,9 @@ void TestBlackbox::typescript()
     if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
         QSKIP("Skip this test when running on GitHub");
 
+    if (qEnvironmentVariableIsSet("EMSDK"))
+        QSKIP("Skip this test when running with wasm");
+
     const SettingsPtr s = settings();
     qbs::Profile p(profileName(), s.get());
 
