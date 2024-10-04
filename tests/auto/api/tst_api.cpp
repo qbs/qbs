@@ -1618,22 +1618,23 @@ void TestApi::linkDynamicAndStaticLibs()
 
 void TestApi::linkStaticAndDynamicLibs()
 {
-    const SettingsPtr s = settings();
-    qbs::Profile profile(profileName(), s.get());
-    if (profileToolchain(profile).contains(QLatin1String("emscripten")))
-        QSKIP("Emscripten does not support dynamic linking");
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
     m_logSink->output.clear();
-    const qbs::ErrorInfo errorInfo = doBuildProject("link-staticlibs-dynamiclibs", &bdr, nullptr,
-                                                    nullptr, options);
-    VERIFY_NO_ERROR(errorInfo);
+    const qbs::ErrorInfo errorInfo = doBuildProject(
+        "link-staticlibs-dynamiclibs", &bdr, nullptr, nullptr, options);
     const bool isNormalUnix = m_logSink->output.contains("is normal unix: yes");
     const bool isNotNormalUnix = m_logSink->output.contains("is normal unix: no");
     QVERIFY2(isNormalUnix != isNotNormalUnix, qPrintable(m_logSink->output));
     const bool isGcc = m_logSink->output.contains("is gcc: true");
     const bool isNotGcc = m_logSink->output.contains("is gcc: false");
+    const bool isEmscripten = m_logSink->output.contains("is emscripten: true");
+    const bool isNotEmscripten = m_logSink->output.contains("is emscripten: false");
+    if (isEmscripten)
+        QEXPECT_FAIL(nullptr, "Emscripten does not support dynamic linking", Abort);
+    VERIFY_NO_ERROR(errorInfo);
+    QVERIFY(isNotEmscripten);
     if (isNotGcc)
         QSKIP("The remainder of this test applies only to GCC");
     QVERIFY(isGcc);

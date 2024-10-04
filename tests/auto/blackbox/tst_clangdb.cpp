@@ -109,7 +109,9 @@ void TestClangDb::ensureBuildTreeCreated()
     QCOMPARE(runQbs(), 0);
     QVERIFY(QFile::exists(buildDir));
 
-    if (m_qbsStdout.contains("is msvc") || m_qbsStdout.contains("is mingw")) {
+    isMsvc = m_qbsStdout.contains("is msvc");
+    isMingw = m_qbsStdout.contains("is mingw");
+    if (isMsvc || isMingw) {
         sanitizeOutput(&m_qbsStdout);
         const auto lines = m_qbsStdout.split('\n');
         for (const auto &line : lines) {
@@ -200,13 +202,10 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
         QSKIP("This test requires clang-check to be based on at least LLVM 3.7.0.");
 
     // clang-check.exe does not understand MSVC command-line syntax
-    const SettingsPtr s = settings();
-    qbs::Profile profile(profileName(), s.get());
-    if (profileToolchain(profile).contains("msvc")) {
+    if (isMsvc)
         arguments << "-extra-arg-before=--driver-mode=cl";
-    } else if (profileToolchain(profile).contains("mingw")) {
+    else if (isMingw)
         arguments << "-extra-arg-before=--driver-mode=g++";
-    }
 
     arguments << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);

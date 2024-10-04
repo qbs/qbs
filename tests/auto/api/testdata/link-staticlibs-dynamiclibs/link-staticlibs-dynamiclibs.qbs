@@ -17,9 +17,11 @@ Project {
             property bool isNormalUnix: qbs.targetOS.includes("unix")
                                         && !qbs.targetOS.includes("darwin")
             property bool isGcc: qbs.toolchain.contains("gcc")
+            property bool isEmscripten: qbs.toolchain.contains("emscripten")
             configure: {
                 console.info("is normal unix: " + (isNormalUnix ? "yes" : "no"));
                 console.info("is gcc: " + isGcc);
+                console.info("is emscripten: " + isEmscripten);
             }
         }
     }

@@ -254,18 +254,15 @@ void TestBlackboxQt::metaTypes()
 void TestBlackboxQt::mixedBuildVariants()
 {
     QDir::setCurrent(testDataDir + "/mixed-build-variants");
-    const SettingsPtr s = settings();
-    qbs::Profile profile(profileName(), s.get());
-    if (profileToolchain(profile).contains("msvc")) {
-        QbsRunParameters params;
-        params.arguments << "qbs.buildVariant:debug";
-        params.expectFailure = true;
-        QVERIFY(runQbs(params) != 0);
+    QbsRunParameters params;
+    params.expectFailure = true;
+    QVERIFY(runQbs(params) != 0);
+    const bool isMsvc = m_qbsStdout.contains("is msvc: true");
+    const bool isNotMsvc = m_qbsStdout.contains("is msvc: false");
+    if (isMsvc) {
         QVERIFY2(m_qbsStderr.contains("not allowed"), m_qbsStderr.constData());
     } else {
-        QbsRunParameters params;
-        params.expectFailure = true;
-        QVERIFY(runQbs(params) != 0);
+        QVERIFY(isNotMsvc);
         QVERIFY2(m_qbsStderr.contains("not supported"), m_qbsStderr.constData());
     }
 }

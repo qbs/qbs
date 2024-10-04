@@ -5059,8 +5059,7 @@ void TestBlackbox::cli()
 
     const SettingsPtr s = settings();
     qbs::Profile p("qbs_autotests-cli", s.get());
-    const QStringList toolchain = profileToolchain(p);
-    if (!p.exists() || !(toolchain.contains("dotnet") || toolchain.contains("mono")))
+    if (!p.exists())
         QSKIP("No suitable Common Language Infrastructure test profile");
 
     QDir::setCurrent(testDataDir + "/cli");

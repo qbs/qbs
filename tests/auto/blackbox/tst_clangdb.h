@@ -58,6 +58,8 @@ private:
     const QString buildDir;
     const QString sourceFilePath;
     const QString dbFilePath;
+    bool isMsvc = false;
+    bool isMingw = false;
     QProcessEnvironment processEnvironment;
 };
 
