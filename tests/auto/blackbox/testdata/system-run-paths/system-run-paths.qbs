@@ -17,6 +17,7 @@ Project {
         name: "app"
         Depends { name: "theLib" }
         files: ["main.cpp"]
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         cpp.rpaths: qbs.installRoot + "/lib"
         cpp.systemRunPaths: project.setRunPaths ? [qbs.installRoot + "/lib"] : []
     }

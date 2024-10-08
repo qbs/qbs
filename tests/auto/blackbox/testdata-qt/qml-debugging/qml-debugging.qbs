@@ -7,6 +7,10 @@ QtApplication {
     Probe {
         id: checker
         property bool isGcc: qbs.toolchain.contains("gcc") && !qbs.toolchain.contains("emscripten")
-        configure: { console.info("is gcc: " + isGcc); }
+        property string executableSuffix: cpp.executableSuffix
+        configure: {
+            console.info("is gcc: " + isGcc);
+            console.info("executable suffix: " + executableSuffix);
+        }
     }
 }

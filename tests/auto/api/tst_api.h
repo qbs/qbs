@@ -163,6 +163,7 @@ private:
                                   TaskReceiver *taskReceiver = 0,
                                   const qbs::BuildOptions &options = qbs::BuildOptions(),
                                   const QVariantMap &overriddenValues = QVariantMap());
+    QString getProductFilePath(const QString &productNameOrFilePath);
 
     LogSink * const m_logSink;
     const QString m_sourceDataDir;

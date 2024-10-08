@@ -45,6 +45,7 @@ Project {
         name: "genlexer"
         type: "application"
         consoleApplication: true
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         Depends { name: "cpp" }
         Group {
             files: ["numbers.l"]

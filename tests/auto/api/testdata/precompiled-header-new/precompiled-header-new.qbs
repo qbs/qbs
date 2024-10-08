@@ -1,6 +1,7 @@
 CppApplication {
     name: "MyApp"
     consoleApplication: true
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     Group {
         name: "precompiled headers"
         files: ["stable.h"]

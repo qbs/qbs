@@ -523,7 +523,7 @@ void TestBlackboxQt::qmlDebugging()
     QVERIFY(isGcc);
 
     QProcess nm;
-    nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app")));
+    nm.start("nm", QStringList(relativeExecutableFilePath("debuggable-app", m_qbsStdout)));
     if (!nm.waitForStarted())
         QSKIP("The remainder of this test requires nm");
 
@@ -691,7 +691,7 @@ void TestBlackboxQt::track_qobject_change()
     QCOMPARE(runQbs(), 0);
 
     const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
-    const QString productFilePath = relativeExecutableFilePath("i");
+    const QString productFilePath = relativeExecutableFilePath("i", m_qbsStdout);
     QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QString moc_bla_objectFileName = relativeProductBuildDir("i") + '/' + inputDirHash("qt.headers")
                                      + "/moc_bla.cpp" + objectSuffix;
@@ -712,10 +712,10 @@ void TestBlackboxQt::track_qrc()
         QSKIP("Qt version too old");
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    const QString fileName = relativeExecutableFilePath("i", m_qbsStdout);
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("rcc"), m_qbsStdout.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling test.cpp"), m_qbsStdout.constData());
-    const QString fileName = relativeExecutableFilePath("i");
     QVERIFY2(regularFileExists(fileName), qPrintable(fileName));
 
     QDateTime dt = QFileInfo(fileName).lastModified();

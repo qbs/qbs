@@ -11,8 +11,10 @@ CppApplication {
     Probe {
         id: toolchainProbe
         property stringList toolchain: qbs.toolchain
+        property string executableSuffix: cpp.executableSuffix
         configure: {
             console.info("is gcc: " + toolchain.includes("gcc"));
+            console.info("executable suffix: " + executableSuffix);
             found = true;
         }
     }

@@ -13,6 +13,7 @@ Project {
                 STRINGTYPE: "char **",
                 FUNCTIONNAME: "main"
             })
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         Group {
             files: 'foo.txt'
             fileTags: ['text']

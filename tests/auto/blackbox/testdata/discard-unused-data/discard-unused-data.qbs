@@ -2,6 +2,8 @@ CppApplication {
     name: "app"
     type: base.concat("custom")
 
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
+
     files: "main.cpp"
 
     Depends { name: "bundle"; condition: qbs.targetOS.includes("darwin") }

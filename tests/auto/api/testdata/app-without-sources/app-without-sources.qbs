@@ -24,6 +24,8 @@ Project {
         name: "appWithoutSources"
         consoleApplication: true
 
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
+
         // HACK: cpp.entryPoint currently not working 100% with gcc
         Properties {
             condition: qbs.toolchain.includes("msvc")

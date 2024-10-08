@@ -2,6 +2,7 @@ import qbs.File
 
 CppApplication {
     consoleApplication: true
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     Group {
         files: ["broken.cpp.in", "main.cpp.in"]
         fileTags: ["cpp.in"]

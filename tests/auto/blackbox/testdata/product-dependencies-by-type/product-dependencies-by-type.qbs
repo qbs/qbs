@@ -4,6 +4,7 @@ Project {
     CppApplication {
         consoleApplication: true
         name: "no-match"
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         files: "main.cpp"
     }
 

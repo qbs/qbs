@@ -13,6 +13,7 @@ Project {
     Application {
         name: "p1"
         consoleApplication: true
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         Depends { name: "dep" }
         dep.theDefine: "P1"
         cpp.minimumMacosVersion: "10.9"

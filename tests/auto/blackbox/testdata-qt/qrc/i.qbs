@@ -11,6 +11,7 @@ Project {
             var result = qbs.targetPlatform === Host.platform();
             if (!result)
                 console.info("targetPlatform differs from hostPlatform");
+            console.info("executable suffix: " + cpp.executableSuffix);
             return result;
         }
         consoleApplication: true

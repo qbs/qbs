@@ -7,6 +7,7 @@ Project {
         consoleApplication: true
         type: "application"
         property string mainFile: ""
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         name: "MyApp" + nameSuffix
         Depends { name: "cpp" }
         files: {

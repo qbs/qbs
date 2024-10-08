@@ -14,7 +14,10 @@ Project {
         consoleApplication: true
         name: "app"
 
-        property bool dummy: { console.info("object suffix: " + cpp.objectSuffix); }
+        property bool dummy: {
+            console.info("object suffix: " + cpp.objectSuffix);
+            console.info("executable suffix: " + cpp.executableSuffix);
+        }
 
         Depends { name: "dep" }
         files: "main.cpp"

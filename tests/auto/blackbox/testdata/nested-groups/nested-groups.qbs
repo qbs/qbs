@@ -2,6 +2,7 @@ CppApplication {
     consoleApplication: true
     Depends { name: "themodule" }
     cpp.includePaths: ["subdir"]
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     files: ["main.cpp"]
     Group {
         prefix: "subdir/"

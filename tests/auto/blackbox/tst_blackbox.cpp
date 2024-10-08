@@ -440,8 +440,8 @@ void TestBlackbox::addFileTagToGeneratedArtifact()
     QCOMPARE(runQbs(QStringList("project.enableTagging:true")), 0);
     QVERIFY2(m_qbsStdout.contains("compressing my_app"), m_qbsStdout.constData());
     const QString compressedAppFilePath = relativeProductBuildDir("my_compressed_app") + '/'
-                                          + appendExecSuffix("compressed-my_app");
-    QVERIFY(regularFileExists(compressedAppFilePath));
+                                          + appendExecSuffix("compressed-my_app", m_qbsStdout);
+    QVERIFY2(regularFileExists(compressedAppFilePath), qPrintable(compressedAppFilePath));
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("project.enableTagging:false"))), 0);
     QCOMPARE(runQbs(), 0);
     QVERIFY(!regularFileExists(compressedAppFilePath));
@@ -1280,7 +1280,9 @@ void TestBlackbox::discardUnusedData()
     if (!QFile::exists(nmPath))
         QSKIP("Cannot check for symbol presence: No nm found.");
     QProcess nm;
-    nm.start(nmPath, QStringList(QDir::currentPath() + '/' + relativeExecutableFilePath("app")));
+    nm.start(
+        nmPath,
+        QStringList(QDir::currentPath() + '/' + relativeExecutableFilePath("app", m_qbsStdout)));
     QVERIFY(nm.waitForStarted());
     QVERIFY(nm.waitForFinished());
     const QByteArray nmOutput = nm.readAllStandardOutput();
@@ -1755,7 +1757,7 @@ void TestBlackbox::clean()
     const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QString appObjectFilePath = relativeProductBuildDir("app") + '/' + inputDirHash(".")
                                       + "/main.cpp" + objectSuffix;
-    const QString appExeFilePath = relativeExecutableFilePath("app");
+    const QString appExeFilePath = relativeExecutableFilePath("app", m_qbsStdout);
     const QString depObjectFilePath = relativeProductBuildDir("dep") + '/' + inputDirHash(".")
                                       + "/dep.cpp" + objectSuffix;
     const QString depLibBase = relativeProductBuildDir("dep")
@@ -2796,7 +2798,7 @@ void TestBlackbox::ruleConditions()
         "modules.narfzort.enableTagger:" + b2s(enableTagger)};
 
     QCOMPARE(runQbs(args), 0);
-    QVERIFY(QFileInfo(relativeExecutableFilePath("ruleConditions")).exists());
+    QVERIFY(QFileInfo(relativeExecutableFilePath("ruleConditions", m_qbsStdout)).exists());
     QCOMPARE(
         QFileInfo(relativeProductBuildDir("ruleConditions") + "/ruleConditions.foo.narf.zort")
             .exists(),
@@ -3035,6 +3037,8 @@ void TestBlackbox::setupRunEnvironment()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    const QString appFilePath = QDir::currentPath() + "/dryrun/"
+                                + relativeExecutableFilePath("app", m_qbsStdout);
     QbsRunParameters failParams("run", QStringList({"--setup-run-env-config",
                                                     "ignore-lib-dependencies"}));
     failParams.expectFailure = true;
@@ -3045,8 +3049,6 @@ void TestBlackbox::setupRunEnvironment()
     QbsRunParameters dryRunParams("run", QStringList("--dry-run"));
     dryRunParams.buildDirectory = "dryrun";
     QCOMPARE(runQbs(dryRunParams), 0);
-    const QString appFilePath = QDir::currentPath() + "/dryrun/"
-            + relativeExecutableFilePath("app");
     QVERIFY2(m_qbsStdout.contains("Would start target")
              && m_qbsStdout.contains(QDir::toNativeSeparators(appFilePath).toLocal8Bit()),
              m_qbsStdout.constData());
@@ -3232,7 +3234,6 @@ void TestBlackbox::sourceArtifactChanges()
     bool overrideFileTags = true;
     bool filesAreTargets = false;
     bool useCxx11 = false;
-    const QString appFilePath = QDir::currentPath() + '/' + relativeExecutableFilePath("app");
     static const auto b2s = [](bool b) { return QString(b ? "true" : "false"); };
     const auto resolveParams = [&useCustomFileTags, &overrideFileTags, &filesAreTargets, &useCxx11] {
         return QbsRunParameters("resolve", QStringList{
@@ -3256,6 +3257,8 @@ void TestBlackbox::sourceArtifactChanges()
     QCOMPARE(runQbs(resolveParams()), 0);
     QVERIFY2(m_qbsStdout.contains("is gcc: "), m_qbsStdout.constData());
     const bool isGcc = m_qbsStdout.contains("is gcc: true");
+    const QString appFilePath = QDir::currentPath() + '/'
+                                + relativeExecutableFilePath("app", m_qbsStdout);
     QCOMPARE(runQbs(), 0);
     VERIFY_COMPILATION(true);
 
@@ -3313,7 +3316,7 @@ void TestBlackbox::overrideProjectProperties()
                                      << QStringLiteral("project.someStringList:one")
                                      << QStringLiteral("products.MyAppForYou.mainFile:main.cpp"))),
              0);
-    QVERIFY(regularFileExists(relativeExecutableFilePath("MyAppForYou")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("MyAppForYou", m_qbsStdout)));
     QVERIFY(QFile::remove(relativeBuildGraphFilePath()));
     QbsRunParameters params;
     params.arguments << QStringLiteral("-f") << QStringLiteral("project_using_helper_lib.qbs");
@@ -3683,7 +3686,7 @@ void TestBlackbox::productProperties()
     QDir::setCurrent(testDataDir + "/productproperties");
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << QStringLiteral("-f")
                                      << QStringLiteral("productproperties.qbs"))), 0);
-    QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("blubb_user", m_qbsStdout)));
 }
 
 void TestBlackbox::propertyAssignmentInFailedModule()
@@ -3982,7 +3985,7 @@ void TestBlackbox::dynamicRuleOutputs()
     QDir::setCurrent(testDir + "/work");
     QCOMPARE(runQbs(), 0);
 
-    const QString appFile = relativeExecutableFilePath("genlexer");
+    const QString appFile = relativeExecutableFilePath("genlexer", m_qbsStdout);
     const QString headerFile1 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/numberscanner.h";
     const QString sourceFile1 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/numberscanner.c";
     const QString sourceFile2 = relativeProductBuildDir("genlexer") + "/GeneratedFiles/lex.yy.c";
@@ -4332,11 +4335,12 @@ void TestBlackbox::systemRunPaths()
     if (isNotUnix)
         QSKIP("only applies on Unix");
     QVERIFY(isUnix);
+    const QString exe = relativeExecutableFilePath("app", m_qbsStdout);
 
     params.command = "build";
     QCOMPARE(runQbs(params), 0);
     QProcess ldd;
-    ldd.start(lddFilePath, QStringList() << relativeExecutableFilePath("app"));
+    ldd.start(lddFilePath, QStringList() << exe);
     QVERIFY2(ldd.waitForStarted(), qPrintable(ldd.errorString()));
     QVERIFY2(ldd.waitForFinished(), qPrintable(ldd.errorString()));
     QVERIFY2(ldd.exitCode() == 0, ldd.readAllStandardError().constData());
@@ -4583,7 +4587,7 @@ void TestBlackbox::fileDependencies()
     QCOMPARE(runQbs(), 0);
     QVERIFY(m_qbsStdout.contains("compiling narf.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling zort.cpp"));
-    const QString productFileName = relativeExecutableFilePath("myapp");
+    const QString productFileName = relativeExecutableFilePath("myapp", m_qbsStdout);
     QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
 
     // Incremental build without changes.
@@ -4622,8 +4626,9 @@ void TestBlackbox::fileTagsFilterMerging()
 {
     QDir::setCurrent(testDataDir + "/filetagsfilter-merging");
     QCOMPARE(runQbs(QStringList{"-f", "filetagsfilter-merging.qbs"}), 0);
-    const QString installedApp = defaultInstallRoot + "/myapp/binDir/"
-            + QFileInfo(relativeExecutableFilePath("myapp")).fileName();
+    const QString installedApp
+        = defaultInstallRoot + "/myapp/binDir/"
+          + QFileInfo(relativeExecutableFilePath("myapp", m_qbsStdout)).fileName();
     QVERIFY2(QFile::exists(installedApp), qPrintable(installedApp));
     const QString otherOutput = relativeProductBuildDir("myapp") + "/myapp.txt";
     QVERIFY2(QFile::exists(otherOutput), qPrintable(otherOutput));
@@ -5475,8 +5480,8 @@ void TestBlackbox::lexyacc()
     QCOMPARE(runQbs({"resolve"}), 0);
     if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    const QString parserBinary = relativeExecutableFilePath("one-grammar", m_qbsStdout);
     QCOMPARE(runQbs(), 0);
-    const QString parserBinary = relativeExecutableFilePath("one-grammar");
     QProcess p;
     const QByteArray magicString = "add to PATH: ";
     const int magicStringIndex = m_qbsStdout.indexOf(magicString);
@@ -5885,7 +5890,7 @@ void TestBlackbox::nestedGroups()
 {
     QDir::setCurrent(testDataDir + "/nested-groups");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(relativeExecutableFilePath("nested-groups")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("nested-groups", m_qbsStdout)));
 }
 
 void TestBlackbox::nestedProperties()
@@ -5972,10 +5977,10 @@ void TestBlackbox::nonBrokenFilesInBrokenProduct()
 void TestBlackbox::nonDefaultProduct()
 {
     QDir::setCurrent(testDataDir + "/non-default-product");
-    const QString defaultAppExe = relativeExecutableFilePath("default app");
-    const QString nonDefaultAppExe = relativeExecutableFilePath("non-default app");
 
     QCOMPARE(runQbs(), 0);
+    const QString defaultAppExe = relativeExecutableFilePath("default app", m_qbsStdout);
+    const QString nonDefaultAppExe = relativeExecutableFilePath("non-default app", m_qbsStdout);
     QVERIFY2(QFile::exists(defaultAppExe), qPrintable(defaultAppExe));
     QVERIFY2(!QFile::exists(nonDefaultAppExe), qPrintable(nonDefaultAppExe));
 
@@ -6377,13 +6382,18 @@ void TestBlackbox::productDependenciesByType()
     const QList<QByteArray> appList = appListFile.readAll().trimmed().split('\n');
     QCOMPARE(appList.size(), 6);
     QStringList apps = QStringList()
-            << QDir::currentPath() + '/' + relativeExecutableFilePath("app1")
-            << QDir::currentPath() + '/' + relativeExecutableFilePath("app2")
-            << QDir::currentPath() + '/' + relativeExecutableFilePath("app3")
-            << QDir::currentPath() + '/' + relativeExecutableFilePath("app4")
-            << QDir::currentPath() + '/' + relativeProductBuildDir("other-product") + "/output.txt"
-            << QDir::currentPath() + '/' + relativeProductBuildDir("yet-another-product")
-               + "/output.txt";
+                       << QDir::currentPath() + '/'
+                              + relativeExecutableFilePath("app1", m_qbsStdout)
+                       << QDir::currentPath() + '/'
+                              + relativeExecutableFilePath("app2", m_qbsStdout)
+                       << QDir::currentPath() + '/'
+                              + relativeExecutableFilePath("app3", m_qbsStdout)
+                       << QDir::currentPath() + '/'
+                              + relativeExecutableFilePath("app4", m_qbsStdout)
+                       << QDir::currentPath() + '/' + relativeProductBuildDir("other-product")
+                              + "/output.txt"
+                       << QDir::currentPath() + '/' + relativeProductBuildDir("yet-another-product")
+                              + "/output.txt";
     for (const QByteArray &line : appList) {
         const QString cleanLine = QString::fromLocal8Bit(line.trimmed());
         QVERIFY2(apps.removeOne(cleanLine), qPrintable(cleanLine));
@@ -6416,8 +6426,8 @@ void TestBlackbox::propertiesInExportItems()
 {
     QDir::setCurrent(testDataDir + "/properties-in-export-items");
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(relativeExecutableFilePath("p1")));
-    QVERIFY(regularFileExists(relativeExecutableFilePath("p2")));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p1", m_qbsStdout)));
+    QVERIFY(regularFileExists(relativeExecutableFilePath("p2", m_qbsStdout)));
     QVERIFY2(m_qbsStderr.isEmpty(), m_qbsStderr.constData());
 }
 
@@ -6992,13 +7002,15 @@ void TestBlackbox::qbsSession()
     resolveMessage.insert("log-time", true);
     resolveMessage.insert(
         "module-properties",
-        QJsonArray::fromStringList({"cpp.cxxLanguageVersion", "cpp.objectSuffix"}));
+        QJsonArray::fromStringList(
+            {"cpp.cxxLanguageVersion", "cpp.executableSuffix", "cpp.objectSuffix"}));
     sendPacket(resolveMessage);
     bool receivedLogData = false;
     bool receivedStartedSignal = false;
     bool receivedProgressData = false;
     bool receivedReply = false;
     QString objectSuffix;
+    QString executableSuffix;
     while (!receivedReply) {
         receivedMessage = getNextSessionPacket(sessionProc, incomingData);
         QVERIFY(!receivedMessage.isEmpty());
@@ -7018,10 +7030,9 @@ void TestBlackbox::qbsSession()
                 const QString productName = product.value("name").toString();
                 QVERIFY(!productName.isEmpty());
                 QVERIFY2(product.value("is-enabled").toBool(), qPrintable(productName));
-                objectSuffix = product.value("module-properties")
-                                   .toObject()
-                                   .value("cpp.objectSuffix")
-                                   .toString();
+                const QJsonObject moduleProps = product.value("module-properties").toObject();
+                objectSuffix = moduleProps.value("cpp.objectSuffix").toString();
+                executableSuffix = moduleProps.value("cpp.executableSuffix").toString();
                 bool theLib = false;
                 bool theApp = false;
                 if (productName == "theLib")
@@ -7136,7 +7147,8 @@ void TestBlackbox::qbsSession()
     QVERIFY(receivedCommandDescription);
     QVERIFY(receivedProcessResult);
     const QString &exeFilePath = QDir::currentPath() + '/'
-            + relativeExecutableFilePath("theApp", "my-config");
+                                 + relativeProductBuildDir("theApp", "my-config") + '/' + "theApp"
+                                 + executableSuffix;
     QVERIFY2(regularFileExists(exeFilePath), qPrintable(exeFilePath));
     const QString defaultInstallRoot = QDir::currentPath() + '/'
             + relativeBuildDir("my-config") + "/install-root";
@@ -7748,14 +7760,15 @@ void TestBlackbox::installedApp()
     QDir::setCurrent(testDataDir + "/installed_artifact");
 
     QCOMPARE(runQbs(), 0);
+    const QByteArray output = m_qbsStdout;
     QVERIFY(regularFileExists(
-        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"))));
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"), output)));
 
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installRoot:" + testDataDir
                                                             + "/installed-app"))), 0);
     QCOMPARE(runQbs(), 0);
-    QVERIFY(
-        regularFileExists(testDataDir + appendExecSuffix("/installed-app/usr/bin/installedApp")));
+    QVERIFY(regularFileExists(
+        testDataDir + appendExecSuffix("/installed-app/usr/bin/installedApp", output)));
 
     QFile addedFile(defaultInstallRoot + QLatin1String("/blubb.txt"));
     QVERIFY(addedFile.open(QIODevice::WriteOnly));
@@ -7764,7 +7777,7 @@ void TestBlackbox::installedApp()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     QCOMPARE(runQbs(QbsRunParameters(QStringList() << "--clean-install-root")), 0);
     QVERIFY(regularFileExists(
-        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"))));
+        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/bin/installedApp"), output)));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/src/main.cpp")));
     QVERIFY(!addedFile.exists());
 
@@ -7774,7 +7787,8 @@ void TestBlackbox::installedApp()
                     "qbs.installPrefix: '/usr/local'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(
-        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/local/bin/installedApp"))));
+        defaultInstallRoot
+        + appendExecSuffix(QStringLiteral("/usr/local/bin/installedApp"), output)));
     QVERIFY(regularFileExists(defaultInstallRoot + QLatin1String("/usr/local/src/main.cpp")));
 
     // Check whether changing install parameters on the artifact causes re-installation.
@@ -7783,7 +7797,8 @@ void TestBlackbox::installedApp()
                     "qbs.installDir: 'custom'");
     QCOMPARE(runQbs(), 0);
     QVERIFY(regularFileExists(
-        defaultInstallRoot + appendExecSuffix(QStringLiteral("/usr/local/custom/installedApp"))));
+        defaultInstallRoot
+        + appendExecSuffix(QStringLiteral("/usr/local/custom/installedApp"), output)));
 
     // Check whether changing install parameters on a source file causes re-installation.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -8570,7 +8585,8 @@ void TestBlackbox::outputArtifactAutoTagging()
     QDir::setCurrent(testDataDir + QLatin1String("/output-artifact-auto-tagging"));
 
     QCOMPARE(runQbs(), 0);
-    QVERIFY(regularFileExists(relativeExecutableFilePath("output-artifact-auto-tagging")));
+    QVERIFY(
+        regularFileExists(relativeExecutableFilePath("output-artifact-auto-tagging", m_qbsStdout)));
 }
 
 void TestBlackbox::outputRedirection()
@@ -8686,7 +8702,7 @@ void TestBlackbox::makefileGenerator()
     const QString customInstallRoot = QDir::currentPath() + "/my-install-root";
     make.start("make", QStringList{"INSTALL_ROOT=" + customInstallRoot, "install"});
     QVERIFY(waitForProcessSuccess(make));
-    QVERIFY(QFile::exists(relativeExecutableFilePath("the app")));
+    QVERIFY(QFile::exists(relativeExecutableFilePath("the app", m_qbsStdout)));
     QVERIFY(!QFile::exists(relativeBuildGraphFilePath()));
     QProcess app;
     app.start(customInstallRoot + "/usr/local/bin/the app", QStringList());
@@ -8695,7 +8711,7 @@ void TestBlackbox::makefileGenerator()
     QVERIFY2(appStdout.contains("Hello, World!"), appStdout.constData());
     make.start("make", QStringList("clean"));
     QVERIFY(waitForProcessSuccess(make));
-    QVERIFY(!QFile::exists(relativeExecutableFilePath("the app")));
+    QVERIFY(!QFile::exists(relativeExecutableFilePath("the app", m_qbsStdout)));
 }
 
 void TestBlackbox::maximumCLanguageVersion()

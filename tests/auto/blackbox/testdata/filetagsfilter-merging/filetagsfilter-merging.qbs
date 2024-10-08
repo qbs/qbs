@@ -3,6 +3,7 @@ import qbs.TextFile
 MyApplication {
     name: "myapp"
     type: base.concat("extra-output")
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     files: "main.cpp"
     Group {
         fileTagsFilter: "application"

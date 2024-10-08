@@ -4,6 +4,7 @@ Project {
     property bool enableTagging
     CppApplication {
         name: "my_app"
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         files: "main.cpp"
         Group {
             condition: project.enableTagging

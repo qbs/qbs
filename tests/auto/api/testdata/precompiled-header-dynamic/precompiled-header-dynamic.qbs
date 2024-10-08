@@ -3,6 +3,7 @@ import qbs.File
 CppApplication {
     name: "MyApp"
     consoleApplication: true
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     cpp.includePaths: [product.buildDirectory]
     Group {
         files: ["pch.h"]

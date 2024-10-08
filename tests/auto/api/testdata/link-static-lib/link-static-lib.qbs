@@ -3,6 +3,7 @@ Project {
         type: "application"
         consoleApplication: true
         name: "HelloWorld"
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         files : [ "main.cpp" ]
         Depends { name: "cpp" }
         Depends { name: "mystaticlib" }

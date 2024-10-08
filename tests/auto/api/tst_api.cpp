@@ -72,7 +72,7 @@ public:
         warnings.push_back(error);
     }
     void doPrintMessage(qbs::LoggerLevel, const QString &message, const QString &) override {
-        output += message;
+        output += '\n' + message;
     }
 
     QList<qbs::ErrorInfo> warnings;
@@ -357,7 +357,7 @@ void TestApi::buildGraphLocking()
 void TestApi::buildProject()
 {
     QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
+    QFETCH(QString, productNameOrFilePath);
     const QString projectFilePath = projectSubDir + QLatin1Char('/') + projectSubDir
             + QLatin1String(".qbs");
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
@@ -368,9 +368,10 @@ void TestApi::buildProject()
         QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
     VERIFY_NO_ERROR(errorInfo);
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
-    if (!productFileName.isEmpty()) {
-        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
-        QVERIFY2(QFile::remove(productFileName), qPrintable(productFileName));
+    const QString productFilePath = getProductFilePath(productNameOrFilePath);
+    if (!productFilePath.isEmpty()) {
+        QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
+        QVERIFY2(QFile::remove(productFilePath), qPrintable(productFilePath));
     }
 
     WAIT_FOR_NEW_TIMESTAMP();
@@ -378,70 +379,45 @@ void TestApi::buildProject()
     options.setForceTimestampCheck(true);
     errorInfo = doBuildProject(projectFilePath, nullptr, nullptr, nullptr, options);
     VERIFY_NO_ERROR(errorInfo);
-    if (!productFileName.isEmpty())
-        QVERIFY2(regularFileExists(productFileName), qPrintable(productFileName));
+    if (!productFilePath.isEmpty())
+        QVERIFY2(regularFileExists(productFilePath), qPrintable(productFilePath));
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
 }
 
 void TestApi::buildProject_data()
 {
     QTest::addColumn<QString>("projectSubDir");
-    QTest::addColumn<QString>("productFileName");
-    QTest::newRow("BPs in Sources")
-            << QString("build-properties-source")
-            << relativeExecutableFilePath("HelloWorld");
-    QTest::newRow("code generator")
-            << QString("codegen")
-            << relativeExecutableFilePath("codegen");
-    QTest::newRow("link static libs")
-            << QString("link-static-lib")
-            << relativeExecutableFilePath("HelloWorld");
+    QTest::addColumn<QString>("productNameOrFilePath");
+    QTest::newRow("BPs in Sources") << QString("build-properties-source") << QString("HelloWorld");
+    QTest::newRow("code generator") << QString("codegen") << QString("codegen");
+    QTest::newRow("link static libs") << QString("link-static-lib") << QString("HelloWorld");
     QTest::newRow("link staticlib dynamiclib")
-            << QString("link-staticlib-dynamiclib")
-            << relativeExecutableFilePath("app");
+        << QString("link-staticlib-dynamiclib") << QString("app");
     QTest::newRow("precompiled header new")
-            << QString("precompiled-header-new")
-            << relativeExecutableFilePath("MyApp");
+        << QString("precompiled-header-new") << QString("MyApp");
     QTest::newRow("precompiled header dynamic")
-            << QString("precompiled-header-dynamic")
-            << relativeExecutableFilePath("MyApp");
-    QTest::newRow("lots of dots")
-            << QString("lots-of-dots")
-            << relativeExecutableFilePath("lots.of.dots");
+        << QString("precompiled-header-dynamic") << QString("MyApp");
+    QTest::newRow("lots of dots") << QString("lots-of-dots") << QString("lots.of.dots");
     QTest::newRow("Qt5 plugin")
             << QString("qt5-plugin")
             << relativeProductBuildDir("echoplugin") + '/'
                + qbs::Internal::HostOsInfo::dynamicLibraryName("echoplugin");
-    QTest::newRow("Q_OBJECT in source")
-            << QString("moc-cpp")
-            << relativeExecutableFilePath("moc_cpp");
-    QTest::newRow("Q_OBJECT in header")
-            << QString("moc-hpp")
-            << relativeExecutableFilePath("moc_hpp");
+    QTest::newRow("Q_OBJECT in source") << QString("moc-cpp") << QString("moc_cpp");
+    QTest::newRow("Q_OBJECT in header") << QString("moc-hpp") << QString("moc_hpp");
     QTest::newRow("Q_OBJECT in header, moc_XXX.cpp included")
-            << QString("moc-hpp-included")
-            << relativeExecutableFilePath("moc_hpp_included");
+        << QString("moc-hpp-included") << QString("moc_hpp_included");
     QTest::newRow("app and lib with same source file")
-            << QString("lib-same-source")
-            << relativeExecutableFilePath("HelloWorldApp");
+        << QString("lib-same-source") << QString("HelloWorldApp");
     QTest::newRow("source files with the same base name but different extensions")
-            << QString("same-base-name")
-            << relativeExecutableFilePath("basename");
-    QTest::newRow("simple probes")
-            << QString("simple-probe")
-            << relativeExecutableFilePath("MyApp");
+        << QString("same-base-name") << QString("basename");
+    QTest::newRow("simple probes") << QString("simple-probe") << QString("MyApp");
     QTest::newRow("application without sources")
-            << QString("app-without-sources")
-            << relativeExecutableFilePath("appWithoutSources");
-    QTest::newRow("productNameWithDots")
-            << QString("productNameWithDots")
-            << relativeExecutableFilePath("myapp");
+        << QString("app-without-sources") << QString("appWithoutSources");
+    QTest::newRow("productNameWithDots") << QString("productNameWithDots") << QString("myapp");
     QTest::newRow("only default properties")
             << QString("two-default-property-values")
             << relativeProductBuildDir("two-default-property-values") + "/set";
-    QTest::newRow("Export item with Group")
-            << QString("export-item-with-group")
-            << relativeExecutableFilePath("app");
+    QTest::newRow("Export item with Group") << QString("export-item-with-group") << QString("app");
     QTest::newRow("QBS-728")
             << QString("QBS-728")
             << QString();
@@ -450,7 +426,7 @@ void TestApi::buildProject_data()
 void TestApi::buildProjectDryRun()
 {
     QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
+    QFETCH(QString, productNameOrFilePath);
     const QString projectFilePath = projectSubDir + QLatin1Char('/') + projectSubDir
             + QLatin1String(".qbs");
     qbs::SetupProjectParameters params = defaultSetupParameters(projectFilePath);
@@ -2707,7 +2683,7 @@ void TestApi::removeFileDependency()
 void TestApi::resolveProject()
 {
     QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
+    QFETCH(QString, productNameOrFilePath);
 
     const qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     removeBuildDir(params);
@@ -2715,7 +2691,9 @@ void TestApi::resolveProject()
                                                                                     m_logSink, nullptr));
     waitForFinished(setupJob.get());
     VERIFY_NO_ERROR(setupJob->error());
-    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+
+    const QString productFilePath = getProductFilePath(productNameOrFilePath);
+    QVERIFY2(!QFile::exists(productFilePath), qPrintable(productFilePath));
     QVERIFY(regularFileExists(relativeBuildGraphFilePath()));
 }
 
@@ -2727,7 +2705,7 @@ void TestApi::resolveProject_data()
 void TestApi::resolveProjectDryRun()
 {
     QFETCH(QString, projectSubDir);
-    QFETCH(QString, productFileName);
+    QFETCH(QString, productNameOrFilePath);
 
     qbs::SetupProjectParameters params = defaultSetupParameters(projectSubDir);
     params.setDryRun(true);
@@ -2736,7 +2714,8 @@ void TestApi::resolveProjectDryRun()
                                                                                     m_logSink, nullptr));
     waitForFinished(setupJob.get());
     VERIFY_NO_ERROR(setupJob->error());
-    QVERIFY2(!QFile::exists(productFileName), qPrintable(productFileName));
+    const QString productFilePath = getProductFilePath(productNameOrFilePath);
+    QVERIFY2(!QFile::exists(productFilePath), qPrintable(productFilePath));
     QVERIFY(!regularFileExists(relativeBuildGraphFilePath()));
 }
 
@@ -3184,6 +3163,16 @@ qbs::ErrorInfo TestApi::doBuildProject(
     }
     waitForFinished(buildJob.get());
     return buildJob->error();
+}
+
+QString TestApi::getProductFilePath(const QString &productNameOrFilePath)
+{
+    if (productNameOrFilePath.isEmpty())
+        return {};
+
+    return productNameOrFilePath.contains('/')
+               ? productNameOrFilePath
+               : relativeExecutableFilePath(productNameOrFilePath, m_logSink->output.toLocal8Bit());
 }
 
 QTEST_MAIN(TestApi)

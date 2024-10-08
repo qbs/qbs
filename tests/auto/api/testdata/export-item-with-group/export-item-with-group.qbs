@@ -10,6 +10,7 @@ Project {
     Application {
         name: "app"
         consoleApplication: true
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         Depends { name: "dep" }
     }
 }

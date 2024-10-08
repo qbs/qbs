@@ -2,6 +2,7 @@ Project {
     CppApplication {
         type: "application"
         consoleApplication: true
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         Depends { name: "basenamelib" }
         name: "basename"
         files: "main.c"

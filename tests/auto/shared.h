@@ -237,20 +237,26 @@ inline bool builtWithEmscripten()
     return profileToolchain(profile).contains(QLatin1String("emscripten"));
 }
 
-inline QString appendExecSuffix(const QString &productName)
+inline QString appendExecSuffix(const QString &productName, const QByteArray &output)
 {
-    const auto productNameWithSuffix = builtWithEmscripten()
-                                           ? productName + QStringLiteral(".js")
-                                           : qbs::Internal::HostOsInfo::appendExecutableSuffix(
-                                                 productName);
-    return productNameWithSuffix;
+    const QByteArray marker = "executable suffix: ";
+    const int markerOffset = output.indexOf(marker);
+    if (markerOffset == -1)
+        return ".error";
+    const int suffixOffset = markerOffset + marker.size();
+    const int newlineOffset = output.indexOf('\n', suffixOffset);
+    if (newlineOffset == -1)
+        return ".error";
+    return productName
+           + QString::fromLocal8Bit(
+               output.mid(suffixOffset, newlineOffset - suffixOffset).trimmed());
 }
 
 inline QString relativeExecutableFilePath(
-    const QString &productName, const QString &configName = QString())
+    const QString &productName, const QByteArray &output, const QString &configName = QString())
 {
     const auto relativeDir = relativeProductBuildDir(productName, configName) + QLatin1Char('/');
-    return relativeDir + appendExecSuffix(productName);
+    return relativeDir + appendExecSuffix(productName, output);
 }
 
 inline void waitForNewTimestamp(const QString &testDir)

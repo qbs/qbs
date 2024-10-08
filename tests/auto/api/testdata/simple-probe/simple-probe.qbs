@@ -26,6 +26,7 @@ CppApplication {
             throw "probe1.someString expected to be \"one\"."
         return true
     }
+    property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
     files: ["main.cpp"]
 }
 
