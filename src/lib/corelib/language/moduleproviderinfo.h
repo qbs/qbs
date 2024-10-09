@@ -46,6 +46,7 @@
 #include <QtCore/qstringlist.h>
 #include <QtCore/qvariant.h>
 
+#include <unordered_map>
 #include <vector>
 
 namespace qbs {
@@ -96,7 +97,7 @@ using ModuleProvidersCacheKey = std::tuple<
     QVariantMap /*qbsModule*/,
     int /*lookup*/
 >;
-using ModuleProvidersCache = QHash<ModuleProvidersCacheKey, ModuleProviderInfo>;
+using ModuleProvidersCache = std::unordered_map<ModuleProvidersCacheKey, ModuleProviderInfo>;
 
 // Persistent info stored between sessions
 class StoredModuleProviderInfo

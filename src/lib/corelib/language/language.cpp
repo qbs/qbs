@@ -607,8 +607,8 @@ QString TopLevelProject::profile() const
 
 void TopLevelProject::makeModuleProvidersNonTransient()
 {
-    for (ModuleProviderInfo &m : moduleProviderInfo.providers)
-        m.transientOutput = false;
+    for (auto &item : moduleProviderInfo.providers)
+        item.second.transientOutput = false;
 }
 
 QVariantMap TopLevelProject::fullProfileConfigsTree() const
@@ -667,7 +667,8 @@ void TopLevelProject::store(PersistentPool &pool)
 void TopLevelProject::cleanupModuleProviderOutput()
 {
     QString error;
-    for (const ModuleProviderInfo &m : std::as_const(moduleProviderInfo.providers)) {
+    for (const auto &item : std::as_const(moduleProviderInfo.providers)) {
+        const ModuleProviderInfo &m = item.second;
         if (m.transientOutput) {
             if (!removeDirectoryWithContents(m.outputDirPath(buildDirectory), &error))
                 qCWarning(lcBuildGraph) << "Error removing module provider output:" << error;

@@ -358,7 +358,7 @@ void TopLevelProjectContext::setModuleProvidersCache(const ModuleProvidersCache 
 ModuleProviderInfo *TopLevelProjectContext::moduleProvider(const ModuleProvidersCacheKey &key)
 {
     if (const auto it = m_moduleProvidersCache.find(key); it != m_moduleProvidersCache.end())
-        return &(*it);
+        return &it->second;
     return nullptr;
 }
 

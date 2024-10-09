@@ -635,7 +635,8 @@ bool BuildGraphLoader::hasBuildSystemFileChanged(const Set<QString> &buildSystem
             m_removedProjectFiles << file;
             return true;
         }
-        const auto generatedChecker = [&file, restoredProject](const ModuleProviderInfo &mpi) {
+        const auto generatedChecker = [&file, restoredProject](const auto &item) {
+            const ModuleProviderInfo &mpi = item.second;
             return file.startsWith(mpi.outputDirPath(restoredProject->buildDirectory));
         };
         const bool fileWasCreatedByModuleProvider =
