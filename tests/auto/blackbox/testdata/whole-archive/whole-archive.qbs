@@ -31,6 +31,7 @@ Project {
             property stringList toolchain: qbs.toolchain
             property string compilerVersion: cpp.compilerVersion
             property string dummy: product.linkWholeArchive // To force probe re-execution
+            property bool isEmscripten: qbs.toolchain.contains("emscripten")
             configure: {
                 if (!toolchain.includes("msvc")
                         || toolchain.includes("clang-cl")
@@ -39,6 +40,7 @@ Project {
                 } else {
                     console.info("cannot link whole archives");
                 }
+                console.info("is emscripten: " + isEmscripten);
             }
         }
         Depends { name: "staticlib 1"; cpp.linkWholeArchive: product.linkWholeArchive }

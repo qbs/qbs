@@ -2,6 +2,9 @@ Project {
     CppApplication {
         consoleApplication: true
         name: "LinkedProduct-Assembly"
+        property bool dummy: {
+            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
+        }
         files: qbs.targetOS.includes("darwin") ? "darwin.s" : "main.s"
 
         cpp.linkerPath: cpp.compilerPathByLanguage["c"]

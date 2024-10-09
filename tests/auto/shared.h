@@ -222,21 +222,6 @@ inline QString relativeProductBuildDir(const QString &productName,
     return relativeBuildDir(configurationName) + '/' + dirName;
 }
 
-inline QStringList profileToolchain(const qbs::Profile &profile)
-{
-    const auto toolchainType = profile.value(QStringLiteral("qbs.toolchainType")).toString();
-    if (!toolchainType.isEmpty())
-        return qbs::canonicalToolchain(toolchainType);
-    return profile.value(QStringLiteral("qbs.toolchain")).toStringList();
-}
-
-inline bool builtWithEmscripten()
-{
-    const SettingsPtr s = settings();
-    const qbs::Profile profile(profileName(), s.get());
-    return profileToolchain(profile).contains(QLatin1String("emscripten"));
-}
-
 inline QString appendExecSuffix(const QString &productName, const QByteArray &output)
 {
     const QByteArray marker = "executable suffix: ";

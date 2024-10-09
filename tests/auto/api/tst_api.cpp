@@ -1324,6 +1324,9 @@ void TestApi::generatedFilesList()
                                                                               m_logSink, nullptr));
     QVERIFY(waitForFinished(setupJob.get()));
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
+    const bool isEmscripten = m_logSink->output.contains("is emscripten: true");
+    const bool isNotEmscripten = m_logSink->output.contains("is emscripten: false");
+    QCOMPARE(isEmscripten, !isNotEmscripten);
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setExecuteRulesOnly(true);
@@ -1380,7 +1383,7 @@ void TestApi::generatedFilesList()
     QCOMPARE(uiHeaderFileInfo.fileName(), QStringLiteral("ui_mainwindow.h"));
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
-    if (builtWithEmscripten())
+    if (isEmscripten)
         QCOMPARE(allParents.size(), 6); //build with "-pthread" support
     else
         QCOMPARE(allParents.size(), 3);
@@ -1501,12 +1504,8 @@ void TestApi::installableFiles()
     for (const qbs::ArtifactData &f : beforeInstallableFiles) {
         if (!QFileInfo(f.filePath()).fileName().startsWith("main")) {
             QVERIFY(f.isExecutable());
-            const auto baseExecutablePath = QStringLiteral("/tmp/usr/bin/installedApp");
-            const auto expectedTargetFilePath
-                = builtWithEmscripten()
-                      ? baseExecutablePath + QStringLiteral(".js")
-                      : qbs::Internal::HostOsInfo::appendExecutableSuffix(baseExecutablePath);
-
+            const auto expectedTargetFilePath = appendExecSuffix(
+                QStringLiteral("/tmp/usr/bin/installedApp"), m_logSink->output.toLocal8Bit());
             QCOMPARE(f.installData().localInstallFilePath(), expectedTargetFilePath);
             QCOMPARE(product.targetExecutable(), expectedTargetFilePath);
             break;
@@ -1553,24 +1552,30 @@ void TestApi::isRunnable()
 
 void TestApi::linkDynamicLibs()
 {
-    if (builtWithEmscripten())
-        QSKIP("Emscripten does not support dynamic linking");
     const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs");
+    const bool isEmscripten = m_logSink->output.contains("is emscripten: true");
+    const bool isNotEmscripten = m_logSink->output.contains("is emscripten: false");
+    if (isEmscripten)
+        QEXPECT_FAIL(nullptr, "Emscripten does not support dynamic linking", Abort);
+    QVERIFY(isNotEmscripten);
     VERIFY_NO_ERROR(errorInfo);
 }
 
 void TestApi::linkDynamicAndStaticLibs()
 {
-    if (builtWithEmscripten())
-        QSKIP("Emscripten does not support dynamic linking");
     BuildDescriptionReceiver bdr;
     qbs::BuildOptions options;
     options.setEchoMode(qbs::CommandEchoModeCommandLine);
     m_logSink->output.clear();
     const qbs::ErrorInfo errorInfo = doBuildProject("link-dynamiclibs-staticlibs", &bdr, nullptr,
                                                     nullptr, options);
+    const bool isEmscripten = m_logSink->output.contains("is emscripten: true");
+    const bool isNotEmscripten = m_logSink->output.contains("is emscripten: false");
+    if (isEmscripten)
+        QEXPECT_FAIL(nullptr, "Emscripten does not support dynamic linking", Abort);
     VERIFY_NO_ERROR(errorInfo);
 
+    QVERIFY(isNotEmscripten);
     const bool isGcc = m_logSink->output.contains("is gcc: true");
     const bool isNotGcc = m_logSink->output.contains("is gcc: false");
     if (isNotGcc)

@@ -3,6 +3,9 @@ import qbs.TextFile
 Project {
     Product {
         type: ["properties"]
+        property bool dummy: {
+            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
+        }
         Depends { name: "cpp" }
         Rule {
             multiplex: true

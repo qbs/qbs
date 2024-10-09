@@ -132,11 +132,11 @@ void TestBlackboxQt::dbusInterfaces()
 
 void TestBlackboxQt::emscriptenHtml()
 {
-    if (!builtWithEmscripten())
-        QSKIP("Skipping emscripten test");
-
     QDir::setCurrent(testDataDir + "/emscripten-html");
     QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("is emscripten: false"))
+        QSKIP("Skipping emscripten test");
+    QVERIFY(m_qbsStdout.contains("is emscripten: true"));
     const auto relativeInstallRoot = relativeBuildDir() + QStringLiteral("/install-root/");
     QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtloader.js")));
     QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtlogo.svg")));
@@ -299,9 +299,6 @@ void TestBlackboxQt::mocSameFileName()
 
 void TestBlackboxQt::noRelinkOnQDebug()
 {
-    if (builtWithEmscripten())
-        QSKIP("Irrelevant for emscripten");
-
     QFETCH(QString, checkMode);
     QFETCH(bool, expectRelink);
 
@@ -310,6 +307,9 @@ void TestBlackboxQt::noRelinkOnQDebug()
 
     // Target check.
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QSKIP("Irrelevant for emscripten");
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
     QVERIFY2(m_qbsStdout.contains("is GCC: "), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("is MinGW: "), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("is Darwin: "), m_qbsStdout.constData());

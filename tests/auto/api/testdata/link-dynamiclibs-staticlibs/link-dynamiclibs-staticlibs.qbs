@@ -43,7 +43,11 @@ Project {
         Probe {
             id: tcPrinter
             property bool isGcc: qbs.toolchain.contains("gcc")
-            configure: { console.info("is gcc: " + isGcc); }
+            property bool isEmscripten: qbs.toolchain.contains("emscripten")
+            configure: {
+                console.info("is gcc: " + isGcc);
+                console.info("is emscripten: " + isEmscripten);
+            }
         }
     }
 }

@@ -1693,8 +1693,6 @@ void TestBlackbox::versionScript()
 
 void TestBlackbox::wholeArchive()
 {
-    if (builtWithEmscripten())
-        QSKIP("Irrelevant for emscripten");
     QDir::setCurrent(testDataDir + "/whole-archive");
     QFETCH(QString, wholeArchiveString);
     QFETCH(bool, ruleInvalidationExpected);
@@ -1706,7 +1704,9 @@ void TestBlackbox::wholeArchive()
     const bool linkerDoesNotSupportWholeArchive
             = m_qbsStdout.contains("cannot link whole archives");
     QVERIFY(linkerSupportsWholeArchive != linkerDoesNotSupportWholeArchive);
-
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QSKIP("Irrelevant for emscripten");
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
     QCOMPARE(runQbs(QbsRunParameters(QStringList({ "-vvp", "dynamiclib" }))), 0);
     const bool wholeArchive = !wholeArchiveString.isEmpty();
     const bool outdatedVisualStudio = wholeArchive && linkerDoesNotSupportWholeArchive;
@@ -1762,6 +1762,9 @@ void TestBlackbox::clean()
                                       + "/dep.cpp" + objectSuffix;
     const QString depLibBase = relativeProductBuildDir("dep")
             + '/' + QBS_HOST_DYNAMICLIB_PREFIX + "dep";
+    const bool isEmscripten = m_qbsStdout.contains("is emscripten: true");
+    const bool isNotEmscripten = m_qbsStdout.contains("is emscripten: false");
+    QCOMPARE(isEmscripten, !isNotEmscripten);
     QString depLibFilePath;
     QStringList symlinks;
     if (qbs::Internal::HostOsInfo::isMacosHost()) {
@@ -1771,7 +1774,7 @@ void TestBlackbox::clean()
                  << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
     } else if (qbs::Internal::HostOsInfo::isAnyUnixHost()) {
         depLibFilePath = depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1.0";
-        if (!builtWithEmscripten()) {
+        if (!isEmscripten) {
             symlinks << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1.1"
                      << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX + ".1"
                      << depLibBase + QBS_HOST_DYNAMICLIB_SUFFIX;
@@ -2909,8 +2912,6 @@ void TestBlackbox::sanitizer_data()
 
 void TestBlackbox::sanitizer()
 {
-    if (builtWithEmscripten())
-        QSKIP("Unsupported for emscripten target");
     QFETCH(QString, sanitizer);
     QDir::setCurrent(testDataDir + "/sanitizer");
     rmDirR(relativeBuildDir());
@@ -3188,9 +3189,6 @@ static QString soName(const QString &readElfPath, const QString &libFilePath)
 
 void TestBlackbox::soVersion()
 {
-    if (builtWithEmscripten())
-        QSKIP("Irrelevant for emscripten");
-
     const QString readElfPath = findExecutable(QStringList("readelf"));
     if (readElfPath.isEmpty() || readElfPath.endsWith("exe"))
         QSKIP("soversion test not applicable on this system");
@@ -3207,7 +3205,11 @@ void TestBlackbox::soVersion()
     const QString libFilePath = relativeProductBuildDir("mylib") + "/libmylib.so"
             + (useVersion ? ".1.2.3" : QString());
     rmDirR(relativeBuildDir());
-    QCOMPARE(runQbs(params), 0);
+    const bool success = runQbs(params) == 0;
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QEXPECT_FAIL(nullptr, "Emscripten does not support dynamic linking", Abort);
+    QVERIFY(success);
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
     QVERIFY2(regularFileExists(libFilePath), qPrintable(libFilePath));
     QCOMPARE(soName(readElfPath, libFilePath), expectedSoName);
 }
@@ -4083,9 +4085,6 @@ QString HTML()
 } // namespace
 void TestBlackbox::emscriptenArtifacts()
 {
-    if (!builtWithEmscripten())
-        QSKIP("Skipping emscripten test");
-
     QDir::setCurrent(testDataDir + "/emscripten-artifacts");
     QFETCH(QString, executableSuffix);
     QFETCH(QString, wasmOption);
@@ -4101,6 +4100,9 @@ void TestBlackbox::emscriptenArtifacts()
     QbsRunParameters qbsParams("resolve", params);
     int result = runQbs(qbsParams);
     QCOMPARE(result, 0);
+    if (m_qbsStdout.contains("is emscripten: false"))
+        QSKIP("Skipping emscripten test");
+    QVERIFY(m_qbsStdout.contains("is emscripten: true"));
     result = runQbs(QbsRunParameters("build", params));
     QCOMPARE(result, buildresult);
     if (result == 0) {
@@ -4673,15 +4675,15 @@ void TestBlackbox::flatbuf_data()
 
 void TestBlackbox::freedesktop()
 {
-    if (builtWithEmscripten())
-        QSKIP("Irrelevant for emscripten");
-
     if (!HostOsInfo::isAnyUnixHost())
         QSKIP("only applies on Unix");
     if (HostOsInfo::isMacosHost())
         QSKIP("Does not apply on macOS");
     QDir::setCurrent(testDataDir + "/freedesktop");
     QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QSKIP("Irrelevant for emscripten");
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
 
     // Check desktop file
     QString desktopFilePath =
@@ -4819,13 +4821,16 @@ void TestBlackbox::installLocations()
         {}
     };
     const BinaryInfo app = {
-        isWindows ? "theapp.exe" : (builtWithEmscripten() ? "theapp.js" : "theapp"),
-        binDir.isEmpty() ? (isDarwin ? "/Applications" : "/bin") : binDir,
-        isDarwin ? (isMac ? "theapp.app/Contents/MacOS" : "theapp.app") : ""};
+        isWindows      ? "theapp.exe"
+        : isEmscripten ? "theapp.js"
+                       : "theapp",
+        binDir.isEmpty() ? isDarwin ? "/Applications" : "/bin" : binDir,
+        isDarwin ? isMac ? "theapp.app/Contents/MacOS" : "theapp.app" : ""};
     const BinaryInfo appDsym = {
-        isWindows  ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
-        : isDarwin ? "theapp.app.dSYM"
-                   : (builtWithEmscripten() ? "theapp.wasm.debug.wasm" : "theapp.debug"),
+        isWindows      ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
+        : isDarwin     ? "theapp.app.dSYM"
+        : isEmscripten ? "theapp.wasm.debug.wasm"
+                       : "theapp.debug",
         dsymDir.isEmpty() ? app.installDir : dsymDir,
         {}};
 
@@ -4851,7 +4856,7 @@ void TestBlackbox::installLocations()
     const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
     QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
 
-    if (!builtWithEmscripten()) { // no separate debug info for emscripten libs
+    if (!isEmscripten) { // no separate debug info for emscripten libs
         const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
         QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
         const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
@@ -5394,11 +5399,15 @@ void TestBlackbox::symbolLinkMode()
 
 void TestBlackbox::linkerMode()
 {
-    if (!HostOsInfo::isAnyUnixHost() || builtWithEmscripten())
+    if (!HostOsInfo::isAnyUnixHost())
         QSKIP("only applies on Unix");
 
     QDir::setCurrent(testDataDir + "/linkerMode");
-    QCOMPARE(runQbs(QbsRunParameters(QStringList("qbs.installPrefix:''"))), 0);
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("qbs.installPrefix:''"))), 0);
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QSKIP("not applicable for emscripten");
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
+    QCOMPARE(runQbs(), 0);
 
     auto testCondition = [&](const QString &lang,
             const std::function<bool(const QByteArray &)> &condition) {
@@ -7976,10 +7985,12 @@ private:
 
 void TestBlackbox::assembly()
 {
-    if (builtWithEmscripten())
-        QSKIP("Irrelevant for emscripten");
-
     QDir::setCurrent(testDataDir + "/assembly");
+
+    QVERIFY(runQbs(QbsRunParameters("resolve")) == 0);
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QSKIP("Irrelevant for emscripten");
+    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
     QVERIFY(runQbs() == 0);
 
     const QVariantMap properties = ([&]() {

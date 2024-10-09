@@ -17,6 +17,7 @@ Project {
         property bool dummy: {
             console.info("object suffix: " + cpp.objectSuffix);
             console.info("executable suffix: " + cpp.executableSuffix);
+            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
         }
 
         Depends { name: "dep" }

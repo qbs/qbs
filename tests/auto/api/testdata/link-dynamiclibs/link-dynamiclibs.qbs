@@ -1,6 +1,9 @@
 Project {
     Application {
         name : "HelloWorld"
+        property bool dummy: {
+            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
+        }
         Group {
             files : [ "main.cpp" ]
         }

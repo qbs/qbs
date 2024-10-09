@@ -4,7 +4,7 @@ CppApplication {
     property string sanitizer
 
     property bool supportsSanitizer: {
-        if (qbs.toolchain.includes("mingw"))
+        if (qbs.toolchain.includes("mingw") || qbs.toolchain.contains("emscripten"))
             return false;
         if (sanitizer === "address")
             return Sanitizers.address._supported;

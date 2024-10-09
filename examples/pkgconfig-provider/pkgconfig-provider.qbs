@@ -52,7 +52,7 @@
 CppApplication {
     consoleApplication: true
     Depends { name: "zlib"; required: false }
-    condition: zlib.present
+    condition: !qbs.toolchain.includes("emscripten") && zlib.present
     name: "PkgConfigProviderExample"
     files: "main.c"
     qbsModuleProviders: ["qbspkgconfig"]

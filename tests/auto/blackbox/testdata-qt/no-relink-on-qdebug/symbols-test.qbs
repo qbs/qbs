@@ -7,6 +7,7 @@ Project {
             console.info("is GCC: " + isGCC);
             console.info("is MinGW: " + qbs.toolchain.includes("mingw"));
             console.info("is Darwin: " + qbs.targetOS.includes("darwin"));
+            console.info("is emscripten: " + qbs.toolchain.contains("emscripten"));
         }
         files: "main.cpp"
     }

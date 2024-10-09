@@ -2,6 +2,7 @@
 Project {
     CppApplication {
         name: "other app"
+        property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         files: ["main.cpp"]
     }
 

@@ -2,6 +2,9 @@ Project {
     CppApplication {
         name: "main"
         install: true
+        property bool dummy: {
+            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
+        }
         files: [
             "main.cpp",
             "myapp.desktop",
