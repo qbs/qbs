@@ -63,7 +63,7 @@ Project {
         Properties {
             condition: {
                 console.info(qbs.targetOS);
-                return qbs.targetOS.includes("linux")
+                return qbs.targetOS.includes("linux") || qbs.targetOS.includes("hurd")
             }
             cpp.defines: ["WITH_PTHREAD", "WITH_ZLIB"]
             cpp.staticLibraries: !project.useExport ? ["pthread", "z"] : []
@@ -78,6 +78,7 @@ Project {
             Depends { name: "cpp" }
             Properties {
                 condition: qbs.targetOS.contains("linux")
+                    || qbs.targetOS.includes("hurd")
                 cpp.staticLibraries: ["pthread", "z"]
             }
             Properties {
@@ -118,6 +119,7 @@ Project {
 
         Properties {
             condition: qbs.targetOS.includes("linux")
+                || qbs.targetOS.includes("hurd")
             cpp.driverFlags: ["-static"]
         }
 
