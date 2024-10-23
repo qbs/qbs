@@ -3283,11 +3283,10 @@ void TestBlackbox::soVersion()
             + (useVersion ? ".1.2.3" : QString());
     rmDirR(relativeBuildDir());
     const bool success = runQbs(params) == 0;
-    if (m_qbsStdout.contains("is emscripten: true"))
-        QEXPECT_FAIL(nullptr, "Emscripten does not support dynamic linking", Abort);
     QVERIFY(success);
-    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
     QVERIFY2(regularFileExists(libFilePath), qPrintable(libFilePath));
+    if (m_qbsStdout.contains("is emscripten: true"))
+        QEXPECT_FAIL(nullptr, "Emscripten does not produce dynamic libraries of elf format", Abort);
     QCOMPARE(soName(readElfPath, libFilePath), expectedSoName);
 }
 

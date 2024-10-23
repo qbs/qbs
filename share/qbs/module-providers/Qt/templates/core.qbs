@@ -271,7 +271,7 @@ Module {
     cpp.windowsApiAdditionalPartitions: mkspecPath.startsWith("winrt-") ? ["phone"] : undefined
     cpp.requireAppContainer: mkspecName.startsWith("winrt-")
 
-    additionalProductTypes: ["qm", "qt.core.metatypes", "qthtml"]
+    additionalProductTypes: ["qm", "qt.core.metatypes"]
 
     validate: {
         var validator = new ModUtils.PropertyValidator("Qt.core");
@@ -456,26 +456,29 @@ Module {
         prepare: Core.qhelpGeneratorCommands(product, input, output)
     }
 
-    Rule {
-        condition: qbs.toolchain.includes("emscripten")
-        inputs : ["application"]
-        multiplex: true
+    Group
+    {
+        condition: qbs.toolchain.includes("emscripten") && (product.type.includes("application")
+                                                            && product.type.includes("qthtml"))
+        Rule {
+            inputs: ["application"]
+            multiplex: true
 
-        Artifact {
-            filePath : FileInfo.joinPaths(product.buildDirectory, product.targetName + ".html")
-            fileTags : ["qthtml"]
+            Artifact {
+                filePath : FileInfo.joinPaths(product.buildDirectory, product.targetName + ".html")
+                fileTags : ["qthtml"]
+            }
+
+            prepare: Core.wasmQtHtmlCommands(product, output)
         }
 
-        prepare: Core.wasmQtHtmlCommands(product, output)
-    }
-
-    Group {
-        condition: qbs.toolchain.includes("emscripten")
-        fileTags: ["qthtml"]
-        files: [
-            pluginPath + "/platforms/qtloader.js",
-            pluginPath + "/platforms/qtlogo.svg"
-        ]
+        Group {
+            fileTags: ["qthtml"]
+            files: [
+                module.pluginPath + "/platforms/qtloader.js",
+                module.pluginPath + "/platforms/qtlogo.svg"
+            ]
+        }
     }
 
     @additionalContent@
