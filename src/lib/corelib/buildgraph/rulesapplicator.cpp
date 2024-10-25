@@ -39,6 +39,7 @@
 #include "rulesapplicator.h"
 
 #include "buildgraph.h"
+#include "cppmodulesscanner.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
@@ -74,22 +75,21 @@ namespace qbs {
 namespace Internal {
 
 RulesApplicator::RulesApplicator(
-        ResolvedProductPtr product,
-        const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
-        Logger logger)
+    ResolvedProductPtr product,
+    const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
+    const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+    Logger logger)
     : m_product(std::move(product))
     // m_productsByName and m_projectsByName are references, cannot move-construct
     , m_productsByName(productsByName)
     , m_projectsByName(projectsByName)
-    , m_mocScanner(nullptr)
     , m_logger(std::move(logger))
-{
-}
+{}
 
 RulesApplicator::~RulesApplicator()
 {
     delete m_mocScanner;
+    delete m_cxxModulesScanner;
 }
 
 void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
@@ -110,6 +110,10 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     if (m_rule->name.startsWith(QLatin1String("QtCoreMocRule"))) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, engine(), scope());
+    }
+    if (m_rule->name.startsWith(QLatin1String("cpp_compiler"))) {
+        delete m_cxxModulesScanner;
+        m_cxxModulesScanner = new CppModulesScanner(engine(), scope());
     }
     ScopedJsValue prepareScriptContext(jsContext(), engine()->newObject());
     JS_SetPrototype(jsContext(), prepareScriptContext, engine()->globalObject());

@@ -1976,3 +1976,19 @@
 
     \defaultvalue \c{true}
 */
+
+/*!
+    \qmlproperty bool cpp::forceUseCxxModules
+    \since Qbs 2.5
+
+    Set this property to \c true to force support for C++20 Modules.
+
+    On details how to use modules, see the corresponding \l{tutorial-10.html}{section} in the
+    tutorial.
+
+    By default, modules support is disabled since this feature is considered experimental.
+
+    \note The default value is subject to change.
+
+    \defaultvalue \c{false}
+*/

@@ -47,6 +47,8 @@
 
 #include <QtCore/qstringlist.h>
 
+#include <unordered_map>
+
 class ScannerPlugin;
 
 namespace qbs {
@@ -85,6 +87,7 @@ public:
     PluginDependencyScanner(ScannerPlugin *plugin);
 
 private:
+    QStringList collectModulesPaths(const ResolvedProduct *product);
     QStringList collectSearchPaths(Artifact *artifact) override;
     QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
                                     const char *fileTags) override;

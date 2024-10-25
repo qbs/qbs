@@ -46,7 +46,8 @@
 
 struct Opaq : public qbs::Internal::CppScannerContext
 {
-    int currentResultIndex{0};
+    int currentIncludeIndex{0};
+    int currentModuleIndex{0};
 };
 
 static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
@@ -72,12 +73,19 @@ static void closeScanner(void *ptr)
 static const char *next(void *opaq, int *size, int *flags)
 {
     const auto opaque = static_cast<Opaq *>(opaq);
-    if (opaque->currentResultIndex < opaque->includedFiles.size()) {
-        const auto &result = opaque->includedFiles.at(opaque->currentResultIndex);
-        ++opaque->currentResultIndex;
+    if (opaque->currentIncludeIndex < opaque->includedFiles.size()) {
+        const auto &result = opaque->includedFiles.at(opaque->currentIncludeIndex);
+        ++opaque->currentIncludeIndex;
         *size = static_cast<int>(result.fileName.size());
         *flags = result.flags;
         return result.fileName.data();
+    }
+    if (opaque->currentModuleIndex < opaque->requiresModules.size()) {
+        const auto &result = opaque->requiresModules.at(opaque->currentModuleIndex);
+        ++opaque->currentModuleIndex;
+        *size = result.size();
+        *flags = SC_MODULE_FLAG;
+        return result.data();
     }
     *size = 0;
     *flags = 0;
@@ -86,7 +94,7 @@ static const char *next(void *opaq, int *size, int *flags)
 
 ScannerPlugin includeScanner = {
     "include_scanner",
-    "cpp,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src,rc",
+    "cpp,cppm,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src,rc",
     openScanner,
     closeScanner,
     next,

@@ -277,7 +277,7 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (primaryOutput.fileTags.includes("dynamiclibrary")) {
         if (isDarwin) {
             args.push((function () {
-                var tags = ["c", "cpp", "objc", "objcpp", "asm_cpp"];
+                var tags = ["c", "cpp", "cppm", "objc", "objcpp", "asm_cpp"];
                 for (var i = 0; i < tags.length; ++i) {
                     if (linkerPath === product.cpp.compilerPathByLanguage[tags[i]])
                         return "-dynamiclib";
@@ -568,6 +568,9 @@ function languageTagFromFileExtension(toolchain, fileName) {
     };
     if (!toolchain.includes("clang"))
         m["sx"] = "asm_cpp"; // clang does NOT recognize .sx
+    else
+        m["cppm"] = "cppm";
+
     return m[fileName.substring(i + 1)];
 }
 
@@ -755,12 +758,12 @@ function standardFallbackValueOrDefault(toolchain, compilerVersion, languageVers
     return languageVersion;
 }
 
-function compilerFlags(project, product, input, output, explicitlyDependsOn) {
+function compilerFlags(project, product, outputs, input, output, explicitlyDependsOn) {
     var i;
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(output.fileTags));
-    if (!["c", "cpp", "objc", "objcpp", "asm_cpp"].includes(tag))
+    if (!["c", "cpp", "cppm", "objc", "objcpp", "asm_cpp"].includes(tag))
         throw ("unsupported source language: " + tag);
 
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
@@ -780,6 +783,10 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
         args.push('-Os');
     if (opt === 'none')
         args.push('-O0');
+    if (input.cpp.forceUseCxxModules) {
+        if (!product.qbs.toolchain.includes("clang"))
+            args.push('-fmodules-ts')
+    }
 
     var warnings = input.cpp.warningLevel
     if (warnings === 'none')
@@ -790,6 +797,14 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     }
     if (input.cpp.treatWarningsAsErrors)
         args.push('-Werror');
+
+    var moduleMap = (outputs["modulemap"] || [])[0];
+    if (moduleMap) {
+        const moduleMapperFlag = product.qbs.toolchain.includes("clang")
+            ? "@" // clang uses response file with the list of flags
+            : "-fmodule-mapper="; // gcc uses file with special syntax
+        args.push(moduleMapperFlag + moduleMap.filePath);
+    }
 
     args = args.concat(configFlags(input));
 
@@ -819,7 +834,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
 
     var enableExceptions = input.cpp.enableExceptions;
     if (enableExceptions !== undefined) {
-        if (tag === "cpp" || tag === "objcpp")
+        if (tag === "cpp" || tag === "objcpp" || tag === "cppm")
             args.push(enableExceptions ? "-fexceptions" : "-fno-exceptions");
 
         if (tag === "objc" || tag === "objcpp") {
@@ -830,7 +845,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
     }
 
     var enableRtti = input.cpp.enableRtti;
-    if (enableRtti !== undefined && (tag === "cpp" || tag === "objcpp")) {
+    if (enableRtti !== undefined && (tag === "cpp" || tag === "objcpp" || tag === "cppm")) {
         args.push(enableRtti ? "-frtti" : "-fno-rtti");
     }
 
@@ -892,6 +907,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
             var knownValues = ["c2x", "c17", "c11", "c99", "c90", "c89"];
             return Cpp.languageVersion(input.cpp.cLanguageVersion, knownValues, "C");
         case "cpp":
+        case "cppm":
         case "objcpp":
             knownValues = ["c++23", "c++2b", "c++20", "c++2a", "c++17", "c++1z",
                            "c++14", "c++1y", "c++11", "c++0x",
@@ -908,7 +924,7 @@ function compilerFlags(project, product, input, output, explicitlyDependsOn) {
                                                            product.cpp.useLanguageVersionFallback));
     }
 
-    if (tag === "cpp" || tag === "objcpp") {
+    if (tag === "cpp" || tag === "objcpp" || tag === "cppm") {
         var cxxStandardLibrary = product.cpp.cxxStandardLibrary;
         if (cxxStandardLibrary && product.qbs.toolchain.includes("clang")) {
             args.push("-stdlib=" + cxxStandardLibrary);
@@ -937,6 +953,8 @@ function languageName(fileTag) {
     if (fileTag === 'c')
         return 'c';
     else if (fileTag === 'cpp')
+        return 'c++';
+    else if (fileTag === 'cppm')
         return 'c++';
     else if (fileTag === 'objc')
         return 'objective-c';
@@ -984,6 +1002,8 @@ function compilerEnvVars(config, compilerInfo)
         list.push("C_INCLUDE_PATH");
     else if (compilerInfo.tag === "cpp")
         list.push("CPLUS_INCLUDE_PATH");
+    else if (compilerInfo.tag === "cppm")
+        list.push("CPLUS_INCLUDE_PATH");
     else if (compilerInfo.tag === "objc")
         list.push("OBJC_INCLUDE_PATH");
     else if (compilerInfo.tag === "objccpp")
@@ -1021,13 +1041,17 @@ function setResponseFileThreshold(command, product)
         command.responseFileThreshold = 8000;
 }
 
-function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+function prepareCompilerInternal(project, product, inputs, outputs, input, output_, explicitlyDependsOn) {
+    var output = output_ || outputs["obj"][0];
+
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
                                              input, output);
+
     var compilerPath = compilerInfo.path;
     var pchOutput = output.fileTags.includes(compilerInfo.tag + "_pch");
 
-    var args = compilerFlags(project, product, input, output, explicitlyDependsOn);
+    var args = compilerFlags(project, product, outputs, input, output, explicitlyDependsOn);
+
     var wrapperArgsLength = 0;
     var wrapperArgs = product.cpp.compilerWrapper;
     var extraEnv;
@@ -1068,6 +1092,13 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     cmd.responseFileUsagePrefix = '@';
     setResponseFileThreshold(cmd, product);
     return cmd;
+}
+
+function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var result = Cpp.prepareModules(project, product, inputs, outputs, input, output);
+    result = result.concat(prepareCompilerInternal(
+        project, product, inputs, outputs, input, output, explicitlyDependsOn));
+    return result;
 }
 
 // Concatenates two arrays of library names and preserves the dependency order that ld needs.

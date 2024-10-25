@@ -81,6 +81,7 @@
                 \li  \l{tutorial-7.html}{Buildconfig Module}
                 \li  \l{tutorial-8.html}{Configurable Library}
                 \li  \l{tutorial-9.html}{Version Header}
+                \li  \l{tutorial-10.html}{C++20 Modules}
             \endlist
        \li  \l{How-tos}
        \li  \l{Reference}

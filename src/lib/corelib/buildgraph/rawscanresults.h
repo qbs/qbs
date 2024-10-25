@@ -63,10 +63,16 @@ class RawScanResult
 public:
     std::vector<RawScannedDependency> deps;
     FileTags additionalFileTags;
+    // TODO: does this belong here?
+    QString providesModule;
+    bool isInterfaceModule{false};
+    QStringList requiresModules;
 
-    template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
+    template<PersistentPool::OpType opType>
+    void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(deps, additionalFileTags);
+        pool.serializationOp<opType>(
+            deps, additionalFileTags, providesModule, isInterfaceModule, requiresModules);
     }
 };
 

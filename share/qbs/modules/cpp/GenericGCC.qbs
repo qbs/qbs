@@ -194,6 +194,7 @@ CppModule {
     compilerPathByLanguage: ({
         "c": toolchainPathPrefix + cCompilerName,
         "cpp": toolchainPathPrefix + cxxCompilerName,
+        "cppm": toolchainPathPrefix + cxxCompilerName,
         "objc": toolchainPathPrefix + cCompilerName,
         "objcpp": toolchainPathPrefix + cxxCompilerName,
         "asm_cpp": toolchainPathPrefix + cCompilerName
@@ -259,6 +260,10 @@ CppModule {
             env.PATH = toolchainInstallPath; // For libwinpthread etc
         return env;
     }
+
+    compiledModuleSuffix: qbs.toolchain.includes("clang") ? ".pcm" : ".gcm"
+    moduleOutputFlag: qbs.toolchain.includes("clang") ? "-fmodule-output=" : "%module% "
+    moduleFileFlag: qbs.toolchain.includes("clang") ? "-fmodule-file=%module%=" : "%module% "
 
     exceptionHandlingModel: {
         if (qbs.toolchain.includes("mingw")) {
@@ -485,13 +490,14 @@ CppModule {
     }
 
     Rule {
-        name: "compiler"
-        inputs: ["cpp", "c", "objcpp", "objc", "asm_cpp"]
+        name: "cpp_compiler"
+        inputs: ["cpp", "cppm", "c", "objcpp", "objc", "asm_cpp"]
         auxiliaryInputs: ["hpp"]
         auxiliaryInputsFromDependencies: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
-        outputFileTags: Cpp.compilerOutputTags(false).concat(["c_obj", "cpp_obj"])
-        outputArtifacts: Cpp.compilerOutputArtifacts(input, inputs)
+        outputFileTags: Cpp.compilerOutputTags(/*withListingFiles*/ false, /*withCxxModules*/ true)
+            .concat(["c_obj", "cpp_obj"])
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, inputs, /*withCxxModules*/ true)
         prepare: Gcc.prepareCompiler.apply(Gcc, arguments)
     }
 

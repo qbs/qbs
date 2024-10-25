@@ -137,7 +137,16 @@ void TestBlackboxQt::emscriptenHtml()
     if (m_qbsStdout.contains("is emscripten: false"))
         QSKIP("Skipping emscripten test");
     QVERIFY(m_qbsStdout.contains("is emscripten: true"));
+
     const auto relativeInstallRoot = relativeBuildDir() + QStringLiteral("/install-root/");
+    QVERIFY(!regularFileExists(relativeInstallRoot + QStringLiteral("qtloader.js")));
+    QVERIFY(!regularFileExists(relativeInstallRoot + QStringLiteral("qtlogo.svg")));
+    QVERIFY(!regularFileExists(relativeInstallRoot + QStringLiteral("app.html")));
+
+    const QStringList params = {QStringLiteral("products.app.generateHtml:true")};
+    QCOMPARE(runQbs(QbsRunParameters("resolve", params)), 0);
+    QCOMPARE(runQbs(QbsRunParameters("build", params)), 0);
+
     QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtloader.js")));
     QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("qtlogo.svg")));
     QVERIFY(regularFileExists(relativeInstallRoot + QStringLiteral("app.html")));

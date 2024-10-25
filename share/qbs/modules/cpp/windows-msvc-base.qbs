@@ -145,13 +145,13 @@ CppModule {
     }
 
     Rule {
-        name: "compiler"
-        inputs: ["cpp", "c"]
+        name: "cpp_compiler"
+        inputs: ["cpp", "cppm", "c"]
         auxiliaryInputs: ["hpp"]
         auxiliaryInputsFromDependencies: ["hpp"]
         explicitlyDependsOn: ["c_pch", "cpp_pch"]
-        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles)
-        outputArtifacts: Cpp.compilerOutputArtifacts(input)
+        outputFileTags: Cpp.compilerOutputTags(generateCompilerListingFiles, /*withCxxModules*/ true)
+        outputArtifacts: Cpp.compilerOutputArtifacts(input, undefined, /*withCxxModules*/ true)
         prepare: MSVC.prepareCompiler.apply(MSVC, arguments)
     }
 

@@ -45,6 +45,7 @@
         \li  \l{tutorial-7.html}{Buildconfig Module}
         \li  \l{tutorial-8.html}{Configurable Library}
         \li  \l{tutorial-9.html}{Version Header}
+        \li  \l{tutorial-10.html}{C++20 Modules}
     \endlist
 */
 
@@ -556,7 +557,7 @@
 /*!
     \previouspage tutorial-8.html
     \page tutorial-9.html
-    \nextpage howtos.html
+    \nextpage tutorial-10.html
 
     \title Version Header
 
@@ -644,4 +645,85 @@
     Hello from library
     ProductVersion = 1.0.0
     \endcode
+*/
+
+
+/*!
+    \previouspage tutorial-9.html
+    \page tutorial-10.html
+    \nextpage howtos.html
+
+    \title C++20 Modules
+
+    This tutorial implies you have some knowledge about C++20 modules. If not, see
+    \l{https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp}{Overview of modules in C++} for
+    introduction.
+
+    \section1 Named Modules
+
+    Using C++20 modules with \QBS is pretty straightforward.
+    Let's suppose you have a module file that exports a single function \c printHello:
+
+    \snippet ../tutorial/chapter-10-1/hello.cppm 0
+
+    \note Currently, Clang only recognizes \c .cppm files as modules, however, for GCC and MSVC
+    \QBS also recognizes \c .ixx files as C++ modules. \QBS assigns the \c "cppm" file tag to these
+    files. You can assign this tag manually to module files with different extensions.
+
+    This function is later used in the \c main.cpp file as follows:
+
+    \snippet ../tutorial/chapter-10-1/main.cpp 0
+
+    The project file simply lists files and sets the
+    \l{cpp::forceUseCxxModules}{cpp.forceUseCxxModules} property to \c true.
+    \code
+    // myproject.qbs
+    CppApplication {
+        consoleApplication: true
+        install: true
+        files: ["hello.cppm", "main.cpp"]
+        cpp.cxxLanguageVersion: "c++20"
+        cpp.forceUseCxxModules: true
+    }
+    \endcode
+
+    Now, you can build the project by simply calling \c{qbs}, assuming that your compiler supports
+    C++20 modules.
+
+    \section1 Module Partitions
+
+    \l{https://learn.microsoft.com/en-us/cpp/cpp/modules-cpp?view=msvc-170#module-partitions}{Module partitions}
+    are treated as regular modules and should also have the same extension or assigned the
+    \c "cppm" tag manually. See this
+    \l{https://github.com/qbs/qbs/tree/2.5/examples/cxx-modules/mod3}{example} on how to
+    use both interface module and partitions.
+
+    \section1 Modules and Libraries
+
+    Using modules in dynamic libraries requires using the same export/import macros as it was shown
+    in the \l{tutorial-3.html}{Dynamic Library} section:
+
+    \snippet ../tutorial/chapter-10-2/lib/hello.cppm 0
+
+    As shown in that section, the library \c .qbs file should also define the \c MYLIB_LIBRARY macro
+    in order to mark symbols as exported:
+
+    \code
+    // lib/lib.qbs
+    DynamicLibrary {
+        name: "mylib"
+        files: ["hello.cppm", "lib_global.h"]
+        version: "1.0.0"
+        install: true
+
+        Depends { name: "cpp" }
+        cpp.defines: "MYLIB_LIBRARY"
+        cpp.cxxLanguageVersion: "c++20"
+        cpp.forceUseCxxModules: true
+        // ...
+    }
+    \endcode
+
+    For more details, see the complete
+    \l{https://github.com/qbs/qbs/tree/2.5/tutorial/chapter-10-2}{example}.
 */

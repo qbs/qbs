@@ -1384,7 +1384,7 @@ void TestApi::generatedFilesList()
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
     if (isEmscripten)
-        QCOMPARE(allParents.size(), 6); //build with "-pthread" support
+        QCOMPARE(allParents.size(), 5); //built with "-pthread" support
     else
         QCOMPARE(allParents.size(), 3);
 }

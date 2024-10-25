@@ -171,7 +171,7 @@ function handleClangClArchitectureFlags(product, architecture, flags) {
     }
 }
 
-function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+function prepareCompilerInternal(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
     var args = ['/nologo', '/c']
@@ -180,7 +180,7 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
 
     // Determine which C-language we're compiling
     var tag = ModUtils.fileTagForTargetLanguage(input.fileTags.concat(Object.keys(outputs)));
-    if (!["c", "cpp"].includes(tag))
+    if (!["c", "cpp", "cppm"].includes(tag))
         throw ("unsupported source language");
 
     var enableExceptions = input.cpp.enableExceptions;
@@ -302,12 +302,17 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
     }));
 
     // Language
-    if (tag === "cpp") {
+    if (tag === "cpp" || tag === "cppm") {
         args.push("/TP");
         addCxxLanguageVersionFlag(input, args);
     } else if (tag === "c") {
         args.push("/TC");
         addCLanguageVersionFlag(input, args);
+    }
+
+    var moduleMap = (outputs["modulemap"] || [])[0];
+    if (moduleMap) {
+        args.push("@" + moduleMap.filePath);
     }
 
     // Whether we're compiling a precompiled header or normal source file
@@ -369,6 +374,13 @@ function prepareCompiler(project, product, inputs, outputs, input, output, expli
         return output.split(inputFileName + "\r\n").join("");
     };
     return [cmd];
+}
+
+function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+    var result = Cpp.prepareModules(project, product, inputs, outputs, input, output);
+    result = result.concat(prepareCompilerInternal(
+        project, product, inputs, outputs, input, output, explicitlyDependsOn));
+    return result;
 }
 
 function linkerSupportsWholeArchive(product)

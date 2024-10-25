@@ -116,16 +116,27 @@ function pathToJSLiteral(path) { return JSON.stringify(FileInfo.fromNativeSepara
 function defaultQpaPlugin(module, qtProps) {
     if (qtProps.qtMajorVersion < 5)
         return undefined;
-    if (qtProps.qtMajorVersion === 5 && qtProps.qtMinorVersion < 8) {
-        var qConfigPri = new TextFile(FileInfo.joinPaths(qtProps.mkspecBasePath, "qconfig.pri"));
+
+    function findInPriFile(filePath) {
+        var priFile = new TextFile(filePath);
         var magicString = "QT_DEFAULT_QPA_PLUGIN =";
-        while (!qConfigPri.atEof()) {
-            var line = qConfigPri.readLine().trim();
+        while (!priFile.atEof()) {
+            var line = priFile.readLine().trim();
             if (line.startsWith(magicString))
                 return line.slice(magicString.length).trim();
         }
-        qConfigPri.close();
+    };
+
+    if (qtProps.qtMajorVersion === 5 && qtProps.qtMinorVersion < 8) {
+        var pluginName = findInPriFile(FileInfo.joinPaths(qtProps.mkspecBasePath, "qconfig.pri"));
+        if (pluginName)
+            return pluginName;
     } else {
+        pluginName = findInPriFile(FileInfo.joinPaths(qtProps.mkspecBasePath, "modules",
+                                                      "qt_lib_gui.pri"));
+        if (pluginName)
+            return pluginName;
+
         var gtGuiHeadersPath = qtProps.frameworkBuild
                 ? FileInfo.joinPaths(qtProps.libraryPath, "QtGui.framework", "Headers")
                 : FileInfo.joinPaths(qtProps.includePath, "QtGui");
@@ -138,7 +149,7 @@ function defaultQpaPlugin(module, qtProps) {
             var regexp = /^#define QT_QPA_DEFAULT_PLATFORM_NAME "(.+)".*$/;
             var includeRegexp = /^#include "(.+)".*$/;
             while (!headerFile.atEof()) {
-                line = headerFile.readLine().trim();
+                var line = headerFile.readLine().trim();
                 var match = line.match(regexp);
                 if (match)
                     return 'q' + match[1];

@@ -71,4 +71,8 @@ MsvcBaseModule {
     buildEnv: msvcProbe.buildEnv
 
     enableCxxLanguageMacro: true
+
+    compiledModuleSuffix: ".ifc"
+    moduleOutputFlag: "-ifcOutput "
+    moduleFileFlag: "-reference %module%="
 }

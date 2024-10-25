@@ -14,6 +14,9 @@
 * Resolving values of path properties in `Export` items relative to the exporting product's location
   is now deprecated.
 
+# C/C++ Support
+* Added support for C++20 modules.
+
 # Android support
 * Added new properties `Android.sdk.d8Desugaring` and `Android.sdk.extraResourcePackages`.
 
