@@ -151,18 +151,37 @@ jobs:
       run: git diff --exit-code
 
   build-macos:
-    name: Build on macOS
+    name: ${{ matrix.config.name }}
     runs-on: macos-12
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on macOS (Qbs)',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
+                      products.qbs_archive.includeTests:true',
+            cacheid: 'clang',
+            with_tests: 0,
+            suffix: 'macos',
+          }
+        - {
+            name: 'Build on macOS (CMake)',
+            script: './scripts/build-qbs-with-cmake.sh',
+            options: '',
+            cacheid: 'clang-cmake',
+            with_tests: 1,
+            suffix: 'macos',
+          }
     env:
-      BUILD_OPTIONS: |
-        modules.cpp.compilerWrapper:ccache
-        modules.qbs.debugInformation:true
-        modules.qbsbuildconfig.enableAddressSanitizer:false
-        modules.qbsbuildconfig.enableBundledQt:true
-        products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
-        products.qbs_archive.includeTests:true
-      WITH_TESTS: 0
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: ${{ matrix.config.with_tests }}
     steps:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
@@ -175,8 +194,8 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.ccache
-        key: ${{ runner.os }}-clang-ccache-${{ steps.get-timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-clang-ccache
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
+        restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Install required packages
       run: |
         brew install ccache p7zip
@@ -197,28 +216,47 @@ jobs:
     - name: Print ccache stats
       run: ccache -s
     - name: Build Qbs
-      run: scripts/build-qbs-with-qbs.sh
+      run: ${{ matrix.config.script }}
     - name: Print ccache stats
       run: ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v4'
       with:
-        name: qbs-macos-${{ github.run_id }}.tar.gz
-        path: release/qbs-macos-${{ github.run_id }}.tar.gz
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+        path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
 
   build-windows:
-    name: Build on Windows
+    name: ${{ matrix.config.name }}
     runs-on: windows-2022
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on Windows (Qbs)',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:clcache
+                      modules.qbs.debugInformation:true
+                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      modules.qbsbuildconfig.enableBundledQt:true
+                      products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
+                      products.qbs_archive.includeTests:true',
+            cacheid: 'msvc',
+            with_tests: 0,
+            suffix: 'windows',
+          }
+        - {
+            name: 'Build on Windows (CMake)',
+            script: './scripts/build-qbs-with-cmake.sh',
+            options: '',
+            cacheid: 'msvc-cmake',
+            with_tests: 0,
+            suffix: 'windows-cmake',
+          }
     env:
-      BUILD_OPTIONS: |
-        modules.cpp.compilerWrapper:clcache
-        modules.qbs.debugInformation:true
-        modules.qbsbuildconfig.enableAddressSanitizer:false
-        modules.qbsbuildconfig.enableBundledQt:true
-        products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
-        products.qbs_archive.includeTests:true,
-      WITH_TESTS: 0
+      BUILD_OPTIONS: ${{ matrix.config.options }}
+      WITH_TESTS: ${{ matrix.config.with_tests }}
       QT_ASSUME_STDERR_HAS_CONSOLE: 1
     steps:
     - uses: actions/checkout@v1
@@ -230,7 +268,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/clcache
-        key: ${{ runner.os }}-msvc-clcache-${{ steps.get-timestamp.outputs.timestamp }}
+        key: ${{ runner.os }}-${{ matrix.config.cacheid }}-clcache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-msvc-clcache
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -241,12 +279,24 @@ jobs:
         python -m pip install --upgrade pip
         pip install beautifulsoup4 lxml
         pip install git+https://github.com/frerich/clcache.git@cae73d8255d78db8ba11e23c51fd2c9a89e7475b
+    - name: Install Ninja
+      run: choco install ninja
+      shell: bash
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
         toolchain: win64_msvc2019_64
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
+    - name: Setup self-signed certificate
+      run: |
+        New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
+        Export-Certificate -Cert (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert)[0] -FilePath qbs-code-signing.crt
+        Import-Certificate -FilePath .\qbs-code-signing.crt -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
+      shell: powershell
+    - uses: TheMrMilchmann/setup-msvc-dev@v3
+      with:
+        arch: x64
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
@@ -258,15 +308,15 @@ jobs:
     - name: Print clcache stats
       run: clcache -s
     - name: Build Qbs
-      run: scripts/build-qbs-with-qbs.sh
+      run: ${{ matrix.config.script }}
       shell: bash
     - name: Print clcache stats
       run: clcache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v4'
       with:
-        name: qbs-windows-${{ github.run_id }}.zip
-        path: release/qbs-windows-${{ github.run_id }}.zip
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.zip
+        path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.zip
 
   build-windows-mingw:
     name: Build on Windows (MinGW)

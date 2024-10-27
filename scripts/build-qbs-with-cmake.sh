@@ -37,7 +37,7 @@
 ## $QT_END_LICENSE$
 ##
 #############################################################################
-set -e
+set -eu
 
 #
 # It might be desired to keep settings for Qbs testing
@@ -49,12 +49,21 @@ BUILD_OPTIONS="\
     -DWITH_UNIT_TESTS=1 \
     -DQBS_INSTALL_HTML_DOCS=1 \
     -DQBS_INSTALL_QCH_DOCS=1 \
-    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
     ${BUILD_OPTIONS} \
 "
 
-QMAKE_PATH="${QMAKE_PATH:-$(which qmake)}"
+EXE_SUFFIX=""
+if [[ "$OSTYPE" == "msys" ]]; then
+    EXE_SUFFIX=".exe"
+else
+    BUILD_OPTIONS="\
+        -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+        -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+        ${BUILD_OPTIONS} \
+    "
+fi
+
+QMAKE_PATH="${QMAKE_PATH:-$(which qmake)${EXE_SUFFIX}}"
 QT_DIR=$(dirname ${QMAKE_PATH})/../
 
 # Use shadow build
@@ -68,11 +77,12 @@ cmake -GNinja -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ${BUILD_OPTIONS} ..
 cmake --build .
 cmake --install . --prefix "install-root"
 
+QBS_AUTOTEST_PROFILE="${QBS_AUTOTEST_PROFILE:-}"
 #
 # Set up profiles for the freshly built Qbs if not
 # explicitly specified otherwise
 #
-if [ -z "${QBS_AUTOTEST_PROFILE}" ]; then
+if [[ "${QBS_AUTOTEST_PROFILE}" == "" ]]; then
 
     export QBS_AUTOTEST_PROFILE=autotestprofile
     RUN_OPTIONS="\
