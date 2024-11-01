@@ -52,7 +52,9 @@ add_custom_command(
     )
 install(
     DIRECTORY qbs
-    DESTINATION "${QBS_RESOURCES_INSTALL_DIR}")
+    DESTINATION "${QBS_RESOURCES_INSTALL_DIR}"
+    PATTERN ".gitignore" EXCLUDE
+    )
 
 # install examples dir
 install(
