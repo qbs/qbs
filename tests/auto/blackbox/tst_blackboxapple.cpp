@@ -110,6 +110,14 @@ static QString getInfoPlistPath(const QString &bundlePath)
     return bundlePath + "/Info.plist";
 }
 
+static QString getPrivacyManifestPath(const QString &bundlePath)
+{
+    QFileInfo resources(bundlePath + "/Resources");
+    if (resources.exists())
+        return resources.filePath() + "/PrivacyInfo.xcprivacy"; // macOS bundle
+    return bundlePath + "/PrivacyInfo.xcprivacy";
+}
+
 static bool testVariantListType(const QVariant &variant, QMetaType::Type type)
 {
     if (variant.userType() != QMetaType::QVariantList)
@@ -1012,6 +1020,26 @@ void TestBlackboxApple::iconsetApp()
     } else {
         QVERIFY2(false, qPrintable(m_qbsStdout));
     }
+}
+
+void TestBlackboxApple::privacymanifest()
+{
+    QDir::setCurrent(testDataDir + "/privacymanifest");
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f"
+                                     << "privacymanifest.qbs";
+    QCOMPARE(runQbs(params), 0);
+    const auto privacymanifestPath = getPrivacyManifestPath(
+        relativeProductBuildDir("Lib") + "/Lib.framework");
+    QVERIFY(QFile::exists(privacymanifestPath));
+    const auto content = readInfoPlistFile(privacymanifestPath);
+    QVERIFY(!content.isEmpty());
+
+    QCOMPARE(content.value(QStringLiteral("NSPrivacyTracking")), false);
+    QCOMPARE(content.value(QStringLiteral("NSPrivacyTrackingDomains")), QVariantList());
+    QCOMPARE(content.value(QStringLiteral("NSPrivacyAccessedAPITypes")), QVariantList());
+    QCOMPARE(content.value(QStringLiteral("NSPrivacyCollectedDataTypes")), QVariantList());
 }
 
 void TestBlackboxApple::infoPlist()

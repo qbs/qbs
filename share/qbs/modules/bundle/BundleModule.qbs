@@ -303,7 +303,7 @@ Module {
                  "aggregate_infoplist", "pkginfo", "hpp",
                  "icns", "codesign.xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
-                 "codesign.embedded_provisioningprofile"]
+                 "codesign.embedded_provisioningprofile", "bundle.input.privacymanifest"]
 
         // Make sure the inputs of this rule are only those rules which produce outputs compatible
         // with the type of the bundle being produced.
@@ -315,7 +315,7 @@ Module {
             "bundle.symlink.resources", "bundle.symlink.executable",
             "bundle.symlink.version", "bundle.hpp", "bundle.resource",
             "bundle.provisioningprofile", "bundle.content.copied", "bundle.application-executable",
-            "bundle.code-signature"]
+            "bundle.code-signature", "bundle.privacymanifest"]
         outputArtifacts: Bundle.generateBundleOutputs(product, inputs)
         prepare: Bundle.generateBundleCommands.apply(Bundle, arguments)
     }

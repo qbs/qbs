@@ -367,6 +367,27 @@ function generateBundleOutputs(product, inputs)
             });
         }
 
+        var privacymanifests = inputs["bundle.input.privacymanifest"] || [];
+        for (var i = 0; i < privacymanifests.length; ++i) {
+            var filePath;
+            if (product.qbs.targetOS.includes("macos")) {
+                filePath = FileInfo.joinPaths(product.destinationDirectory,
+                                              product.bundle.contentsFolderPath,
+                                              "Resources",
+                                              privacymanifests[i].fileName);
+            } else if (product.qbs.targetOS.includes("ios")) {
+                filePath = FileInfo.joinPaths(product.destinationDirectory,
+                                              product.bundle.contentsFolderPath,
+                                              privacymanifests[i].fileName);
+            }
+            if (filePath) {
+                artifacts.push({
+                    filePath: filePath,
+                    fileTags: ["bundle.content", "bundle.privacymanifest"]
+                });
+            }
+        }
+
         var packageType = product.bundle.packageType;
         var isShallow = product.bundle.isShallow;
         if (packageType === "FMWK" && !isShallow) {
@@ -536,6 +557,21 @@ function generateBundleCommands(project, product, inputs, outputs, input, output
         for (var i in sources) {
             File.copy(sources[i], destination[i]);
         }
+    };
+    if (cmd.sources && cmd.sources.length)
+        commands.push(cmd);
+
+    cmd = new JavaScriptCommand();
+    cmd.description = "copying privacy manifest";
+    cmd.highlight = "filegen";
+    cmd.sources = (inputs["bundle.input.privacymanifest"] || [])
+        .map(function(artifact) { return artifact.filePath; });
+    cmd.destination = (outputs["bundle.privacymanifest"] || [])
+        .map(function(artifact) { return artifact.filePath; });
+    cmd.sourceCode = function() {
+        var i;
+        for (var i = 0; i < sources.length; ++i)
+            File.copy(sources[i], destination[i]);
     };
     if (cmd.sources && cmd.sources.length)
         commands.push(cmd);
