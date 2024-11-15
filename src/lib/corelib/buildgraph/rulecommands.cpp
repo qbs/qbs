@@ -132,7 +132,7 @@ void AbstractCommand::fillFromScriptValue(JSContext *ctx, const JSValue *scriptV
 
 QString AbstractCommand::fullDescription(const QString &productName) const
 {
-    return description() + QLatin1String(" [") + productName + QLatin1Char(']');
+    return QLatin1Char('[') + productName + QLatin1String("] ") + description();
 }
 
 QString AbstractCommand::descriptionForCancelMessage(const QString &productName) const
