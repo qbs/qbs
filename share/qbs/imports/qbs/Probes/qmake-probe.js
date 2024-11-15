@@ -631,6 +631,10 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             prlFilePath,
             ProviderUtils.qtLibraryBaseName(modInfo, qtProps, false) + ".framework");
         libDir = prlFilePath;
+
+        // E.g. Qt 6.8.0 has no symlinks in the bundle directory, so we need the full path.
+        prlFilePath += "/Versions/A";
+
         if (Utilities.versionCompare(qtProps.qtVersion, "5.14") >= 0)
             prlFilePath = FileInfo.joinPaths(prlFilePath, "Resources");
     }
@@ -1140,6 +1144,8 @@ function allQt5Modules(qtProps, androidAbi) {
                             moduleInfo.isPrivate = true;
                         else if (elem === "v2")
                             hasV2 = true;
+                        else if (elem === "lib_bundle")
+                            moduleInfo.isFramework = true;
                     }
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = extractPaths(value, priFilePath);
