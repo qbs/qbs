@@ -317,6 +317,10 @@
         \li 16- and 8-bit accumulator-based register-bank CISC architecture
             microcontroller family manufactured by Renesas Electronics
     \row
+        \li \c{"alpha"}
+        \li 64-bit ISA architecture of the Alpha family processors
+            developed by DEC
+    \row
         \li \c{"arm"}
         \li 32-bit RISC architecture for computer processors
             developed by Acorn RISC Machine
