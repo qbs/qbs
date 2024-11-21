@@ -66,7 +66,7 @@ if (QBS_INSTALL_HTML_DOCS OR QBS_INSTALL_QCH_DOCS)
     endif()
 endif()
 
-add_definitions(-DQT_NO_QSNPRINTF)
+add_definitions(-DQT_NO_QSNPRINTF -D_UCRT_NOISY_NAN)
 
 add_subdirectory(src)
 add_subdirectory(doc)
