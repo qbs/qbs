@@ -46,13 +46,13 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Pull the Docker Image
-      run: docker compose pull jammy-qt6
+      run: docker compose pull noble-qt6
     - name: Print ccache stats
-      run: docker compose run jammy-qt6 ccache -s
+      run: docker compose run noble-qt6 ccache -s
     - name: Build Qbs
-      run: docker compose run jammy-qt6 ${{ matrix.config.script }}
+      run: docker compose run noble-qt6 ${{ matrix.config.script }}
     - name: Print ccache stats
-      run: docker compose run jammy-qt6 ccache -s
+      run: docker compose run noble-qt6 ccache -s
     - name: Get archive name
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
