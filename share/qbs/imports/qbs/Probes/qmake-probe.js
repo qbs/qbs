@@ -631,8 +631,19 @@ function doSetupLibraries(modInfo, qtProps, debugBuild, nonExistingPrlFiles, and
             prlFilePath,
             ProviderUtils.qtLibraryBaseName(modInfo, qtProps, false) + ".framework");
         libDir = prlFilePath;
-        if (Utilities.versionCompare(qtProps.qtVersion, "5.14") >= 0)
-            prlFilePath = FileInfo.joinPaths(prlFilePath, "Resources");
+
+        if (Utilities.versionCompare(qtProps.qtVersion, "5.14") >= 0) {
+            var candidates = [
+                        FileInfo.joinPaths(prlFilePath, "Resources"), // E.g. 5.15.9, 6.8.0/macOS
+                        FileInfo.joinPaths(prlFilePath, "Versions/A/Resources") // E.g. 6.8.0/iOS
+                    ];
+            for (i = 0; i < candidates.length; ++i) {
+                if (File.exists(candidates[i])) {
+                    prlFilePath = candidates[i];
+                    break;
+                }
+            }
+        }
     }
     var baseName = ProviderUtils.qtLibraryBaseName(modInfo, qtProps, debugBuild);
     if (!qtProps.mkspecName.startsWith("win") && !ProviderUtils.qtIsFramework(modInfo, qtProps))
@@ -1140,6 +1151,8 @@ function allQt5Modules(qtProps, androidAbi) {
                             moduleInfo.isPrivate = true;
                         else if (elem === "v2")
                             hasV2 = true;
+                        else if (elem === "lib_bundle")
+                            moduleInfo.isFramework = true;
                     }
                 } else if (key.endsWith(".includes")) {
                     moduleInfo.includePaths = extractPaths(value, priFilePath);

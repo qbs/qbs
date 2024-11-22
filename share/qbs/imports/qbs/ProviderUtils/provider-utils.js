@@ -54,6 +54,8 @@ function qtNeedsDSuffix(qtProps) {
 }
 
 function qtIsFramework(modInfo, qtProps) {
+    if (modInfo.isFramework)
+        return true;
     if (!qtProps.frameworkBuild || modInfo.isStaticLibrary)
         return false;
     var modulesNeverBuiltAsFrameworks = [

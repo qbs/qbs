@@ -90,4 +90,8 @@ Module {
                 && Utilities.versionCompare(qbs.version, "1.23") < 0
         cpp.cxxFlags: "/permissive-"
     }
+    Properties {
+        condition: project.withCode && qbs.toolchain.contains("msvc")
+        cpp.defines: "_UCRT_NOISY_NAN"
+    }
 }

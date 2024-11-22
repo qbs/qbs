@@ -22,6 +22,7 @@
 
 # Qt Support
 * Added new property `Qt.core.translationsPath`.
+* Adapted to changes in framework releases (QBS-1816).
 
 # Other
 * Added experimental WebAssembly support via emscripten.
