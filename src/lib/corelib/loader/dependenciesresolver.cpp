@@ -592,7 +592,11 @@ Item *DependenciesResolver::findMatchingModule(
     }
 
     if (Item *moduleItem = searchAndLoadModuleFile(
-            m_loaderState, m_product, dependency.location(), dependency.name)) {
+            m_loaderState,
+            m_product,
+            dependency.location(),
+            dependency.name,
+            dependency.versionRange)) {
         QBS_CHECK(moduleItem->type() == ItemType::Module);
         Item * const proto = moduleItem;
         ModuleItemLocker locker(*moduleItem);

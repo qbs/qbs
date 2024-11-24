@@ -8004,7 +8004,7 @@ void TestBlackbox::checkTimestamps()
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
-void TestBlackbox::chooseModuleInstanceByPriority()
+void TestBlackbox::chooseModuleInstanceByPriorityAndVersion()
 {
     QFETCH(QString, idol);
     QFETCH(QStringList, expectedSubStrings);
@@ -8034,7 +8034,7 @@ void TestBlackbox::chooseModuleInstanceByPriority()
     }
 }
 
-void TestBlackbox::chooseModuleInstanceByPriority_data()
+void TestBlackbox::chooseModuleInstanceByPriorityAndVersion_data()
 {
     QTest::addColumn<QString>("idol");
     QTest::addColumn<QStringList>("expectedSubStrings");

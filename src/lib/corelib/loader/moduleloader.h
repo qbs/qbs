@@ -41,6 +41,7 @@
 
 namespace qbs {
 class CodeLocation;
+class VersionRange;
 namespace Internal {
 class Item;
 class LoaderState;
@@ -51,7 +52,8 @@ Item *searchAndLoadModuleFile(
     LoaderState &loaderState,
     ProductContext &product,
     const CodeLocation &dependsItemLocation,
-    const QualifiedId &moduleName);
+    const QualifiedId &moduleName,
+    const VersionRange &requiredVersion);
 
 } // namespace Internal
 } // namespace qbs

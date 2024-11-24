@@ -56,6 +56,7 @@
 #include <tools/profiling.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
+#include <tools/version.h>
 
 #include <QDirIterator>
 #include <QHash>
@@ -72,11 +73,13 @@ public:
         LoaderState &loaderState,
         ProductContext &product,
         const CodeLocation &dependsItemLocation,
-        const QualifiedId &moduleName)
+        const QualifiedId &moduleName,
+        const VersionRange &requiredVersion)
         : m_loaderState(loaderState)
         , m_product(product)
         , m_dependsItemLocation(dependsItemLocation)
         , m_moduleName(moduleName)
+        , m_requiredVersion(requiredVersion)
     {}
 
     Item *load();
@@ -95,6 +98,7 @@ private:
     ProductContext &m_product;
     const CodeLocation &m_dependsItemLocation;
     const QualifiedId &m_moduleName;
+    const VersionRange &m_requiredVersion;
 };
 
 struct PrioritizedItem
@@ -105,16 +109,18 @@ struct PrioritizedItem
     Item * const item;
     int priority = 0;
     const int searchPathIndex;
+    bool fulfillsVersionRequirement = true;
 };
 
 static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidates,
                                    const QString &moduleName)
 {
-    // TODO: This should also consider the version requirement.
-
     auto maxIt = std::max_element(
-        candidates.begin(), candidates.end(),
-        [] (const PrioritizedItem &a, const PrioritizedItem &b) {
+        candidates.begin(),
+        candidates.end(),
+        [](const PrioritizedItem &a, const PrioritizedItem &b) {
+            if (a.fulfillsVersionRequirement != b.fulfillsVersionRequirement)
+                return b.fulfillsVersionRequirement;
             if (a.priority < b.priority)
                 return true;
             if (a.priority > b.priority)
@@ -123,9 +129,9 @@ static Item *chooseModuleCandidate(const std::vector<PrioritizedItem> &candidate
         });
 
     size_t nmax = std::count_if(
-        candidates.begin(), candidates.end(),
-        [maxIt] (const PrioritizedItem &i) {
-            return i.priority == maxIt->priority && i.searchPathIndex == maxIt->searchPathIndex;
+        candidates.begin(), candidates.end(), [maxIt](const PrioritizedItem &i) {
+            return i.priority == maxIt->priority && i.searchPathIndex == maxIt->searchPathIndex
+                   && i.fulfillsVersionRequirement == maxIt->fulfillsVersionRequirement;
         });
 
     if (nmax > 1) {
@@ -148,9 +154,11 @@ Item *searchAndLoadModuleFile(
     LoaderState &loaderState,
     ProductContext &product,
     const CodeLocation &dependsItemLocation,
-    const QualifiedId &moduleName)
+    const QualifiedId &moduleName,
+    const VersionRange &requiredVersion)
 {
-    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName).load();
+    return ModuleLoader(loaderState, product, dependsItemLocation, moduleName, requiredVersion)
+        .load();
 }
 
 Item *ModuleLoader::load()
@@ -194,11 +202,21 @@ Item *ModuleLoader::load()
     if (candidates.size() == 1) {
         moduleItem = candidates.at(0).item;
     } else {
+        const bool needsVersionCheck = m_requiredVersion.minimum.isValid()
+                                       || m_requiredVersion.maximum.isValid();
         for (auto &candidate : candidates) {
             ModuleItemLocker lock(*candidate.item);
             candidate.priority = m_loaderState.evaluator()
                     .intValue(candidate.item, StringConstants::priorityProperty(),
                               candidate.priority);
+            if (needsVersionCheck) {
+                const auto version = Version::fromString(m_loaderState.evaluator().stringValue(
+                    candidate.item, StringConstants::versionProperty()));
+                candidate.fulfillsVersionRequirement = (!m_requiredVersion.minimum.isValid()
+                                                        || version >= m_requiredVersion.minimum)
+                                                       && (!m_requiredVersion.maximum.isValid()
+                                                           || version < m_requiredVersion.maximum);
+            }
         }
         moduleItem = chooseModuleCandidate(candidates, fullName);
     }

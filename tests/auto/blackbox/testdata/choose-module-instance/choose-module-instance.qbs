@@ -6,7 +6,7 @@ Project {
         "other-searchpath"
     ]
     Product {
-        Depends { name: "limerick" }
+        Depends { name: "limerick"; versionAtLeast: "2" }
         type: ["text"]
         files: ["gerbil.txt.in"]
         Group {
