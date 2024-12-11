@@ -163,11 +163,8 @@ static id toObject(const QVariant &variant)
 static NSDictionary *toDictionary(const QVariantMap &map)
 {
     NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-    QMapIterator<QString, QVariant> i(map);
-    while (i.hasNext()) {
-        i.next();
+    for (auto i = map.cbegin(), end = map.cend(); i != end; ++i)
         [dict setObject:toObject(i.value()) forKey:i.key().toNSString()];
-    }
     return [NSDictionary dictionaryWithDictionary:dict];
 }
 

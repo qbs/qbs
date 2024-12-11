@@ -63,9 +63,7 @@ MSBuildTargetProject::MSBuildTargetProject(const GeneratableProject &project,
     const auto projectConfigurationsGroup = new MSBuildItemGroup(this);
     projectConfigurationsGroup->setLabel(QStringLiteral("ProjectConfigurations"));
 
-    QMapIterator<QString, qbs::Project> it(project.projects);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = project.projects.cbegin(), end = project.projects.cend(); it != end; ++it) {
         const auto item = new MSBuildItem(QStringLiteral("ProjectConfiguration"),
                                     projectConfigurationsGroup);
         item->setInclude(MSBuildUtils::fullName(it.value()));

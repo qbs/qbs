@@ -49,11 +49,8 @@ GeneratableProjectIterator::GeneratableProjectIterator(GeneratableProject projec
 void GeneratableProjectIterator::accept(IGeneratableProjectVisitor *visitor)
 {
     visitor->visitProject(project);
-    QMapIterator<QString, qbs::Project> it(project.projects);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = project.projects.cbegin(), end = project.projects.cend(); it != end; ++it)
         visitor->visitProject(it.value(), it.key());
-    }
 
     accept(project, GeneratableProjectData(), project, visitor);
 }
@@ -65,9 +62,7 @@ void GeneratableProjectIterator::accept(const GeneratableProject &project,
 {
     visitor->visitProjectData(project, parentProjectData, projectData);
     visitor->visitProjectData(project, projectData);
-    QMapIterator<QString, qbs::ProjectData> it(projectData.data);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = projectData.data.cbegin(), end = projectData.data.cend(); it != end; ++it) {
         visitor->visitProjectData(parentProjectData.data.value(it.key()), it.value(), it.key());
         visitor->visitProjectData(it.value(), it.key());
     }
@@ -78,9 +73,8 @@ void GeneratableProjectIterator::accept(const GeneratableProject &project,
 
     for (const auto &productDataMap : projectData.products) {
         visitor->visitProduct(project, projectData, productDataMap);
-        QMapIterator<QString, qbs::ProductData> it(productDataMap.data);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = productDataMap.data.cbegin(), end = productDataMap.data.cend(); it != end;
+             ++it) {
             visitor->visitProduct(it.value(), it.key());
         }
     }

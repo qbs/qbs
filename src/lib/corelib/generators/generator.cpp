@@ -127,11 +127,8 @@ QStringList ProjectGenerator::buildConfigurationCommandLine(const Project &proje
     QStringList commandLineParameters;
     commandLineParameters += QStringLiteral("config:") + name;
 
-    QMapIterator<QString, QVariant> it(config);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = config.cbegin(), end = config.cend(); it != end; ++it)
         commandLineParameters += it.key() + QStringLiteral(":") + it.value().toString();
-    }
 
     return commandLineParameters;
 }
@@ -166,22 +163,16 @@ static GeneratableProjectData _reduceProjectConfigurations(
     GeneratableProjectData gproject;
 
     // Add the project's project data for each configuration
-    QMapIterator<QString, ProjectData> it(map);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = map.cbegin(), end = map.cend(); it != end; ++it)
         gproject.data.insert(it.key(), it.value());
-    }
 
     // Add the project's products...
     for (int i = 0; i < _productCount(map.values()); ++i) {
         GeneratableProductData prod;
 
         // once for each configuration
-        QMapIterator<QString, ProjectData> it(map);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = map.cbegin(), end = map.cend(); it != end; ++it)
             prod.data.insert(it.key(), it.value().products().at(i));
-        }
 
         gproject.products.push_back(prod);
     }
@@ -191,11 +182,8 @@ static GeneratableProjectData _reduceProjectConfigurations(
         QMap<QString, ProjectData> subprojectMap;
 
         // once for each configuration
-        QMapIterator<QString, ProjectData> it(map);
-        while (it.hasNext()) {
-            it.next();
+        for (auto it = map.cbegin(), end = map.cend(); it != end; ++it)
             subprojectMap.insert(it.key(), it.value().subProjects().at(i));
-        }
 
         gproject.subProjects.push_back(_reduceProjectConfigurations(subprojectMap));
     }

@@ -63,11 +63,8 @@ private:
 template <typename Key, typename T>
 QMap<Key, T> qHashToMap(const QHash<Key, T> &hash) {
     QMap<Key, T> map;
-    QHashIterator<Key, T> i(hash);
-    while (i.hasNext()) {
-        i.next();
+    for (auto i = hash.cbegin(), end = hash.cend(); i != end; ++i)
         map.insert(i.key(), i.value());
-    }
     return map;
 }
 

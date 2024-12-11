@@ -244,9 +244,7 @@ static void addDefaultGlobalSections(const GeneratableProject &topLevelProject,
 static void writeProjectFiles(const QMap<QString, std::shared_ptr<MSBuildProject>> &projects)
 {
     // Write out all the MSBuild project files to disk
-    QMapIterator<QString, std::shared_ptr<MSBuildProject>> it(projects);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = projects.cbegin(), end = projects.cend(); it != end; ++it) {
         const auto projectFilePath = it.key();
         Internal::FileSaver file(projectFilePath.toStdString());
         if (!file.open())

@@ -145,9 +145,7 @@ QString canonicalArchitecture(const QString &architecture)
         << QStringLiteral("mips64eb")
         << QStringLiteral("mips64el"));
 
-    QMapIterator<QString, QStringList> i(archMap);
-    while (i.hasNext()) {
-        i.next();
+    for (auto i = archMap.cbegin(), end = archMap.cend(); i != end; ++i) {
         if (i.value().contains(architecture.toLower()))
             return i.key();
     }

@@ -90,9 +90,7 @@ QString GeneratableProjectData::name() const
 CodeLocation GeneratableProjectData::location() const
 {
     CodeLocation location;
-    QMapIterator<QString, ProjectData> it(data);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
         CodeLocation oldLocation = location;
         location = it.value().location();
         if (oldLocation.isValid() && oldLocation != location)
@@ -113,9 +111,7 @@ GeneratableProjectData::Id GeneratableProjectData::uniqueName() const
 QDir GeneratableProject::baseBuildDirectory() const
 {
     Internal::Set<QString> baseBuildDirectory;
-    QMapIterator<QString, ProjectData> it(data);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it) {
         QDir dir(it.value().buildDirectory());
         dir.cdUp();
         baseBuildDirectory.insert(dir.absolutePath());
@@ -127,11 +123,8 @@ QDir GeneratableProject::baseBuildDirectory() const
 QFileInfo GeneratableProject::filePath() const
 {
     Internal::Set<QString> filePath;
-    QMapIterator<QString, ProjectData> it(data);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = data.cbegin(), end = data.cend(); it != end; ++it)
         filePath.insert(it.value().location().filePath());
-    }
     Q_ASSERT(filePath.size() == 1);
     return QFileInfo(*filePath.begin());
 }
@@ -144,11 +137,8 @@ bool GeneratableProject::hasMultipleConfigurations() const
 QStringList GeneratableProject::commandLine() const
 {
     QStringList combinedCommandLine;
-    QMapIterator<QString, QStringList> it(commandLines);
-    while (it.hasNext()) {
-        it.next();
+    for (auto it = commandLines.cbegin(), end = commandLines.cend(); it != end; ++it)
         combinedCommandLine << it.value();
-    }
     return combinedCommandLine;
 }
 

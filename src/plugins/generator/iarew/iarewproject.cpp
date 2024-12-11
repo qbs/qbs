@@ -104,10 +104,8 @@ IarewProject::IarewProject(const GeneratableProject &genProject,
     }
 
     // Construct all file groups items.
-    QMapIterator<QString, qbs::ProductData> dataIt(genProduct.data);
-    while (dataIt.hasNext()) {
-        dataIt.next();
-        const auto groups = dataIt.value().groups();
+    for (auto it = genProduct.data.cbegin(), end = genProduct.data.cend(); it != end; ++it) {
+        const auto groups = it.value().groups();
         for (const auto &group : groups) {
             // Ignore disabled groups (e.g. when its condition property is false).
             if (!group.isEnabled())

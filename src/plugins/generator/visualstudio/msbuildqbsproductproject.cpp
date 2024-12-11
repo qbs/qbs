@@ -362,9 +362,9 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
 
     // Create a ClCompile item for each source file, keeping track of which configurations that
     // file's containing group is enabled in
-    QMapIterator<QString, qbs::ProductData> productDataIt(product.data);
-    while (productDataIt.hasNext()) {
-        productDataIt.next();
+    for (auto productDataIt = product.data.cbegin(), end = product.data.cend();
+         productDataIt != end;
+         ++productDataIt) {
         const auto groups = productDataIt.value().groups();
         for (const auto &group : groups) {
             const auto sourceArtifacts = group.allSourceArtifacts();
@@ -392,17 +392,15 @@ void MSBuildQbsProductProject::addFiles(const GeneratableProject &project,
     // Add ExcludedFromBuild item metadata to each file for each configuration
     // where that file's containing group is disabled
     for (const auto &sourceFileNode : sourceFileNodes) {
-        QMapIterator<QString, qbs::Project> projIt(project.projects);
-        while (projIt.hasNext()) {
-            projIt.next();
-            if (!sourceFileEnabledConfigurations[sourceFileNode.first].contains(projIt.key())) {
+        for (auto it = project.projects.cbegin(), end = project.projects.cend(); it != end; ++it) {
+            if (!sourceFileEnabledConfigurations[sourceFileNode.first].contains(it.key())) {
                 const auto metadata = new MSBuildItemMetadata(
-                            QStringLiteral("ExcludedFromBuild"),
-                            QStringLiteral("true"),
-                            sourceFileNode.second);
-                metadata->setCondition(QStringLiteral("'$(Configuration)|$(Platform)'=='")
-                    + MSBuildUtils::fullName(projIt.value())
-                    + QStringLiteral("'"));
+                    QStringLiteral("ExcludedFromBuild"),
+                    QStringLiteral("true"),
+                    sourceFileNode.second);
+                metadata->setCondition(
+                    QStringLiteral("'$(Configuration)|$(Platform)'=='")
+                    + MSBuildUtils::fullName(it.value()) + QStringLiteral("'"));
             }
         }
     }
