@@ -294,7 +294,7 @@ void Stm8LinkerSettingsGroup::buildConfigPage(
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
             for (QVariant &configPath : opts.configFilePaths)
-                configPath = QLatin1String("--config ") + configPath.toString();
+                configPath = QString(QStringLiteral("--config ") + configPath.toString());
 
             m_extraOptions << opts.configFilePaths;
         }

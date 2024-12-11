@@ -87,6 +87,7 @@ set(DEFAULT_DEFINES
   QT_WARN_DEPRECATED_BEFORE=0x060700
   QT_WARN_DEPRECATED_UP_TO=0x060700
   QT_NO_JAVA_STYLE_ITERATORS
+  QT_USE_QSTRINGBUILDER
 )
 if(WIN32)
   list(APPEND DEFAULT_DEFINES UNICODE _UNICODE _SCL_SECURE_NO_WARNINGS)
@@ -244,8 +245,10 @@ function(add_qbs_test test_name)
         "QBS_TEST_SUITE_NAME=\"${suite_name}\""
         "SRCDIR=\"${CMAKE_CURRENT_SOURCE_DIR}\""
         )
+    set(TEST_DEFINES ${DEFAULT_DEFINES})
+    list(REMOVE_ITEM TEST_DEFINES QT_USE_QSTRINGBUILDER)
     target_compile_definitions(
-        ${target_name} PRIVATE ${_arg_DEFINES} ${DEFAULT_DEFINES} PUBLIC ${_arg_PUBLIC_DEFINES})
+        ${target_name} PRIVATE ${_arg_DEFINES} ${TEST_DEFINES} PUBLIC ${_arg_PUBLIC_DEFINES})
     target_include_directories(
         ${target_name}
         PRIVATE ${_arg_INCLUDES} "${CMAKE_CURRENT_SOURCE_DIR}/../../../src"

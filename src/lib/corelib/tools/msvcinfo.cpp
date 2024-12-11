@@ -698,7 +698,9 @@ void MSVC::determineCompilerVersion()
 
     std::lock_guard<std::recursive_mutex> locker(envMutex);
     const QByteArray origPath = qgetenv("PATH");
-    qputenv("PATH", environment.value(StringConstants::pathEnvVar()).toLatin1() + ';' + origPath);
+    QByteArray tempPath = environment.value(StringConstants::pathEnvVar()).toLatin1() + ';'
+                          + origPath;
+    qputenv("PATH", tempPath);
     QByteArray versionStr = runProcess(
                 binPath + clExeSuffix(),
                 QStringList() << QStringLiteral("/nologo") << QStringLiteral("/EP")

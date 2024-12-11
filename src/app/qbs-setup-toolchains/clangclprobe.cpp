@@ -130,8 +130,7 @@ void clangClProbe(Settings *settings, std::vector<Profile> &profiles)
         const QString suffix = index == 0 ? QString() : QStringLiteral("-%1").arg(index);
         qbs::Internal::transform(
             architectures, profiles, [settings, clangCl, suffix](const auto &arch) {
-                const auto profileName = QStringLiteral("clang-cl") + suffix
-                                         + QStringLiteral("-%1").arg(arch);
+                const auto profileName = QStringLiteral("clang-cl%1-%2").arg(suffix, arch);
                 return createProfileHelper(
                     settings,
                     profileName,

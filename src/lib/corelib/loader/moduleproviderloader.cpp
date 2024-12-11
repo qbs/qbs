@@ -399,7 +399,7 @@ ModuleProviderLoader::EvaluationResult ModuleProviderLoader::evaluateModuleProvi
     auto searchPaths = m_loaderState.evaluator().stringListValue(
         providerItem, QStringLiteral("relativeSearchPaths"));
     auto prependBaseDir = [&outputBaseDir](const auto &path) {
-        return outputBaseDir + QLatin1Char('/') + path;
+        return QString(outputBaseDir + QLatin1Char('/') + path);
     };
     std::transform(searchPaths.begin(), searchPaths.end(), searchPaths.begin(), prependBaseDir);
     return {searchPaths, isEager};

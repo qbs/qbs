@@ -112,18 +112,19 @@ MSBuildSharedSolutionPropertiesProject::MSBuildSharedSolutionPropertiesProject(
     group->setLabel(QStringLiteral("UserMacros"));
 
     // Order's important here... a variable must be listed before one that uses it
-    group->appendProperty(QStringLiteral("QbsExecutablePath"),
-                          QStringLiteral("$(QbsExecutableDir)") + qbsExecutable.fileName());
+    group->appendProperty(
+        QStringLiteral("QbsExecutablePath"),
+        QString(QStringLiteral("$(QbsExecutableDir)") + qbsExecutable.fileName()));
     if (!project.installOptions.installRoot().isEmpty()) {
-        group->appendProperty(QStringLiteral("QbsInstallRoot"),
-                              Internal::PathUtils::toNativeSeparators(
-                                  project.installOptions.installRoot(),
-                                  Internal::HostOsInfo::HostOsWindows));
+        group->appendProperty(
+            QStringLiteral("QbsInstallRoot"),
+            Internal::PathUtils::toNativeSeparators(
+                project.installOptions.installRoot(), Internal::HostOsInfo::HostOsWindows));
     }
 
-    group->appendProperty(QStringLiteral("QbsProjectFile"),
-                          QStringLiteral("$(QbsProjectDir)")
-                          + project.filePath().fileName());
+    group->appendProperty(
+        QStringLiteral("QbsProjectFile"),
+        QString(QStringLiteral("$(QbsProjectDir)") + project.filePath().fileName()));
 
     // Trailing '.' is not a typo. It prevents the trailing slash from combining with the closing
     // quote to form an escape sequence. Unfortunately, Visual Studio expands variables *before*

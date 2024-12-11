@@ -12,6 +12,7 @@ Product {
                     "QT_NO_CAST_FROM_BYTEARRAY",
                     "QT_NO_JAVA_STYLE_ITERATORS",
                     "QT_NO_PROCESS_COMBINED_ARGUMENT_START",
+                    "QT_USE_QSTRINGBUILDER",
                     "QT_DISABLE_DEPRECATED_BEFORE=0x050f00",
                     "QT_DISABLE_DEPRECATED_UP_TO=0x050f00",
                     "QT_WARN_DEPRECATED_BEFORE=0x060700",

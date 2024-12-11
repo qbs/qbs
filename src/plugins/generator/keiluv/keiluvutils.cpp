@@ -108,8 +108,8 @@ QStringList staticLibraries(const PropertyMap &qbsProps)
 QStringList dependencies(const std::vector<ProductData> &qbsProductDeps)
 {
     return Internal::transformed<QStringList>(qbsProductDeps, [](const auto &dep) {
-        const auto path = dep.buildDirectory() + QLatin1String("/obj/")
-                          + gen::utils::targetBinary(dep);
+        const QString path = dep.buildDirectory() + QStringLiteral("/obj/")
+                             + gen::utils::targetBinary(dep);
         return QDir::toNativeSeparators(path);
     });
 }

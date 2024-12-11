@@ -225,7 +225,7 @@ qint64 ValgrindRunner::runMassif(const QString &qbsCommand, const QString &build
         throw Exception(exceptionStringPattern.arg("No peak marker found"));
     while (!buffer.atEnd()) {
         const QByteArray line = buffer.readLine().simplified();
-        if (!line.startsWith(peakSnapshot + ' '))
+        if (!line.startsWith(QByteArray(peakSnapshot + ' ')))
             continue;
         const QList<QByteArray> entries = line.split(' ');
         if (entries.size() != 6) {

@@ -373,9 +373,10 @@ void ProductsCollector::Private::prepareProduct(ProjectContext &projectContext, 
     // and nothing else, thus providing us with the pure environment that we need to
     // evaluate the product's exported properties in isolation in the project resolver.
     Item * const importer = Item::create(&loaderState.itemPool(), ItemType::Product);
-    importer->setProperty(QStringLiteral("name"),
-                          VariantValue::create(StringConstants::shadowProductPrefix()
-                                               + productContext.name));
+    importer->setProperty(
+        QStringLiteral("name"),
+        VariantValue::create(
+            QString(StringConstants::shadowProductPrefix() + productContext.name)));
     importer->setFile(productItem->file());
     importer->setLocation(productItem->location());
     importer->setScope(projectContext.scope);

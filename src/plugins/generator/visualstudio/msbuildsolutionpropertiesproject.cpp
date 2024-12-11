@@ -52,17 +52,23 @@ MSBuildSolutionPropertiesProject::MSBuildSolutionPropertiesProject(
 
     static const auto win = Internal::HostOsInfo::HostOsWindows;
 
-    group->appendProperty(QStringLiteral("QbsExecutableDir"),
-                          Internal::PathUtils::toNativeSeparators(qbsExecutable.path(), win)
-                          + Internal::HostOsInfo::pathSeparator(win));
-    group->appendProperty(QStringLiteral("QbsProjectDir"),
-                          Internal::PathUtils::toNativeSeparators(project.filePath().path(), win)
-                          + Internal::HostOsInfo::pathSeparator(win));
+    group->appendProperty(
+        QStringLiteral("QbsExecutableDir"),
+        QString(
+            Internal::PathUtils::toNativeSeparators(qbsExecutable.path(), win)
+            + Internal::HostOsInfo::pathSeparator(win)));
+    group->appendProperty(
+        QStringLiteral("QbsProjectDir"),
+        QString(
+            Internal::PathUtils::toNativeSeparators(project.filePath().path(), win)
+            + Internal::HostOsInfo::pathSeparator(win)));
 
     if (!qbsSettingsDir.isEmpty()) {
-        group->appendProperty(QStringLiteral("QbsSettingsDir"),
-                              Internal::PathUtils::toNativeSeparators(qbsSettingsDir, win)
-                              + Internal::HostOsInfo::pathSeparator(win) + QLatin1Char('.'));
+        group->appendProperty(
+            QStringLiteral("QbsSettingsDir"),
+            QString(
+                Internal::PathUtils::toNativeSeparators(qbsSettingsDir, win)
+                + Internal::HostOsInfo::pathSeparator(win) + QLatin1Char('.')));
     }
 }
 

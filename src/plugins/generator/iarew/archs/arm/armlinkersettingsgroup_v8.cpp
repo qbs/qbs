@@ -349,8 +349,7 @@ void ArmLinkerSettingsGroup::buildConfigPage(
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
             for (QVariant &configPath : opts.configFilePaths)
-                configPath = QLatin1String("--config ")
-                        + configPath.toString();
+                configPath = QString(QStringLiteral("--config ") + configPath.toString());
 
             m_extraOptions << opts.configFilePaths;
         }
@@ -389,7 +388,7 @@ void ArmLinkerSettingsGroup::buildLibraryPage(
     // "Extra options page", because IAR IDE
     // has not other options to add this paths.
     for (QVariant &libraryPath : opts.librarySearchPaths)
-        libraryPath = QLatin1String("-L ") + libraryPath.toString();
+        libraryPath = QString(QStringLiteral("-L ") + libraryPath.toString());
 
     m_extraOptions << opts.librarySearchPaths;
 }

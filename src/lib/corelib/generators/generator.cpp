@@ -213,9 +213,10 @@ const GeneratableProject ProjectGenerator::project() const
 QFileInfo ProjectGenerator::qbsExecutableFilePath() const
 {
     const QString qbsInstallDir = QString::fromLocal8Bit(qgetenv("QBS_INSTALL_DIR"));
-    auto file = QFileInfo(Internal::HostOsInfo::appendExecutableSuffix(!qbsInstallDir.isEmpty()
-        ? qbsInstallDir + QLatin1String("/bin/qbs")
-        : QCoreApplication::applicationDirPath() + QLatin1String("/qbs")));
+    auto file = QFileInfo(Internal::HostOsInfo::appendExecutableSuffix(
+        !qbsInstallDir.isEmpty()
+            ? QString(qbsInstallDir + QStringLiteral("/bin/qbs"))
+            : QString(QCoreApplication::applicationDirPath() + QStringLiteral("/qbs"))));
     QBS_CHECK(file.isAbsolute() && file.exists());
     return file;
 }

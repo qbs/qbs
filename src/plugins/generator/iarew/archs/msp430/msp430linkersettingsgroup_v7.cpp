@@ -217,7 +217,7 @@ void Msp430LinkerSettingsGroup::buildConfigPage(
         // Add remainder configuration files to the "Extra options page".
         if (!opts.configFilePaths.isEmpty()) {
             for (QVariant &configPath : opts.configFilePaths)
-                configPath = QLatin1String("-f ") + configPath.toString();
+                configPath = QString(QStringLiteral("-f ") + configPath.toString());
 
             m_extraOptions << opts.configFilePaths;
         }

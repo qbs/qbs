@@ -57,8 +57,9 @@ MSBuildQbsGenerateProject::MSBuildQbsGenerateProject(
                           QStringLiteral("Makefile"));
     const auto params = Internal::shellQuote(project.commandLine(),
                                              Internal::HostOsInfo::HostOsWindows);
-    group->appendProperty(QStringLiteral("NMakeBuildCommandLine"),
-                          QStringLiteral("$(QbsGenerateCommandLine) ") + params);
+    group->appendProperty(
+        QStringLiteral("NMakeBuildCommandLine"),
+        QString(QStringLiteral("$(QbsGenerateCommandLine) ") + params));
 
     const auto cppProps = new MSBuildImport(this);
     cppProps->setProject(QStringLiteral("$(VCTargetsPath)\\Microsoft.Cpp.props"));
