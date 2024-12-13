@@ -50,7 +50,7 @@
 #include <tools/toolchains.h>
 #include <tools/version.h>
 
-#if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
 #include <tools/applecodesignutils.h>
 #endif
 
@@ -453,7 +453,7 @@ JSValue UtilitiesExtension::js_rfc1034identifier(JSContext *ctx, JSValueConst,
 JSValue UtilitiesExtension::js_smimeMessageContent(JSContext *ctx, JSValueConst,
                                                    int argc, JSValueConst *argv)
 {
-#if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
+#if !defined(Q_OS_MACOS)
     Q_UNUSED(argc)
     Q_UNUSED(argv)
     return throwError(ctx, QStringLiteral("smimeMessageContent is not available on this platform"));
@@ -478,7 +478,7 @@ JSValue UtilitiesExtension::js_smimeMessageContent(JSContext *ctx, JSValueConst,
 JSValue UtilitiesExtension::js_certificateInfo(JSContext *ctx, JSValueConst,
                                                int argc, JSValueConst *argv)
 {
-#if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
+#if !defined(Q_OS_MACOS)
     Q_UNUSED(argc)
     Q_UNUSED(argv)
     return throwError(ctx, QStringLiteral("certificateInfo is not available on this platform"));
@@ -495,7 +495,7 @@ JSValue UtilitiesExtension::js_certificateInfo(JSContext *ctx, JSValueConst,
 // Rough command line equivalent: security find-identity -p codesigning -v
 JSValue UtilitiesExtension::js_signingIdentities(JSContext *ctx, JSValueConst, int, JSValueConst *)
 {
-#if !defined(Q_OS_MACOS) && !defined(Q_OS_OSX)
+#if !defined(Q_OS_MACOS)
     return throwError(ctx, QStringLiteral("signingIdentities is not available on this platform"));
 #else
     return makeJsVariantMap(ctx, identitiesProperties());

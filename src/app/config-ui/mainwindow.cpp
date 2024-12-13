@@ -247,9 +247,9 @@ bool MainWindow::eventFilter(QObject *watched, QEvent *event)
         // when the UI is shown - this prevents the application icon from popping up in the Dock
         // when running `qbs help`, and QCoreApplication::arguments() requires the application
         // object to be constructed, so it is not easily worked around
-    #if defined(Q_OS_MACOS) || defined(Q_OS_OSX)
+#if defined(Q_OS_MACOS)
         qt_macos_forceTransformProcessToForegroundApplicationAndActivate();
-    #endif
+#endif
     }
 
 

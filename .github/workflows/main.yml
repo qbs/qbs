@@ -152,7 +152,7 @@ jobs:
 
   build-macos:
     name: ${{ matrix.config.name }}
-    runs-on: macos-12
+    runs-on: macos-13
     timeout-minutes: 60
     strategy:
       fail-fast: false
@@ -198,7 +198,7 @@ jobs:
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Install required packages
       run: |
-        brew install ccache p7zip
+        brew install ccache ninja p7zip
         python3 -m pip install --user beautifulsoup4 lxml
     - name: Install Qt
       uses: ./.github/actions/download-qt
@@ -210,7 +210,7 @@ jobs:
       run: |
         qbs setup-toolchains --detect
         qbs setup-qt --detect
-        qbs config profiles.qt.baseProfile xcode_13_2_1-macosx-x86_64
+        qbs config profiles.qt.baseProfile xcode_14_2-macosx-x86_64
         qbs config defaultProfile qt
         qbs config --list
     - name: Print ccache stats
