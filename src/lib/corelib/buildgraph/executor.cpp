@@ -1084,7 +1084,7 @@ void Executor::onJobFinished(const qbs::ErrorInfo &err)
             if (m_buildOptions.keepGoing()) {
                 ErrorInfo fullWarning(err);
                 fullWarning.prepend(Tr::tr("Ignoring the following errors on user request:"));
-                m_logger.printWarning(fullWarning);
+                m_logger.printError(fullWarning);
             } else {
                 if (!m_error.hasError())
                     m_error = err; // All but the first one could be due to canceling.

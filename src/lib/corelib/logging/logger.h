@@ -121,8 +121,14 @@ public:
     bool traceEnabled() const;
 
     void printWarning(const ErrorInfo &warning);
+    void printError(const ErrorInfo &error);
     QList<ErrorInfo> warnings() const { return m_warnings; }
-    void clearWarnings() { m_warnings.clear(); }
+    QList<ErrorInfo> errors() const { return m_errors; }
+    void clearWarnings()
+    {
+        m_warnings.clear();
+        m_errors.clear();
+    }
     void storeWarnings() { m_storeWarnings = true; }
 
     LogWriter qbsLog(LoggerLevel level, bool force = false) const;
@@ -134,6 +140,7 @@ public:
 private:
     ILogSink *m_logSink;
     QList<ErrorInfo> m_warnings;
+    QList<ErrorInfo> m_errors;
     bool m_storeWarnings = false;
 };
 

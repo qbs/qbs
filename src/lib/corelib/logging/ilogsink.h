@@ -76,11 +76,13 @@ public:
     bool willPrint(LoggerLevel level) const { return level <= logLevel(); }
 
     void printWarning(const ErrorInfo &warning);
+    void printError(const ErrorInfo &error);
     void printMessage(LoggerLevel level, const QString &message,
                       const QString &tag = QString(), bool force = false);
 
 private:
     virtual void doPrintWarning(const ErrorInfo &warning);
+    virtual void doPrintError(const ErrorInfo &error);
     virtual void doPrintMessage(LoggerLevel level, const QString &message,
                                 const QString &tag) = 0;
 

@@ -142,7 +142,7 @@ private:
         } catch (const ErrorInfo &error) {
             if (!m_options.keepGoing())
                 throw;
-            m_logger.printWarning(error);
+            m_logger.printError(error);
             m_hasError = true;
         }
         m_directories << artifact->dirPath();
@@ -219,7 +219,7 @@ void ArtifactCleaner::removeEmptyDirectories(const QString &rootDir, const Clean
             ErrorInfo error(Tr::tr("Failure to remove empty directory '%1'.").arg(rootDir));
             if (!options.keepGoing())
                 throw error;
-            m_logger.printWarning(error);
+            m_logger.printError(error);
             m_hasError = true;
             subTreeIsEmpty = false;
         }

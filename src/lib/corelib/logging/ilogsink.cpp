@@ -107,6 +107,13 @@ void ILogSink::printWarning(const ErrorInfo &warning)
     }
 }
 
+void ILogSink::printError(const ErrorInfo &error)
+{
+    d->mutex.lock();
+    doPrintError(error);
+    d->mutex.unlock();
+}
+
 void ILogSink::printMessage(LoggerLevel level, const QString &message, const QString &tag,
                             bool force)
 {
@@ -120,6 +127,11 @@ void ILogSink::printMessage(LoggerLevel level, const QString &message, const QSt
 void ILogSink::doPrintWarning(const ErrorInfo &warning)
 {
     doPrintMessage(LoggerWarning, warning.toString(), QString());
+}
+
+void ILogSink::doPrintError(const ErrorInfo &error)
+{
+    doPrintMessage(LoggerError, error.toString(), QString());
 }
 
 } // namespace qbs

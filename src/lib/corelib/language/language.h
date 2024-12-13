@@ -726,6 +726,7 @@ public:
     FileTime lastStartResolveTime;
     FileTime lastEndResolveTime;
     QList<ErrorInfo> warningsEncountered;
+    QList<ErrorInfo> errorsEncountered;
 
     void setBuildConfiguration(const QVariantMap &config);
     const QVariantMap &buildConfiguration() const { return m_buildConfiguration; }
@@ -745,11 +746,24 @@ private:
 
     template<PersistentPool::OpType opType> void serializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_id, canonicalFilePathResults, fileExistsResults,
-                                     directoryEntriesResults, fileLastModifiedResults, environment,
-                                     probes, profileConfigs, overriddenValues, buildSystemFiles,
-                                     lastStartResolveTime, lastEndResolveTime, warningsEncountered,
-                                     buildData, moduleProviderInfo, codeLinks);
+        pool.serializationOp<opType>(
+            m_id,
+            canonicalFilePathResults,
+            fileExistsResults,
+            directoryEntriesResults,
+            fileLastModifiedResults,
+            environment,
+            probes,
+            profileConfigs,
+            overriddenValues,
+            buildSystemFiles,
+            lastStartResolveTime,
+            lastEndResolveTime,
+            warningsEncountered,
+            errorsEncountered,
+            buildData,
+            moduleProviderInfo,
+            codeLinks);
     }
     void load(PersistentPool &pool) override;
     void store(PersistentPool &pool) override;

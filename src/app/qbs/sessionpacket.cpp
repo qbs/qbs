@@ -99,7 +99,7 @@ QJsonObject SessionPacket::helloMessage(const QString &lspSocket)
 {
     return QJsonObject{
         {StringConstants::type(), QLatin1String("hello")},
-        {QLatin1String("api-level"), 6},
+        {QLatin1String("api-level"), 7},
         {QLatin1String("api-compat-level"), 2},
         {QLatin1String("lsp-socket"), lspSocket}};
 }

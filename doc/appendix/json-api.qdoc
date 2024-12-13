@@ -553,7 +553,9 @@
     \target warning-message
     \section2 The \c warning Message
 
-    This message has a single property \c warning of type \l ErrorInfo.
+    This message has a single property of type \l ErrorInfo.
+    The name of the property is either \c warning or \c error,
+    depending on how the client should display it.
 
     \section1 The \c protocol-error Message
 

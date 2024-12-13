@@ -128,6 +128,8 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
     if (!m_result.loadedProject)
         return m_result;
     if (parameters.restoreBehavior() == SetupProjectParameters::RestoreOnly) {
+        for (const ErrorInfo &e : std::as_const(m_result.loadedProject->errorsEncountered))
+            m_logger.printError(e);
         for (const ErrorInfo &e : std::as_const(m_result.loadedProject->warningsEncountered))
             m_logger.printWarning(e);
         return m_result;
@@ -331,6 +333,8 @@ void BuildGraphLoader::trackProjectChanges()
     }
 
     if (!reResolvingNecessary) {
+        for (const ErrorInfo &e : std::as_const(restoredProject->errorsEncountered))
+            m_logger.printError(e);
         for (const ErrorInfo &e : std::as_const(restoredProject->warningsEncountered))
             m_logger.printWarning(e);
         return;

@@ -346,7 +346,7 @@ void handlePropertyError(
 {
     if (params.propertyCheckingMode() == ErrorHandlingMode::Strict)
         throw error;
-    logger.printWarning(error);
+    logger.printError(error);
 }
 
 } // namespace qbs

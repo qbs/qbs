@@ -305,6 +305,7 @@ TopLevelProjectPtr ProjectResolver::Private::resolveTopLevelProject()
     makeSubProjectNamesUniqe(project);
     checkForDuplicateProductNames(project);
     project->warningsEncountered << logger.warnings();
+    project->errorsEncountered << logger.errors();
 
     return project;
 }
@@ -331,7 +332,7 @@ void ProjectResolver::Private::resolveProject(ProjectContext *projectContext)
         }
         if (setupParams.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
-        logger.printWarning(error);
+        logger.printError(error);
     }
 }
 

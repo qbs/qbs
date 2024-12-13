@@ -546,8 +546,11 @@ void ProductsResolver::postProcess()
     QBS_CHECK(project);
     for (LoaderState * const loaderState : m_availableLoaderStates) {
         project->warningsEncountered << loaderState->logger().warnings();
-        if (loaderState == &m_loaderState)
+        project->errorsEncountered << loaderState->logger().errors();
+        if (loaderState == &m_loaderState) {
             project->warningsEncountered << loaderState->evaluator().engine()->logger().warnings();
+            project->errorsEncountered << loaderState->evaluator().engine()->logger().errors();
+        }
     }
 }
 
@@ -572,13 +575,13 @@ void ProductsResolver::checkForMissedBulkDependencies(const ProductContext &prod
                      .arg(p->displayName(), product.displayName()), location);
             if (m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
                 throw e;
-            m_loaderState.logger().printWarning(e);
-            m_loaderState.logger().printWarning(
-                        ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                                  .arg(product.displayName()), product.item->location()));
-            m_loaderState.logger().printWarning(
-                        ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                                  .arg(p->displayName()), p->item->location()));
+            m_loaderState.logger().printError(e);
+            m_loaderState.logger().printError(ErrorInfo(
+                Tr::tr("Product '%1' had errors and was disabled.").arg(product.displayName()),
+                product.item->location()));
+            m_loaderState.logger().printError(ErrorInfo(
+                Tr::tr("Product '%1' had errors and was disabled.").arg(p->displayName()),
+                p->item->location()));
             product.product->enabled = false;
             p->product->enabled = false;
         }

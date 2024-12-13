@@ -93,6 +93,12 @@ signals:
     void newMessage(const QJsonObject &msg);
 
 private:
+    static const QString &warningString()
+    {
+        static const QString warning(QLatin1String("warning"));
+        return warning;
+    }
+
     void doPrintMessage(LoggerLevel, const QString &message, const QString &) override
     {
         QJsonObject msg;
@@ -104,9 +110,18 @@ private:
     void doPrintWarning(const ErrorInfo &warning) override
     {
         QJsonObject msg;
-        static const QString warningString(QLatin1String("warning"));
-        msg.insert(StringConstants::type(), warningString);
-        msg.insert(warningString, warning.toJson());
+        msg.insert(StringConstants::type(), warningString());
+        msg.insert(warningString(), warning.toJson());
+        emit newMessage(msg);
+    }
+
+    void doPrintError(const ErrorInfo &error) override
+    {
+        QJsonObject msg;
+        msg.insert(StringConstants::type(), warningString());
+        static const QString errorString(QLatin1String("error"));
+        msg.insert(errorString, error.toJson());
+        msg.insert(warningString(), error.toJson()); // Backward compatibility
         emit newMessage(msg);
     }
 };

@@ -230,9 +230,10 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
                                          + filterFunctionSource
                                          + QLatin1String("; f")));
     if (!JS_IsFunction(scriptEngine()->context(), filterFunction)) {
-        logger().printWarning(ErrorInfo(Tr::tr("Error in filter function: %1.\n%2")
-                         .arg(filterFunctionSource,
-                              getJsString(scriptEngine()->context(), filterFunction))));
+        logger().printError(ErrorInfo(
+            Tr::tr("Error in filter function: %1.\n%2")
+                .arg(
+                    filterFunctionSource, getJsString(scriptEngine()->context(), filterFunction))));
         return output;
     }
 
@@ -243,7 +244,7 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     if (const JsException ex = scriptEngine()->checkAndClearException({})) {
         ErrorInfo err = ex.toErrorInfo();
         err.prepend(Tr::tr("Error when calling output filter function"));
-        logger().printWarning(err);
+        logger().printError(err);
         return output;
     }
 

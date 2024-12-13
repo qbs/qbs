@@ -574,10 +574,10 @@ void ProductResolverStage2::start()
         }
         if (m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
             throw fullError;
-        m_loaderState.logger().printWarning(fullError);
-        m_loaderState.logger().printWarning(
-                    ErrorInfo(Tr::tr("Product '%1' had errors and was disabled.")
-                              .arg(product->name), product->location));
+        m_loaderState.logger().printError(fullError);
+        m_loaderState.logger().printError(ErrorInfo(
+            Tr::tr("Product '%1' had errors and was disabled.").arg(product->name),
+            product->location));
         product->enabled = false;
     }
 }
@@ -705,7 +705,7 @@ void ProductResolverStage2::resolveGroup(Item *item, ModuleContext *moduleContex
         }
         if (m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
             throw;
-        m_loaderState.logger().printWarning(error);
+        m_loaderState.logger().printError(error);
     }
 }
 
@@ -829,7 +829,7 @@ void ProductResolverStage2::resolveGroupFully(
         if (group->enabled) {
             if (m_loaderState.parameters().productErrorMode() == ErrorHandlingMode::Strict)
                 throw ErrorInfo(fileError);
-            m_loaderState.logger().printWarning(fileError);
+            m_loaderState.logger().printError(fileError);
         } else {
             qCDebug(lcProjectResolver) << "error for disabled group:" << fileError.toString();
         }

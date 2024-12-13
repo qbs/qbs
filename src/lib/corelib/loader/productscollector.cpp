@@ -238,7 +238,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
         } catch (const ErrorInfo &error) {
             if (parameters.productErrorMode() == ErrorHandlingMode::Strict)
                 throw;
-            logger.printWarning(error);
+            logger.printError(error);
         }
     }
     for (Item * const subItem : std::as_const(additionalProjectChildren)) {
@@ -426,7 +426,7 @@ void ProductsCollector::Private::handleSubProject(
     } catch (const ErrorInfo &error) {
         if (parameters.productErrorMode() == ErrorHandlingMode::Strict)
             throw;
-        logger.printWarning(error);
+        logger.printError(error);
         return;
     }
 

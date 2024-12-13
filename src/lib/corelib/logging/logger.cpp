@@ -229,6 +229,13 @@ void Logger::printWarning(const ErrorInfo &warning)
     logSink()->printWarning(warning);
 }
 
+void Logger::printError(const ErrorInfo &error)
+{
+    if (m_storeWarnings)
+        m_errors.push_back(error);
+    logSink()->printError(error);
+}
+
 LogWriter Logger::qbsLog(LoggerLevel level, bool force) const
 {
     return {m_logSink, level, force};
