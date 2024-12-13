@@ -2103,16 +2103,16 @@ void TestBlackbox::cpuFeatures()
 void TestBlackbox::cxxModules_data()
 {
     QTest::addColumn<QString>("projectDir");
-    QTest::newRow("single-module") << "single-module";
+    QTest::newRow("single-module") << "single-mod";
     QTest::newRow("dot-in-name") << "dot-in-name";
     QTest::newRow("export-import") << "export-import";
-    QTest::newRow("dependent-modules") << "dependent-modules";
-    QTest::newRow("declaration-implementation") << "declaration-implementation";
-    QTest::newRow("library-module") << "library-module";
+    QTest::newRow("dependent-modules") << "dep-mods";
+    QTest::newRow("declaration-implementation") << "decl-impl";
+    QTest::newRow("library-module") << "lib-mod";
     QTest::newRow("partitions") << "partitions";
-    QTest::newRow("partitions-recursive") << "partitions-recursive";
-    QTest::newRow("partitions-dependency-on-module") << "partitions-dependency-on-module";
-    QTest::newRow("partitions-library") << "partitions-library";
+    QTest::newRow("partitions-recursive") << "part-rec";
+    QTest::newRow("partitions-dependency-on-module") << "part-depmod";
+    QTest::newRow("partitions-library") << "part-lib";
 }
 
 void TestBlackbox::cxxModules()
@@ -2144,7 +2144,7 @@ void TestBlackbox::cxxModulesChangesTracking()
         }
         return true;
     };
-    QDir::setCurrent(testDataDir + "/cxx-modules/dependent-modules");
+    QDir::setCurrent(testDataDir + "/cxx-modules/dep-mods");
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(QbsRunParameters{"resolve"}), 0);
     if (m_qbsStdout.contains("Unsupported toolchainType"))

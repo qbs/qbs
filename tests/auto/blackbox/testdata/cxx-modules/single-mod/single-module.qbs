@@ -1,5 +1,6 @@
-// Checks two modules split into partitions, one depends on the other
+// Checks simple case with a single module.
 CppApplication {
+    name: "single-mod"
     condition: {
         if (qbs.toolchainType === "msvc"
             || ((qbs.toolchainType === "gcc" || qbs.toolchainType === "mingw")
@@ -12,12 +13,7 @@ CppApplication {
     }
     consoleApplication: true
     files: [
-        "a.cppm",
-        "a.p1.cppm",
-        "a.p2.cppm",
-        "b.cppm",
-        "b.p1.cppm",
-        "b.p2.cppm",
+        "hello.cppm",
         "main.cpp"
     ]
     cpp.cxxLanguageVersion: "c++20"

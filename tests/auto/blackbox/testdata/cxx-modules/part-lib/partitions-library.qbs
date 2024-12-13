@@ -58,6 +58,7 @@ Project {
         bundle.isBundle: false
     }
     CppApplication {
+        name: "app"
         condition: {
             if (qbs.toolchainType === "msvc"
                 || qbs.toolchainType === "gcc"

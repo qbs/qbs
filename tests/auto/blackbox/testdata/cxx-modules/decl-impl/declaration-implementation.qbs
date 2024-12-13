@@ -1,5 +1,6 @@
-// Checks that module partiton can depend on other modules
+// Checks that module can be split into a declaration module and good old cpp implementation file
 CppApplication {
+    name: "decl-impl"
     condition: {
         if (qbs.toolchainType === "msvc"
             || ((qbs.toolchainType === "gcc" || qbs.toolchainType === "mingw")
@@ -12,9 +13,8 @@ CppApplication {
     }
     consoleApplication: true
     files: [
-        "a.cppm",
-        "b.cppm",
-        "b.p.cppm",
+        "hello.cppm",
+        "hello.cpp",
         "main.cpp"
     ]
     cpp.cxxLanguageVersion: "c++20"
