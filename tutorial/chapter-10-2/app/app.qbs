@@ -1,6 +1,6 @@
 CppApplication {
     condition: qbs.toolchainType === "msvc"
-        || qbs.toolchainType === "gcc"
+        || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
         || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
         || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16)
     consoleApplication: true

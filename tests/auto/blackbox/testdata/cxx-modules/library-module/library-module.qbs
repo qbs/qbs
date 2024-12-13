@@ -3,11 +3,12 @@ Project {
     DynamicLibrary {
         condition: {
             if (qbs.toolchainType === "msvc"
-                || qbs.toolchainType === "gcc"
+                || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
                 // TODO: investigate why MinGW 11 fails
                 || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
-                || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16))
+                || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16)) {
                 return true;
+            }
             console.info("Unsupported toolchainType " + qbs.toolchainType);
             return false;
         }
@@ -25,7 +26,7 @@ Project {
     }
     CppApplication {
         condition: qbs.toolchainType === "msvc"
-            || qbs.toolchainType === "gcc"
+            || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
             || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
             || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16)
         consoleApplication: true
