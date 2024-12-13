@@ -545,6 +545,24 @@ void TestLanguage::convertStringList()
     QCOMPARE(variantValue, QStringList({"a", "b"}));
 }
 
+void TestLanguage::correctDeclInParentLookup()
+{
+    ErrorInfo exception;
+    try {
+        resolveProject("correct-decl-in-parent-lookup.qbs");
+        QVERIFY(project);
+        QCOMPARE(project->products.size(), size_t(1));
+        const ResolvedProductConstPtr theProduct = productsFromProject(project).value("p");
+        QVERIFY(theProduct);
+        QCOMPARE(
+            theProduct->moduleProperties->moduleProperty("dummy", "cxxFlags").toStringList(),
+            QStringList("x"));
+    } catch (const ErrorInfo &e) {
+        exception = e;
+    }
+    QVERIFY2(!exception.hasError(), qPrintable(exception.toString()));
+}
+
 void TestLanguage::delayedError()
 {
     QFETCH(bool, productEnabled);

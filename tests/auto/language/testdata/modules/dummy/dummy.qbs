@@ -22,4 +22,10 @@ DummyBase {
     property stringList listProp2: controllingProp
                                    ? ["DEFAULT_STUFF", "EXTRA_STUFF"] : ["DEFAULT_STUFF"]
     property varList varListProp: [{a: controllingProp, b: someString}]
+
+    Probe {
+        id: QBS_1821
+        property stringList Flags: cxxFlags
+        configure: {}
+    }
 }
