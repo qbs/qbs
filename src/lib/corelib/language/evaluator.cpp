@@ -1011,7 +1011,7 @@ static EvalResult getEvalProperty(
                                    value,
                                    *data->item,
                                    *itemOfProperty,
-                                   data->item->propertyDeclaration(name))
+                                   itemOfProperty->propertyDeclaration(name))
                                    .eval();
 
         if (debugProperties)

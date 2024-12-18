@@ -72,6 +72,7 @@ private slots:
     void canonicalArchitecture();
     void conditionalDepends();
     void convertStringList();
+    void correctDeclInParentLookup();
     void delayedError();
     void delayedError_data();
     void dependencyOnAllProfiles();
