@@ -10,7 +10,11 @@ Product {
         var res = [
                     "QT_NO_CAST_FROM_ASCII",
                     "QT_NO_CAST_FROM_BYTEARRAY",
-                    "QT_NO_PROCESS_COMBINED_ARGUMENT_START"
+                    "QT_NO_PROCESS_COMBINED_ARGUMENT_START",
+                    "QT_DISABLE_DEPRECATED_BEFORE=0x050f00",
+                    "QT_DISABLE_DEPRECATED_UP_TO=0x050f00",
+                    "QT_WARN_DEPRECATED_BEFORE=0x060700",
+                    "QT_WARN_DEPRECATED_UP_TO=0x060700"
                 ];
         if (qbs.toolchain.contains("msvc"))
             res.push("_SCL_SECURE_NO_WARNINGS");
