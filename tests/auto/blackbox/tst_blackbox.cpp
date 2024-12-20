@@ -8282,17 +8282,17 @@ static bool haveMakeNsis()
 
 void TestBlackbox::nsis()
 {
+    if (!haveMakeNsis()) {
+        QSKIP("makensis is not installed");
+        return;
+    }
+
     QDir::setCurrent(testDataDir + "/nsis");
     QVERIFY(runQbs() == 0);
 
     const bool targetIsWindows = m_qbsStdout.contains("is Windows: true");
     const bool targetIsNotWindows = m_qbsStdout.contains("is Windows: false");
     QCOMPARE(targetIsWindows, !targetIsNotWindows);
-
-    if (!haveMakeNsis()) {
-        QSKIP("makensis is not installed");
-        return;
-    }
 
     QCOMPARE(m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
     QCOMPARE(
@@ -8303,16 +8303,16 @@ void TestBlackbox::nsis()
 
 void TestBlackbox::nsisDependencies()
 {
+    if (!haveMakeNsis()) {
+        QSKIP("makensis is not installed");
+        return;
+    }
+
     QDir::setCurrent(testDataDir + "/nsisDependencies");
     QCOMPARE(runQbs(), 0);
 
     const bool targetIsWindows = m_qbsStdout.contains("is Windows: true");
     const bool targetIsNotWindows = m_qbsStdout.contains("is Windows: false");
-
-    if (!haveMakeNsis()) {
-        QSKIP("makensis is not installed");
-        return;
-    }
 
     QCOMPARE(targetIsWindows, !targetIsNotWindows);
     QCOMPARE(m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
