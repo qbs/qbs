@@ -144,6 +144,8 @@ template<> SetupProjectParameters::RestoreBehavior fromJson(const QJsonValue &v)
         return SetupProjectParameters::RestoreOnly;
     if (value == QLatin1String("resolve-only"))
         return SetupProjectParameters::ResolveOnly;
+    if (value == QLatin1String("restore-and-resolve"))
+        return SetupProjectParameters::RestoreAndResolve;
     return SetupProjectParameters::RestoreAndTrackChanges;
 }
 } // namespace Internal

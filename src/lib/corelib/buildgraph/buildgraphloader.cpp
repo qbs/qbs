@@ -134,7 +134,9 @@ BuildGraphLoadResult BuildGraphLoader::load(const TopLevelProjectPtr &existingPr
             m_logger.printWarning(e);
         return m_result;
     }
-    QBS_CHECK(parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges);
+    QBS_CHECK(
+        parameters.restoreBehavior() == SetupProjectParameters::RestoreAndTrackChanges
+        || parameters.restoreBehavior() == SetupProjectParameters::RestoreAndResolve);
 
     if (m_parameters.logElapsedTime()) {
         m_wildcardExpansionEffort = 0;
@@ -329,6 +331,12 @@ void BuildGraphLoader::trackProjectChanges()
             || hasFileExistsResultChanged(restoredProject)
             || hasDirectoryEntriesResultChanged(restoredProject)
             || hasFileLastModifiedResultChanged(restoredProject)) {
+        reResolvingNecessary = true;
+    }
+
+    if (!reResolvingNecessary
+        && m_parameters.restoreBehavior() == SetupProjectParameters::RestoreAndResolve) {
+        m_logger.qbsInfo() << Tr::tr("No changes detected, but re-resolve was forced.");
         reResolvingNecessary = true;
     }
 

@@ -300,7 +300,8 @@ void InternalSetupProjectJob::execute()
     case SetupProjectParameters::RestoreOnly:
         m_newProject = restoreProject(evalContext).loadedProject;
         break;
-    case SetupProjectParameters::RestoreAndTrackChanges: {
+    case SetupProjectParameters::RestoreAndTrackChanges:
+    case SetupProjectParameters::RestoreAndResolve: {
         const BuildGraphLoadResult loadResult = restoreProject(evalContext);
         m_newProject = loadResult.newlyResolvedProject;
         if (!m_newProject)

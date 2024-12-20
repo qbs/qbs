@@ -2800,6 +2800,74 @@ void TestApi::restoredWarnings()
     m_logSink->errors.clear();
 }
 
+void TestApi::restoreAndResolve()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters("restore-and-resolve");
+    setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
+    setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
+
+    // Initial resolving finishes with warnings due to syntax error.
+    std::unique_ptr<qbs::SetupProjectJob> resolveJob(
+        qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(resolveJob.get());
+    QVERIFY2(!resolveJob->error().hasError(), qPrintable(resolveJob->error().toString()));
+    QVERIFY(!m_logSink->errors.isEmpty());
+    QVERIFY(resolveJob->project().projectData().products().isEmpty());
+
+    // Fix syntax error. Next attempt at resolving still fails, because the failed file is not
+    // in the list of build system files and therefore the default RestoreAndTrackChanges mode
+    // cannot detect any changes.
+    m_logSink->errors.clear();
+    REPLACE_IN_FILE("broken-product.qbs", "syntax error", "");
+    WAIT_FOR_NEW_TIMESTAMP();
+    resolveJob.reset(qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(resolveJob.get());
+    QVERIFY2(!resolveJob->error().hasError(), qPrintable(resolveJob->error().toString()));
+    QVERIFY(!m_logSink->errors.isEmpty());
+    QVERIFY(resolveJob->project().projectData().products().isEmpty());
+
+    // Now force a new resolve, which should succeed.
+    m_logSink->errors.clear();
+    setupParams.setRestoreBehavior(qbs::SetupProjectParameters::RestoreAndResolve);
+    resolveJob.reset(qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(resolveJob.get());
+    QVERIFY2(!resolveJob->error().hasError(), qPrintable(resolveJob->error().toString()));
+    QVERIFY(m_logSink->errors.isEmpty());
+    QCOMPARE(int(resolveJob->project().projectData().products().size()), 1);
+
+    // Build the product.
+    BuildDescriptionReceiver bdr;
+    std::unique_ptr<qbs::BuildJob> buildJob(
+        resolveJob->project().buildAllProducts(qbs::BuildOptions()));
+    connect(
+        buildJob.get(),
+        &qbs::BuildJob::reportCommandDescription,
+        &bdr,
+        &BuildDescriptionReceiver::handleDescription);
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QVERIFY2(bdr.descriptions.contains("creating dummy.txt"), qPrintable(bdr.descriptions));
+    buildJob.reset(nullptr);
+
+    // Now force a new resolve again and verify that nothing gets rebuilt.
+    m_logSink->errors.clear();
+    bdr.descriptions.clear();
+    resolveJob.reset(qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(resolveJob.get());
+    QVERIFY2(!resolveJob->error().hasError(), qPrintable(resolveJob->error().toString()));
+    QVERIFY(m_logSink->errors.isEmpty());
+    QCOMPARE(int(resolveJob->project().projectData().products().size()), 1);
+    buildJob.reset(resolveJob->project().buildAllProducts(qbs::BuildOptions()));
+    connect(
+        buildJob.get(),
+        &qbs::BuildJob::reportCommandDescription,
+        &bdr,
+        &BuildDescriptionReceiver::handleDescription);
+    QVERIFY(waitForFinished(buildJob.get()));
+    QVERIFY2(!buildJob->error().hasError(), qPrintable(buildJob->error().toString()));
+    QVERIFY2(bdr.descriptions.isEmpty(), qPrintable(bdr.descriptions));
+}
+
 void TestApi::ruleConflict()
 {
     const qbs::ErrorInfo errorInfo = doBuildProject("rule-conflict");

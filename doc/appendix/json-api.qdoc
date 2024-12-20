@@ -174,8 +174,11 @@
     it is an error if the \c "project-file-path" property is not present.
     The default value is \c "restore-and-track-changes", which uses an
     existing build graph if possible and re-resolves the project if no
-    build graph was found or if the parameters are different from the ones
-    used when the project was last resolved.
+    build graph was found, if the parameters are different from the ones
+    used when the project was last resolved, or if other relevant changes are
+    detected, such as updated time stamps in a project file.
+    The \c "restore-and-resolve" value is similar to \c "restore-and-track-changes",
+    but also re-resolves the project if no changes were detected.
 
     The \c top-level-profile property specifies which \QBS profile to use
     for resolving the project. It corresponds to the \c profile key when

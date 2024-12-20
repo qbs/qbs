@@ -136,7 +136,7 @@ public:
     void setEnvironment(const QProcessEnvironment &env);
     QProcessEnvironment adjustedEnvironment() const;
 
-    enum RestoreBehavior { RestoreOnly, ResolveOnly, RestoreAndTrackChanges };
+    enum RestoreBehavior { RestoreOnly, ResolveOnly, RestoreAndTrackChanges, RestoreAndResolve };
     RestoreBehavior restoreBehavior() const;
     void setRestoreBehavior(RestoreBehavior behavior);
 
