@@ -539,43 +539,6 @@
         cmake -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache ..
     \endcode
 
-    \section1 Building \QBS with QMake
-
-    To build \QBS, enter the following command:
-
-    \code
-        qmake -r qbs.pro && make
-    \endcode
-
-    Depending on your platform, you might use \c mingw32-make, \c nmake, or
-    \c jom instead of \c make.
-
-    Installation by using \c {make install} is usually not needed. It is however
-    possible, by entering the following command.
-
-    \code
-        make install INSTALL_ROOT=$INSTALL_DIRECTORY
-    \endcode
-
-    \section2 QMake Configure Options
-
-    \QBS recognizes the following qmake CONFIG options to customize the build:
-
-    \table
-    \header \li Option              \li Notes
-    \row    \li qbs_enable_unit_tests           \li Enable additional autotests.
-    \row    \li qbs_disable_rpath       \li Disable the use of rpath. This can be used when packaging
-                                        \QBS for distributions which do not permit the use of rpath,
-                                        such as Fedora.
-    \row    \li qbs_no_dev_install  \li Exclude header files from installation, that is, perform a
-                                        non-developer build.
-    \row    \li qbs_no_man_install  \li Exclude the man page from installation.
-    \endtable
-
-    In addition, you can set the \c QBS_SYSTEM_SETTINGS_DIR environment variable
-    before running qmake to specify a custom location for \QBS to look for its
-    system-level settings.
-
     \section1 Building \QBS with \QBS
 
     It is also possible to build \QBS with the previously installed \QBS version.
