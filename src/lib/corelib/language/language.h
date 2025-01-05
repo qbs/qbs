@@ -112,24 +112,29 @@ class Probe
 {
 public:
     static ProbePtr create() { return ProbePtr(new Probe); }
-    static ProbeConstPtr create(const QString &globalId,
-                                const CodeLocation &location,
-                                bool condition,
-                                const QString &configureScript,
-                                const QVariantMap &properties,
-                                const QVariantMap &initialProperties,
-                                const QMap<QString, VariantValuePtr> &values,
-                                const std::vector<QString> &importedFilesUsed)
+    static ProbeConstPtr create(
+        const QString &globalId,
+        const CodeLocation &location,
+        bool condition,
+        const QString &configureScript,
+        const QVariantMap &initialProperties,
+        const QMap<QString, VariantValuePtr> &values,
+        const std::vector<QString> &importedFilesUsed)
     {
-        return ProbeConstPtr(new Probe(globalId, location, condition, configureScript, properties,
-                                       initialProperties, values, importedFilesUsed));
+        return ProbeConstPtr(new Probe(
+            globalId,
+            location,
+            condition,
+            configureScript,
+            initialProperties,
+            values,
+            importedFilesUsed));
     }
 
     const QString &globalId() const { return m_globalId; }
     bool condition() const { return m_condition; }
     const CodeLocation &location() const { return m_location; }
     const QString &configureScript() const { return m_configureScript; }
-    const QVariantMap &properties() const { return m_properties; }
     const QVariantMap &initialProperties() const { return m_initialProperties; }
     const QMap<QString, VariantValuePtr> &values() const { return m_values; }
     const std::vector<QString> &importedFilesUsed() const { return m_importedFilesUsed; }
@@ -137,39 +142,46 @@ public:
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(m_globalId, m_location, m_condition, m_configureScript,
-                                     m_properties, m_initialProperties, m_importedFilesUsed);
+        QVariantMap properties;
+        if constexpr (opType == PersistentPool::OpType::Store)
+            properties = storeValues();
+        pool.serializationOp<opType>(
+            m_globalId,
+            m_location,
+            m_condition,
+            m_configureScript,
+            properties,
+            m_initialProperties,
+            m_importedFilesUsed);
         if constexpr (opType == PersistentPool::OpType::Load)
-            restoreValues();
+            restoreValues(properties);
     }
 
 private:
     Probe() = default;
-    Probe(QString globalId,
-          const CodeLocation &location,
-          bool condition,
-          QString configureScript,
-          QVariantMap properties,
-          QVariantMap initialProperties,
-          QMap<QString, VariantValuePtr> values,
-          std::vector<QString> importedFilesUsed)
+    Probe(
+        QString globalId,
+        const CodeLocation &location,
+        bool condition,
+        QString configureScript,
+        QVariantMap initialProperties,
+        QMap<QString, VariantValuePtr> values,
+        std::vector<QString> importedFilesUsed)
         : m_globalId(std::move(globalId))
         , m_location(location)
         , m_configureScript(std::move(configureScript))
-        , m_properties(std::move(properties))
         , m_initialProperties(std::move(initialProperties))
         , m_values(std::move(values))
         , m_importedFilesUsed(std::move(importedFilesUsed))
         , m_condition(condition)
-    {
-    }
+    {}
 
-    void restoreValues();
+    void restoreValues(const QVariantMap &properties);
+    QVariantMap storeValues() const;
 
     QString m_globalId;
     CodeLocation m_location;
     QString m_configureScript;
-    QVariantMap m_properties;
     QVariantMap m_initialProperties;
     QMap<QString, VariantValuePtr> m_values;
     std::vector<QString> m_importedFilesUsed;

@@ -118,11 +118,20 @@ bool Probe::needsReconfigure(const FileTime &referenceTime) const
     return Internal::any_of(m_importedFilesUsed, criterion);
 }
 
-void Probe::restoreValues()
+void Probe::restoreValues(const QVariantMap &properties)
 {
-    for (auto it = m_properties.begin(), end = m_properties.end(); it != end; ++it) {
+    for (auto it = properties.begin(), end = properties.end(); it != end; ++it) {
         m_values[it.key()] = VariantValue::createStored(it.value());
     }
+}
+
+QVariantMap Probe::storeValues() const
+{
+    QVariantMap result;
+    for (auto it = m_values.begin(), end = m_values.end(); it != end; ++it) {
+        result[it.key()] = it.value()->value();
+    }
+    return result;
 }
 
 /*!

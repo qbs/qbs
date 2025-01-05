@@ -436,6 +436,19 @@ void TestBlackboxProviders::qbspkgconfigModuleProvider()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackboxProviders::qtBug51237()
+{
+    const SettingsPtr s = settings();
+    qbs::Internal::TemporaryProfile profile("qbs_autotests_qtBug51237", s.get());
+    profile.p.setValue("moduleProviders.provider.theProperty", QStringList());
+    s->sync();
+
+    QDir::setCurrent(testDataDir + "/QTBUG-51237");
+    QbsRunParameters params;
+    params.profile = profile.p.name();
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackboxProviders::removalVersion()
 {
     QDir::setCurrent(testDataDir + "/removal-version");

@@ -61,6 +61,7 @@ private slots:
     void qbsModuleProvidersCompatibility();
     void qbsModuleProvidersCompatibility_data();
     void qbspkgconfigModuleProvider();
+    void qtBug51237();
     void removalVersion();
 };
 
