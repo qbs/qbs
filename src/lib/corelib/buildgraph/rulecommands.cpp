@@ -157,7 +157,7 @@ void AbstractCommand::applyCommandProperties(JSContext *ctx, const JSValue *scri
         if (m_predefinedProperties.contains(name))
             return;
         // TODO: Use script class for command objects, don't allow setting random properties
-        if (!isSimpleValue(desc.value)) {
+        if (!JS_IsSimpleValue(ctx, desc.value)) {
             throw ErrorInfo(Tr::tr("Property '%1' has a type unsuitable for storing in a command "
                                    "object.").arg(name), m_codeLocation);
         }

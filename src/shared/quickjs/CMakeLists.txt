@@ -9,6 +9,7 @@ add_qbs_library(qbsquickjs
         libunicode.c libunicode.h
         list.h
         quickjs-atom.h
+        quickjs-c-atomics.h
         quickjs-opcode.h
         quickjs.c quickjs.h
     DEFINES

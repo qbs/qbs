@@ -22,6 +22,7 @@ StaticLibrary {
         "libunicode.h",
         "list.h",
         "quickjs-atom.h",
+        "quickjs-c-atomics.h",
         "quickjs-opcode.h",
         "quickjs.c",
         "quickjs.h",

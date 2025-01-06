@@ -589,7 +589,7 @@ class ArtifactBindingsExtractor
 
             const JSValue value = desc.value;
             if (JS_IsObject(value) && !JS_IsArray(m_ctx, value) && !JS_IsError(m_ctx, value)
-                    && !JS_IsRegExp(m_ctx, value)) {
+                && !JS_IsRegExp(value)) {
                 QString newModuleName;
                 if (!moduleName.isEmpty())
                     newModuleName.append(moduleName + QLatin1Char('.'));

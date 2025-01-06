@@ -83,13 +83,20 @@ TemporaryGlobalObjectSetter::~TemporaryGlobalObjectSetter()
 }
 
 JsException::JsException(JsException &&other) noexcept
-    : m_ctx(other.m_ctx), m_exception(other.m_exception),
-      m_fallbackLocation(std::move(other.m_fallbackLocation))
+    : m_ctx(other.m_ctx)
+    , m_exception(other.m_exception)
+    , m_backtrace(other.m_exception)
+    , m_fallbackLocation(std::move(other.m_fallbackLocation))
 {
     other.m_exception = JS_NULL;
+    other.m_backtrace = JS_NULL;
 }
 
-JsException::~JsException() { JS_FreeValue(m_ctx, m_exception); }
+JsException::~JsException()
+{
+    JS_FreeValue(m_ctx, m_exception);
+    JS_FreeValue(m_ctx, m_backtrace);
+}
 
 QString JsException::message() const
 {
@@ -113,8 +120,7 @@ QString JsException::message() const
 
 const QStringList JsException::stackTrace() const
 {
-    return getJsStringProperty(m_ctx, m_exception, QLatin1String("stack"))
-            .split(QLatin1Char('\n'), Qt::SkipEmptyParts);
+    return getJsString(m_ctx, m_backtrace).split(QLatin1Char('\n'), Qt::SkipEmptyParts);
 }
 
 ErrorInfo JsException::toErrorInfo() const

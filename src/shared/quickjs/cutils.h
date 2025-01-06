@@ -25,76 +25,109 @@
 #ifndef CUTILS_H
 #define CUTILS_H
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <inttypes.h>
+#include <math.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #if defined(_MSC_VER)
-#include <intrin.h>
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#else
-#include <sys/types.h>
-#endif
-
-#ifdef __GNUC__
-#define likely(x)       __builtin_expect(!!(x), 1)
-#define unlikely(x)     __builtin_expect(!!(x), 0)
-#define force_inline inline __attribute__((always_inline))
-#define no_inline __attribute__((noinline))
-#define __maybe_unused __attribute__((unused))
-#else
-#define likely(x) (x)
-#define unlikely(x) (x)
-#define force_inline
-#define no_inline
-#define __maybe_unused
-#endif
-
-#ifdef _MSC_VER
+#include <malloc.h>
 #define alloca _alloca
+#define ssize_t ptrdiff_t
+#endif
+#if defined(__APPLE__)
+#include <malloc/malloc.h>
+#elif defined(__linux__) || defined(__ANDROID__) || defined(__CYGWIN__)
+#include <malloc.h>
+#elif defined(__FreeBSD__)
+#include <malloc_np.h>
+#elif defined(_WIN32)
+#include <windows.h>
+#endif
+#if !defined(_WIN32) && !defined(EMSCRIPTEN) && !defined(__wasi__)
+#include <errno.h>
+#include <pthread.h>
 #endif
 
-#define xglue(x, y) x ## y
-#define glue(x, y) xglue(x, y)
-#define stringify(s)    tostring(s)
-#define tostring(s)     #s
+#if defined(_MSC_VER) && !defined(__clang__)
+#  define likely(x)       (x)
+#  define unlikely(x)     (x)
+#  define force_inline __forceinline
+#  define no_inline __declspec(noinline)
+#  define __maybe_unused
+#  define __attribute__(x)
+#  define __attribute(x)
+#else
+#  define likely(x)       __builtin_expect(!!(x), 1)
+#  define unlikely(x)     __builtin_expect(!!(x), 0)
+#  define force_inline inline __attribute__((always_inline))
+#  define no_inline __attribute__((noinline))
+#  define __maybe_unused __attribute__((unused))
+#endif
+
+#if defined(_MSC_VER) && !defined(__clang__)
+#include <math.h>
+#define INF INFINITY
+#define NEG_INF -INFINITY
+#else
+#define INF (1.0/0.0)
+#define NEG_INF (-1.0/0.0)
+#endif
 
 #ifndef offsetof
 #define offsetof(type, field) ((size_t) &((type *)0)->field)
 #endif
 #ifndef countof
 #define countof(x) (sizeof(x) / sizeof((x)[0]))
+#ifndef endof
+#define endof(x) ((x) + countof(x))
+#endif
 #endif
 #ifndef container_of
 /* return the pointer of type 'type *' containing 'ptr' as field 'member' */
 #define container_of(ptr, type, member) ((type *)((uint8_t *)(ptr) - offsetof(type, member)))
 #endif
 
-#if !defined(_MSC_VER) && defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
-#define minimum_length(n)  static n
+#if defined(_MSC_VER)
+#define minimum_length(n) n
 #else
-#define minimum_length(n)  n
+#define minimum_length(n) static n
 #endif
 
-typedef int BOOL;
-
-#ifndef FALSE
-enum {
-    FALSE = 0,
-    TRUE = 1,
-};
+/* Borrowed from Folly */
+#ifndef JS_PRINTF_FORMAT
+#ifdef _MSC_VER
+#include <sal.h>
+#define JS_PRINTF_FORMAT _Printf_format_string_
+#define JS_PRINTF_FORMAT_ATTR(format_param, dots_param)
+#else
+#define JS_PRINTF_FORMAT
+#if !defined(__clang__) && defined(__GNUC__)
+#define JS_PRINTF_FORMAT_ATTR(format_param, dots_param) \
+  __attribute__((format(gnu_printf, format_param, dots_param)))
+#else
+#define JS_PRINTF_FORMAT_ATTR(format_param, dots_param) \
+  __attribute__((format(printf, format_param, dots_param)))
+#endif
+#endif
 #endif
 
-void pstrcpy(char *buf, int buf_size, const char *str);
-char *pstrcat(char *buf, int buf_size, const char *s);
-int strstart(const char *str, const char *val, const char **ptr);
-int has_suffix(const char *str, const char *suffix);
+void js__pstrcpy(char *buf, int buf_size, const char *str);
+char *js__pstrcat(char *buf, int buf_size, const char *s);
+int js__strstart(const char *str, const char *val, const char **ptr);
+int js__has_suffix(const char *str, const char *suffix);
 
-/* Prevent UB when n == 0 and (src == NULL or dest == NULL) */
-static inline void memcpy_no_ub(void *dest, const void *src, size_t n) {
-    if (n)
-        memcpy(dest, src, n);
+static inline uint8_t is_be(void) {
+    union {
+        uint16_t a;
+        uint8_t  b;
+    } u = { 0x100 };
+    return u.b;
 }
 
 static inline int max_int(int a, int b)
@@ -148,12 +181,10 @@ static inline int64_t min_int64(int64_t a, int64_t b)
 /* WARNING: undefined if a = 0 */
 static inline int clz32(unsigned int a)
 {
-#ifdef _MSC_VER
-#if defined(_M_ARM) || defined(_M_ARM64)
-    return _CountLeadingZeros(a);
-#else
-    return (int) __lzcnt(a);
-#endif
+#if defined(_MSC_VER) && !defined(__clang__)
+    unsigned long index;
+    _BitScanReverse(&index, a);
+    return 31 - index;
 #else
     return __builtin_clz(a);
 #endif
@@ -162,11 +193,16 @@ static inline int clz32(unsigned int a)
 /* WARNING: undefined if a = 0 */
 static inline int clz64(uint64_t a)
 {
-#ifdef _MSC_VER
-#if defined(_M_ARM) || defined(_M_ARM64)
-    return _CountLeadingZeros64(a);
+#if defined(_MSC_VER) && !defined(__clang__)
+#if INTPTR_MAX == INT64_MAX
+    unsigned long index;
+    _BitScanReverse64(&index, a);
+    return 63 - index;
 #else
-    return (int) __lzcnt64(a);
+    if (a >> 32)
+        return clz32((unsigned)(a >> 32));
+    else
+        return clz32((unsigned)a) + 32;
 #endif
 #else
     return __builtin_clzll(a);
@@ -176,12 +212,10 @@ static inline int clz64(uint64_t a)
 /* WARNING: undefined if a = 0 */
 static inline int ctz32(unsigned int a)
 {
-#ifdef _MSC_VER
-#if defined(_M_ARM) || defined(_M_ARM64)
-    return _CountTrailingZeros(a);
-#else
-    return (int) _tzcnt_u32(a);
-#endif
+#if defined(_MSC_VER) && !defined(__clang__)
+    unsigned long index;
+    _BitScanForward(&index, a);
+    return index;
 #else
     return __builtin_ctz(a);
 #endif
@@ -190,72 +224,70 @@ static inline int ctz32(unsigned int a)
 /* WARNING: undefined if a = 0 */
 static inline int ctz64(uint64_t a)
 {
-#ifdef _MSC_VER
-#if defined(_M_ARM) || defined(_M_ARM64)
-    return _CountTrailingZeros64(a);
-#else
-    return (int) _tzcnt_u64(a);
-#endif
+#if defined(_MSC_VER) && !defined(__clang__)
+    unsigned long index;
+    _BitScanForward64(&index, a);
+    return index;
 #else
     return __builtin_ctzll(a);
 #endif
 }
 
-#pragma pack(push, 1)
-struct packed_u64 {
-    uint64_t v;
-};
-struct packed_u32 {
-    uint32_t v;
-};
-struct packed_u16 {
-    uint16_t v;
-};
-#pragma pack(pop)
-
 static inline uint64_t get_u64(const uint8_t *tab)
 {
-    return ((const struct packed_u64 *)tab)->v;
+    uint64_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline int64_t get_i64(const uint8_t *tab)
 {
-    return (int64_t)((const struct packed_u64 *)tab)->v;
+    int64_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline void put_u64(uint8_t *tab, uint64_t val)
 {
-    ((struct packed_u64 *)tab)->v = val;
+    memcpy(tab, &val, sizeof(val));
 }
 
 static inline uint32_t get_u32(const uint8_t *tab)
 {
-    return ((const struct packed_u32 *)tab)->v;
+    uint32_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline int32_t get_i32(const uint8_t *tab)
 {
-    return (int32_t)((const struct packed_u32 *)tab)->v;
+    int32_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline void put_u32(uint8_t *tab, uint32_t val)
 {
-    ((struct packed_u32 *)tab)->v = val;
+    memcpy(tab, &val, sizeof(val));
 }
 
 static inline uint32_t get_u16(const uint8_t *tab)
 {
-    return ((const struct packed_u16 *)tab)->v;
+    uint16_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline int32_t get_i16(const uint8_t *tab)
 {
-    return (int16_t)((const struct packed_u16 *)tab)->v;
+    int16_t v;
+    memcpy(&v, tab, sizeof(v));
+    return v;
 }
 
 static inline void put_u16(uint8_t *tab, uint16_t val)
 {
-    ((struct packed_u16 *)tab)->v = val;
+    memcpy(tab, &val, sizeof(val));
 }
 
 static inline uint32_t get_u8(const uint8_t *tab)
@@ -302,6 +334,89 @@ static inline uint64_t bswap64(uint64_t v)
 }
 #endif
 
+static inline void inplace_bswap16(uint8_t *tab) {
+    put_u16(tab, bswap16(get_u16(tab)));
+}
+
+static inline void inplace_bswap32(uint8_t *tab) {
+    put_u32(tab, bswap32(get_u32(tab)));
+}
+
+static inline double fromfp16(uint16_t v) {
+    double d, s;
+    int e;
+    if ((v & 0x7C00) == 0x7C00) {
+        d = (v & 0x3FF) ? NAN : INFINITY;
+    } else {
+        d = (v & 0x3FF) / 1024.;
+        e = (v & 0x7C00) >> 10;
+        if (e == 0) {
+            e = -14;
+        } else {
+            d += 1;
+            e -= 15;
+        }
+        d = scalbn(d, e);
+    }
+    s = (v & 0x8000) ? -1.0 : 1.0;
+    return d * s;
+}
+
+static inline uint16_t tofp16(double d) {
+    uint16_t f, s;
+    double t;
+    int e;
+    s = 0;
+    if (copysign(1, d) < 0) { // preserve sign when |d| is negative zero
+        d = -d;
+        s = 0x8000;
+    }
+    if (isinf(d))
+        return s | 0x7C00;
+    if (isnan(d))
+        return s | 0x7C01;
+    if (d == 0)
+        return s | 0;
+    d = 2 * frexp(d, &e);
+    e--;
+    if (e > 15)
+        return s | 0x7C00; // out of range, return +/-infinity
+    if (e < -25) {
+        d = 0;
+        e = 0;
+    } else if (e < -14) {
+        d = scalbn(d, e + 14);
+        e = 0;
+    } else {
+        d -= 1;
+        e += 15;
+    }
+    d *= 1024.;
+    f = (uint16_t)d;
+    t = d - f;
+    if (t < 0.5)
+        goto done;
+    if (t == 0.5)
+        if ((f & 1) == 0)
+            goto done;
+    // adjust for rounding
+    if (++f == 1024) {
+        f = 0;
+        if (++e == 31)
+            return s | 0x7C00; // out of range, return +/-infinity
+    }
+done:
+    return s | (e << 10) | f;
+}
+
+static inline int isfp16nan(uint16_t v) {
+    return (v & 0x7FFF) > 0x7C00;
+}
+
+static inline int isfp16zero(uint16_t v) {
+    return (v & 0x7FFF) == 0;
+}
+
 /* XXX: should take an extra argument to pass slack information to the caller */
 typedef void *DynBufReallocFunc(void *opaque, void *ptr, size_t size);
 
@@ -309,7 +424,7 @@ typedef struct DynBuf {
     uint8_t *buf;
     size_t size;
     size_t allocated_size;
-    BOOL error; /* true if a memory allocation error occurred */
+    bool error; /* true if a memory allocation error occurred */
     DynBufReallocFunc *realloc_func;
     void *opaque; /* for realloc_func */
 } DynBuf;
@@ -317,8 +432,8 @@ typedef struct DynBuf {
 void dbuf_init(DynBuf *s);
 void dbuf_init2(DynBuf *s, void *opaque, DynBufReallocFunc *realloc_func);
 int dbuf_realloc(DynBuf *s, size_t new_size);
-int dbuf_write(DynBuf *s, size_t offset, const uint8_t *data, size_t len);
-int dbuf_put(DynBuf *s, const uint8_t *data, size_t len);
+int dbuf_write(DynBuf *s, size_t offset, const void *data, size_t len);
+int dbuf_put(DynBuf *s, const void *data, size_t len);
 int dbuf_put_self(DynBuf *s, size_t offset, size_t len);
 int dbuf_putc(DynBuf *s, uint8_t c);
 int dbuf_putstr(DynBuf *s, const char *str);
@@ -334,40 +449,48 @@ static inline int dbuf_put_u64(DynBuf *s, uint64_t val)
 {
     return dbuf_put(s, (uint8_t *)&val, 8);
 }
-
-#ifdef __GNUC__
-#define FORMAT_ATTR(x, y) __attribute__((format(printf, x, y)))
-#else
-#define FORMAT_ATTR(x, y)
-#endif
-
-int FORMAT_ATTR(2, 3) dbuf_printf(DynBuf *s, const char *fmt, ...);
-
+int JS_PRINTF_FORMAT_ATTR(2, 3) dbuf_printf(DynBuf *s, JS_PRINTF_FORMAT const char *fmt, ...);
 void dbuf_free(DynBuf *s);
-static inline BOOL dbuf_error(DynBuf *s) {
+static inline bool dbuf_error(DynBuf *s) {
     return s->error;
 }
 static inline void dbuf_set_error(DynBuf *s)
 {
-    s->error = TRUE;
+    s->error = true;
 }
 
-#define UTF8_CHAR_LEN_MAX 6
+/*---- UTF-8 and UTF-16 handling ----*/
 
-int unicode_to_utf8(uint8_t *buf, unsigned int c);
-int unicode_from_utf8(const uint8_t *p, int max_len, const uint8_t **pp);
+#define UTF8_CHAR_LEN_MAX 4
 
-static inline BOOL is_surrogate(uint32_t c)
+enum {
+    UTF8_PLAIN_ASCII  = 0,  // 7-bit ASCII plain text
+    UTF8_NON_ASCII    = 1,  // has non ASCII code points (8-bit or more)
+    UTF8_HAS_16BIT    = 2,  // has 16-bit code points
+    UTF8_HAS_NON_BMP1 = 4,  // has non-BMP1 code points, needs UTF-16 surrogate pairs
+    UTF8_HAS_ERRORS   = 8,  // has encoding errors
+};
+int utf8_scan(const char *buf, size_t len, size_t *plen);
+size_t utf8_encode_len(uint32_t c);
+size_t utf8_encode(uint8_t buf[minimum_length(UTF8_CHAR_LEN_MAX)], uint32_t c);
+uint32_t utf8_decode_len(const uint8_t *p, size_t max_len, const uint8_t **pp);
+uint32_t utf8_decode(const uint8_t *p, const uint8_t **pp);
+size_t utf8_decode_buf8(uint8_t *dest, size_t dest_len, const char *src, size_t src_len);
+size_t utf8_decode_buf16(uint16_t *dest, size_t dest_len, const char *src, size_t src_len);
+size_t utf8_encode_buf8(char *dest, size_t dest_len, const uint8_t *src, size_t src_len);
+size_t utf8_encode_buf16(char *dest, size_t dest_len, const uint16_t *src, size_t src_len);
+
+static inline bool is_surrogate(uint32_t c)
 {
     return (c >> 11) == (0xD800 >> 11); // 0xD800-0xDFFF
 }
 
-static inline BOOL is_hi_surrogate(uint32_t c)
+static inline bool is_hi_surrogate(uint32_t c)
 {
     return (c >> 10) == (0xD800 >> 10); // 0xD800-0xDBFF
 }
 
-static inline BOOL is_lo_surrogate(uint32_t c)
+static inline bool is_lo_surrogate(uint32_t c)
 {
     return (c >> 10) == (0xDC00 >> 10); // 0xDC00-0xDFFF
 }
@@ -384,7 +507,7 @@ static inline uint32_t get_lo_surrogate(uint32_t c)
 
 static inline uint32_t from_surrogate(uint32_t hi, uint32_t lo)
 {
-    return 0x10000 + 0x400 * (hi - 0xD800) + (lo - 0xDC00);
+    return 65536 + 1024 * (hi & 1023) + (lo & 1023);
 }
 
 static inline int from_hex(int c)
@@ -399,8 +522,78 @@ static inline int from_hex(int c)
         return -1;
 }
 
+static inline uint8_t is_upper_ascii(uint8_t c) {
+    return c >= 'A' && c <= 'Z';
+}
+
+static inline uint8_t to_upper_ascii(uint8_t c) {
+    return c >= 'a' && c <= 'z' ? c - 'a' + 'A' : c;
+}
+
+extern char const digits36[36];
+size_t u32toa(char buf[minimum_length(11)], uint32_t n);
+size_t i32toa(char buf[minimum_length(12)], int32_t n);
+size_t u64toa(char buf[minimum_length(21)], uint64_t n);
+size_t i64toa(char buf[minimum_length(22)], int64_t n);
+size_t u32toa_radix(char buf[minimum_length(33)], uint32_t n, unsigned int base);
+size_t i32toa_radix(char buf[minimum_length(34)], int32_t n, unsigned base);
+size_t u64toa_radix(char buf[minimum_length(65)], uint64_t n, unsigned int base);
+size_t i64toa_radix(char buf[minimum_length(66)], int64_t n, unsigned int base);
+
 void rqsort(void *base, size_t nmemb, size_t size,
             int (*cmp)(const void *, const void *, void *),
             void *arg);
+
+int64_t js__gettimeofday_us(void);
+uint64_t js__hrtime_ns(void);
+
+static inline size_t js__malloc_usable_size(const void *ptr)
+{
+#if defined(__APPLE__)
+    return malloc_size(ptr);
+#elif defined(_WIN32)
+    return _msize((void *)ptr);
+#elif defined(__linux__) || defined(__ANDROID__) || defined(__CYGWIN__) || defined(__FreeBSD__)
+    return malloc_usable_size((void *)ptr);
+#else
+    return 0;
+#endif
+}
+
+/* Cross-platform threading APIs. */
+
+#if !defined(EMSCRIPTEN) && !defined(__wasi__)
+
+#if defined(_WIN32)
+#define JS_ONCE_INIT INIT_ONCE_STATIC_INIT
+typedef INIT_ONCE js_once_t;
+typedef CRITICAL_SECTION js_mutex_t;
+typedef CONDITION_VARIABLE js_cond_t;
+#else
+#define JS_ONCE_INIT PTHREAD_ONCE_INIT
+typedef pthread_once_t js_once_t;
+typedef pthread_mutex_t js_mutex_t;
+typedef pthread_cond_t js_cond_t;
+#endif
+
+void js_once(js_once_t *guard, void (*callback)(void));
+
+void js_mutex_init(js_mutex_t *mutex);
+void js_mutex_destroy(js_mutex_t *mutex);
+void js_mutex_lock(js_mutex_t *mutex);
+void js_mutex_unlock(js_mutex_t *mutex);
+
+void js_cond_init(js_cond_t *cond);
+void js_cond_destroy(js_cond_t *cond);
+void js_cond_signal(js_cond_t *cond);
+void js_cond_broadcast(js_cond_t *cond);
+void js_cond_wait(js_cond_t *cond, js_mutex_t *mutex);
+int js_cond_timedwait(js_cond_t *cond, js_mutex_t *mutex, uint64_t timeout);
+
+#endif /* !defined(EMSCRIPTEN) && !defined(__wasi__) */
+
+#ifdef __cplusplus
+} /* extern "C" { */
+#endif
 
 #endif  /* CUTILS_H */

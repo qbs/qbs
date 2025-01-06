@@ -338,15 +338,9 @@ void ScriptEngine::checkContext(const QString &operation,
             QBS_ASSERT(false, continue);
             break;
         }
-        if (!m_evalPositions.empty()) {
-            const JSValue exVal = JS_NewObject(m_context);
-            const auto &[file, line] = m_evalPositions.top();
-            build_backtrace(m_context, exVal, file.toUtf8().constData(), line, 0);
-            const JsException ex(m_context, exVal, {});
-            m_logger.printWarning(ErrorInfo(warning, ex.stackTrace()));
-        } else {
-            m_logger.printWarning(ErrorInfo(warning));
-        }
+        const JSValue exVal = JS_NewError(m_context);
+        const JsException ex(m_context, exVal, JS_GetBacktrace(m_context), {});
+        m_logger.printWarning(ErrorInfo(warning, ex.stackTrace()));
         return;
     }
 }
@@ -582,7 +576,7 @@ JSValue ScriptEngine::asJsValue(const QVariantMap &m, quintptr id, bool frozen)
     for (auto it = m.begin(); it != m.end(); ++it)
         setJsProperty(m_context, obj, it.key(), asJsValue(it.value(), 0, frozen));
     if (frozen)
-        JS_ObjectSeal(m_context, obj, true);
+        JS_FreezeObject(m_context, obj);
     if (!id)
         return obj;
     m_jsValueCache[id] = obj;
@@ -606,7 +600,7 @@ JSValue ScriptEngine::asJsValue(const QVariantList &l, quintptr id, bool frozen)
     for (int i = 0; i < l.size(); ++i)
         JS_SetPropertyUint32(m_context, array, i, asJsValue(l.at(i), 0, frozen));
     if (frozen)
-        JS_ObjectSeal(m_context, array, true);
+        JS_FreezeObject(m_context, array);
     if (!id)
         return array;
     m_jsValueCache[id] = array;
@@ -839,10 +833,12 @@ JSValue ScriptEngine::evaluate(
 {
     m_scopeChains.emplace_back(scopeChain);
     const QByteArray &codeStr = code.toUtf8();
+    const QByteArray &filePathStr = filePath.toUtf8();
 
     m_evalPositions.emplace(filePath, line);
-    const JSValue v = JS_EvalThis(m_context, globalObject(), codeStr.constData(), codeStr.length(),
-                                  filePath.toUtf8().constData(), line, JS_EVAL_TYPE_GLOBAL);
+    JSEvalOptions evalOptions{1, JS_EVAL_TYPE_GLOBAL, filePathStr.constData(), line};
+    const JSValue v = JS_EvalThis2(
+        m_context, globalObject(), codeStr.constData(), codeStr.length(), &evalOptions);
     m_evalPositions.pop();
     m_scopeChains.pop_back();
     if (resultOwner == JsValueOwner::ScriptEngine && JS_VALUE_HAS_REF_COUNT(v))
@@ -871,7 +867,7 @@ JSClassID ScriptEngine::registerClass(const char *name, JSClassCall *constructor
     JSClassID id = 0;
     const auto classIt = m_classes.constFind(QLatin1String(name));
     if (classIt == m_classes.constEnd()) {
-        JS_NewClassID(&id);
+        JS_NewClassID(m_jsRuntime, &id);
         const auto it = getProperty
                 ? m_exoticMethods.insert(id, JSClassExoticMethods{getProperty, getPropertyNames})
                 : m_exoticMethods.end();
@@ -1110,7 +1106,7 @@ ScriptEngine::PropertyCacheKey::PropertyCacheKey(QString moduleName,
 
 JsException ScriptEngine::checkAndClearException(const CodeLocation &fallbackLocation) const
 {
-    return {m_context, JS_GetException(m_context), fallbackLocation};
+    return {m_context, JS_GetException(m_context), JS_GetBacktrace(m_context), fallbackLocation};
 }
 
 void ScriptEngine::clearRequestedProperties()

@@ -179,20 +179,25 @@ private:
 class QBS_AUTOTEST_EXPORT JsException
 {
 public:
-    JsException(JSContext *ctx, JSValue ex, const CodeLocation &fallbackLocation)
-        : m_ctx(ctx), m_exception(ex), m_fallbackLocation(fallbackLocation) {}
+    JsException(JSContext *ctx, JSValue ex, JSValue bt, const CodeLocation &fallbackLocation)
+        : m_ctx(ctx)
+        , m_exception(ex)
+        , m_backtrace(bt)
+        , m_fallbackLocation(fallbackLocation)
+    {}
     JsException(JsException && other) noexcept;
     ~JsException();
     JsException(const JsException &) = delete;
     JsException &operator=(const JsException &) = delete;
 
-    operator bool() const { return !JS_IsNull(m_exception); }
+    operator bool() const { return m_exception.tag != JS_TAG_UNINITIALIZED; }
     QString message() const;
     const QStringList stackTrace() const;
     ErrorInfo toErrorInfo() const;
 private:
     JSContext *m_ctx;
     JSValue m_exception;
+    JSValue m_backtrace;
     CodeLocation m_fallbackLocation;
 };
 

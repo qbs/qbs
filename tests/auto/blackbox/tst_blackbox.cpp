@@ -2712,7 +2712,7 @@ void TestBlackbox::referenceErrorInExport()
         m_qbsStderr.contains("referenceErrorInExport.qbs:5:27 While evaluating here"),
         m_qbsStderr.constData());
     QVERIFY2(
-        m_qbsStderr.contains("referenceErrorInExport.qbs:15:31 'includePaths' is not defined"),
+        m_qbsStderr.contains("referenceErrorInExport.qbs:15:31 includePaths is not defined"),
         m_qbsStderr.constData());
 }
 

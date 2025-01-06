@@ -24,8 +24,14 @@
 #ifndef LIBREGEXP_H
 #define LIBREGEXP_H
 
+#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+
+#include "libunicode.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define LRE_FLAG_GLOBAL     (1 << 0)
 #define LRE_FLAG_IGNORECASE (1 << 1)
@@ -35,6 +41,7 @@
 #define LRE_FLAG_STICKY     (1 << 5)
 #define LRE_FLAG_INDICES    (1 << 6) /* Unused by libregexp, just recorded. */
 #define LRE_FLAG_NAMED_GROUPS (1 << 7) /* named groups are present in the regexp */
+#define LRE_FLAG_UNICODE_SETS (1 << 8)
 
 uint8_t *lre_compile(int *plen, char *error_msg, int error_msg_size,
                      const char *buf, size_t buf_len, int re_flags,
@@ -47,9 +54,39 @@ int lre_exec(uint8_t **capture,
              int cbuf_type, void *opaque);
 
 int lre_parse_escape(const uint8_t **pp, int allow_utf16);
+bool lre_is_space(int c);
 
-/* must be provided by the user, return non zero if overflow */
-int lre_check_stack_overflow(void *opaque, size_t alloca_size);
+void lre_byte_swap(uint8_t *buf, size_t len, bool is_byte_swapped);
+
+/* must be provided by the user */
+bool lre_check_stack_overflow(void *opaque, size_t alloca_size);
 void *lre_realloc(void *opaque, void *ptr, size_t size);
+
+/* JS identifier test */
+extern uint32_t const lre_id_start_table_ascii[4];
+extern uint32_t const lre_id_continue_table_ascii[4];
+
+static inline int lre_js_is_ident_first(int c)
+{
+    if ((uint32_t)c < 128) {
+        return (lre_id_start_table_ascii[c >> 5] >> (c & 31)) & 1;
+    } else {
+        return lre_is_id_start(c);
+    }
+}
+
+static inline int lre_js_is_ident_next(int c)
+{
+    if ((uint32_t)c < 128) {
+        return (lre_id_continue_table_ascii[c >> 5] >> (c & 31)) & 1;
+    } else {
+        /* ZWNJ and ZWJ are accepted in identifiers */
+        return lre_is_id_continue(c) || c == 0x200C || c == 0x200D;
+    }
+}
+
+#ifdef __cplusplus
+} /* extern "C" { */
+#endif
 
 #endif /* LIBREGEXP_H */

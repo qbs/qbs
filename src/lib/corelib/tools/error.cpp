@@ -209,8 +209,9 @@ ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
     for (const QString &traceLine : backtrace) {
         if (traceLine.contains(QStringLiteral("<eval>")))
             continue;
-        static const std::regex regexpWithFunc("^(.+) at [^(]*\\((.+):(\\-?[0-9]+)\\)$");
-        static const std::regex regexpWithoutFunc("^(.+) at (.+):(\\-?[0-9]+)$");
+        static const std::regex regexpWithFunc(
+            "^(.+) at [^(]*\\((.+):(\\-?[0-9]+):(\\-?[0-9]+)\\)$");
+        static const std::regex regexpWithoutFunc("^(.+) at (.+):(\\-?[0-9]+):(\\-?[0-9]+)$");
         std::smatch match;
         const std::string tl = traceLine.toStdString();
         bool hasMatch = std::regex_match(tl, match, regexpWithFunc);

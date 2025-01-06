@@ -1042,12 +1042,9 @@ void TestLanguage::erroneousFiles_data()
                "is allowed.";
     QTest::newRow("importloop1")
             << "Loop detected when importing";
-    QTest::newRow("nonexistentouter")
-            << "'outer' is not defined";
-    QTest::newRow("invalid_file")
-            << "does not exist";
-    QTest::newRow("invalid-parameter-rhs")
-            << "'access' is not defined";
+    QTest::newRow("nonexistentouter") << "outer is not defined";
+    QTest::newRow("invalid_file") << "does not exist";
+    QTest::newRow("invalid-parameter-rhs") << "access is not defined";
     QTest::newRow("invalid-parameter-type")
             << "Value assigned to property 'stringParameter' does not have type 'string'.";
     QTest::newRow("invalid_property_type")
@@ -1125,7 +1122,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("missing-colon")
             << "Invalid item 'dummy.cxxFlags'. Did you mean to set a module property?";
     QTest::newRow("syntax-error-in-probe")
-            << "syntax-error-in-probe.qbs:4:20.*'fngkgsdjfgklkf' is not defined";
+        << "syntax-error-in-probe.qbs:4:20.*fngkgsdjfgklkf is not defined";
     QTest::newRow("wrong-toplevel-item")
             << "wrong-toplevel-item.qbs:1:1.*The top-level item must be of type 'Project' or "
                "'Product', but it is of type 'Artifact'.";

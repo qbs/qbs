@@ -78,9 +78,9 @@ DEF(await, "await")
 /* empty string */
 DEF(empty_string, "")
 /* identifiers */
+DEF(keys, "keys")
+DEF(size, "size")
 DEF(length, "length")
-DEF(fileName, "fileName")
-DEF(lineNumber, "lineNumber")
 DEF(message, "message")
 DEF(cause, "cause")
 DEF(errors, "errors")
@@ -172,19 +172,11 @@ DEF(status, "status")
 DEF(reason, "reason")
 DEF(globalThis, "globalThis")
 DEF(bigint, "bigint")
-#ifdef CONFIG_BIGNUM
-DEF(bigfloat, "bigfloat")
-DEF(bigdecimal, "bigdecimal")
-DEF(roundingMode, "roundingMode")
-DEF(maximumSignificantDigits, "maximumSignificantDigits")
-DEF(maximumFractionDigits, "maximumFractionDigits")
-#endif
-/* the following 3 atoms are only used with CONFIG_ATOMICS */
 DEF(not_equal, "not-equal")
 DEF(timed_out, "timed-out")
 DEF(ok, "ok")
-/* */
 DEF(toJSON, "toJSON")
+DEF(maxByteLength, "maxByteLength")
 /* class names */
 DEF(Object, "Object")
 DEF(Array, "Array")
@@ -213,21 +205,20 @@ DEF(Int32Array, "Int32Array")
 DEF(Uint32Array, "Uint32Array")
 DEF(BigInt64Array, "BigInt64Array")
 DEF(BigUint64Array, "BigUint64Array")
+DEF(Float16Array, "Float16Array")
 DEF(Float32Array, "Float32Array")
 DEF(Float64Array, "Float64Array")
 DEF(DataView, "DataView")
 DEF(BigInt, "BigInt")
-#ifdef CONFIG_BIGNUM
-DEF(BigFloat, "BigFloat")
-DEF(BigFloatEnv, "BigFloatEnv")
-DEF(BigDecimal, "BigDecimal")
-DEF(OperatorSet, "OperatorSet")
-DEF(Operators, "Operators")
-#endif
+DEF(WeakRef, "WeakRef")
+DEF(FinalizationRegistry, "FinalizationRegistry")
 DEF(Map, "Map")
 DEF(Set, "Set") /* Map + 1 */
 DEF(WeakMap, "WeakMap") /* Map + 2 */
 DEF(WeakSet, "WeakSet") /* Map + 3 */
+DEF(Iterator, "Iterator")
+DEF(IteratorHelper, "Iterator Helper")
+DEF(IteratorWrap, "Iterator Wrap")
 DEF(Map_Iterator, "Map Iterator")
 DEF(Set_Iterator, "Set Iterator")
 DEF(Array_Iterator, "Array Iterator")
@@ -250,6 +241,7 @@ DEF(SyntaxError, "SyntaxError")
 DEF(TypeError, "TypeError")
 DEF(URIError, "URIError")
 DEF(InternalError, "InternalError")
+DEF(CallSite, "CallSite")
 /* private symbols */
 DEF(Private_brand, "<brand>")
 /* symbols */
@@ -266,8 +258,5 @@ DEF(Symbol_hasInstance, "Symbol.hasInstance")
 DEF(Symbol_species, "Symbol.species")
 DEF(Symbol_unscopables, "Symbol.unscopables")
 DEF(Symbol_asyncIterator, "Symbol.asyncIterator")
-#ifdef CONFIG_BIGNUM
-DEF(Symbol_operatorSet, "Symbol.operatorSet")
-#endif
 
 #endif /* DEF */
