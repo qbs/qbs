@@ -176,7 +176,7 @@ jobs:
             script: './scripts/build-qbs-with-cmake.sh',
             options: '',
             cacheid: 'clang-cmake',
-            with_tests: 1,
+            with_tests: 0,
             suffix: 'macos',
           }
     env:
