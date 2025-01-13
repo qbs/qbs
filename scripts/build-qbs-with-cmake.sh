@@ -77,6 +77,11 @@ cmake -GNinja -DQt5_DIR=${QT_DIR}/lib/cmake/Qt5/ ${BUILD_OPTIONS} ..
 cmake --build .
 cmake --install . --prefix "install-root"
 
+WITH_TESTS=${WITH_TESTS:-1}
+if [ "$WITH_TESTS" -eq 0 ]; then
+    exit 0
+fi
+
 QBS_AUTOTEST_PROFILE="${QBS_AUTOTEST_PROFILE:-}"
 #
 # Set up profiles for the freshly built Qbs if not
@@ -111,5 +116,3 @@ fi
 (while true; do echo "" && sleep 590; done) &
 trap "kill $!; wait $! 2>/dev/null || true; killall sleep || true" EXIT
 ctest -j $(nproc --all) --output-on-failure
-
-popd
