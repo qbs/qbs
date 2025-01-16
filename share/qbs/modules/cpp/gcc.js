@@ -1037,7 +1037,7 @@ function linkerEnvVars(config, inputs)
 
 function setResponseFileThreshold(command, product)
 {
-    if (product.qbs.targetOS.includes("windows") && Host.os().includes("windows"))
+    if (Host.os().includes("windows"))
         command.responseFileThreshold = 8000;
 }
 
@@ -1712,6 +1712,7 @@ function staticLibLinkerCommands(project, product, inputs, outputs, input, outpu
     cmd.highlight = 'linker'
     cmd.jobPool = "linker";
     cmd.responseFileUsagePrefix = '@';
+    setResponseFileThreshold(cmd, product);
     return cmd;
 }
 
