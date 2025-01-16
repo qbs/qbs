@@ -59,6 +59,7 @@ private slots:
     void mocFlags();
     void mocCompilerDefines();
     void mocSameFileName();
+    void noMocRunAfterTouchingOtherCppFile();
     void noRelinkOnQDebug();
     void noRelinkOnQDebug_data();
     void pkgconfig();

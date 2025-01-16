@@ -362,8 +362,7 @@ Module {
         Rule {
             name: "QtCoreMocRuleHpp"
             inputs: "hpp"
-            auxiliaryInputs: "qt_plugin_metadata"
-            explicitlyDependsOn: ["cpp", "objcpp"]
+            auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"]
             excludedInputs: "unmocable"
             outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable", "qt.core.metatypes.in",
                              "qt.untranslatable"]

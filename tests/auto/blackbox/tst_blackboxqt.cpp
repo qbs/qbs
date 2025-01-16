@@ -173,12 +173,26 @@ void TestBlackboxQt::includedMocCpp()
     if (m_qbsStdout.contains("using qt4"))
         QSKIP("Qt version too old");
     QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("myobject.cpp", "#include <moc_myobject.cpp", "// #include <moc_myobject.cpp");
+    QbsRunParameters failParams;
+    failParams.expectFailure = true;
+    QEXPECT_FAIL(nullptr, "not worth supporting", Continue);
+    QCOMPARE(runQbs(failParams), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("myobject.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
+
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("myobject.cpp", "// #include <moc_myobject.cpp", "#include <moc_myobject.cpp");
+    QEXPECT_FAIL(nullptr, "not worth supporting", Continue);
+    QCOMPARE(runQbs(failParams), 0);
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("myobject.h");
     QCOMPARE(runQbs(), 0);
     QVERIFY2(!m_qbsStdout.contains("compiling moc_myobject.cpp"), m_qbsStdout.constData());
 }
@@ -427,6 +441,28 @@ void TestBlackboxQt::mocSameFileName()
     QDir::setCurrent(testDataDir + "/moc-same-file-name");
     QCOMPARE(runQbs(), 0);
     QCOMPARE(m_qbsStdout.count("compiling moc_someclass.cpp"), 2);
+}
+
+void TestBlackboxQt::noMocRunAfterTouchingOtherCppFile()
+{
+    QDir::setCurrent(testDataDir + "/no-moc-run-after-touching-other-cpp-file");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(m_qbsStdout.contains("moc header1.h"));
+    QVERIFY(m_qbsStdout.contains("moc header2.h"));
+    QVERIFY(m_qbsStdout.contains("compiling moc_header1.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling moc_header2.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(m_qbsStdout.contains("linking"));
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(!m_qbsStdout.contains("moc header1.h"));
+    QVERIFY(!m_qbsStdout.contains("moc header2.h"));
+    QVERIFY(!m_qbsStdout.contains("compiling moc_header1.cpp"));
+    QVERIFY(!m_qbsStdout.contains("compiling moc_header2.cpp"));
+    QVERIFY(m_qbsStdout.contains("compiling main.cpp"));
+    QVERIFY(m_qbsStdout.contains("linking"));
 }
 
 void TestBlackboxQt::noRelinkOnQDebug()

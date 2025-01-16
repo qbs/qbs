@@ -169,9 +169,13 @@ RuleNode::ApplicationResult RuleNode::apply(
             // parent must always have a transformer, because it's generated.
             QBS_CHECK(parent->transformer);
 
-            // artifact is a former input of m_rule and parent was created by m_rule
-            // the inputs of the transformer must contain artifact
-            QBS_CHECK(parent->transformer->inputs.contains(artifact));
+            // Artifact is a former input of m_rule and parent was created by m_rule.
+            // The inputs of the transformer must contain artifact, or it is a scanned dependency,
+            // in which case it is not relevant here.
+            if (!parent->transformer->inputs.contains(artifact)) {
+                QBS_CHECK(parent->childrenAddedByScanner.contains(artifact));
+                continue;
+            }
 
             if (removedInputForcesOutputRemoval)
                 outputArtifactsToRemove += parent;
