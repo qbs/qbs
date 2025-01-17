@@ -2248,6 +2248,18 @@ void TestApi::newPatternMatch()
     QVERIFY(receiver.taskDescriptions.contains("Resolving"));
 }
 
+void TestApi::noAssertsInRelaxedMode()
+{
+    qbs::SetupProjectParameters setupParams = defaultSetupParameters(
+        "no-asserts-in-relaxed-mode/no-asserts-in-relaxed-mode.qbs");
+    setupParams.setProductErrorMode(qbs::ErrorHandlingMode::Relaxed);
+    setupParams.setPropertyCheckingMode(qbs::ErrorHandlingMode::Relaxed);
+    const std::unique_ptr<qbs::SetupProjectJob> job(
+        qbs::Project().setupProject(setupParams, m_logSink, nullptr));
+    waitForFinished(job.get());
+    QVERIFY2(!job->error().hasError(), qPrintable(job->error().toString()));
+}
+
 void TestApi::nonexistingProjectPropertyFromProduct()
 {
     qbs::SetupProjectParameters setupParams

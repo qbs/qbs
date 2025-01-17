@@ -45,11 +45,9 @@
 #include <logging/logger.h>
 #include <tools/persistence.h>
 #include <tools/set.h>
-#include <tools/qttools.h>
 
 #include <quickjs.h>
 
-#include <QtCore/qlist.h>
 #include <QtCore/qstring.h>
 
 #include <unordered_map>
@@ -113,7 +111,7 @@ private:
 class BuildDataResolver
 {
 public:
-    BuildDataResolver(Logger logger);
+    BuildDataResolver(Logger logger, const SetupProjectParameters &parameters);
     void resolveBuildData(const TopLevelProjectPtr &resolvedProject,
                           const RulesEvaluationContextPtr &evalContext);
     void resolveProductBuildDataForExistingProject(const TopLevelProjectPtr &project,
@@ -130,6 +128,7 @@ private:
 
     TopLevelProjectPtr m_project;
     Logger m_logger;
+    const SetupProjectParameters &m_parameters;
 };
 
 } // namespace Internal

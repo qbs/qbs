@@ -267,8 +267,9 @@ void ProjectBuildData::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-
-BuildDataResolver::BuildDataResolver(Logger logger) : m_logger(std::move(logger))
+BuildDataResolver::BuildDataResolver(Logger logger, const SetupProjectParameters &parameters)
+    : m_logger(std::move(logger))
+    , m_parameters(parameters)
 {
 }
 
@@ -393,7 +394,10 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     ArtifactSetByFileTag artifactsPerFileTag;
 
     for (const auto &dependency : std::as_const(product->dependencies)) {
-        QBS_CHECK(dependency->enabled);
+        if (!dependency->enabled) {
+            QBS_CHECK(m_parameters.productErrorMode() == ErrorHandlingMode::Relaxed);
+            continue;
+        }
         resolveProductBuildData(dependency);
     }
 

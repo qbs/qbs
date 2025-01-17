@@ -112,6 +112,7 @@ private slots:
     void multiplexing();
     void newOutputArtifactInDependency();
     void newPatternMatch();
+    void noAssertsInRelaxedMode();
     void nonexistingProjectPropertyFromCommandLine();
     void nonexistingProjectPropertyFromProduct();
     void objC();

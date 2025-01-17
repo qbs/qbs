@@ -333,7 +333,7 @@ void InternalSetupProjectJob::resolveProjectFromScratch(ScriptEngine *engine)
 
 void InternalSetupProjectJob::resolveBuildDataFromScratch(const RulesEvaluationContextPtr &evalContext)
 {
-    BuildDataResolver(logger()).resolveBuildData(m_newProject, evalContext);
+    BuildDataResolver(logger(), m_parameters).resolveBuildData(m_newProject, evalContext);
 }
 
 BuildGraphLoadResult InternalSetupProjectJob::restoreProject(const RulesEvaluationContextPtr &evalContext)

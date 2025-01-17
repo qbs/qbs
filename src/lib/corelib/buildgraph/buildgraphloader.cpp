@@ -457,7 +457,7 @@ void BuildGraphLoader::trackProjectChanges()
     // Products still left in the list need resolving, either because they are new
     // or because they are newly enabled.
     if (!allNewlyResolvedProducts.empty()) {
-        BuildDataResolver bpr(m_logger);
+        BuildDataResolver bpr(m_logger, m_parameters);
         bpr.resolveProductBuildDataForExistingProject(m_result.newlyResolvedProject,
                                                       allNewlyResolvedProducts);
     }
