@@ -175,13 +175,12 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
     } else {
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
     }
-    VariantValuePtr storedValue;
     QMap<QString, VariantValuePtr> storedValues;
     for (const ProbeProperty &b : probeBindings) {
         if (b.first == StringConstants::conditionProperty()
             || b.first == StringConstants::configureProperty())
             continue;
-
+        VariantValuePtr storedValue;
         QVariant newValue;
         if (resolvedProbe) {
             storedValue = resolvedProbe->values().value(b.first);

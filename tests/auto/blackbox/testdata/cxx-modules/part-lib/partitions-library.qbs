@@ -31,7 +31,7 @@ Project {
     DynamicLibrary {
         condition: {
             if (qbs.toolchainType === "msvc"
-                || qbs.toolchainType === "gcc"
+                || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
                 || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
                 || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16))
                 return true;
@@ -58,9 +58,10 @@ Project {
         bundle.isBundle: false
     }
     CppApplication {
+        name: "app"
         condition: {
             if (qbs.toolchainType === "msvc"
-                || qbs.toolchainType === "gcc"
+                || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
                 || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
                 || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16))
                 return true;

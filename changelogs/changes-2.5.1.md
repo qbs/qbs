@@ -1,5 +1,6 @@
 # General
 * Fixed use of wrong declaration when looking up properties via the parent item (QBS-1821).
+* Fixed crash when resolving Probes.
 
 # CI
 * Updated to Qt 6.7.3 for macOS (QBS-1799).
