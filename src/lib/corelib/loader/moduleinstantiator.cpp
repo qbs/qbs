@@ -264,15 +264,8 @@ void ModuleInstantiator::setupScope()
         scope->setProperty(QStringLiteral("importingProduct"), importingProductItemValue);
 
         // FIXME: This looks wrong. Introduce exportingProject variable?
-        scope->setProperty(StringConstants::projectVar(),
-                           ItemValue::create(context.exportingProduct->parent()));
-
-        PropertyDeclaration pd(StringConstants::qbsSourceDirPropertyInternal(),
-                               PropertyDeclaration::String, QString(),
-                               PropertyDeclaration::PropertyNotAvailableInConfig);
-        context.module->setPropertyDeclaration(pd.name(), pd);
-        context.module->setProperty(pd.name(), context.exportingProduct->property(
-                                                   StringConstants::sourceDirectoryProperty()));
+        scope->setProperty(
+            StringConstants::projectVar(), ItemValue::create(context.exportingProduct->parent()));
     }
 }
 

@@ -44,7 +44,10 @@ DynamicLibrary {
             cpp.includePaths: [includeDir]
             cpp.dynamicLibraries: []
         }
-        cpp.dynamicLibraries: ["nosuchlib"]
+        Properties {
+            condition: undefined
+            cpp.dynamicLibraries: ["nosuchlib"]
+        }
         Depends { name: "local" }
         local.dummy: true
         Properties {

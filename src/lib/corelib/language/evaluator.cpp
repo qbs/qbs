@@ -91,21 +91,6 @@ static int getEvalPropertySafe(JSContext *ctx, JSPropertyDescriptor *desc,
 
 static bool debugProperties = false;
 
-static JSValue handleDeprecatedPathResolving(ScriptEngine &engine, const Value &val)
-{
-    const QString warning = Tr::tr(
-        "Resolving path properties relative to the exporting product's location is "
-        "deprecated.\nIn future versions of qbs, such properties will be resolved relative to the "
-        "importing product's location.\n"
-        "Explicitly use exportingProduct.sourceDirectory instead.");
-    try {
-        engine.handleDeprecation(Version(2, 7), warning, val.location());
-    } catch (const ErrorInfo &e) {
-        return engine.throwError(e.toString());
-    }
-    return JS_UNDEFINED;
-}
-
 Evaluator::Evaluator(ScriptEngine *scriptEngine)
     : m_scriptEngine(scriptEngine)
     , m_scriptClass(scriptEngine->registerClass("Evaluator", nullptr, nullptr, JS_UNDEFINED,
@@ -387,15 +372,9 @@ static void convertToPropertyType_impl(
     }
 
     QString actualBaseDir;
-    bool baseDirIsFromExport = false;
     if (decl.type() == PropertyDeclaration::Path || decl.type() == PropertyDeclaration::PathList) {
         actualBaseDir = pathPropertiesBaseDir;
         if (const Item * const baseDirItem = value && value->scope() ? value->scope() : item) {
-            if (const VariantValueConstPtr v = baseDirItem->variantProperty(
-                    StringConstants::qbsSourceDirPropertyInternal())) {
-                actualBaseDir = v->value().toString();
-                baseDirIsFromExport = true;
-            }
             if (actualBaseDir.isEmpty() && baseDirItem->type() == ItemType::Product) {
                 if (const VariantValueConstPtr itemSourceDir = baseDirItem->variantProperty(
                         StringConstants::sourceDirectoryProperty())) {
@@ -424,13 +403,6 @@ static void convertToPropertyType_impl(
         }
         if (!actualBaseDir.isEmpty()) {
             const QString rawPath = getJsString(ctx, v);
-            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath)) {
-                const JSValue error = handleDeprecatedPathResolving(*engine, *value);
-                if (JS_IsError(engine->context(), error)) {
-                    v = error;
-                    return;
-                }
-            }
             v = engine->toScriptValue(
                 QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_FreeValue(ctx, v);
@@ -472,13 +444,6 @@ static void convertToPropertyType_impl(
             if (actualBaseDir.isEmpty())
                 continue;
             const QString rawPath = getJsString(ctx, elem);
-            if (baseDirIsFromExport && !FileInfo::isAbsolute(rawPath)) {
-                const JSValue error = handleDeprecatedPathResolving(*engine, *value);
-                if (JS_IsError(engine->context(), error)) {
-                    v = error;
-                    return;
-                }
-            }
             const JSValue newElem = engine->toScriptValue(
                 QDir::cleanPath(FileInfo::resolvePath(actualBaseDir, rawPath)));
             JS_SetPropertyUint32(ctx, v, i, newElem);
@@ -599,6 +564,8 @@ public:
     JSValue eval()
     {
         JSValue result = m_value.apply(this);
+        if (JS_HasException(m_engine.context()))
+            return result;
         if (JS_IsUninitialized(result))
             result = JS_UNDEFINED;
         convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);
@@ -749,22 +716,6 @@ private:
 
     JSValue handleAlternatives(JSSourceValue *value)
     {
-        if (!m_decl.isScalar() && !value->createdByPropertiesBlock()
-            && !value->alternatives().empty()) {
-            const QString warning
-                = Tr::tr("Using list properties as fallback values is deprecated.\n"
-                         "In future versions of qbs, such properties will be considered "
-                         "unconditionally.\n"
-                         "If you want to keep the current semantics for this value, use a fallback "
-                         "%1 item.")
-                      .arg(BuiltinDeclarations::instance().nameForType(ItemType::Properties));
-            try {
-                m_engine.handleDeprecation(Version(2, 7), warning, value->location());
-            } catch (const ErrorInfo &e) {
-                return m_engine.throwError(e.toString());
-            }
-        }
-
         JSValue outerScriptValue = JS_UNDEFINED;
         JSValueList lst;
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
@@ -786,9 +737,20 @@ private:
                 &outerScriptValue);
             if (JS_IsUninitialized(v))
                 continue;
-            if (m_decl.isScalar())
+            if (m_decl.isScalar() || JS_IsError(m_engine.context(), v))
                 return v;
             if (!JS_IsUndefined(v))
+                lst << JS_DupValue(m_engine.context(), v);
+        }
+
+        // If no Properties item matches, the unconditional value is always considered,
+        // otherwise only if the property is a list property and the top-level value
+        // was not created programmatically as a fallback.
+        if (lst.empty() || !value->createdByPropertiesBlock()) {
+            const JSValue v = evaluateJSSourceValue(value, m_item.outerItem());
+            if (m_decl.isScalar() || JS_HasException(m_engine.context()))
+                return v;
+            if (!JS_IsUninitialized(v) && !JS_IsUndefined(v))
                 lst << JS_DupValue(m_engine.context(), v);
         }
 
@@ -823,12 +785,9 @@ private:
 
     JSValue doHandle(JSSourceValue *value) override
     {
-        JSValue result = handleAlternatives(value);
-        if (JS_IsUninitialized(result)) {
-            result = evaluateJSSourceValue(value, m_item.outerItem());
-            if (JS_IsError(m_engine.context(), result))
-                return result;
-        } else if (value->isExclusiveListValue()) {
+        const JSValue result = handleAlternatives(value);
+        if (JS_HasException(m_engine.context())
+            || (!JS_IsUninitialized(result) && value->isExclusiveListValue())) {
             return result;
         }
 

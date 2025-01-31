@@ -699,55 +699,55 @@ void TestLanguage::disabledPropertiesItem_data()
     QTest::newRow("default")
         << false << false << false << false << QString("default")
         << QStringList{"N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("lower only")
         << false << false << false << true << QString("default_fromLower")
         << QStringList{"N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("higher2 only")
         << false << false << true << false << QString()
         << QStringList{"N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("lower and higher2")
         << false << false << true << true << QString()
         << QStringList{"N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("higher1 only")
         << false << true << false << false << QString("fromHigher1")
         << QStringList{"N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("lower and higher1")
         << false << true << false << true << QString("fromHigher1")
         << QStringList{"N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition2"};
+        << QStringList{"condition2", "default"};
     QTest::newRow("product only")
         << true << false << false << false << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("product and lower")
         << true << false << false << true << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("product and higher2")
         << true << false << true << false << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("product, higher2 and lower")
         << true << false << true << true << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("product and higher1")
         << true << true << false << false << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("product, higher1 and higher2")
         << true << true << true << false << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
     QTest::newRow("all")
         << true << true << true << true << QString("fromProduct")
         << QStringList{"WITH_PRODUCT_PROP", "N_GREATER_7", "WITH_HIGHER2_PROP", "N_GREATER_6", "WITH_HIGHER1_PROP", "N_GREATER_5", "N_LESS_20", "WITH_LOWER_PROP", "N_NON_ZERO"}
-        << QStringList{"condition1", "condition2"};
+        << QStringList{"condition1", "condition2", "default"};
 }
 
 void TestLanguage::disabledPropertiesItem()
@@ -1212,18 +1212,6 @@ void TestLanguage::exports()
         resolveProject("exports.qbs");
         QVERIFY(!!project);
         Set<CodeLocation> warningLocations;
-        for (const ErrorInfo &e : std::as_const(project->warningsEncountered)) {
-            const QString errStr = e.toString();
-            QVERIFY2(
-                errStr.contains("Resolving path properties relative to the exporting "
-                                "product's location is deprecated"),
-                qPrintable(errStr));
-            for (const ErrorItem &ei : e.items())
-                warningLocations << ei.codeLocation();
-        }
-        QCOMPARE(int(warningLocations.size()), 2);
-        for (const CodeLocation &loc : warningLocations)
-            QVERIFY(loc.line() == 12 || loc.line() == 9);
         QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
         QCOMPARE(products.size(), 22);
         ResolvedProductPtr product;
@@ -1237,8 +1225,8 @@ void TestLanguage::exports()
         QVariantList propertyValues = product->moduleProperties->property(propertyName).toList();
         QCOMPARE(propertyValues.size(), 3);
         QVERIFY(propertyValues.at(0).toString().endsWith("/app"));
-        QVERIFY(propertyValues.at(1).toString().endsWith("/subdir/lib"));
-        QVERIFY(propertyValues.at(2).toString().endsWith("/subdir2/lib"));
+        QVERIFY(propertyValues.at(1).toString().endsWith("/testdata/lib"));
+        QVERIFY(propertyValues.at(2).toString().endsWith("/testdata/lib"));
 
         QCOMPARE(product->moduleProperties->moduleProperty("dummy", "productName").toString(),
                  QString("myapp"));
@@ -3022,55 +3010,34 @@ void TestLanguage::propertiesBlocks_data()
     QTest::addColumn<QString>("expectedStringValue");
 
     QTest::newRow("init") << QString() << QVariant() << QString();
-    QTest::newRow("property_overwrite")
-            << QString("dummy.defines")
-            << QVariant(QStringList("OVERWRITTEN"))
-            << QString();
+    QTest::newRow("property_append")
+        << QString("dummy.defines") << QVariant(QStringList{"APPENDED", "SOMETHING"}) << QString();
     QTest::newRow("property_set_indirect")
             << QString("dummy.cFlags")
             << QVariant(QStringList("VAL"))
             << QString();
-    QTest::newRow("property_overwrite_no_outer")
-            << QString("dummy.defines")
-            << QVariant(QStringList("OVERWRITTEN"))
-            << QString();
-    QTest::newRow("property_append_to_outer")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
-            << QString();
-    QTest::newRow("property_append_to_indirect_outer")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
-            << QString();
-    QTest::newRow("property_append_to_indirect_derived_outer1")
-            << QString("dummy.cFlags")
-            << QVariant(QStringList() << QString("BASE") << QString("PROPS"))
-            << QString();
-    QTest::newRow("property_append_to_indirect_derived_outer2")
-            << QString("dummy.cFlags")
-            << QVariant(QStringList() << QString("PRODUCT") << QString("PROPS"))
-            << QString();
-    QTest::newRow("property_append_to_indirect_derived_outer3")
-            << QString("dummy.cFlags")
-            << QVariant(QStringList() << QString("BASE") << QString("PRODUCT") << QString("PROPS"))
-            << QString();
-    QTest::newRow("property_append_to_indirect_merged_outer")
-            << QString("dummy.rpaths")
-            << QVariant(QStringList() << QString("ONE") << QString("TWO") << QString("$ORIGIN"))
-            << QString();
+    QTest::newRow("property_overwrite")
+        << QString("dummy.defines") << QVariant(QStringList("OVERWRITTEN")) << QString();
+    QTest::newRow("property_append_indirect")
+        << QString("dummy.defines") << QVariant(QStringList{"TWO", "ONE"}) << QString();
+    QTest::newRow("property_append_to_indirect_derived")
+        << QString("dummy.cFlags") << QVariant(QStringList{"BASE", "PROPS"}) << QString();
+    QTest::newRow("property_append_to_indirect_derived2")
+        << QString("dummy.cFlags") << QVariant(QStringList{"PROPS", "PRODUCT"}) << QString();
+    QTest::newRow("property_append_to_indirect_derived3")
+        << QString("dummy.cFlags") << QVariant(QStringList{"PROPS", "BASE", "PRODUCT"})
+        << QString();
+    QTest::newRow("property_append_to_indirect_merged")
+        << QString("dummy.rpaths") << QVariant(QStringList{"TWO", "ONE", "$ORIGIN"}) << QString();
 
     QTest::newRow("multiple_exclusive_properties")
             << QString("dummy.defines")
             << QVariant(QStringList("OVERWRITTEN"))
             << QString();
-    QTest::newRow("multiple_exclusive_properties_no_outer")
-            << QString("dummy.defines")
-            << QVariant(QStringList("OVERWRITTEN"))
-            << QString();
-    QTest::newRow("multiple_exclusive_properties_append_to_outer")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("ONE") << QString("TWO"))
-            << QString();
+    QTest::newRow("multiple_exclusive_properties_no_match")
+        << QString("dummy.defines") << QVariant(QStringList("OVERWRITTEN")) << QString();
+    QTest::newRow("multiple_exclusive_properties_append")
+        << QString("dummy.defines") << QVariant(QStringList{"TWO", "ONE"}) << QString();
 
     QTest::newRow("condition_refers_to_product_property")
             << QString("dummy.defines")
@@ -3082,28 +3049,22 @@ void TestLanguage::propertiesBlocks_data()
             << QString("OVERWRITTEN");
 
     QTest::newRow("ambiguous_properties")
-        << QString("dummy.defines") << QVariant(QStringList{"ONE", "TWO", "ONE", "THREE"})
-        << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"TWO", "THREE", "ONE"}) << QString();
     QTest::newRow("inheritance_overwrite_in_subitem")
             << QString("dummy.defines")
             << QVariant(QStringList() << QString("OVERWRITTEN_IN_SUBITEM"))
             << QString();
     QTest::newRow("inheritance_retain_base1")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
-            << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"BASE", "SOMETHING", "SUB"})
+        << QString();
     QTest::newRow("inheritance_retain_base2")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
-            << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"BASE", "SOMETHING", "SUB"})
+        << QString();
     QTest::newRow("inheritance_retain_base3")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("BASE") << QString("SUB"))
-            << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"BASE", "SOMETHING", "SUB"})
+        << QString();
     QTest::newRow("inheritance_retain_base4")
-            << QString("dummy.defines")
-            << QVariant(QStringList() << QString("BASE"))
-            << QString();
+        << QString("dummy.defines") << QVariant(QStringList{"BASE", "SOMETHING"}) << QString();
     QTest::newRow("inheritance_condition_in_subitem1")
             << QString("dummy.defines")
             << QVariant(QStringList() << QString("SOMETHING") << QString("SUB"))
@@ -3138,20 +3099,6 @@ void TestLanguage::propertiesBlocks()
     QFETCH(QString, expectedStringValue);
     QVERIFY(!!project);
 
-    Set<CodeLocation> warningLocations;
-    for (const ErrorInfo &e : std::as_const(project->warningsEncountered)) {
-        const QString errStr = e.toString();
-        QVERIFY2(
-            errStr.contains("Using list properties as fallback values is deprecated"),
-            qPrintable(errStr));
-        for (const ErrorItem &ei : e.items())
-            warningLocations << ei.codeLocation();
-    }
-    const QList<int> lines{7, 8, 29, 38, 54, 61, 67, 102, 114};
-    QCOMPARE(int(warningLocations.size()), int(lines.size()));
-    for (const CodeLocation &loc : warningLocations)
-        QVERIFY2(lines.contains(loc.line()), qPrintable(QString::number(loc.line())));
-
     QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
     const QString productName = QString::fromLocal8Bit(QTest::currentDataTag());
     ResolvedProductPtr product = products.value(productName);
@@ -3173,11 +3120,11 @@ void TestLanguage::propertiesBlockInGroup_data()
 
     QTest::newRow("with group, use primary module group")
         << true << "module_group"
-        << QStringList{"BASEDEF", "FEATURE_ENABLED", "THE_GROUP", "MODULE_DEFINE", "MODULE_GROUP"};
+        << QStringList{"FEATURE_ENABLED", "THE_GROUP", "BASEDEF", "MODULE_DEFINE", "MODULE_GROUP"};
     QTest::newRow("with group, use alternative module group")
         << true << "module_group_alt"
         << QStringList{
-               "BASEDEF", "FEATURE_ENABLED", "THE_GROUP", "MODULE_DEFINE", "MODULE_GROUP_ALT"};
+               "FEATURE_ENABLED", "THE_GROUP", "BASEDEF", "MODULE_DEFINE", "MODULE_GROUP_ALT"};
     QTest::newRow("without group, use primary module group")
         << false << "module_group" << QStringList{"BASEDEF", "MODULE_DEFINE", "MODULE_GROUP"};
     QTest::newRow("without group, use alternative module group")

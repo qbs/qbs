@@ -2,11 +2,11 @@ import "propertiesblocks_base.qbs" as ProductBase
 
 Project {
     Product {
-        name: "property_overwrite"
+        name: "property_append"
         Depends { name: "dummy" }
         dummy.defines: ["SOMETHING"]
         Properties {
-            dummy.defines: ["OVERWRITTEN"]
+            dummy.defines: ["APPENDED"]
         }
     }
     Product {
@@ -17,56 +17,48 @@ Project {
         }
     }
     Product {
-        name: "property_overwrite_no_outer"
+        name: "property_overwrite"
         Depends { name: "dummy" }
         Properties {
             dummy.defines: ["OVERWRITTEN"]
         }
     }
     Product {
-        name: "property_append_to_outer"
-        Depends { name: "dummy" }
-        dummy.defines: ["ONE"]
-        Properties {
-            dummy.defines: outer.concat(["TWO"])
-        }
-    }
-    Product {
-        name: "property_append_to_indirect_outer"
+        name: "property_append_indirect"
         Depends { name: "dummy" }
         property stringList myDefines: ["ONE"]
         dummy.defines: myDefines
         Properties {
-            dummy.defines: outer.concat(["TWO"])
+            dummy.defines: ["TWO"]
         }
     }
     ProductBase {
-        name: "property_append_to_indirect_derived_outer1"
+        name: "property_append_to_indirect_derived"
         Properties {
             dummy.cFlags: outer.concat("PROPS")
         }
     }
     ProductBase {
-        name: "property_append_to_indirect_derived_outer2"
+        name: "property_append_to_indirect_derived2"
         Properties {
-            dummy.cFlags: outer.concat("PROPS")
+            dummy.cFlags: "PROPS"
         }
         dummy.cFlags: ["PRODUCT"]
     }
     ProductBase {
-        name: "property_append_to_indirect_derived_outer3"
+        name: "property_append_to_indirect_derived3"
         Properties {
-            dummy.cFlags: outer.concat("PROPS")
+            dummy.cFlags: "PROPS"
         }
         dummy.cFlags: base.concat("PRODUCT")
     }
     Product {
-        name: "property_append_to_indirect_merged_outer"
+        name: "property_append_to_indirect_merged"
         Depends { name: "dummy" }
         property string justOne: "ONE"
         dummy.rpaths: [justOne]
         Properties {
-            dummy.rpaths: outer.concat(["TWO"])
+            dummy.rpaths: ["TWO"]
         }
     }
     Product {
@@ -85,7 +77,7 @@ Project {
         }
     }
     Product {
-        name: "multiple_exclusive_properties_no_outer"
+        name: "multiple_exclusive_properties_no_match"
         Depends { name: "dummy" }
         Properties {
             condition: undefined
@@ -97,11 +89,11 @@ Project {
         }
     }
     Product {
-        name: "multiple_exclusive_properties_append_to_outer"
+        name: "multiple_exclusive_properties_append"
         Depends { name: "dummy" }
         dummy.defines: ["ONE"]
         Properties {
-            dummy.defines: outer.concat(["TWO"])
+            dummy.defines: ["TWO"]
         }
         Properties {
             condition: false
@@ -113,14 +105,14 @@ Project {
         Depends { name: "dummy" }
         dummy.defines: ["ONE"]
         Properties {
-            dummy.defines: outer.concat(["TWO"])
+            dummy.defines: ["TWO"]
         }
         Properties {
             condition: false
             dummy.defines: outer.concat(["IMPOSSIBLE"])
         }
         Properties {
-            dummy.defines: outer.concat(["THREE"])
+            dummy.defines: ["THREE"]
         }
     }
     Product {

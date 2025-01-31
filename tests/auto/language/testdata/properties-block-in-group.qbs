@@ -10,7 +10,7 @@ Product {
         files: ["dummy.txt" ]
         Properties {
             condition: name === "the group"
-            dummy.defines: outer.concat("FEATURE_ENABLED", name.toUpperCase().replace(' ', '_'))
+            dummy.defines: ["FEATURE_ENABLED", name.toUpperCase().replace(' ', '_')]
         }
         dummy.defines: "GROUP_ONLY"
     }
