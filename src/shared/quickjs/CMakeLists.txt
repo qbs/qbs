@@ -14,6 +14,7 @@ add_qbs_library(qbsquickjs
     DEFINES
         "CONFIG_VERSION=\"2021-03-27\""
 )
+set_property(TARGET qbsquickjs PROPERTY C_STANDARD 11)
 if(QBS_QUICKJS_LEAK_CHECK)
   add_definitions(-DDUMP_LEAKS)
 endif()
