@@ -65,7 +65,7 @@ static QVariant variantFromString(const QString &str, bool &ok)
                 engine->evaluate(Internal::JsValueOwner::Caller,
                                  QLatin1String("(function(){return ") + str
                                  + QLatin1String(";})()")));
-    ok = !engine->checkAndClearException({});
+    ok = !engine->checkForJsError({});
     return Internal::getJsVariant(engine->context(), sv);
 }
 

@@ -279,8 +279,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
                                                     JsValueOwner::Caller, binding.code,
                                                     binding.location.filePath(),
                                                     binding.location.line()));
-                if (JsException ex = engine()->checkAndClearException(binding.location)) {
-                    ErrorInfo err = ex.toErrorInfo();
+                if (engine()->checkForJsError(binding.location)) {
+                    ErrorInfo err = engine()->getAndClearJsError();
                     err.prepend(QStringLiteral("evaluating rule binding '%1'")
                                 .arg(binding.name.join(QLatin1Char('.'))));
                     throw err;
@@ -393,8 +393,7 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRul
                     engine()->evaluate(JsValueOwner::Caller, ruleArtifact->filePath,
                                        ruleArtifact->filePathLocation.filePath(),
                                        ruleArtifact->filePathLocation.line()));
-        if (JsException ex = engine()->checkAndClearException(ruleArtifact->filePathLocation))
-            throw ex.toErrorInfo();
+        engine()->throwOnJsError(ruleArtifact->filePathLocation);
         outputPath = getJsString(jsContext(), scriptValue);
         fileTags = ruleArtifact->fileTags;
         alwaysUpdated = ruleArtifact->alwaysUpdated;
@@ -529,8 +528,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     const ScopedJsValue res(
                 jsContext(),
                 JS_Call(jsContext(), fun, engine()->globalObject(), int(args.size()), argv.data()));
-    if (JsException ex = engine()->checkAndClearException(m_rule->outputArtifactsScript.location()))
-        throw ex.toErrorInfo();
+    engine()->throwOnJsError(m_rule->outputArtifactsScript.location());
     if (!JS_IsArray(jsContext(), res))
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript.location());

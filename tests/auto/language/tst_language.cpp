@@ -1174,7 +1174,7 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("invalid-references")
             << "invalid-references.qbs:2:17.*Cannot open '.*nosuchproject.qbs'";
     QTest::newRow("missing-js-file")
-            << "missing-js-file-module.qbs.*Cannot open '.*javascriptfile.js'";
+        << "missing-js-file.qbs.*Cannot open '.*javascriptfile.js'.*missing-js-file.js:1";
     QTest::newRow("frozen-object") << "'key' is read-only";
     QTest::newRow("frozen-object-list") << "object is not extensible";
     QTest::newRow("module-property-binding-in-project")
@@ -1861,9 +1861,9 @@ void TestLanguage::jsExtensions()
     QString code = ts.readAll();
     QVERIFY(!code.isEmpty());
     m_engine->evaluate(JsValueOwner::Caller, code, file.fileName(), 1);
-    if (JsException ex = m_engine->checkAndClearException({})) {
-        qDebug() << ex.stackTrace();
-        QFAIL(qPrintable(ex.message()));
+    if (m_engine->checkForJsError({})) {
+        const ErrorInfo ex = m_engine->getAndClearJsError();
+        QFAIL(qPrintable(ex.toString()));
     }
 }
 

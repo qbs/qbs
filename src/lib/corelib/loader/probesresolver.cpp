@@ -169,8 +169,7 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
             ctx,
             engine->evaluate(
                 JsValueOwner::Caller, configureScript->sourceCodeForEvaluation(), {}, 1, scopes));
-        if (JsException ex = engine->checkAndClearException(configureScript->location()))
-            throw ex.toErrorInfo();
+        engine->throwOnJsError(configureScript->location());
         importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
     } else {
         importedFilesUsedInConfigure = resolvedProbe->importedFilesUsed();
@@ -200,8 +199,7 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
                 if (v != saved)
                     valueMgr.setValue(JS_UNDEFINED);
 
-                if (JsException ex = engine->checkAndClearException({}))
-                    throw ex.toErrorInfo();
+                engine->throwOnJsError({});
                 newValue = getJsVariant(ctx, v);
                 // Special case, string and path lists are represented as js arrays but we don't
                 // want to make them const as we do for object lists. Converting to QStringList

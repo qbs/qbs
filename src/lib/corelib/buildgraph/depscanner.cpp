@@ -288,8 +288,8 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact,
                 JS_Call(m_engine->context(), function, m_engine->globalObject(),
                 int(args.size()), args.data()));
     m_engine->clearRequestedProperties();
-    if (JsException ex = m_engine->checkAndClearException(script.location())) {
-        ErrorInfo err = ex.toErrorInfo();
+    if (m_engine->checkForJsError(script.location())) {
+        ErrorInfo err = m_engine->getAndClearJsError();
         err.prepend(Tr::tr("Error evaluating scan script"));
         throw err;
     }

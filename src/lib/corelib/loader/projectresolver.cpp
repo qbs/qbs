@@ -204,7 +204,8 @@ TopLevelProjectPtr ProjectResolver::resolve()
     qCDebug(lcProjectResolver) << "resolving" << d->setupParams.projectFilePath();
 
     d->engine->setEnvironment(d->setupParams.adjustedEnvironment());
-    d->engine->checkAndClearException({});
+    if (d->engine->checkForJsError({}))
+        d->engine->getAndClearJsError();
     d->engine->clearImportsCache();
     d->engine->clearRequestedProperties();
     d->engine->enableProfiling(d->setupParams.logElapsedTime());

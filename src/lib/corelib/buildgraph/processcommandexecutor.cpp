@@ -241,8 +241,8 @@ QString ProcessCommandExecutor::filterProcessOutput(const QByteArray &_output,
     JSValue outputArgForCall = outputArg;
     const ScopedJsValue filteredOutput(
                 ctx, JS_Call(ctx, filterFunction, JS_UNDEFINED, 1, &outputArgForCall));
-    if (const JsException ex = scriptEngine()->checkAndClearException({})) {
-        ErrorInfo err = ex.toErrorInfo();
+    if (scriptEngine()->checkForJsError({})) {
+        ErrorInfo err = scriptEngine()->getAndClearJsError();
         err.prepend(Tr::tr("Error when calling output filter function"));
         logger().printError(err);
         return output;

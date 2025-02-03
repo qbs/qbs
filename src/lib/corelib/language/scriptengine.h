@@ -46,6 +46,7 @@
 #include <buildgraph/requesteddependencies.h>
 #include <logging/logger.h>
 #include <tools/codelocation.h>
+#include <tools/error.h>
 #include <tools/filetime.h>
 #include <tools/porting.h>
 #include <tools/scripttools.h>
@@ -237,7 +238,11 @@ public:
                             GetProperty getProperty = nullptr);
     JSClassID getClassId(const char *name) const;
 
-    JsException checkAndClearException(const CodeLocation &fallbackLocation) const;
+    bool checkForJsError(const CodeLocation &fallbackLocation);
+    ErrorInfo getAndClearJsError();
+    void throwAndClearJsError() { throw getAndClearJsError(); }
+    void throwOnJsError(const CodeLocation &fallbackLocation);
+    void setJsError(const ErrorInfo &jsError) { m_jsError = jsError; }
     JSValue throwError(const QString &message) const;
 
     void cancel();
@@ -320,6 +325,8 @@ private:
     };
 
     static int interruptor(JSRuntime *rt, void *opaqueEngine);
+
+    JsException checkAndClearException(const CodeLocation &fallbackLocation) const;
 
     bool gatherFileResults() const;
 
@@ -416,6 +423,7 @@ private:
     QVariantMap m_properties;
     std::recursive_mutex m_artifactsMutex;
     std::optional<SetupProjectParameters> m_setupParams;
+    ErrorInfo m_jsError;
     bool m_lastLookupWasSuccess = false;
 };
 

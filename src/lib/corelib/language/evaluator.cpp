@@ -276,7 +276,8 @@ Evaluator::FileContextScopes Evaluator::fileContextScopes(const FileContextConst
             setupScriptEngineForFile(m_scriptEngine, file, importScope, ObserveMode::Enabled);
             result.importScope = importScope.release();
         } catch (const ErrorInfo &e) {
-            result.importScope = throwError(m_scriptEngine->context(), e.toString());
+            m_scriptEngine->setJsError(e);
+            result.importScope = JS_UNINITIALIZED;
         }
     }
     return result;
@@ -321,13 +322,14 @@ void Evaluator::clearCache(EvaluationData &edata)
 void throwOnEvaluationError(ScriptEngine *engine,
                             const std::function<CodeLocation()> &provideFallbackCodeLocation)
 {
-    if (JsException ex = engine->checkAndClearException(provideFallbackCodeLocation()))
-        throw ex.toErrorInfo();
+    if (engine->checkForJsError(provideFallbackCodeLocation()))
+        engine->throwAndClearJsError();
 }
 
 static void makeTypeError(ScriptEngine *engine, const ErrorInfo &error, JSValue &v)
 {
-    v = throwError(engine->context(), error.toString());
+    engine->setJsError(error);
+    v = JS_UNINITIALIZED;
 }
 
 static void makeTypeError(ScriptEngine *engine, const PropertyDeclaration &decl,
@@ -349,7 +351,7 @@ static void convertToPropertyType_impl(
     JSValue &v)
 {
     JSContext * const ctx = engine->context();
-    if (JS_IsUninitialized(v) || JS_IsUndefined(v) || JS_IsError(ctx, v) || JS_IsException(v))
+    if (JS_IsUninitialized(v) || JS_IsUndefined(v) || engine->checkForJsError({}))
         return;
 
     if (!decl.isScalar() && !JS_IsArray(ctx, v) && conversionType == ConversionType::ElementsOnly) {
@@ -564,8 +566,12 @@ public:
     JSValue eval()
     {
         JSValue result = m_value.apply(this);
-        if (JS_HasException(m_engine.context()))
-            return result;
+
+        // TODO: Ideally, we'd just throw instead of all the check-and-forward stanzas,
+        // but I believe the Evaluator code paths are not entirely exception-safe yet.
+        if (m_engine.checkForJsError(m_value.location()))
+            return JS_UNINITIALIZED;
+
         if (JS_IsUninitialized(result))
             result = JS_UNDEFINED;
         convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);
@@ -639,8 +645,8 @@ private:
             bool doSetup = false;
             if (outerItem) {
                 v = m_evaluator.property(outerItem, m_decl.name());
-                if (JsException ex = m_engine.checkAndClearException({}))
-                    return m_engine.throwError(ex.toErrorInfo().toString());
+                if (m_engine.checkForJsError(value->location()))
+                    return JS_UNINITIALIZED;
                 doSetup = true;
                 JS_FreeValue(m_engine.context(), v);
             } else if (outerScriptValue) {
@@ -660,13 +666,15 @@ private:
                     && item->type() != ItemType::ModuleInstancePlaceholder) {
                     const QString errorMessage = Tr::tr("The special value 'original' can only "
                                                         "be used with module properties.");
-                    return throwError(m_engine.context(), errorMessage);
+                    m_engine.setJsError({errorMessage, value->location()});
+                    return JS_UNINITIALIZED;
                 }
 
                 if (!value->scope()) {
                     const QString errorMessage = Tr::tr("The special value 'original' cannot "
                         "be used on the right-hand side of a property declaration.");
-                    return throwError(m_engine.context(), errorMessage);
+                    m_engine.setJsError({errorMessage, value->location()});
+                    return JS_UNINITIALIZED;
                 }
 
                 ValuePtr original;
@@ -681,7 +689,8 @@ private:
                 // in that case.
                 if (!original) {
                     const QString errorMessage = Tr::tr("Error setting up 'original'.");
-                    return throwError(m_engine.context(), errorMessage);
+                    m_engine.setJsError({errorMessage, value->location()});
+                    return JS_UNINITIALIZED;
                 }
                 originalJs
                     = ValueEvaluator(m_evaluator, m_object, original, m_item, *item, m_decl).eval();
@@ -724,9 +733,9 @@ private:
             if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 outerScriptValue = evaluateJSSourceValue(value, nullptr);
-                if (JS_IsError(m_engine.context(), outerScriptValue)) {
+                if (m_engine.checkForJsError(alternative.value->location())) {
                     const ScopedJsValueList l(m_engine.context(), lst);
-                    return outerScriptValue;
+                    return JS_UNINITIALIZED;
                 }
             }
             const JSValue v = evaluateJSSourceValue(
@@ -735,9 +744,11 @@ private:
                 &alternative,
                 value,
                 &outerScriptValue);
+            if (m_engine.checkForJsError(value->location()))
+                return JS_UNINITIALIZED;
             if (JS_IsUninitialized(v))
                 continue;
-            if (m_decl.isScalar() || JS_IsError(m_engine.context(), v))
+            if (m_decl.isScalar())
                 return v;
             if (!JS_IsUndefined(v))
                 lst << JS_DupValue(m_engine.context(), v);
@@ -748,7 +759,9 @@ private:
         // was not created programmatically as a fallback.
         if (lst.empty() || !value->createdByPropertiesBlock()) {
             const JSValue v = evaluateJSSourceValue(value, m_item.outerItem());
-            if (m_decl.isScalar() || JS_HasException(m_engine.context()))
+            if (m_engine.checkForJsError(value->location()))
+                return JS_UNINITIALIZED;
+            if (m_decl.isScalar())
                 return v;
             if (!JS_IsUninitialized(v) && !JS_IsUndefined(v))
                 lst << JS_DupValue(m_engine.context(), v);
@@ -767,9 +780,9 @@ private:
             lst << JS_DupValue(m_engine.context(), result);
         for (const ValuePtr &next : value->candidates()) {
             JSValue v = next->apply(this);
-            if (JsException ex = m_engine.checkAndClearException({})) {
+            if (m_engine.checkForJsError(next->location())) {
                 const ScopedJsValueList l(m_engine.context(), lst);
-                return m_engine.throwError(ex.toErrorInfo().toString());
+                return JS_UNINITIALIZED;
             }
             if (JS_IsUninitialized(v) || JS_IsUndefined(v))
                 continue;
@@ -786,10 +799,10 @@ private:
     JSValue doHandle(JSSourceValue *value) override
     {
         const JSValue result = handleAlternatives(value);
-        if (JS_HasException(m_engine.context())
-            || (!JS_IsUninitialized(result) && value->isExclusiveListValue())) {
+        if (m_engine.checkForJsError(value->location()))
+            return JS_UNINITIALIZED;
+        if (!JS_IsUninitialized(result) && value->isExclusiveListValue())
             return result;
-        }
 
         if (m_decl.isScalar()) {
             if (!JS_IsUninitialized(result) || !value->createdByPropertiesBlock())
@@ -823,13 +836,13 @@ private:
 
         ScopeChain scopeChain(m_evaluator);
         const JSValue maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
-        if (JS_IsError(m_engine.context(), maybeExtraScope))
-            return maybeExtraScope;
+        if (m_engine.checkForJsError(value->location()))
+            return JS_UNINITIALIZED;
         const ScopedJsValue extraScopeMgr(m_engine.context(), maybeExtraScope);
         const Evaluator::FileContextScopes fileCtxScopes = m_evaluator.fileContextScopes(
             value->file());
-        if (JsException ex = m_engine.checkAndClearException({}))
-            return m_engine.throwError(ex.toErrorInfo().toString());
+        if (m_engine.checkForJsError(value->location()))
+            return JS_UNINITIALIZED;
         scopeChain.pushScope(fileCtxScopes.fileScope);
         scopeChain.pushScopeRecursively(m_item.scope());
         if ((m_itemOfProperty.type() != ItemType::ModuleInstance
@@ -850,7 +863,7 @@ private:
                                                        {},
                                                        1,
                                                        scopeChain.chain()));
-            if (JsException ex = m_engine.checkAndClearException(alternative->condition.location)) {
+            if (m_engine.checkForJsError(alternative->condition.location)) {
                 // This handles cases like the following:
                 //   Depends { name: "cpp" }
                 //   Properties {
@@ -863,10 +876,12 @@ private:
                 //       there are currently several contexts where we do that, e.g. Export
                 //       and Group items. Perhaps change that, or try to collect all such
                 //       exceptions and don't try to evaluate other cases.
-                if (m_itemOfProperty.type() == ItemType::ModuleInstancePlaceholder)
+                if (m_itemOfProperty.type() == ItemType::ModuleInstancePlaceholder) {
+                    m_engine.getAndClearJsError();
                     return JS_UNDEFINED;
+                }
 
-                return m_engine.throwError(ex.toErrorInfo().toString());
+                return JS_UNINITIALIZED;
             }
 
             // The condition is false. Try the next alternative or the else value.
@@ -879,9 +894,8 @@ private:
                 {},
                 1,
                 scopeChain.chain()));
-            if (JsException ex = m_engine.checkAndClearException(
-                    alternative->overrideListProperties.location)) {
-                return m_engine.throwError(ex.toErrorInfo().toString());
+            if (m_engine.checkForJsError(alternative->overrideListProperties.location)) {
+                return JS_UNINITIALIZED;
             }
             if (JS_ToBool(m_engine.context(), sv))
                 elseCaseValue->setIsExclusiveListValue();

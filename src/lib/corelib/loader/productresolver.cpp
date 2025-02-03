@@ -1584,10 +1584,10 @@ void PropertiesEvaluator::evaluateProperty(
             break;
         }
         const ScopedJsValue scriptValue(ctx, m_loaderState.evaluator().property(item, propName));
-        if (JsException ex = m_loaderState.evaluator().engine()->checkAndClearException(
-                propValue->location())) {
+        if (m_loaderState.evaluator().engine()->checkForJsError(propValue->location())) {
+            const ErrorInfo e = m_loaderState.evaluator().engine()->getAndClearJsError();
             if (checkErrors)
-                throw ex.toErrorInfo();
+                throw e;
         }
 
         // NOTE: Loses type information if scriptValue.isUndefined == true,

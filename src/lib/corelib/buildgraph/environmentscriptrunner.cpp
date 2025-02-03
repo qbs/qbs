@@ -193,11 +193,11 @@ void EnvironmentScriptRunner::setupEnvironment()
                                                                 m_evalContext->scope());
         JSValueList argsForFun = svArgs;
         JS_Call(ctx, fun, engine()->globalObject(), int(argsForFun.size()), argsForFun.data());
-        if (const JsException ex = engine()->checkAndClearException(setupScript.location())) {
+        if (engine()->checkForJsError(setupScript.location())) {
             const QString scriptName = m_envType == BuildEnv
                     ? StringConstants::setupBuildEnvironmentProperty()
                     : StringConstants::setupRunEnvironmentProperty();
-            ErrorInfo err = ex.toErrorInfo();
+            ErrorInfo err = engine()->getAndClearJsError();
             err.prepend(Tr::tr("Error running %1 script for product '%2'")
                         .arg(scriptName, m_product->fullDisplayName()));
             throw err;

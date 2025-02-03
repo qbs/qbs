@@ -276,8 +276,7 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
                                                                      p->exportedModule));
     }
     engine->clearRequestedProperties();
-    if (JsException ex = engine->checkAndClearException(script.location()))
-        throw ex.toErrorInfo();
+    engine->throwOnJsError(script.location());
     commands.clear();
     if (JS_IsArray(engine->context(), scriptValue)) {
         const int count = JS_VALUE_GET_INT(getJsProperty(engine->context(), scriptValue,

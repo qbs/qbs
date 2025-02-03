@@ -165,9 +165,10 @@ private:
                         std::make_pair(p->uniqueName(), p->exportedModule));
         }
         scriptEngine->clearRequestedProperties();
-        if (const JsException exception = scriptEngine->checkAndClearException(cmd->codeLocation())) {
+        if (scriptEngine->checkForJsError(cmd->codeLocation())) {
             // ### We don't know the line number of the command's sourceCode property assignment.
-            setError(exception.message(), cmd->codeLocation());
+            const ErrorInfo e = scriptEngine->getAndClearJsError();
+            setError(e.toString(), cmd->codeLocation());
         }
     }
 

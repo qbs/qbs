@@ -896,6 +896,31 @@ JSClassID ScriptEngine::getClassId(const char *name) const
     return m_classes.value(QLatin1String(name));
 }
 
+bool ScriptEngine::checkForJsError(const CodeLocation &fallbackLocation)
+{
+    if (m_jsError.hasError())
+        return true;
+    if (const JsException ex = checkAndClearException(fallbackLocation)) {
+        m_jsError = ex.toErrorInfo();
+        return true;
+    }
+    return false;
+}
+
+ErrorInfo ScriptEngine::getAndClearJsError()
+{
+    const ErrorInfo e = m_jsError;
+    QBS_CHECK(e.hasError());
+    m_jsError.clear();
+    return e;
+}
+
+void ScriptEngine::throwOnJsError(const CodeLocation &fallbackLocation)
+{
+    if (checkForJsError(fallbackLocation))
+        throwAndClearJsError();
+}
+
 JSValue ScriptEngine::throwError(const QString &message) const
 {
     return qbs::Internal::throwError(m_context, message);

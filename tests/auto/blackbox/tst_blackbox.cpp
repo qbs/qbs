@@ -2704,8 +2704,9 @@ void TestBlackbox::referenceErrorInExport()
     QbsRunParameters params;
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
-    QVERIFY2(m_qbsStderr.contains("referenceErrorInExport.qbs:5:27 'includePaths' is not defined"),
-             m_qbsStderr.constData());
+    QVERIFY2(
+        m_qbsStderr.contains("referenceErrorInExport.qbs:15:31 'includePaths' is not defined"),
+        m_qbsStderr.constData());
 }
 
 void TestBlackbox::removeDuplicateLibraries_data()
