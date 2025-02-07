@@ -238,7 +238,7 @@ public:
                             GetProperty getProperty = nullptr);
     JSClassID getClassId(const char *name) const;
 
-    bool checkForJsError(const CodeLocation &fallbackLocation);
+    bool checkForJsError(const CodeLocation &currentLocation);
     ErrorInfo getAndClearJsError();
     void throwAndClearJsError() { throw getAndClearJsError(); }
     void throwOnJsError(const CodeLocation &fallbackLocation);

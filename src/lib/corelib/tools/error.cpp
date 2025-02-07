@@ -40,10 +40,11 @@
 #include "error.h"
 
 #include "persistence.h"
-#include "stringconstants.h"
 #include "setupprojectparameters.h"
-#include "logging/logger.h"
+#include "stringconstants.h"
 
+#include <logging/logger.h>
+#include <logging/translator.h>
 #include <tools/stlutils.h>
 
 #include <QtCore/qjsonarray.h>
@@ -51,8 +52,6 @@
 #include <QtCore/qshareddata.h>
 #include <QtCore/qstringlist.h>
 
-#include <algorithm>
-#include <functional>
 #include <regex>
 
 namespace qbs {
@@ -251,6 +250,19 @@ void ErrorInfo::append(const QString &description, const CodeLocation &location)
 void ErrorInfo::prepend(const QString &description, const CodeLocation &location)
 {
     d->items.prepend(ErrorItem(description, location));
+}
+
+void ErrorInfo::addOrPrependLocation(const CodeLocation &loc)
+{
+    QBS_CHECK(hasError());
+    if (!loc.isValid())
+        return;
+    if (d->items.first().codeLocation() == loc)
+        return;
+    if (d->items.first().codeLocation().isValid())
+        prepend(Internal::Tr::tr("While evaluating here"), loc);
+    else
+        d->items[0] = ErrorItem(d->items.first().description(), loc);
 }
 
 /*!

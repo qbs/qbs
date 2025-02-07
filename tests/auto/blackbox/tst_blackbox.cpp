@@ -2705,6 +2705,13 @@ void TestBlackbox::referenceErrorInExport()
     params.expectFailure = true;
     QVERIFY(runQbs(params) != 0);
     QVERIFY2(
+        m_qbsStderr.contains("referenceErrorInExport.qbs:2:5 Error while handling product "
+                             "'referenceErrorInExport':"),
+        m_qbsStderr.constData());
+    QVERIFY2(
+        m_qbsStderr.contains("referenceErrorInExport.qbs:5:27 While evaluating here"),
+        m_qbsStderr.constData());
+    QVERIFY2(
         m_qbsStderr.contains("referenceErrorInExport.qbs:15:31 'includePaths' is not defined"),
         m_qbsStderr.constData());
 }

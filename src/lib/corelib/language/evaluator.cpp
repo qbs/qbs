@@ -566,12 +566,8 @@ public:
     JSValue eval()
     {
         JSValue result = m_value.apply(this);
-
-        // TODO: Ideally, we'd just throw instead of all the check-and-forward stanzas,
-        // but I believe the Evaluator code paths are not entirely exception-safe yet.
         if (m_engine.checkForJsError(m_value.location()))
             return JS_UNINITIALIZED;
-
         if (JS_IsUninitialized(result))
             result = JS_UNDEFINED;
         convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);

@@ -896,11 +896,13 @@ JSClassID ScriptEngine::getClassId(const char *name) const
     return m_classes.value(QLatin1String(name));
 }
 
-bool ScriptEngine::checkForJsError(const CodeLocation &fallbackLocation)
+bool ScriptEngine::checkForJsError(const CodeLocation &currentLocation)
 {
-    if (m_jsError.hasError())
+    if (m_jsError.hasError()) {
+        m_jsError.addOrPrependLocation(currentLocation);
         return true;
-    if (const JsException ex = checkAndClearException(fallbackLocation)) {
+    }
+    if (const JsException ex = checkAndClearException(currentLocation)) {
         m_jsError = ex.toErrorInfo();
         return true;
     }

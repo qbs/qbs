@@ -106,6 +106,7 @@ public:
     void append(const ErrorItem &item);
     void append(const QString &description, const CodeLocation &location = CodeLocation());
     void prepend(const QString &description, const CodeLocation &location = CodeLocation());
+    void addOrPrependLocation(const CodeLocation &loc);
     const QList<ErrorItem> items() const;
     bool hasError() const { return !items().empty(); }
     void clear();
