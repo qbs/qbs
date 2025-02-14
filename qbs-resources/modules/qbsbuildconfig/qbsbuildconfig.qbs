@@ -50,23 +50,25 @@ Module {
 
     Properties {
         condition: project.withCode && qbs.toolchain.contains("gcc")
-        cpp.cxxFlags: {
+        property bool isClang: qbs.toolchain.contains("clang")
+        property var versionAtLeast: { return function(v) { return Utilities.versionCompare(cpp.compilerVersion, v) >= 0 } }
+        cpp.commonCompilerFlags: {
             var flags = ["-Wno-missing-field-initializers"];
             if (enableAddressSanitizer)
                 flags.push("-fno-omit-frame-pointer");
-            function isClang() { return qbs.toolchain.contains("clang"); }
-            function versionAtLeast(v) {
-                return Utilities.versionCompare(cpp.compilerVersion, v) >= 0;
-            };
-            if (isClang())
+            if (isClang)
                 flags.push("-Wno-constant-logical-operand");
-            if ((!isClang() && versionAtLeast("9"))
-                    || (isClang() && !qbs.hostOS.contains("darwin") && versionAtLeast("10"))) {
-                flags.push("-Wno-deprecated-copy");
-            }
             // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105616
-            if (enableAddressSanitizer && !isClang() && versionAtLeast("13")) {
+            if (enableAddressSanitizer && !isClang && versionAtLeast("13")) {
                 flags.push("-Wno-maybe-uninitialized");
+            }
+            return flags;
+        }
+        cpp.cxxFlags: {
+            var flags = [];
+            if ((!isClang && versionAtLeast("9"))
+                    || (isClang && !qbs.hostOS.contains("darwin") && versionAtLeast("10"))) {
+                flags.push("-Wno-deprecated-copy");
             }
             return flags;
         }
