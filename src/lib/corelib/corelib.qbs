@@ -33,6 +33,12 @@ QbsLibrary {
         condition: qbs.targetOS.contains("windows")
         cpp.dynamicLibraries: ["psapi", "shell32"]
     }
+
+    Properties {
+        condition: qbs.toolchain.contains("mingw")
+        cpp.cxxFlags: "-Wa,-mbig-obj"
+    }
+
     Properties { cpp.dynamicLibraries: base }
 
     Properties {
