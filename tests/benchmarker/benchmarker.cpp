@@ -39,13 +39,19 @@
 
 namespace qbsBenchmarker {
 
-Benchmarker::Benchmarker(Activities activities, QString oldCommit, QString newCommit,
-                         QString testProject, QString qbsRepo)
+Benchmarker::Benchmarker(
+    Activities activities,
+    QString oldCommit,
+    QString newCommit,
+    QString testProject,
+    QString qbsRepo,
+    bool sequential)
     : m_activities(activities)
     , m_oldCommit(std::move(oldCommit))
     , m_newCommit(std::move(newCommit))
     , m_testProject(std::move(testProject))
     , m_qbsRepo(std::move(qbsRepo))
+    , m_sequential(sequential)
 {
 }
 
@@ -74,20 +80,35 @@ void Benchmarker::benchmark()
     buildQbs(newQbsBuildDir);
     std::cout << "Now running valgrind. This can take a while." << std::endl;
 
-    ValgrindRunner oldDataRetriever(m_activities, m_testProject, oldQbsBuildDir,
-                                    m_baseOutputDir.path() + "/benchmark-data." + m_oldCommit);
-    ValgrindRunner newDataRetriever(m_activities, m_testProject, newQbsBuildDir,
-                                    m_baseOutputDir.path() + "/benchmark-data." + m_newCommit);
-    QFuture<void> oldFuture = QtConcurrent::run([&oldDataRetriever]{ oldDataRetriever.run(); });
-    QFuture<void> newFuture = QtConcurrent::run([&newDataRetriever]{ newDataRetriever.run(); });
-    oldFuture.waitForFinished();
+    ValgrindRunner oldDataRetriever(
+        m_activities,
+        m_testProject,
+        oldQbsBuildDir,
+        m_baseOutputDir.path() + "/benchmark-data." + m_oldCommit,
+        m_sequential);
+    ValgrindRunner newDataRetriever(
+        m_activities,
+        m_testProject,
+        newQbsBuildDir,
+        m_baseOutputDir.path() + "/benchmark-data." + m_newCommit,
+        m_sequential);
+    if (m_sequential) {
+        oldDataRetriever.run();
+        newDataRetriever.run();
+    } else {
+        QFuture<void> oldFuture = QtConcurrent::run(
+            [&oldDataRetriever] { oldDataRetriever.run(); });
+        QFuture<void> newFuture = QtConcurrent::run(
+            [&newDataRetriever] { newDataRetriever.run(); });
+        oldFuture.waitForFinished();
+        newFuture.waitForFinished();
+    }
     const auto oldValgrindResults = oldDataRetriever.results();
     for (const ValgrindResult &valgrindResult : oldValgrindResults) {
         BenchmarkResult &benchmarkResult = m_results[valgrindResult.activity];
         benchmarkResult.oldInstructionCount = valgrindResult.instructionCount;
         benchmarkResult.oldPeakMemoryUsage = valgrindResult.peakMemoryUsage;
     }
-    newFuture.waitForFinished();
     const auto newValgrindResults = newDataRetriever.results();
     for (const ValgrindResult &valgrindResult : newValgrindResults) {
         BenchmarkResult &benchmarkResult = m_results[valgrindResult.activity];

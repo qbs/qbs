@@ -114,8 +114,13 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    Benchmarker benchmarker(clParser.activies(), clParser.oldCommit(), clParser.newCommit(),
-                            clParser.testProjectFilePath(), clParser.qbsRepoDirPath());
+    Benchmarker benchmarker(
+        clParser.activies(),
+        clParser.oldCommit(),
+        clParser.newCommit(),
+        clParser.testProjectFilePath(),
+        clParser.qbsRepoDirPath(),
+        clParser.sequential());
     try {
         benchmarker.benchmark();
         printResults(clParser.activies(), benchmarker.results(), clParser.regressionThreshold());

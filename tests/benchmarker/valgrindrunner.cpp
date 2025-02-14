@@ -44,12 +44,17 @@
 
 namespace qbsBenchmarker {
 
-ValgrindRunner::ValgrindRunner(Activities activities, QString testProject,
-                               const QString &qbsBuildDir, const QString &baseOutputDir)
+ValgrindRunner::ValgrindRunner(
+    Activities activities,
+    QString testProject,
+    const QString &qbsBuildDir,
+    const QString &baseOutputDir,
+    bool sequential)
     : m_activities(activities)
     , m_testProject(std::move(testProject))
     , m_qbsBinary(qbsBuildDir + "/benchmarker/install-root/bin/qbs")
     , m_baseOutputDir(baseOutputDir)
+    , m_sequential(sequential)
 {
     if (!QDir::root().mkpath(m_baseOutputDir))
         throw Exception(QStringLiteral("Failed to create directory '%1'.").arg(baseOutputDir));
@@ -57,6 +62,16 @@ ValgrindRunner::ValgrindRunner(Activities activities, QString testProject,
 
 void ValgrindRunner::run()
 {
+    if (m_sequential) {
+        if (m_activities & ActivityResolving)
+            traceResolving();
+        if (m_activities & ActivityRuleExecution)
+            traceRuleExecution();
+        if (m_activities & ActivityNullBuild)
+            traceNullBuild();
+        return;
+    }
+
     std::deque<QFuture<void>> futures;
     if (m_activities & ActivityResolving)
         futures.push_back(QtConcurrent::run([this]{ traceResolving(); }));
@@ -119,19 +134,26 @@ void ValgrindRunner::traceActivity(Activity activity, const QString &buildDirCal
 
     const QString outFileCallgrind = m_baseOutputDir + "/outfile." + activityString + ".callgrind";
     const QString outFileMassif = m_baseOutputDir + "/outfile." + activityString + ".massif";
-    QFuture<qint64> callGrindFuture = QtConcurrent::run(
-                [this, qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind]
-    {
+    qint64 instructionCount = 0;
+    qint64 memUsage = 0;
+    const auto callgrindRunner = [this, qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind] {
         return runCallgrind(qbsCommand, buildDirCallgrind, dryRun, outFileCallgrind);
-    });
-    QFuture<qint64> massifFuture = QtConcurrent::run(
-                [this, qbsCommand, buildDirMassif, dryRun, outFileMassif]
-    {
+    };
+    const auto massifRunner = [this, qbsCommand, buildDirMassif, dryRun, outFileMassif] {
         return runMassif(qbsCommand, buildDirMassif, dryRun, outFileMassif);
-    });
-    callGrindFuture.waitForFinished();
-    massifFuture.waitForFinished();
-    addToResults(ValgrindResult(activity, callGrindFuture.result(), massifFuture.result()));
+    };
+    if (m_sequential) {
+        instructionCount = callgrindRunner();
+        memUsage = massifRunner();
+    } else {
+        QFuture<qint64> callGrindFuture = QtConcurrent::run(callgrindRunner);
+        QFuture<qint64> massifFuture = QtConcurrent::run(massifRunner);
+        callGrindFuture.waitForFinished();
+        instructionCount = callGrindFuture.result();
+        massifFuture.waitForFinished();
+        memUsage = massifFuture.result();
+    }
+    addToResults(ValgrindResult(activity, instructionCount, memUsage));
 }
 
 QStringList ValgrindRunner::qbsCommandLine(const QString &command, const QString &buildDir,

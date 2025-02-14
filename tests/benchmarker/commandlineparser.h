@@ -47,6 +47,7 @@ public:
     QString testProjectFilePath() const { return m_testProjectFilePath; }
     QString qbsRepoDirPath() const { return m_qbsRepoDirPath; }
     int regressionThreshold() const { return m_regressionThreshold; }
+    bool sequential() const { return m_sequential; }
 
 private:
     [[noreturn]] void throwException(const QString &optionName, const QString &illegalValue,
@@ -59,6 +60,7 @@ private:
     QString m_testProjectFilePath;
     QString m_qbsRepoDirPath;
     int m_regressionThreshold = 0;
+    bool m_sequential = false;
 };
 
 } // namespace qbsBenchmarker

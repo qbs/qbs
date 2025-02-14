@@ -50,8 +50,12 @@ public:
 class ValgrindRunner
 {
 public:
-    ValgrindRunner(Activities activities, QString testProject, const QString &qbsBuildDir,
-                    const QString &baseOutputDir);
+    ValgrindRunner(
+        Activities activities,
+        QString testProject,
+        const QString &qbsBuildDir,
+        const QString &baseOutputDir,
+        bool sequential);
 
     void run();
     QList<ValgrindResult> results() const { return m_results; }
@@ -77,6 +81,7 @@ private:
     const QString m_testProject;
     const QString m_qbsBinary;
     const QString m_baseOutputDir;
+    const bool m_sequential;
     QList<ValgrindResult> m_results;
     std::mutex m_resultsMutex;
 };

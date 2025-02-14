@@ -50,8 +50,13 @@ using BenchmarkResults = QHash<Activity, BenchmarkResult>;
 class Benchmarker
 {
 public:
-    Benchmarker(Activities activities, QString oldCommit, QString newCommit,
-                QString testProject, QString qbsRepo);
+    Benchmarker(
+        Activities activities,
+        QString oldCommit,
+        QString newCommit,
+        QString testProject,
+        QString qbsRepo,
+        bool sequential);
     ~Benchmarker();
 
     void benchmark();
@@ -69,6 +74,7 @@ private:
     const QString m_newCommit;
     const QString m_testProject;
     const QString m_qbsRepo;
+    const bool m_sequential;
     QString m_commitToRestore;
     QTemporaryDir m_baseOutputDir;
     BenchmarkResults m_results;

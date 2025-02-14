@@ -71,6 +71,11 @@ void CommandLineParser::parse()
             "All temporary data from running the benchmarks will be kept if that happens.",
             "value in per cent");
     parser.addOption(thresholdOption);
+    QCommandLineOption sequentialOption(
+        QStringList{"sequential", "s"},
+        "Run the valgrind processes sequentially, rather than in parallel. This can help to "
+        "prevent OOM situations with large test projects.");
+    parser.addOption(sequentialOption);
     parser.process(*QCoreApplication::instance());
     const QList<QCommandLineOption> mandatoryOptions = QList<QCommandLineOption>()
             << oldCommitOption << newCommitOption << testProjectOption << qbsRepoOption;
@@ -116,6 +121,7 @@ void CommandLineParser::parse()
                            rawThresholdValue,
                            parser.helpText());
     }
+    m_sequential = parser.isSet(sequentialOption);
 }
 
 void CommandLineParser::throwException(const QString &optionName, const QString &illegalValue,
