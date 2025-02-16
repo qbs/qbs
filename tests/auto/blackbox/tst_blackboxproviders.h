@@ -46,6 +46,7 @@ private slots:
     void brokenProvider();
     void conanProvider();
     void conanProvider_data();
+    void conanFileProbe();
     void moduleProviders();
     void moduleProvidersCache();
     void nonEagerModuleProvider();

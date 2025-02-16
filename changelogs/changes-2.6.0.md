@@ -4,6 +4,7 @@
 * When building only specific products via the `-p` option, dependent products
   are not necessarily built in their entirety anymore. Instead, only the artifacts
   required for the requested products are built.
+* ConanfileProbe now supports Conan 2 and QbsDeps generator.
 
 # Language
 * Added new `Rule` property `auxiliaryInputsFromDependencies`.

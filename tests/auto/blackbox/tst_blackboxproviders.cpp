@@ -143,6 +143,35 @@ void TestBlackboxProviders::conanProvider_data()
     QTest::addRow("conan files generated") << true << true;
 }
 
+void TestBlackboxProviders::conanFileProbe()
+{
+    const auto executable = findExecutable({"conan"});
+    if (executable.isEmpty())
+        QSKIP("conan is not installed or not available in PATH.");
+
+    const auto conanVersion = this->conanVersion(executable);
+    if (!conanVersion.isValid())
+        QSKIP("Can't get conan version.");
+    if (compare(conanVersion, qbs::Version(2, 6)) < 0)
+        QSKIP("This test apples only to conan 2.6 and newer.");
+
+    const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
+    if (!QFileInfo(profilePath).exists())
+        QSKIP("conan profile is not installed, run './scripts/setup-conan-profiles.sh'.");
+
+    // install testlib
+    QProcess conan;
+    QDir::setCurrent(testDataDir + "/conanfile-probe/testlib");
+    conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
+    QVERIFY(waitForProcessSuccess(conan));
+
+    // now build an app
+    QDir::setCurrent(testDataDir + "/conanfile-probe");
+
+    QCOMPARE(runQbs(QbsRunParameters{"resolve"}), 0);
+    QCOMPARE(runQbs(QbsRunParameters{"build"}), 0);
+}
+
 void TestBlackboxProviders::moduleProviders()
 {
     QDir::setCurrent(testDataDir + "/module-providers");
