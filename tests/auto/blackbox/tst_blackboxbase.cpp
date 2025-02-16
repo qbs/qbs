@@ -275,6 +275,18 @@ qbs::Version TestBlackboxBase::qmakeVersion(const QString &qmakeFilePath)
     return version;
 }
 
+qbs::Version TestBlackboxBase::conanVersion(const QString &conanFilePath)
+{
+    QProcess conan;
+    conan.start(conanFilePath, {"--version"});
+    if (!waitForProcessSuccess(conan))
+        return qbs::Version{};
+    return qbs::Version::fromString(QString::fromLocal8Bit(conan.readAllStandardOutput())
+                                        .trimmed()
+                                        .remove(QStringLiteral("Conan version"))
+                                        .trimmed());
+}
+
 bool waitForProcessSuccess(QProcess &p, int msecs)
 {
     if (!p.waitForStarted(msecs) || !p.waitForFinished(msecs)) {

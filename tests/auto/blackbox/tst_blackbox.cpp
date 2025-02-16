@@ -151,6 +151,17 @@ bool TestBlackbox::prepareAndRunConan()
         qInfo() << "conan is not installed or not available in PATH.";
         return false;
     }
+
+    const auto conanVersion = this->conanVersion(executable);
+    if (!conanVersion.isValid()) {
+        qInfo() << "Can't get conan version.";
+        return false;
+    }
+    if (compare(conanVersion, qbs::Version(2, 6)) < 0) {
+        qInfo() << "This test apples only to conan 2.6 and newer.";
+        return false;
+    }
+
     const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test-libs";
     if (!QFileInfo(profilePath).exists()) {
         qInfo() << "conan profile is not installed, run './scripts/setup-conan-profiles.sh'";
@@ -1996,17 +2007,20 @@ void TestBlackbox::conanfileProbe()
 {
     QFETCH(bool, forceFailure);
 
-    QSKIP("Skip this test");
-
     QString executable = findExecutable({"conan"});
     if (executable.isEmpty())
         QSKIP("conan is not installed or not available in PATH.");
 
+    const auto conanVersion = this->conanVersion(executable);
+    if (!conanVersion.isValid())
+        QSKIP("Can't get conan version.");
+    if (compare(conanVersion, qbs::Version(2, 0)) >= 0)
+        QSKIP("This test does not apply to conan 2.0 and newer.");
+
     // We first build a dummy package testlib and use that as dependency
     // in the testapp package.
     QDir::setCurrent(testDataDir + "/conanfile-probe/testlib");
-    QStringList arguments { "create", "-o", "opt=True", "-s", "os=AIX", ".",
-                            "testlib/1.2.3@qbs/testing" };
+    QStringList arguments{"create -o opt=True -s os=AIX . testlib/1.2.3@qbs/testing"};
     QProcess conan;
     conan.start(executable, arguments);
     QVERIFY(waitForProcessSuccess(conan));
