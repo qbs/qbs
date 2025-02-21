@@ -86,6 +86,12 @@ void TestBlackboxProviders::conanProvider()
     if (executable.isEmpty())
         QSKIP("conan is not installed or not available in PATH.");
 
+    const auto conanVersion = this->conanVersion(executable);
+    if (!conanVersion.isValid())
+        QSKIP("Can't get conan version.");
+    if (compare(conanVersion, qbs::Version(2, 6)) < 0)
+        QSKIP("This test apples only to conan 2.6 and newer.");
+
     const auto profilePath = QDir::homePath() + "/.conan2/profiles/qbs-test";
     if (!QFileInfo(profilePath).exists())
         QSKIP("conan profile is not installed, run './scripts/setup-conan-profiles.sh'.");

@@ -103,6 +103,7 @@ protected:
     static void ccp(const QString &sourceDirPath, const QString &targetDirPath);
     QMap<QString, QString> findJdkTools(int *status);
     static qbs::Version qmakeVersion(const QString &qmakeFilePath);
+    static qbs::Version conanVersion(const QString &conanFilePath);
 
     const QString testDataDir;
     const QString testSourceDir;
