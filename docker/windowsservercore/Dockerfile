@@ -26,6 +26,8 @@ RUN choco install -y python --version 3.9 && \
     choco install -y git --version 2.24.0 --params "/GitAndUnixToolsOnPath" && \
     choco install -y vswhere
 
+RUN pip install -U pip
+
 # for building the documentation
 RUN pip install beautifulsoup4 lxml
 

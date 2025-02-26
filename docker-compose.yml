@@ -26,13 +26,13 @@ services:
   noble-qt6: &noble-qt6
     << : *linux
     hostname: noble-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.5.3_2.3.2-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.7.3_2.5.1-0
     build:
       dockerfile: docker/noble/Dockerfile
       context: .
       args:
-        QT_VERSION: 6.5.3
-        QTCREATOR_VERSION: 13.0.2
+        QT_VERSION: 6.7.3
+        QTCREATOR_VERSION: 15.0.1
 
   noble:
     << : *noble-qt6
@@ -102,12 +102,12 @@ services:
   noble-qt6-wasm:
     << : *linux
     hostname: noble-qt6-wasm
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-wasm-6.7.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-wasm-6.7.3-0
     build:
       dockerfile: docker/noble/test-qt6-wasm.Dockerfile
       context: .
       args:
-        QT_VERSION: 6.7.0
+        QT_VERSION: 6.7.3
         EMSCRIPTEN_VERSION: 3.1.50
 
   leap:
@@ -122,13 +122,13 @@ services:
         QTCREATOR_VERSION: 5.0.3
 
   windows:
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.6.0_1.24.0-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.7.3_1.24.0-0
     build:
       dockerfile: docker/windowsservercore/Dockerfile
       context: .
       args:
-        QT_VERSION: 6.6.0
-        QTCREATOR_VERSION: 9.0.1
+        QT_VERSION: 6.7.3
+        QTCREATOR_VERSION: 15.0.1
     working_dir: 'C:/qbs'
     environment:
       - BUILD_OPTIONS
