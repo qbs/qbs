@@ -770,7 +770,7 @@ private:
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->isFallback() && !lst.empty())
                 break;
-            if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
+            if (alternative.value->sourceUsesOuter() && !m_itemOfProperty.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 outerScriptValue = evaluateJSSourceValue(value, nullptr);
                 if (JS_IsError(m_engine.context(), outerScriptValue)) {
@@ -780,7 +780,7 @@ private:
             }
             const JSValue v = evaluateJSSourceValue(
                 alternative.value.get(),
-                m_item.outerItem(),
+                m_itemOfProperty.outerItem(),
                 &alternative,
                 value,
                 &outerScriptValue);
@@ -825,7 +825,7 @@ private:
     {
         JSValue result = handleAlternatives(value);
         if (JS_IsUninitialized(result)) {
-            result = evaluateJSSourceValue(value, m_item.outerItem());
+            result = evaluateJSSourceValue(value, m_itemOfProperty.outerItem());
             if (JS_IsError(m_engine.context(), result))
                 return result;
         } else if (value->isExclusiveListValue()) {

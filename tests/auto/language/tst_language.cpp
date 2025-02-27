@@ -2741,7 +2741,7 @@ void TestLanguage::outerInGroup()
         QCOMPARE(products.size(), 1);
         ResolvedProductPtr product = products.value("OuterInGroup");
         QVERIFY(!!product);
-        QCOMPARE(product->groups.size(), size_t(2));
+        QCOMPARE(product->groups.size(), size_t(3));
         GroupPtr group = product->groups.at(0);
         QVERIFY(!!group);
         QCOMPARE(group->name, product->name);
@@ -2750,7 +2750,7 @@ void TestLanguage::outerInGroup()
         SourceArtifactConstPtr artifact = group->files->front();
         QVariant installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere"));
-        group = product->groups.at(1);
+        group = product->groups.at(2);
         QVERIFY(!!group);
         QCOMPARE(group->name, QString("Special Group"));
         QVERIFY(group->files);
@@ -2758,6 +2758,8 @@ void TestLanguage::outerInGroup()
         artifact = group->files->front();
         installDir = artifact->properties->qbsPropertyValue("installDir");
         QCOMPARE(installDir.toString(), QString("/somewhere/else"));
+        const QVariant stringProp = artifact->properties->moduleProperty("dummy", "someString");
+        QCOMPARE(stringProp.toString(), "s1s2s3");
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();
