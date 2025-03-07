@@ -726,7 +726,7 @@ private:
         for (const JSSourceValue::Alternative &alternative : value->alternatives()) {
             if (alternative.value->isFallback() && !lst.empty())
                 break;
-            if (alternative.value->sourceUsesOuter() && !m_item.outerItem()
+            if (alternative.value->sourceUsesOuter() && !m_itemOfProperty.outerItem()
                 && JS_IsUndefined(outerScriptValue)) {
                 outerScriptValue = evaluateJSSourceValue(value, nullptr);
                 if (m_engine.checkForJsError(alternative.value->location())) {
@@ -736,7 +736,7 @@ private:
             }
             const JSValue v = evaluateJSSourceValue(
                 alternative.value.get(),
-                m_item.outerItem(),
+                m_itemOfProperty.outerItem(),
                 &alternative,
                 value,
                 &outerScriptValue);
@@ -754,7 +754,7 @@ private:
         // otherwise only if the property is a list property and the top-level value
         // was not created programmatically as a fallback.
         if (lst.empty() || !value->createdByPropertiesBlock()) {
-            const JSValue v = evaluateJSSourceValue(value, m_item.outerItem());
+            const JSValue v = evaluateJSSourceValue(value, m_itemOfProperty.outerItem());
             if (m_engine.checkForJsError(value->location()))
                 return JS_UNINITIALIZED;
             if (m_decl.isScalar())
