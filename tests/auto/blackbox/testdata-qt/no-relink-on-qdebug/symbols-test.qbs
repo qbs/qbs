@@ -2,12 +2,14 @@ Project {
     CppApplication {
         name: "app"
         Depends { name: "lib" }
+        Depends { name: "Qt.core" }
         property bool dummy: {
             var isGCC = qbs.toolchain.includes("gcc") && !qbs.toolchain.includes("emscripten")
             console.info("is GCC: " + isGCC);
             console.info("is MinGW: " + qbs.toolchain.includes("mingw"));
             console.info("is Darwin: " + qbs.targetOS.includes("darwin"));
             console.info("is emscripten: " + qbs.toolchain.contains("emscripten"));
+            console.info("is static qt: " + Qt.core.staticBuild);
         }
         files: "main.cpp"
     }

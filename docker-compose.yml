@@ -88,6 +88,17 @@ services:
       dockerfile: docker/noble/test-baremetal.Dockerfile
       context: .
 
+  noble-qt6-static:
+    << : *linux
+    hostname: noble-qt6-static
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-static-6.5.3_2.3.2-0
+    build:
+      dockerfile: docker/noble/test-qt6-static.Dockerfile
+      context: .
+      args:
+        QT_VERSION: 6.5.3
+        QTCREATOR_VERSION: 13.0.2
+
   noble-qt6-wasm:
     << : *linux
     hostname: noble-qt6-wasm

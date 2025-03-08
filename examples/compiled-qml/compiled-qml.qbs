@@ -49,6 +49,8 @@
 ****************************************************************************/
 
 CppApplication {
+    condition: !Qt.core.staticBuild
+    Depends { name: "Qt.core" }
     Depends { name: "Qt.quick" }
 
     files: [

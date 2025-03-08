@@ -400,6 +400,13 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
+            name: 'Run Linux tests (gcc, Qt 6, static)',
+            image: 'noble-qt6-static',
+            suffix: 'linux-noble',
+            profile: 'qt-gcc_64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
             name: 'Run Linux tests (gcc, Qt 5)',
             image: 'noble-qt5',
             suffix: 'linux-noble',

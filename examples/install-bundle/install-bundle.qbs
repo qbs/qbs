@@ -6,9 +6,10 @@ Project {
         Depends { name: "windowutils" }
         Depends { name: "ib"; condition: qbs.targetOS.contains("darwin") }
         Depends { name: "Qt"; submodules: ["core", "gui", "widgets"] }
-        condition: qbs.targetOS.contains("macos")
+        condition: (qbs.targetOS.contains("macos")
                    || qbs.targetOS.contains("linux")
-                   || qbs.targetOS.contains("windows")
+                   || qbs.targetOS.contains("windows"))
+                   && !Qt.core.staticBuild
 
         name: "window"
         property bool isBundle: bundle.isBundle
