@@ -108,9 +108,7 @@ Product {
                 var dir = FileInfo.path(Qt.core.libFilePathRelease);
                 var addons = [ "libicui18n", "libicuuc", "libicudata" ];
                 addons.forEach(function(lib) {
-                    var fp = dir + "/" + lib + ".so";
-                    if (File.exists(fp))
-                        libraries.push(fp + "*");
+                    libraries.push(dir + "/" + lib + ".so*");
                 });
             }
 
