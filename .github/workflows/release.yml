@@ -23,7 +23,6 @@ jobs:
                       modules.qbsbuildconfig.enableAddressSanitizer:false
                       project.withTests:false
                       modules.qbsbuildconfig.enableUnitTests:false
-                      modules.qbsbuildconfig.enableBundledQt:true
                       products.qbs_archive.targetName:qbs-linux-${{ github.run_id }}',
             script: './scripts/build-qbs-with-qbs.sh',
             cacheid: 'gcc-release',
@@ -73,7 +72,6 @@ jobs:
         project.withTests:false
         modules.qbsbuildconfig.enableUnitTests:false
         modules.qbsbuildconfig.enableAddressSanitizer:false
-        modules.qbsbuildconfig.enableBundledQt:true
         products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
       WITH_TESTS: 0
     steps:
@@ -153,7 +151,6 @@ jobs:
         qbs.buildVariant:release
         modules.cpp.compilerWrapper:clcache
         project.withTests:false
-        modules.qbsbuildconfig.enableBundledQt:true
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
         project.withDocumentation:true

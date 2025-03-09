@@ -20,7 +20,6 @@ jobs:
             image: 'noble-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true
                       products.qbs_archive.targetName:qbs-linux-noble-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
@@ -85,8 +84,7 @@ jobs:
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true',
+                      modules.qbs.debugInformation:true',
             cacheid: 'gcc-asan',
           }
         - {
@@ -95,8 +93,7 @@ jobs:
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true',
+                      modules.qbs.debugInformation:true',
             cacheid: 'gcc-ubsan',
           }
         - {
@@ -104,8 +101,7 @@ jobs:
             image: 'noble-qt5',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
-                      modules.qbs.debugInformation:true
-                      modules.qbsbuildconfig.enableBundledQt:true',
+                      modules.qbs.debugInformation:true',
             cacheid: 'gcc-qt5',
           }
     env:
@@ -164,7 +160,6 @@ jobs:
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableAddressSanitizer:false
-                      modules.qbsbuildconfig.enableBundledQt:true
                       products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             cacheid: 'clang',
@@ -240,7 +235,6 @@ jobs:
             options: 'modules.cpp.compilerWrapper:clcache
                       modules.qbs.debugInformation:true
                       modules.qbsbuildconfig.enableAddressSanitizer:false
-                      modules.qbsbuildconfig.enableBundledQt:true
                       products.qbs_archive.targetName:qbs-windows-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             cacheid: 'msvc',
@@ -327,7 +321,6 @@ jobs:
       BUILD_OPTIONS: |
         modules.cpp.compilerWrapper:ccache
         modules.qbsbuildconfig.enableAddressSanitizer:false
-        modules.qbsbuildconfig.enableBundledQt:true
         products.qbs_archive.targetName:qbs-windows-mingw-${{ github.run_id }}
         products.qbs_archive.includeTests:true,
       QT_ASSUME_STDERR_HAS_CONSOLE: 1

@@ -60,6 +60,7 @@ BUILD_OPTIONS="\
     profile:${QBS_BUILD_PROFILE} \
     modules.qbsbuildconfig.enableUnitTests:true \
     modules.cpp.treatWarningsAsErrors:true \
+    modules.qbsbuildconfig.enableBundledQt:true \
     modules.cpp.separateDebugInformation:true \
     ${BUILD_OPTIONS} \
     config:release \
