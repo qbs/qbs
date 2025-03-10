@@ -64,7 +64,7 @@ ProtobufBase {
 
         prepare: {
             var result = HelperFunctions.doPrepare(
-                        input.protobuf.cpp, product, input, outputs, "cpp");
+                        input.protobuf.cpp, product, input, outputs, "cpp", input.protobuf.cpp._plugin);
             if (input.fileTags.includes("protobuf.grpc")) {
                 result = ModUtils.concatAll(result, HelperFunctions.doPrepare(
                                 input.protobuf.cpp, product, input, outputs, "grpc",

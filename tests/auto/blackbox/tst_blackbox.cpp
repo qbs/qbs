@@ -7377,6 +7377,31 @@ void TestBlackbox::protobuf()
     QCOMPARE(runQbs(runParams) == 0, successExpected);
 }
 
+void TestBlackbox::protobufCppPlugin()
+{
+    QDir::setCurrent(testDataDir + "/protobuf");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters resolveParams(
+        "resolve",
+        QStringList{"-f", "addressbook_cpp_plugin.qbs", "project.qbsModuleProviders:qbspkgconfig"});
+    QCOMPARE(runQbs(resolveParams), 0);
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    const bool withProtobuf = m_qbsStdout.contains("has protobuf: true");
+    const bool withoutProtobuf = m_qbsStdout.contains("has protobuf: false");
+    QVERIFY2(withProtobuf || withoutProtobuf, m_qbsStdout.constData());
+    if (withoutProtobuf)
+        QSKIP("protobuf module not present");
+
+    QbsRunParameters buildParams("build");
+    buildParams.arguments << "--command-echo-mode" << "command-line";
+    QCOMPARE(runQbs(buildParams), 0);
+    QVERIFY2(m_qbsStdout.contains("--plugin=protoc-gen-dummy="), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("dummy-protoc-plugin"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+}
+
 void TestBlackbox::protobufLibraryInstall()
 {
     QDir::setCurrent(testDataDir + "/protobuf-library-install");

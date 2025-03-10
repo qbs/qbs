@@ -30,7 +30,8 @@ ProtobufBase {
             ];
         }
 
-        prepare: HelperFunctions.doPrepare(input.protobuf.objc, product, input, outputs, "objc")
+        prepare: HelperFunctions.doPrepare(
+            input.protobuf.objc, product, input, outputs, "objc", input.protobuf.objc._plugin)
     }
 
     Probes.IncludeProbe {

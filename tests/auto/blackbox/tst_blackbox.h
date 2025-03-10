@@ -288,6 +288,7 @@ private slots:
     void propertiesInExportItems();
     void protobuf_data();
     void protobuf();
+    void protobufCppPlugin();
     void protobufLibraryInstall();
     void pseudoMultiplexing();
     void qbsConfig();

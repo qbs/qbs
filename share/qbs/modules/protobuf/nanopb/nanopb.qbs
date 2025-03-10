@@ -8,9 +8,7 @@ import "../protobuf.js" as HelperFunctions
 ProtobufBase {
     property string includePath: includeProbe.found ? includeProbe.path : undefined
     property string libraryPath: libraryProbe.found ? libraryProbe.path : undefined
-    property string pluginPath: pluginProbe.filePath
-    property string pluginName: "protoc-gen-nanopb"
-    readonly property string _plugin: "protoc-gen-nanopb=" + pluginPath
+    pluginName: "protoc-gen-nanopb"
     readonly property string _libraryName: {
         var libraryName;
         if (libraryProbe.found) {
@@ -84,11 +82,6 @@ ProtobufBase {
         ]
         platformSearchPaths: libraryPath ? [] : base
         searchPaths: libraryPath ? [libraryPath] : []
-    }
-
-    Probes.BinaryProbe {
-        id: pluginProbe
-        names: pluginName
     }
 
     validate: {

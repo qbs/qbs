@@ -8,6 +8,17 @@ Module {
     property string compilerPath: compilerProbe.filePath
     property var _searchPaths
 
+    property string pluginPath: pluginProbe.filePath
+    property string pluginName
+    property string pluginExecutableName: pluginName
+    readonly property string _plugin: {
+        if (pluginPath === undefined)
+            return undefined;
+        if (pluginName === undefined)
+            return pluginPath;
+        return pluginName + "=" + pluginPath;
+    }
+
     property pathList importPaths: []
 
     readonly property string outputDir: product.buildDirectory + "/protobuf"
@@ -21,5 +32,11 @@ Module {
         id: compilerProbe
         names: [compilerName]
         searchPaths: _searchPaths
+    }
+
+    Probes.BinaryProbe {
+        id: pluginProbe
+        condition: pluginExecutableName !== undefined
+        names: pluginExecutableName
     }
 }
