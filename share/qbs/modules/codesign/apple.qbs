@@ -229,7 +229,7 @@ CodeSignModule {
                 fileTags: ["codesign.xcent"]
             }
 
-            prepare: CodeSign.generateAppleEntitlementsCommands(CodeSign, arguments)
+            prepare: CodeSign.generateAppleEntitlementsCommands.apply(CodeSign, arguments)
         }
 
         Rule {
