@@ -2136,6 +2136,8 @@ void TestBlackbox::cxxModules_data()
     QTest::newRow("single-module") << "single-mod";
     QTest::newRow("dot-in-name") << "dot-in-name";
     QTest::newRow("export-import") << "export-import";
+    QTest::newRow("import-std") << "import-std";
+    QTest::newRow("import-std-compat") << "import-std-compat";
     QTest::newRow("dependent-modules") << "dep-mods";
     QTest::newRow("declaration-implementation") << "decl-impl";
     QTest::newRow("library-module") << "lib-mod";

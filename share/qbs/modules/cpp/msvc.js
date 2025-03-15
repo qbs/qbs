@@ -33,6 +33,7 @@ var Cpp = require("cpp.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var ModUtils = require("qbs.ModUtils");
+var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
@@ -807,4 +808,40 @@ function appLinkerOutputArtifacts(product)
         });
     }
     return artifacts;
+}
+
+function configureStdModules() {
+    try {
+        const modulesJsonPath = FileInfo.joinPaths(_modulesDirPath, "modules.json");
+        if (File.exists(modulesJsonPath)) {
+            const jsonFile = new TextFile(modulesJsonPath, TextFile.ReadOnly);
+            const json = JSON.parse(jsonFile.readAll());
+            jsonFile.close();
+
+            const moduleSources = json["module-sources"];
+            if (moduleSources) {
+                const modules = moduleSources
+                    .filter(function(module) {
+                        if (module === "std.ixx" && (_forceUseImportStd || _forceUseImportStdCompat)) {
+                            return true;
+                        } else if (module === "std.compat.ixx" && _forceUseImportStdCompat) {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .map(function(module) {
+                        return FileInfo.joinPaths(_modulesDirPath, module);
+                    })
+                    .filter(function(module) {
+                        return File.exists(module);
+                    });
+                if (modules.length > 0) {
+                    found = true;
+                    _stdModulesFiles = modules;
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error reading modules.json: " + e);
+    }
 }

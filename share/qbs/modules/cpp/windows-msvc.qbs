@@ -32,6 +32,7 @@
 import qbs.Host
 import qbs.Probes
 import "windows-msvc-base.qbs" as MsvcBaseModule
+import 'msvc.js' as MSVC
 
 MsvcBaseModule {
     condition: Host.os().includes('windows') &&
@@ -75,4 +76,23 @@ MsvcBaseModule {
     compiledModuleSuffix: ".ifc"
     moduleOutputFlag: "-ifcOutput "
     moduleFileFlag: "-reference %module%="
+
+    stdModulesFiles: stdModulesProbe.found ? stdModulesProbe._stdModulesFiles : undefined
+    Probe {
+        id: stdModulesProbe
+        condition: msvcProbe.found
+            && !_skipAllChecks
+            && stdModulesFiles === undefined
+            && (forceUseImportStd || forceUseImportStdCompat)
+
+        // input
+        property string _modulesDirPath: msvcProbe.modulesPath
+        property bool _forceUseImportStd : forceUseImportStd
+        property bool _forceUseImportStdCompat : forceUseImportStdCompat
+
+        // output
+        property stringList _stdModulesFiles
+
+        configure: MSVC.configureStdModules()
+    }
 }

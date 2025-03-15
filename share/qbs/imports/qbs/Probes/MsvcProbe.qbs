@@ -46,6 +46,7 @@ PathProbe {
     property int versionMinor
     property int versionPatch
     property stringList includePaths
+    property string modulesPath
     property var buildEnv
     property var compilerDefinesByLanguage
 
@@ -86,6 +87,10 @@ PathProbe {
             inclPath = FileInfo.joinPaths(clParentDir, "..", "..", "INCLUDE");
         if (File.exists(inclPath))
             includePaths = [inclPath];
+
+        var modsPath = FileInfo.joinPaths(clParentDir, "..", "..", "modules");
+        if (File.exists(modsPath))
+            modulesPath = modsPath;
 
         if (preferredArchitecture && Utilities.canonicalArchitecture(preferredArchitecture)
                 !== Utilities.canonicalArchitecture(architecture)) {

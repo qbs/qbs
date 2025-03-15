@@ -64,6 +64,9 @@ Module {
     property bool useObjcPrecompiledHeader: true
     property bool useObjcxxPrecompiledHeader: true
     property bool forceUseCxxModules: false
+    property bool forceUseImportStd: false
+    property bool forceUseImportStdCompat: false
+    property stringList stdModulesFiles
     property string moduleOutputFlag // undocumented
     property string moduleFileFlag // undocumented
 
@@ -428,6 +431,13 @@ Module {
     property bool validateTargetTriple: true // undocumented
 
     property bool importPrivateLibraries: true
+
+    Group {
+        name: "std modules"
+        condition: stdModulesFiles !== undefined
+        files: stdModulesFiles
+        fileTags: "cppm"
+    }
 
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.

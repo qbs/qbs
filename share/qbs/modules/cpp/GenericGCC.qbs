@@ -73,6 +73,26 @@ CppModule {
         flags: targetDriverFlags.concat(sysrootFlags)
         _sysroot: sysroot
     }
+
+    stdModulesFiles: stdModulesProbe.found ? stdModulesProbe._stdModulesFiles : undefined
+    Probe {
+        // input
+        property bool _forceUseImportStd : forceUseImportStd
+        property bool _forceUseImportStdCompat : forceUseImportStdCompat
+        property stringList _toolchain: qbs.toolchain
+        property string _compilerPath : compilerPathByLanguage["cpp"]
+
+        // output
+        property stringList _stdModulesFiles
+
+        id: stdModulesProbe
+        condition: !_skipAllChecks
+            && stdModulesFiles === undefined
+            && !qbs.toolchain.includes("mingw")
+            && (forceUseImportStd || forceUseImportStdCompat)
+        configure: Gcc.configureStdModules()
+    }
+
     property var probeEnv
 
     Probes.BinaryProbe {
