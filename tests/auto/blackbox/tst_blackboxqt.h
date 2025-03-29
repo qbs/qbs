@@ -38,6 +38,9 @@ class TestBlackboxQt : public TestBlackboxBase
 public:
     TestBlackboxQt();
 
+private:
+    std::optional<bool> findShaderTools(bool *hasViewCount = nullptr);
+
 private slots:
     void addQObjectMacroToGeneratedCppFile();
     void autoQrc();
@@ -78,6 +81,10 @@ private slots:
     void quickCompiler();
     void qtScxml();
     void removeMocHeaderFromFileList();
+    void shadertools();
+    void shadertools_data();
+    void shadertoolsLinking();
+    void shadertoolsLinking_data();
     void staticQtPluginLinking();
     void trackAddMocInclude();
     void track_qobject_change();

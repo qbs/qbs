@@ -1,0 +1,288 @@
+/****************************************************************************
+**
+** Copyright (C) 2025 Ivan Komissarov (abbapoh@gmail.com).
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype Qt.shadertools
+    \inqmlmodule QbsModules
+    \brief Provides Qt Shader Tools support.
+
+    The Qt.shadertools module provides functionality for compiling and processing shaders
+    in \QBS projects. It supports various shader languages including GLSL, HLSL, and MSL.
+
+    \section2 Relevant File Tags
+    \target filetags-qtshadertools
+
+    \table
+    \header
+        \li Tag
+        \li Auto-tagged File Names
+        \li Since
+        \li Description
+    \row
+        \li \c{qt.shader}
+        \li \c{*.vert, *.tesc, *.tese, *.frag, *.comp}
+        \li \c{3.0}
+        \li Source files with these extensions are considered shaders and are processed by
+            the qsb tool.
+    \row
+        \li \c{qt.shader.vertex}
+        \li \c{*.vert}
+        \li \c{3.0}
+        \li Source files with this extension are considered vertex shaders.
+    \row
+        \li \c{qt.shader.fragment}
+        \li \c{*.frag}
+        \li \c{3.0}
+        \li Source files with this extension are considered fragment shaders.
+    \row
+        \li \c{qt.shader.compute}
+        \li \c{*.comp}
+        \li \c{3.0}
+        \li Source files with this extension are considered compute shaders.
+    \row
+        \li \c{qt.shader.tessellation}
+        \li \c{*.tesc}
+        \li \c{3.0}
+        \li Source files with this extension are considered tessellation shaders. These shaders
+            are automatically processed by using tessellation properties.
+    \row
+        \li \c{qt.compiled_shader}
+        \li n/a
+        \li \c{3.0}
+        \li This tag is attached to the output artifacts of the rule that runs the qsb tool.
+    \endtable
+
+    \section2 Example
+
+    \code
+    QtApplication {
+        name: "shader-app"
+        type: "application"
+
+        Depends { name: "Qt.shadertools" }
+
+        files: ["shader.frag", "shader.vert"]
+        Qt.shadertools.glslVersions: ["300 es", "330"]
+        Qt.shadertools.hlslVersions: ["50"]
+        Qt.shadertools.mslVersions: ["12"]
+    }
+    \endcode
+
+    For more details on the \c{qsb} tool, see
+    \l{https://doc.qt.io/qt-6/qtshadertools-qsb.html}{its documentation}
+
+*/
+
+/*!
+    \qmlproperty string Qt.shadertools::generatedShadersDir
+
+    The directory where compiled shaders will be placed.
+
+    \defaultvalue \c{"shaders"}
+*/
+
+/*!
+    \qmlproperty string Qt.shadertools::qsbName
+
+    The name of the Qt Shader Tools compiler executable.
+
+    \defaultvalue \c{"qsb"}
+*/
+
+/*!
+    \qmlproperty stringList Qt.shadertools::glslVersions
+
+    List of GLSL versions to generate. Each version should be specified as a string,
+    for example \c{"100 es"} for GLSL ES 1.00.
+
+    If this property is set to \c{[]}, GLSL generation is disabled.
+
+    \defaultvalue \c{[]}
+*/
+
+/*!
+    \qmlproperty stringList Qt.shadertools::hlslVersions
+
+    List of HLSL (shader model) versions to generate. The versions follow GLSL-style
+    version numbers, where 50 corresponds to Shader Model 5.0.
+
+    If this property is set to \c{[]}, HLSL generation is disabled.
+
+    \defaultvalue \c{[]}
+*/
+
+/*!
+    \qmlproperty stringList Qt.shadertools::mslVersions
+
+    List of Metal Shading Language versions to generate. 12 corresponds to version 1.2.
+
+    If this property is set to \c{[]}, MSL generation is disabled.
+
+    \defaultvalue \c{[]}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::useQt6Versions
+
+    Use default version used by Qt6.
+
+    This is equivalent to passing \c{--qt6} switch to the \c{qsb} tool.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::tessellation
+
+    Whether the shaders are used in a pipeline that uses tessellation.
+
+    By default, \QBS adds flags contolled by \l{tessellationMode} and \l{tessellationVertexCount}
+    properties for all files with the \c{"qt.shader.tessellation"} file tag. Set this property to
+    \c{false} to disable tessellation options for such files.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty string Qt.shadertools::tessellationMode
+
+    The tessellation mode. Can be either \c{"triangles"} or \c{"quads"}.
+
+    This property must be specified when a tessellation control shader is used.
+
+    \defaultvalue \c{"triangles"}
+*/
+
+/*!
+    \qmlproperty int Qt.shadertools::tessellationVertexCount
+
+    The output vertex count from the tessellation control stage.
+
+    \defaultvalue \c{3}
+*/
+
+/*!
+    \qmlproperty int Qt.shadertools::viewCount
+
+    The number of views a vertex shader is used with. Relevant for multiview
+    functionality (GL_OVR_multiview2, VK_KHR_multiview, D3D12 view instancing).
+
+    \defaultvalue \c{undefined}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::batchable
+
+    Whether vertex shaders should be made batchable for use with Qt Quick.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty int Qt.shadertools::zOrderLocation
+
+    When \l{Qt.shadertools::batchable}{batchable} is true, this specifies the location for the
+    additional vertex input that is injected with location 7 by default.
+
+    Use this property to change the location of the injected vertex input to another value.
+
+    This becomes relevant if the vertex shader has many inputs and 7 is in use and would clash.
+
+    \defaultvalue \c{undefined}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::optimized
+
+    Whether to perform SPIR-V optimizations using spirv-opt.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty stringList Qt.shadertools::defines
+
+    List of preprocessor defines to be active during shader compilation.
+
+    Defines should be added as \c{"<name>=<value>"} pairs.
+
+    \defaultvalue \c{[]}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::debugInformation
+
+    Whether to generate full debug information for SPIR-V.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::addResourceData
+
+    Whether to automatically add the compiled shaders to the Qt resource data.
+
+    \defaultvalue \c{true}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::enableLinking
+
+    Set this property to \c{true} to enable linking to the QtShaderTools library.
+
+    For example:
+    \code
+    QtApplication {
+        name: "shader-app"
+        Depends { name: "Qt.shadertools" }
+        Qt.shadertools.enableLinking: true
+    }
+    \endcode
+
+    The Qt.shadertools module can be used in two ways:
+    \list
+        \li Using the \c{qsb} tool to compile shaders.
+        \li Linking directly to the \l{https://doc.qt.io/qt-6/qtshadertools-index.html}{QtShaderTools}
+            library and using the \l{https://doc.qt.io/qt-6/qshaderbaker.html}{QShaderBaker} class.
+    \endlist
+
+    This property and \l{useCompiler} property controls which mode is used. You can also enable
+    both modes by setting both properties to \c{true}.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool Qt.shadertools::useCompiler
+
+    Whether to use the Qt Shader Tools compiler.
+
+    Set this property to \c{false} to disable the qsb tool. This is set to \c{false} by default
+    if \l{Qt.shadertools::enableLinking}{enableLinking} is \c{true}.
+
+    \defaultvalue \c{true}
+*/

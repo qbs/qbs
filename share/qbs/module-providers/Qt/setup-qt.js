@@ -474,6 +474,10 @@ function setupOneQt(moduleName, qtInfo, outputBaseDir, uniquify, location) {
                                  allFiles);
                 copyTemplateFile("rcc.js", qbsQtModuleDir, qtProps, androidAbi, location,
                                  allFiles);
+            } else if (module.qbsName === "shadertools") {
+                moduleTemplateFileName = "shadertools.qbs";
+                copyTemplateFile("shadertools.js", qbsQtModuleDir, qtProps, androidAbi, location,
+                                 allFiles);
             } else if (module.isPlugin) {
                 moduleTemplateFileName = "plugin.qbs";
             } else {

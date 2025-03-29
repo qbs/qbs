@@ -46,6 +46,44 @@ TestBlackboxQt::TestBlackboxQt() : TestBlackboxBase (SRCDIR "/testdata-qt", "bla
     setNeedsQt();
 }
 
+std::optional<bool> TestBlackboxQt::findShaderTools(bool *hasViewCount)
+{
+    QDir::setCurrent(testDataDir);
+
+    rmDirR(relativeBuildDir());
+    QbsRunParameters checkParams;
+    checkParams.command = "resolve";
+    checkParams.arguments << QStringLiteral("-f") << "find-shadertools.qbs";
+    if (runQbs(checkParams) != 0) {
+        qWarning() << "fail to resolve find-shadertools.qbs" << m_qbsStderr;
+        return std::nullopt;
+    }
+    if (!m_qbsStdout.contains("is qt6: ")) {
+        qWarning() << "stdout does not contain 'is qt6:'" << m_qbsStdout;
+        return std::nullopt;
+    }
+    if (!m_qbsStdout.contains("is static qt: ")) {
+        qWarning() << "stdout does not contain 'is static qt:'" << m_qbsStdout;
+        return std::nullopt;
+    }
+    if (!m_qbsStdout.contains("is shadertools present: ")) {
+        qWarning() << "stdout does not contain 'is shadertools present:'" << m_qbsStdout;
+        return std::nullopt;
+    }
+    if (!m_qbsStdout.contains("has viewCount: ")) {
+        qWarning() << "stdout does not contain 'has viewCount:'" << m_qbsStdout;
+        return std::nullopt;
+    }
+
+    const bool isQt6 = m_qbsStdout.contains("is qt6: true");
+    const bool isStaticQt = m_qbsStdout.contains("is static qt: true");
+    const bool isShadertoolsPresent = m_qbsStdout.contains("is shadertools present: true");
+    if (hasViewCount) {
+        *hasViewCount = m_qbsStdout.contains("has viewCount: true");
+    }
+    return isQt6 && !isStaticQt && isShadertoolsPresent;
+}
+
 void TestBlackboxQt::addQObjectMacroToGeneratedCppFile()
 {
     QDir::setCurrent(testDataDir + "/add-qobject-macro-to-generated-cpp-file");
@@ -823,6 +861,93 @@ void TestBlackboxQt::removeMocHeaderFromFileList()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::shadertools_data()
+{
+    QTest::addColumn<QString>("projectName");
+    QTest::addColumn<QStringList>("linesToCheck");
+
+    QTest::newRow("basic") << "basic"
+                           << QStringList{
+                                  "qsb.*basic_shader.frag.qsb.*",
+                                  "qsb.*--glsl ['\"]100 es,120,150['\"] --hlsl 50 --msl 20 -O -g",
+                              };
+    QTest::newRow("defines")
+        << "defines"
+        << QStringList{"qsb.*defines_shader.frag.qsb.*-DTEST_DEFINE_1=1.*-DTEST_DEFINE_2=1"};
+    QTest::newRow("tessellation") << "tessellation"
+                                  << QStringList{
+                                         "qsb.*tessellation_shader.vert.qsb.*--glsl.*410,320es",
+                                         "qsb.*tessellation_shader.tesc.qsb.*--glsl.*410,320es.*"
+                                         "--msltess --tess-mode triangles --tess-vertex-count 3"};
+    QTest::newRow("viewcount")
+        << "viewcount"
+        << QStringList{
+               "qsb.*basic_shader.frag.qsb.*",
+               "qsb.*--glsl ['\"]100 es,120,150['\"] --hlsl 50 --msl 20 --view-count 4",
+           };
+}
+
+void TestBlackboxQt::shadertools()
+{
+    QFETCH(QString, projectName);
+    QFETCH(QStringList, linesToCheck);
+
+    bool hasViewCount = false;
+    const auto shaderToolsFound = findShaderTools(&hasViewCount);
+    QVERIFY(shaderToolsFound.has_value());
+    if (!shaderToolsFound.value())
+        QSKIP("Test requires Qt 6, dynamic Qt build and Qt Shader Tools");
+
+    if (projectName == "viewcount" && !hasViewCount) {
+        QSKIP("Test requires Qt 6.7.0 or later");
+    }
+
+    QDir::setCurrent(testDataDir + "/shadertools");
+    rmDirR(relativeBuildDir());
+
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params;
+    params.arguments << QStringLiteral("-f") << projectName + ".qbs"
+                     << "--command-echo-mode"
+                     << "command-line";
+    QCOMPARE(runQbs(params), 0);
+    for (const auto &line : linesToCheck) {
+        const QRegularExpression pattern(line);
+        const QRegularExpressionMatch match = pattern.match(m_qbsStdout);
+        QVERIFY2(match.hasMatch(), qPrintable(m_qbsStdout));
+    }
+}
+
+void TestBlackboxQt::shadertoolsLinking_data()
+{
+    QTest::addColumn<bool>("enableLinking");
+
+    QTest::newRow("linking enabled") << true;
+    QTest::newRow("linking disabled") << false;
+}
+
+void TestBlackboxQt::shadertoolsLinking()
+{
+    QFETCH(bool, enableLinking);
+
+    const auto shaderToolsFound = findShaderTools();
+    QVERIFY(shaderToolsFound.has_value());
+    if (!shaderToolsFound.value())
+        QSKIP("Test requires Qt 6, dynamic Qt build and Qt Shader Tools");
+
+    QDir::setCurrent(testDataDir + "/shadertools-linking");
+
+    QbsRunParameters params;
+    params.arguments << QString("modules.Qt.shadertools.enableLinking:%1").arg(enableLinking);
+    params.expectFailure = !enableLinking;
+
+    if (enableLinking) {
+        QCOMPARE(runQbs(params), 0);
+        QVERIFY(!m_qbsStdout.contains("compiling shader.frag.qsb"));
+    } else {
+        QVERIFY(runQbs(params) != 0);
+    }
+}
 
 void TestBlackboxQt::staticQtPluginLinking()
 {
