@@ -193,7 +193,6 @@ UnixGCC {
         var env = {
             "ARCHS_STANDARD": xcode.standardArchitectures,
             "EXECUTABLE_NAME": product.targetName,
-            "LANG": "en_US.US-ASCII",
             "PRODUCT_NAME": product.name
         }
 
