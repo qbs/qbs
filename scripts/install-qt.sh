@@ -332,7 +332,7 @@ for COMPONENT in ${COMPONENTS}; do
             continue
         fi
     else
-        if [[ "${COMPONENT}" =~ "qt5compat" ]]; then
+        if [[ "${COMPONENT}" =~ "qt5compat" ]] || [[ "${COMPONENT}" =~ "shadertools" ]]; then
             echo "Component ${COMPONENT} is not present in Qt ${VERSION}, skipping" >&2
             continue
         fi
