@@ -303,7 +303,9 @@ Module {
                  "aggregate_infoplist", "pkginfo", "hpp",
                  "icns", "codesign.xcent",
                  "compiled_ibdoc", "compiled_assetcatalog",
-                 "codesign.embedded_provisioningprofile", "bundle.input.privacymanifest"]
+                 "codesign.embedded_provisioningprofile", "bundle.input.privacymanifest",
+                 "bundle.input.public_hpp", "bundle.input.private_hpp",
+                 "bundle.input.resources"]
 
         // Make sure the inputs of this rule are only those rules which produce outputs compatible
         // with the type of the bundle being produced.

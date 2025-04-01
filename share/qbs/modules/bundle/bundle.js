@@ -341,6 +341,14 @@ var XcodeBuildSpecsReader = (function () {
     return XcodeBuildSpecsReader;
 }());
 
+function filePathToArtifactLike(filePath) {
+    return {
+        filePath: filePath,
+        fileName: FileInfo.fileName(filePath),
+        path: FileInfo.path(filePath)
+    };
+}
+
 function generateBundleOutputs(product, inputs)
 {
     var i, artifacts = [];
@@ -391,16 +399,18 @@ function generateBundleOutputs(product, inputs)
         var packageType = product.bundle.packageType;
         var isShallow = product.bundle.isShallow;
         if (packageType === "FMWK" && !isShallow) {
-            var publicHeaders = product.bundle.publicHeaders;
-            if (publicHeaders && publicHeaders.length) {
+            var publicHeaders = (inputs["bundle.input.public_hpp"] || [])
+                .concat(product.bundle.publicHeaders);
+            if (publicHeaders.length > 0) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, "Headers"),
                     fileTags: ["bundle.symlink.headers", "bundle.content"]
                 });
             }
 
-            var privateHeaders = ModUtils.moduleProperty(product, "privateHeaders");
-            if (privateHeaders && privateHeaders.length) {
+            var privateHeaders = (inputs["bundle.input.private_hpp"] || [])
+                .concat(product.bundle.privateHeaders);
+            if (privateHeaders.length > 0) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, "PrivateHeaders"),
                     fileTags: ["bundle.symlink.private-headers", "bundle.content"]
@@ -425,21 +435,23 @@ function generateBundleOutputs(product, inputs)
 
         var headerTypes = ["public", "private"];
         for (var h in headerTypes) {
-            var sources = ModUtils.moduleProperty(product, headerTypes[h] + "Headers");
+            var sources = (inputs["bundle.input." + headerTypes[h] + "_hpp"] || [])
+                .concat(product.bundle[headerTypes[h] + "Headers"].map(filePathToArtifactLike));
             var destination = FileInfo.joinPaths(product.destinationDirectory, ModUtils.moduleProperty(product, headerTypes[h] + "HeadersFolderPath"));
             for (i in sources) {
                 artifacts.push({
-                    filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
+                    filePath: FileInfo.joinPaths(destination, sources[i].fileName),
                     fileTags: ["bundle.hpp", "bundle.content"]
                 });
             }
         }
 
-        sources = product.bundle.resources;
+        sources = (inputs["bundle.input.resources"] || [])
+            .concat(product.bundle.resources.map(filePathToArtifactLike));
         for (i in sources) {
-            destination = BundleTools.destinationDirectoryForResource(product, {baseDir: FileInfo.path(sources[i]), fileName: FileInfo.fileName(sources[i])});
+            destination = BundleTools.destinationDirectoryForResource(product, {baseDir: sources[i].path, fileName: sources[i].fileName});
             artifacts.push({
-                filePath: FileInfo.joinPaths(destination, FileInfo.fileName(sources[i])),
+                filePath: FileInfo.joinPaths(destination, sources[i].fileName),
                 fileTags: ["bundle.resource", "bundle.content"]
             });
         }
@@ -579,7 +591,9 @@ function generateBundleCommands(project, product, inputs, outputs, input, output
     cmd = new JavaScriptCommand();
     cmd.description = "copying public headers";
     cmd.highlight = "filegen";
-    cmd.sources = product.bundle.publicHeaders;
+    cmd.sources = (inputs["bundle.input.public_hpp"] || [])
+        .map(function(artifact) { return artifact.filePath; })
+        .concat(product.bundle.publicHeaders);
     cmd.destination = FileInfo.joinPaths(product.destinationDirectory, product.bundle.publicHeadersFolderPath);
     cmd.sourceCode = function() {
         var i;
@@ -593,7 +607,9 @@ function generateBundleCommands(project, product, inputs, outputs, input, output
     cmd = new JavaScriptCommand();
     cmd.description = "copying private headers";
     cmd.highlight = "filegen";
-    cmd.sources = product.bundle.privateHeaders;
+    cmd.sources = (inputs["bundle.input.private_hpp"] || [])
+        .map(function(artifact) { return artifact.filePath; })
+        .concat(product.bundle.privateHeaders);
     cmd.destination = FileInfo.joinPaths(product.destinationDirectory, product.bundle.privateHeadersFolderPath);
     cmd.sourceCode = function() {
         var i;
@@ -607,7 +623,9 @@ function generateBundleCommands(project, product, inputs, outputs, input, output
     cmd = new JavaScriptCommand();
     cmd.description = "copying resources";
     cmd.highlight = "filegen";
-    cmd.sources = product.bundle.resources;
+    cmd.sources = (inputs["bundle.input.resources"] || [])
+        .map(function(artifact) { return artifact.filePath; })
+        .concat(product.bundle.resources);
     cmd.sourceCode = function() {
         var i;
         for (var i in sources) {

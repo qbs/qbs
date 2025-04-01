@@ -80,9 +80,21 @@ Project {
         condition: buildableProducts.containsAny(["A", "C", "ABadApple", "ABadThirdParty"])
         name: "C"
         bundle.isBundle: true
-        bundle.publicHeaders: ["dummy.h"]
-        bundle.privateHeaders: ["dummy_p.h"]
-        bundle.resources: ["resource.txt"]
+        Group {
+            name: "public headers"
+            files: ["dummy.h"]
+            fileTags: ["bundle.input.public_hpp", "hpp"]
+        }
+        Group {
+            name: "private headers"
+            files: ["dummy_p.h"]
+            fileTags: ["bundle.input.private_hpp", "hpp"]
+        }
+        Group {
+            name: "resources"
+            files: ["resource.txt"]
+            fileTags: ["bundle.input.resources"]
+        }
         files: ["dummy.c"]
         install: true
         installDir: ""

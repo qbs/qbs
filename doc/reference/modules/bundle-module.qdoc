@@ -66,6 +66,23 @@
         \li 1.5
         \li Source files with this tag are Info property lists files or fragments that are merged
             into the bundle's final \c Info.plist.
+    \row
+        \li \c{"bundle.input.public_hpp"}
+        \li n/a
+        \li 3.0
+        \li Source files with this tag will be copied to the \c{Headers} directory within a bundle.
+    \row
+        \li \c{"bundle.input.private_hpp"}
+        \li n/a
+        \li 3.0
+        \li Source files with this tag will be copied to the \c{PrivateHeaders} directory within
+            a bundle.
+    \row
+        \li \c{"bundle.input.resources"}
+        \li n/a
+        \li 3.0
+        \li Source files with this tag will be copied to the \c{Resources} directory within
+            a bundle.
     \endtable
 */
 
@@ -193,6 +210,21 @@
     A list of public header files to copy to a framework bundle's \c Headers
     subdirectory.
 
+    It is recommended to attach the \c{"bundle.input.public_hpp"} file tag to headers instead:
+    \code
+    CppApplication {
+        Depends { name: "bundle" }
+        files: "main.cpp"
+        Group {
+            name: "public headers"
+            files: ["header.h"]
+            fileTags: ["bundle.input.public_hpp", "hpp"]
+        }
+    }
+    \endcode
+    \note Since \l{Group::fileTags}{Group.fileTags} property replaces file tags attached by
+    the \l{FileTagger} item, the \c{"hpp"} tag should also be present.
+
     \nodefaultvalue
 */
 
@@ -201,6 +233,21 @@
 
     A list of private header files to copy to a framework bundle's
     \c PrivateHeaders subdirectory
+
+    It is recommended to attach the \c{"bundle.input.private_hpp"} file tag to headers instead:
+    \code
+    CppApplication {
+        Depends { name: "bundle" }
+        files: "main.cpp"
+        Group {
+            name: "private headers"
+            files: ["header.h"]
+            fileTags: ["bundle.input.private_hpp", "hpp"]
+        }
+    }
+    \endcode
+    \note Since \l{Group::fileTags}{Group.fileTags} property replaces file tags attached by
+    the \l{FileTagger} item, the \c{"hpp"} tag should also be present.
 
     \nodefaultvalue
 */
@@ -211,6 +258,19 @@
     A list of resources to copy to a bundle's \c Resources subdirectory. Files
     will automatically be copied into \c lproj subdirectories corresponding to
     the input files' paths.
+
+    It is recommended to attach the \c{"bundle.input.resources"} file tag to resources instead:
+    \code
+    CppApplication {
+        Depends { name: "bundle" }
+        files: "main.cpp"
+        Group {
+            name: "resources"
+            files: ["file.txt"]
+            fileTags: ["bundle.input.resources"]
+        }
+    }
+    \endcode
 
     \nodefaultvalue
 */
