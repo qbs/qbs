@@ -115,6 +115,19 @@ private:
     const QStringList m_files;
 };
 
+class ProjectFileDependenciesAdder : public ProjectFileUpdater
+{
+public:
+    ProjectFileDependenciesAdder(ProductData product, GroupData group, QStringList dependencies);
+
+private:
+    void doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast) override;
+
+    const ProductData m_product;
+    const GroupData m_group;
+    const QStringList m_dependencies;
+};
+
 class ProjectFileFilesRemover : public ProjectFileUpdater
 {
 public:

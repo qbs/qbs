@@ -113,6 +113,8 @@ public:
 
     void addGroup(const ProductData &product, const QString &groupName);
     void addFiles(const ProductData &product, const GroupData &group, const QStringList &filePaths);
+    void addDependencies(
+        const ProductData &product, const GroupData &group, const QStringList &dependencies);
     void removeFiles(const ProductData &product, const GroupData &group,
                      const QStringList &filePaths);
     void removeGroup(const ProductData &product, const GroupData &group);

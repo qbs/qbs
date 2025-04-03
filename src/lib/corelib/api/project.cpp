@@ -460,6 +460,25 @@ void ProjectPrivate::addFiles(const ProductData &product, const GroupData &group
     adder.apply();
 }
 
+void ProjectPrivate::addDependencies(
+    const ProductData &product, const GroupData &group, const QStringList &dependencies)
+{
+    GroupUpdateContext groupContext = getGroupContext(product, group);
+    QStringList depsToInsert = dependencies;
+    for (auto it = depsToInsert.begin(); it != depsToInsert.end();) {
+        if (product.dependencies().contains(*it))
+            it = depsToInsert.erase(it);
+        else
+            ++it;
+    }
+
+    ProjectFileDependenciesAdder adder(
+        groupContext.products.front(),
+        group.isValid() ? groupContext.groups.front() : GroupData(),
+        depsToInsert);
+    adder.apply();
+}
+
 void ProjectPrivate::removeFiles(const ProductData &product, const GroupData &group,
                                  const QStringList &filePaths)
 {
@@ -1086,6 +1105,31 @@ ErrorInfo Project::addFiles(const ProductData &product, const GroupData &group,
     } catch (const ErrorInfo &exception) {
         auto errorInfo = exception;
         errorInfo.prepend(Tr::tr("Failure adding files to product."));
+        return errorInfo;
+    }
+}
+
+/*!
+ * \brief Adds \c Depends items for the given dependencies to the given product.
+ * If \c group is a default-constructed object, the items will be added at the top level,
+ * otherwise to \c group.
+ * After calling this function, it is recommended to re-fetch the project data, as other
+ * items can be affected.
+ * \sa qbs::Project::projectData()
+ */
+ErrorInfo Project::addDependencies(
+    const ProductData &product, const GroupData &group, const QStringList &dependencies)
+{
+    try {
+        QBS_CHECK(isValid());
+        d->prepareChangeToProject();
+        d->addDependencies(product, group, dependencies);
+        d->internalProject->store(d->logger);
+        return {};
+    } catch (const ErrorInfo &exception) {
+        auto errorInfo = exception;
+        errorInfo.prepend(
+            Tr::tr("Failure adding depencencies to product '%1'.").arg(product.name()));
         return errorInfo;
     }
 }

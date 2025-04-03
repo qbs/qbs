@@ -15,7 +15,6 @@ Project {
     CppApplication {
         name: "theApp"
         consoleApplication: true
-        Depends { name: "mymodule" }
         cpp.cxxLanguageVersion: "c++14"
         cpp.warningLevel: "all"
         files: "main.cpp"

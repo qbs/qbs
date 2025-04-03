@@ -153,6 +153,7 @@ private:
     void addFiles(const QJsonObject &request);
     void removeFiles(const QJsonObject &request);
     void renameFiles(const QJsonObject &request);
+    void addDependencies(const QJsonObject &request);
     void getRunEnvironment(const QJsonObject &request);
     void getGeneratedFilesForSources(const QJsonObject &request);
     void releaseProject();
@@ -175,18 +176,19 @@ private:
     };
     ProductSelection getProductSelection(const QJsonObject &request);
 
-    template<typename File>
+    template<typename ArgType>
     struct FileUpdateData
     {
-        QJsonObject createErrorReply(const char *type, const QString &mainMessage) const;
+        QJsonObject createErrorReply(
+            const char *type, const QString &mainMessage, bool addFailedFiles) const;
 
         ProductData product;
         GroupData group;
-        QList<File> filePaths;
+        QList<ArgType> arguments;
         ErrorInfo error;
     };
-    template<typename File>
-    FileUpdateData<File> prepareFileUpdate(const QJsonObject &request);
+    template<typename ArgType>
+    FileUpdateData<ArgType> prepareFileUpdate(const QJsonObject &request, const QString &paramKey);
 
     SessionPacketReader m_packetReader;
     LspServer m_lspServer;
@@ -241,6 +243,8 @@ Session::Session()
             removeFiles(packet);
         else if (type == QLatin1String("rename-files"))
             renameFiles(packet);
+        else if (type == QLatin1String("add-dependencies"))
+            addDependencies(packet);
         else if (type == QLatin1String("get-run-environment"))
             getRunEnvironment(packet);
         else if (type == QLatin1String("get-generated-files-for-sources"))
@@ -418,15 +422,17 @@ void Session::installProject(const QJsonObject &request)
 
 void Session::addFiles(const QJsonObject &request)
 {
-    const FileUpdateData data = prepareFileUpdate<QString>(request);
+    const FileUpdateData data = prepareFileUpdate<QString>(request, QLatin1String("files"));
     if (data.error.hasError()) {
-        sendPacket(data.createErrorReply("files-added", tr("Failed to add files to project: %1")
-                                         .arg(data.error.toString())));
+        sendPacket(data.createErrorReply(
+            "files-added",
+            tr("Failed to add files to project: %1").arg(data.error.toString()),
+            true));
         return;
     }
     ErrorInfo error;
     QStringList failedFiles;
-    for (const QString &filePath : data.filePaths) {
+    for (const QString &filePath : data.arguments) {
         const ErrorInfo e = m_project.addFiles(data.product, data.group, {filePath});
         if (e.hasError()) {
             for (const ErrorItem &ei : e.items())
@@ -438,7 +444,7 @@ void Session::addFiles(const QJsonObject &request)
     reply.insert(StringConstants::type(), QLatin1String("files-added"));
     insertErrorInfoIfNecessary(reply, error);
 
-    if (failedFiles.size() != data.filePaths.size()) {
+    if (failedFiles.size() != data.arguments.size()) {
         // Note that Project::addFiles() directly changes the existing project data object, so
         // there's no need to retrieve it from m_project.
         insertProjectDataIfNecessary(reply, ProjectDataMode::Always, {}, false);
@@ -451,16 +457,17 @@ void Session::addFiles(const QJsonObject &request)
 
 void Session::removeFiles(const QJsonObject &request)
 {
-    const FileUpdateData data = prepareFileUpdate<QString>(request);
+    const FileUpdateData data = prepareFileUpdate<QString>(request, QLatin1String("files"));
     if (data.error.hasError()) {
-        sendPacket(data.createErrorReply("files-removed",
-                                         tr("Failed to remove files from project: %1")
-                                         .arg(data.error.toString())));
+        sendPacket(data.createErrorReply(
+            "files-removed",
+            tr("Failed to remove files from project: %1").arg(data.error.toString()),
+            true));
         return;
     }
     ErrorInfo error;
     QStringList failedFiles;
-    for (const QString &filePath : data.filePaths) {
+    for (const QString &filePath : data.arguments) {
         const ErrorInfo e = m_project.removeFiles(data.product, data.group, {filePath});
         if (e.hasError()) {
             for (const ErrorItem &ei : e.items())
@@ -471,7 +478,7 @@ void Session::removeFiles(const QJsonObject &request)
     QJsonObject reply;
     reply.insert(StringConstants::type(), QLatin1String("files-removed"));
     insertErrorInfoIfNecessary(reply, error);
-    if (failedFiles.size() != data.filePaths.size())
+    if (failedFiles.size() != data.arguments.size())
         insertProjectDataIfNecessary(reply, ProjectDataMode::Always, {}, false);
     if (!failedFiles.isEmpty())
         reply.insert(QLatin1String("failed-files"), QJsonArray::fromStringList(failedFiles));
@@ -480,16 +487,17 @@ void Session::removeFiles(const QJsonObject &request)
 
 void Session::renameFiles(const QJsonObject &request)
 {
-    const FileUpdateData data = prepareFileUpdate<FilePair>(request);
+    const FileUpdateData data = prepareFileUpdate<FilePair>(request, QLatin1String("files"));
     if (data.error.hasError()) {
         sendPacket(data.createErrorReply(
             "files-renamed",
-            tr("Failed to rename files in project: %1").arg(data.error.toString())));
+            tr("Failed to rename files in project: %1").arg(data.error.toString()),
+            true));
         return;
     }
     ErrorInfo error;
     QStringList failedFiles;
-    for (const FilePair &sourceAndTarget : data.filePaths) {
+    for (const FilePair &sourceAndTarget : data.arguments) {
         const ErrorInfo removeError = m_project.removeFiles(
             data.product, data.group, {sourceAndTarget.first});
         if (removeError.hasError()) {
@@ -509,10 +517,29 @@ void Session::renameFiles(const QJsonObject &request)
     QJsonObject reply;
     reply.insert(StringConstants::type(), QLatin1String("files-renamed"));
     insertErrorInfoIfNecessary(reply, error);
-    if (failedFiles.size() != data.filePaths.size())
+    if (failedFiles.size() != data.arguments.size())
         insertProjectDataIfNecessary(reply, ProjectDataMode::Always, {}, false);
     if (!failedFiles.isEmpty())
         reply.insert(QLatin1String("failed-files"), QJsonArray::fromStringList(failedFiles));
+    sendPacket(reply);
+}
+
+void Session::addDependencies(const QJsonObject &request)
+{
+    const FileUpdateData data = prepareFileUpdate<QString>(request, QLatin1String("dependencies"));
+    if (data.error.hasError()) {
+        sendPacket(data.createErrorReply(
+            "dependencies-added",
+            tr("Failed to add dependencies to project: %1").arg(data.error.toString()),
+            false));
+        return;
+    }
+    ErrorInfo error;
+    const ErrorInfo e = m_project.addDependencies(data.product, data.group, data.arguments);
+    QJsonObject reply;
+    reply.insert(StringConstants::type(), QLatin1String("dependencies-added"));
+    insertErrorInfoIfNecessary(reply, error);
+    insertProjectDataIfNecessary(reply, ProjectDataMode::Always, {}, false);
     sendPacket(reply);
 }
 
@@ -693,10 +720,11 @@ Session::ProductSelection Session::getProductSelection(const QJsonObject &reques
             : Project::ProductSelectionDefaultOnly};
 }
 
-template<typename File>
-Session::FileUpdateData<File> Session::prepareFileUpdate(const QJsonObject &request)
+template<typename ArgType>
+Session::FileUpdateData<ArgType> Session::prepareFileUpdate(
+    const QJsonObject &request, const QString &paramKey)
 {
-    FileUpdateData<File> data;
+    FileUpdateData<ArgType> data;
     const QString productName = request.value(QLatin1String("product")).toString();
     data.product = getProductByName(productName);
     if (data.product.isValid()) {
@@ -712,18 +740,18 @@ Session::FileUpdateData<File> Session::prepareFileUpdate(const QJsonObject &requ
     } else {
         data.error = tr("Product '%1' not found in project.").arg(productName);
     }
-    const QJsonArray filesArray = request.value(QLatin1String("files")).toArray();
-    for (const auto &v : filesArray)
-        if constexpr (std::is_same_v<File, QString>) {
-            data.filePaths << v.toString();
-        } else if constexpr (std::is_same_v<File, FilePair>) {
+    const QJsonArray argsArray = request.value(paramKey).toArray();
+    for (const auto &v : argsArray)
+        if constexpr (std::is_same_v<ArgType, QString>) {
+            data.arguments << v.toString();
+        } else if constexpr (std::is_same_v<ArgType, FilePair>) {
             const QJsonObject file = v.toObject();
-            data.filePaths << std::make_pair(
+            data.arguments << std::make_pair(
                 file.value(QLatin1String("source-path")).toString(),
                 file.value(QLatin1String("target-path")).toString());
         }
     if (m_currentJob)
-        data.error = tr("Cannot update the list of source files while a job is running.");
+        data.error = tr("Cannot update the project while a job is running.");
     if (!m_project.isValid())
         data.error = tr("No valid project. You need to resolve first.");
     return data;
@@ -816,9 +844,9 @@ void Session::quitSession()
     }
 }
 
-template<typename File>
-QJsonObject Session::FileUpdateData<File>::createErrorReply(
-    const char *type, const QString &mainMessage) const
+template<typename ArgType>
+QJsonObject Session::FileUpdateData<ArgType>::createErrorReply(
+    const char *type, const QString &mainMessage, bool addFailedFiles) const
 {
     QBS_ASSERT(error.hasError(), return QJsonObject());
     ErrorInfo error(mainMessage);
@@ -827,15 +855,17 @@ QJsonObject Session::FileUpdateData<File>::createErrorReply(
     QJsonObject reply;
     reply.insert(StringConstants::type(), QLatin1String(type));
     reply.insert(QLatin1String("error"), error.toJson());
-    QStringList failedFiles;
-    if constexpr (std::is_same_v<File, QString>) {
-        failedFiles = filePaths;
-    } else if constexpr (std::is_same_v<File, FilePair>) {
-        failedFiles = transformed<QStringList>(filePaths, [](const FilePair &fp) {
-            return fp.first;
-        });
+    if (addFailedFiles) {
+        QStringList failedFiles;
+        if constexpr (std::is_same_v<ArgType, QString>) {
+            failedFiles = arguments;
+        } else if constexpr (std::is_same_v<ArgType, FilePair>) {
+            failedFiles = transformed<QStringList>(arguments, [](const FilePair &fp) {
+                return fp.first;
+            });
+        }
+        reply.insert(QLatin1String("failed-files"), QJsonArray::fromStringList(failedFiles));
     }
-    reply.insert(QLatin1String("failed-files"), QJsonArray::fromStringList(failedFiles));
     return reply;
 }
 

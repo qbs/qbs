@@ -7099,7 +7099,7 @@ void TestBlackbox::qbsSession()
     // Wait for and verify hello packet.
     QJsonObject receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type"), "hello");
-    QCOMPARE(receivedMessage.value("api-level").toInt(), 8);
+    QCOMPARE(receivedMessage.value("api-level").toInt(), 9);
     QCOMPARE(receivedMessage.value("api-compat-level").toInt(), 2);
 
     // Resolve & verify structure
@@ -7214,6 +7214,41 @@ void TestBlackbox::qbsSession()
     QVERIFY(receivedLogData);
     QVERIFY(receivedStartedSignal);
     QVERIFY(receivedProgressData);
+
+    // Add a dependency and re-resolve.
+    QJsonObject addDepsRequest;
+    addDepsRequest.insert("type", "add-dependencies");
+    addDepsRequest.insert("product", "theApp");
+    addDepsRequest.insert("group", "theApp");
+    addDepsRequest.insert("dependencies", QJsonArray::fromStringList({"mymodule"}));
+    sendPacket(addDepsRequest);
+    receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+    QCOMPARE(receivedMessage.value("type").toString(), QString("dependencies-added"));
+    QJsonObject error = receivedMessage.value("error").toObject();
+    if (!error.isEmpty()) {
+        for (const auto item : error[QStringLiteral("items")].toArray()) {
+            const auto description = QStringLiteral("Project file updates are not enabled");
+            if (item.toObject()[QStringLiteral("description")].toString().contains(description))
+                QSKIP("File updates are disabled");
+        }
+        qDebug() << error;
+    }
+    QVERIFY(error.isEmpty());
+    receivedReply = false;
+    sendPacket(resolveMessage);
+    while (!receivedReply) {
+        receivedMessage = getNextSessionPacket(sessionProc, incomingData);
+        QVERIFY(!receivedMessage.isEmpty());
+        const QString msgType = receivedMessage.value("type").toString();
+        if (msgType == "project-resolved") {
+            receivedReply = true;
+            const QJsonObject error = receivedMessage.value("error").toObject();
+            if (!error.isEmpty())
+                qDebug() << error;
+            QVERIFY(error.isEmpty());
+        }
+    }
+    QVERIFY(receivedReply);
 
     // First build: No install, log time, default command description.
     QJsonObject buildRequest;
@@ -7408,7 +7443,7 @@ void TestBlackbox::qbsSession()
     sendPacket(getRunEnvRequest);
     receivedMessage = getNextSessionPacket(sessionProc, incomingData);
     QCOMPARE(receivedMessage.value("type").toString(), QString("run-environment"));
-    QJsonObject error = receivedMessage.value("error").toObject();
+    error = receivedMessage.value("error").toObject();
     if (!error.isEmpty())
         qDebug() << error;
     QVERIFY(error.isEmpty());

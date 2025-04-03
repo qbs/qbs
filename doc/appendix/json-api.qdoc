@@ -387,7 +387,7 @@
     \section1 Adding, Removing and Renaming Source Files
 
     Source files can be added to, removed from and renamed in \QBS project files with
-    the \c add-files, \c remove-files and \c rename-files messages, respectively. These two
+    the \c add-files, \c remove-files and \c rename-files messages, respectively. These three
     requests have the same set of properties:
     \table
     \header \li Property  \li Type
@@ -419,6 +419,28 @@
     If the \c error property is present, the operation has at least
     partially failed and \c failed-files will list the files
     that could not be added or removed.
+
+    \section1 Adding Dependencies
+
+    Dependencies can be added to a product with the \c add-dependencies message.
+    The properties are:
+    \table
+    \header \li Property     \li Type
+    \row    \li dependencies \li list of strings
+    \row    \li group        \li string
+    \row    \li product      \li string
+    \endtable
+
+    The \c dependencies property specifies which modules and/or products should be added.
+
+    The \c product property corresponds to the \c full-display-name of
+    a \l ProductData and specifies which product to add the dependencies to.
+
+    The \c group property corresponds to the \c name of a \l GroupData
+    and specifies in which group the resulting \c Depends items should appear.
+
+    After the operation has finished, \QBS replies with a \c dependencies-added message.
+    If and only if the operation failed, it will carry a property \c error of type \c ErrorInfo.
 
     \section1 The \c get-run-environment Message
 

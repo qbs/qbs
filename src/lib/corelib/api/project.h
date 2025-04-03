@@ -164,6 +164,8 @@ public:
     ErrorInfo addGroup(const ProductData &product, const QString &groupName);
     ErrorInfo addFiles(const ProductData &product, const GroupData &group,
                        const QStringList &filePaths);
+    ErrorInfo addDependencies(
+        const ProductData &product, const GroupData &group, const QStringList &dependencies);
     ErrorInfo removeFiles(const ProductData &product, const GroupData &group,
                           const QStringList &filePaths);
     ErrorInfo removeGroup(const ProductData &product, const GroupData &group);

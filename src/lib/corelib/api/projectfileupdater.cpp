@@ -553,5 +553,43 @@ void ProjectFileGroupRemover::doApply(QString &fileContent, UiProgram *ast)
     changeSet.apply(&fileContent);
 }
 
+ProjectFileDependenciesAdder::ProjectFileDependenciesAdder(
+    ProductData product, GroupData group, QStringList dependencies)
+    : ProjectFileUpdater(product.location().filePath())
+    , m_product(std::move(product))
+    , m_group(std::move(group))
+    , m_dependencies(std::move(dependencies))
+{}
+
+void ProjectFileDependenciesAdder::doApply(QString &fileContent, QbsQmlJS::AST::UiProgram *ast)
+{
+    if (m_dependencies.empty())
+        return;
+
+    ItemFinder itemFinder(m_group.isValid() ? m_group.location() : m_product.location());
+    ast->accept(&itemFinder);
+    if (!itemFinder.item()) {
+        throw ErrorInfo(
+            Tr::tr("The project file parser failed to find the item."),
+            CodeLocation(projectFile()));
+    }
+
+    QStringList sortedDeps = m_dependencies;
+    sortedDeps.sort();
+    ChangeSet changeSet;
+    Rewriter rewriter(fileContent, &changeSet, QStringList());
+    const int parentItemIndentation = int(
+        itemFinder.item()->qualifiedTypeNameId->firstSourceLocation().startColumn - 1);
+    const int dependsItemIndentation = parentItemIndentation + 4;
+    const QString dependsItemIndentationString = QString(dependsItemIndentation, QLatin1Char(' '));
+    for (const QString &dep : std::as_const(sortedDeps)) {
+        const QString dependsItemString
+            = dependsItemIndentationString
+              + QString::fromLatin1("Depends { name: \"%1\" }").arg(dep);
+        rewriter.addObject(itemFinder.item()->initializer, dependsItemString);
+    }
+    changeSet.apply(&fileContent);
+}
+
 } // namespace Internal
 } // namespace qbs
