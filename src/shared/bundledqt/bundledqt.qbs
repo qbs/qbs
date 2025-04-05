@@ -34,6 +34,12 @@ Product {
         return "";
     }
 
+    readonly property string styleName: {
+        if (Utilities.versionCompare(Qt.core.version, "6.8.0") >= 0)
+            return "qmodernwindowsstyle";
+        return "qwindowsvistastyle";
+    }
+
     Group {
         name: "qt.conf"
         files: ["qt.conf"]
@@ -128,7 +134,7 @@ Product {
         prefix: Qt.core.pluginPath + "/"
         files: [
             "platforms/qwindows" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix,
-            "styles/qwindowsvistastyle" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
+            "styles/" + styleName + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
         ]
         qbs.install: true
         qbs.installDir: "plugins"

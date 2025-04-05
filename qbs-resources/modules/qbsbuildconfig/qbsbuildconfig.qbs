@@ -51,7 +51,9 @@ Module {
     Properties {
         condition: project.withCode && qbs.toolchain.contains("gcc")
         property bool isClang: qbs.toolchain.contains("clang")
+        property bool isMingw: qbs.toolchain.contains("mingw")
         property var versionAtLeast: { return function(v) { return Utilities.versionCompare(cpp.compilerVersion, v) >= 0 } }
+        property var versionBelow: { return function(v) { return Utilities.versionCompare(cpp.compilerVersion, v) < 0 } }
         cpp.commonCompilerFlags: {
             var flags = ["-Wno-missing-field-initializers"];
             if (enableAddressSanitizer)
@@ -61,6 +63,10 @@ Module {
             // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=105616
             if (enableAddressSanitizer && !isClang && versionAtLeast("13")) {
                 flags.push("-Wno-maybe-uninitialized");
+            }
+            // workaround for https://gcc.gnu.org/bugzilla/show_bug.cgi?id=106395
+            if (isMingw && versionAtLeast("12") && versionBelow("13")) {
+                flags.push("-Wno-attributes");
             }
             return flags;
         }
