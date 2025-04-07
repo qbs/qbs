@@ -1,0 +1,15 @@
+name: 'Download Qbs'
+description: 'Downloads Qbs'
+inputs:
+  version:
+    description: 'Qbs version'
+    required: false
+    default: '2.5.0'
+runs:
+  using: "composite"
+  steps:
+    - name: Install Qt Creator
+      run: |
+        QBS_DIR=$(./scripts/install-qbs.sh -d $HOME/qbs --version ${{ inputs.version }})
+        (cygpath -w ${QBS_DIR} 2>/dev/null || echo ${QBS_DIR}) >> ${GITHUB_PATH}
+      shell: bash

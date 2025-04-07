@@ -288,8 +288,8 @@ jobs:
       uses: ./.github/actions/download-qt
       with:
         toolchain: win64_msvc2022_64
-    - name: Install Qt Creator
-      uses: ./.github/actions/download-qtc
+    - name: Install Qbs
+      uses: ./.github/actions/download-qbs
     - name: Setup self-signed certificate
       run: |
         New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
@@ -358,8 +358,8 @@ jobs:
       uses: ./.github/actions/download-qt
       with:
         toolchain: win64_mingw
-    - name: Install Qt Creator
-      uses: ./.github/actions/download-qtc
+    - name: Install Qbs
+      uses: ./.github/actions/download-qbs
     - name: Install MinGW
       uses: ./.github/actions/download-mingw
     - name: Setup Qbs
