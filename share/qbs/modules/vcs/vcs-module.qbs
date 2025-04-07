@@ -109,10 +109,22 @@ Module {
         property string repoState
 
         configure: {
-            if (!File.exists(filePath))
-                return; // No commits yet.
-            var proc = new Process();
+            if (!File.exists(filePath)) {
+                // it is possible that the HEAD file is not present in CI environments, in this
+                // case we can use the commit count to determine the repo state
+                // see https://bugreports.qt.io/projects/QBS/issues/QBS-1814
+                try {
+                    var proc = new Process();
+                    proc.setWorkingDirectory(theRepoDir);
+                    proc.exec(tool, ["rev-list", "HEAD", "--count"], true);
+                } catch (e) {
+                    return; // No commits yet.
+                } finally {
+                    proc.close();
+                }
+            }
             try {
+                var proc = new Process();
                 proc.setWorkingDirectory(theRepoDir);
                 proc.exec(tool, ["describe", "--always", "HEAD"], true);
                 repoState = proc.readStdOut().trim();
