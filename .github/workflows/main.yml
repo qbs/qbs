@@ -121,6 +121,11 @@ jobs:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
+    - name: Setup Coredumps
+      run: |
+        sudo bash -c 'echo "/cores/core.%e.%t.%p" > /proc/sys/kernel/core_pattern'
+        sudo mkdir /cores
+        sudo chmod 777 /cores
     - name: Pull the Docker Image
       run: docker compose pull ${{ matrix.config.image }}
     - name: Print ccache stats
@@ -129,6 +134,9 @@ jobs:
       run: docker compose run ${{ matrix.config.image }} ${{ matrix.config.script }}
     - name: Print ccache stats
       run: docker compose run ${{ matrix.config.image }} ccache -s
+    - name: Coredump on failure
+      if: ${{ failure() }}
+      run: docker compose run ${{ matrix.config.image }} ./scripts/print-cores.sh
 
   clang-format:
     name: Check Style
