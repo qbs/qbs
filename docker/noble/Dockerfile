@@ -4,7 +4,7 @@
 FROM ubuntu:noble
 LABEL Description="Ubuntu development environment for Qbs with Qt and various dependencies for testing Qbs modules and functionality"
 ARG QT_VERSION
-ARG QTCREATOR_VERSION
+ARG QBS_VERSION
 
 # Allow colored output on command line.
 ENV TERM=xterm-color
@@ -99,12 +99,13 @@ ENV LC_ALL en_US.UTF-8
 # Install Qt and Qbs for Linux from qt.io
 #
 COPY scripts/install-qt.sh install-qt.sh
+COPY scripts/install-qbs.sh install-qbs.sh
 
 RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qttools qtx11extras qtscxml qtshadertools qt5compat icu && \
-    ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
-    echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
+    ./install-qbs.sh --version ${QBS_VERSION} && \
+    echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/qbs/qbs-linux-x86_64-${QBS_VERSION}/bin:\${PATH}" > /etc/profile.d/qt.sh
 
-ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:${PATH}
+ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/qbs/qbs-linux-x86_64-${QBS_VERSION}/bin:${PATH}
 
 # Configure Qbs
 USER $USER_NAME

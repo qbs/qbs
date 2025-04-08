@@ -26,13 +26,13 @@ services:
   noble-qt6: &noble-qt6
     << : *linux
     hostname: noble-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.7.3_2.5.1-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.7.3_2.5.1-2
     build:
       dockerfile: docker/noble/Dockerfile
       context: .
       args:
         QT_VERSION: 6.7.3
-        QTCREATOR_VERSION: 15.0.1
+        QBS_VERSION: 2.5.1
 
   noble:
     << : *noble-qt6
@@ -40,13 +40,13 @@ services:
   noble-qt5:
     << : *linux
     hostname: noble-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-5.15.2_2.3.2-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-5.15.2_2.5.1-0
     build:
       dockerfile: docker/noble/Dockerfile
       context: .
       args:
         QT_VERSION: 5.15.2
-        QTCREATOR_VERSION: 13.0.2
+        QBS_VERSION: 2.5.1
 
   noble-android-65:
     << : *linux
