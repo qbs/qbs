@@ -27,6 +27,7 @@ QtModule {
     readonly property string pluginListFilePathRelease: product.buildDirectory + "/plugins.list"
     property bool linkPlugins: isStaticLibrary && Qt.plugin_support.linkPlugins
 
+    version: @version@
     hasLibrary: @has_library@
     architectures: @archs@
     targetPlatform: @targetPlatform@
