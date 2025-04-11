@@ -368,7 +368,8 @@ void TestBlackboxProviders::qbsModuleProviders()
     QDir::setCurrent(testDataDir + "/qbs-module-providers");
 
     QbsRunParameters params("resolve");
-    params.arguments = arguments;
+    params.arguments << arguments << "-f"
+                     << "qbs-module-providers.qbs";
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains(("p1.qbsmetatestmodule.prop: " + firstProp).toUtf8()),
              m_qbsStdout);

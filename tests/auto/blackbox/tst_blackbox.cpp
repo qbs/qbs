@@ -1561,6 +1561,22 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
     QVERIFY(oldRepoState != newRepoState);
+
+    // https://bugreports.qt.io/projects/QBS/issues/QBS-1814
+    oldRepoState = newRepoState;
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("loremipsum.txt");
+    git.start(gitFilePath, QStringList({"add", "loremipsum.txt"}));
+    QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"commit", "-m", "loremipsum!"}));
+    QVERIFY(waitForProcessSuccess(git));
+    // Remove .git/logs/HEAD
+    QFile::remove(repoDir.path() + "/.git/logs/HEAD");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QVERIFY(oldRepoState != newRepoState);
 }
 
 void TestBlackbox::vcsSubversion()

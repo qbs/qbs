@@ -2,6 +2,7 @@ QtPlugin {
     qtModuleName: @name@
     Depends { name: "Qt"; submodules: @dependencies@}
 
+    version: @version@
     className: @className@
     architectures: @archs@
     targetPlatform: @targetPlatform@

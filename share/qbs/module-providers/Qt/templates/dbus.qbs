@@ -41,6 +41,7 @@ QtModule {
         prepare: DBus.createCommands(product, input, outputs, "-p")
     }
 
+    version: @version@
     architectures: @archs@
     targetPlatform: @targetPlatform@
     staticLibsDebug: @staticLibsDebug@

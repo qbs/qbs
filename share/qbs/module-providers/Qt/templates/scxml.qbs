@@ -53,6 +53,7 @@ QtModule {
         }
     }
 
+    version: @version@
     architectures: @archs@
     targetPlatform: @targetPlatform@
     staticLibsDebug: @staticLibsDebug@

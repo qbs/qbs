@@ -37,6 +37,7 @@ QtModule {
     qtModuleName: @name@
     Depends { name: "Qt"; submodules: @dependencies@ }
 
+    version: @version@
     hasLibrary: @has_library@
     architectures: @archs@
     targetPlatform: @targetPlatform@

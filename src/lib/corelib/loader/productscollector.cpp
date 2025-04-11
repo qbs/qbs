@@ -80,7 +80,10 @@ public:
                         ProductContext *mainProduct = nullptr);
     void handleSubProject(ProjectContext &projectContext, Item *projectItem,
                           const Set<QString> &referencedFilePaths);
-    void copyProperties(const Item *sourceProject, Item *targetProject);
+
+    enum class PropertyFilter { All, BuiltIns };
+    void copyProperties(const Item *sourceProject, Item *targetProject, PropertyFilter filter);
+
     QList<Item *> loadReferencedFile(
             const QString &relativePath, const CodeLocation &referencingLocation,
             const Set<QString> &referencedFilePaths, ProductContext &dummyContext);
@@ -218,7 +221,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
             handleSubProject(projectContext, child, referencedFilePaths);
             break;
         case ItemType::Project:
-            copyProperties(projectItem, child);
+            copyProperties(projectItem, child, PropertyFilter::All);
             handleProject(child, &projectContext, referencedFilePaths);
             break;
         default:
@@ -248,7 +251,7 @@ void ProductsCollector::Private::handleProject(Item *projectItem, ProjectContext
             prepareProduct(projectContext, subItem);
             break;
         case ItemType::Project:
-            copyProperties(projectItem, subItem);
+            copyProperties(projectItem, subItem, PropertyFilter::All);
             handleProject(subItem, &projectContext,
                           Set<QString>(referencedFilePaths) << subItem->file()->filePath());
             break;
@@ -435,8 +438,10 @@ void ProductsCollector::Private::handleSubProject(
     const bool inheritProperties = evaluator.boolValue(
         projectItem, StringConstants::inheritPropertiesProperty());
 
-    if (inheritProperties)
-        copyProperties(projectItem->parent(), loadedItem);
+    copyProperties(
+        projectItem->parent(),
+        loadedItem,
+        inheritProperties ? PropertyFilter::All : PropertyFilter::BuiltIns);
     if (propertiesItem) {
         const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
         for (auto it = overriddenProperties.begin(); it != overriddenProperties.end(); ++it)
@@ -448,7 +453,8 @@ void ProductsCollector::Private::handleSubProject(
     handleProject(loadedItem, &projectContext, Set<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
-void ProductsCollector::Private::copyProperties(const Item *sourceProject, Item *targetProject)
+void ProductsCollector::Private::copyProperties(
+    const Item *sourceProject, Item *targetProject, PropertyFilter filter)
 {
     if (!sourceProject)
         return;
@@ -475,9 +481,10 @@ void ProductsCollector::Private::copyProperties(const Item *sourceProject, Item 
             continue;
         }
 
+        if (filter == PropertyFilter::BuiltIns)
+            continue;
         if (builtinProjectPropertyNames.contains(it.key()))
             continue;
-
         if (targetProject->hasOwnProperty(it.key()))
             continue; // Ignore stuff the target project already has.
 

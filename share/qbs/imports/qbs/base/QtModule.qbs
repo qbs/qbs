@@ -46,7 +46,6 @@ Module {
     property string libFilePathRelease
     property string libFilePath: Qt.core.qtBuildVariant === "debug"
                                  ? libFilePathDebug : libFilePathRelease
-    version: Qt.core.version
     property bool hasLibrary: true
     property bool isStaticLibrary: false
     property bool isPlugin: false
