@@ -1702,7 +1702,9 @@ function staticLibLinkerOutputArtifacts(product)
 function staticLibLinkerCommands(project, product, inputs, outputs, input, output,
                                  explicitlyDependsOn)
 {
-    var args = ['rcs', output.filePath];
+    var args = ['rcs'];
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
+    args.push(output.filePath);
     for (var i in inputs.obj)
         args.push(inputs.obj[i].filePath);
     for (var i in inputs.res)

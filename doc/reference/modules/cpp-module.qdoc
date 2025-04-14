@@ -1342,22 +1342,28 @@
 /*!
     \qmlproperty string cpp::archiverName
 
-    \unixproperty
+    The name of the archiver binary. This property is usually predetermined by the toolchain and
+    may be overridden. For instance, when enabling link-time optimization in a gcc-based toolchain,
+    \c{"gcc-ar"} has to be used instead of \c{"ar"}.
 
-    The name of the archiver binary. This property is set in the build profile.
-
-    \defaultvalue \c{"ar"}
+    \defaultvalue Depends on the selected toolchain.
 */
 
 /*!
     \qmlproperty string cpp::archiverPath
 
-    \unixproperty
-
-    The full path of the archiver binary. This property is set in the build
-    profile.
+    The full path of the archiver binary.
 
     \defaultvalue Determined by \l{setup-toolchains}{qbs setup-toolchains}.
+*/
+
+/*!
+    \qmlproperty string cpp::archiverFlags
+
+    Additional flags that are appended to the archiver command.
+
+    \defaultvalue An empty list
+    \since Qbs 3.0.0
 */
 
 /*!

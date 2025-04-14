@@ -721,6 +721,7 @@ function archiverFlags(project, product, inputs, outputs) {
     if (supportIArchiver(architecture))
         args.push("--create");
     args.push("-o", outputs.staticlibrary[0].filePath);
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
 
     return args;
 }

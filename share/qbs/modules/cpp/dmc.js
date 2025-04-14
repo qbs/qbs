@@ -379,6 +379,7 @@ function linkerFlags(project, product, inputs, outputs) {
 
 function archiverFlags(project, product, inputs, outputs) {
     var args = ["-c"];
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
     // Output.
     args.push(FileInfo.toWindowsSeparators(outputs.staticlibrary[0].filePath));
     // Input objects.
