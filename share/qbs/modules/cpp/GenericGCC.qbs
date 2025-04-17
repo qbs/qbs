@@ -150,7 +150,7 @@ CppModule {
     assemblerName: 'as' + compilerExtension
     compilerName: cxxCompilerName
     linkerName: 'ld' + compilerExtension
-    property string archiverName: 'ar' + compilerExtension
+    archiverName: 'ar' + compilerExtension
     property string nmName: 'nm' + compilerExtension
     property string objcopyName: "objcopy" + compilerExtension
     property string stripName: "strip" + compilerExtension
@@ -203,7 +203,7 @@ CppModule {
     assemblerPath: binutilsPathPrefix + assemblerName
     compilerPath: toolchainPathPrefix + compilerName
     linkerPath: binutilsPathPrefix + linkerName
-    property string archiverPath: binutilsPathPrefix + archiverName
+    archiverPath: binutilsPathPrefix + archiverName
     property string nmPath: binutilsPathPrefix + nmName
     property bool _nmHasDynamicOption: nmProbe.hasDynamicOption
     property string objcopyPath: binutilsPathPrefix + objcopyName

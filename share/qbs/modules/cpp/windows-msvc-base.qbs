@@ -78,6 +78,8 @@ CppModule {
             return "ml64.exe";
         }
     }
+    archiverName: "lib.exe"
+    archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     linkerName: "link.exe"
     runtimeLibrary: "dynamic"

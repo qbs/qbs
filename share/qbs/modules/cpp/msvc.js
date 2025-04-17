@@ -744,7 +744,7 @@ function libtoolCommands(project, product, inputs, outputs, input, output, expli
         var fileName = FileInfo.toWindowsSeparators(inputs.res[i].filePath)
         args.push(fileName)
     }
-    var cmd = new Command("lib.exe", args);
+    var cmd = new Command(product.cpp.archiverPath, args);
     cmd.description = 'creating ' + lib.fileName;
     cmd.highlight = 'linker';
     cmd.jobPool = "linker";

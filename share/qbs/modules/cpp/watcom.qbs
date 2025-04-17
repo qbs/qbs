@@ -91,9 +91,23 @@ CppModule {
     property string resourceCompilerName: "wrc" + compilerExtension
     property string resourceCompilerPath: FileInfo.joinPaths(toolchainInstallPath,
                                                              resourceCompilerName)
+
     property string libraryManagerName: "wlib" + compilerExtension
+    PropertyOptions {
+        name: "libraryManagerName"
+        description: "Use archiverName instead."
+        removalVersion: "3.2"
+    }
     property string libraryManagerPath: FileInfo.joinPaths(toolchainInstallPath,
                                                            libraryManagerName)
+    PropertyOptions {
+        name: "libraryManagerPath"
+        description: "Use archiverPath instead."
+        removalVersion: "3.2"
+    }
+
+    archiverName: libraryManagerName
+    archiverPath: libraryManagerPath
 
     runtimeLibrary: "dynamic"
 

@@ -82,8 +82,8 @@ CppModule {
     linkerName: toolchainDetails.linkerName + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: toolchainDetails.archiverName + compilerExtension
-    property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
+    archiverName: toolchainDetails.archiverName + compilerExtension
+    archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 

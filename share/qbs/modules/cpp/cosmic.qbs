@@ -82,8 +82,8 @@ CppModule {
     linkerName: "clnk" + compilerExtension
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: "clib" + compilerExtension
-    property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
+    archiverName: "clib" + compilerExtension
+    archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "static"
 

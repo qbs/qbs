@@ -559,7 +559,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
 function prepareLibraryManager(project, product, inputs, outputs, input, output) {
     var args = libraryManagerFlags(project, product, inputs, outputs);
-    var cmd = new Command(product.cpp.libraryManagerPath, args);
+    var cmd = new Command(product.cpp.archiverPath, args);
     cmd.workingDirectory = product.buildDirectory;
     cmd.description = "linking " + outputs.staticlibrary[0].fileName;
     cmd.highlight = "linker";

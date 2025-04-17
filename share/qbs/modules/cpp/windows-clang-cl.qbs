@@ -84,6 +84,7 @@ MsvcBaseModule {
 
     property string vcvarsallPath : clangPathProbe.found ? clangPathProbe.vcvarsallPath : undefined
 
+    archiverName: "llvm-lib.exe"
     compilerName: "clang-cl.exe"
     linkerName: "lld-link.exe"
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)

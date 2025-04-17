@@ -85,8 +85,8 @@ CppModule {
     linkerName: "link.exe"
     linkerPath: FileInfo.joinPaths(toolchainInstallPath, linkerName)
 
-    property string archiverName: "lib.exe"
-    property string archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
+    archiverName: "lib.exe"
+    archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
     property string rccCompilerName: "rcc.exe"
     property string rccCompilerPath: FileInfo.joinPaths(toolchainInstallPath, rccCompilerName)
 

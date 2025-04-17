@@ -168,6 +168,8 @@ Module {
     property pathList compilerFrameworkPaths
     property stringList systemRunPaths: []
 
+    property string archiverName
+    property string archiverPath: archiverName
     property string assemblerName
     property string assemblerPath: assemblerName
     property string compilerName
