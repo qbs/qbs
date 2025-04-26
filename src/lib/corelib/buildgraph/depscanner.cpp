@@ -179,11 +179,6 @@ bool PluginDependencyScanner::recursive() const
     return m_plugin->flags & ScannerRecursiveDependencies;
 }
 
-const void *PluginDependencyScanner::key() const
-{
-    return m_plugin;
-}
-
 QString PluginDependencyScanner::createId() const
 {
     return QString::fromLatin1(m_plugin->name);
@@ -224,11 +219,6 @@ QStringList UserDependencyScanner::collectDependencies(Artifact *artifact, FileR
 bool UserDependencyScanner::recursive() const
 {
     return m_scanner->recursive;
-}
-
-const void *UserDependencyScanner::key() const
-{
-    return m_scanner.get();
 }
 
 QString UserDependencyScanner::createId() const

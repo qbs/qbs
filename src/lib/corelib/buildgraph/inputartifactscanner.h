@@ -86,7 +86,7 @@ class InputArtifactScannerContext
     };
 
     using ScannerKeyCacheItem = std::optional<ScannerKeyCacheData>;
-    using ScannerKeyCache = QHash<const void * /*key*/, ScannerKeyCacheItem>;
+    using ScannerKeyCache = QHash<QString /*id*/, ScannerKeyCacheItem>;
 
     QHash<PropertyMapConstPtr, ScannerKeyCache> cachePerProperties;
     QHash<Artifact *, ScannerKeyCache> cachePerFile;

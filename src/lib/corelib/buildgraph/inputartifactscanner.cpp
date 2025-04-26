@@ -201,8 +201,12 @@ void InputArtifactScanner::scanForFileDependencies(Artifact *inputArtifact)
                 }
                 cacheItem = lastPerPropsCacheItem;
             }
-            scanForScannerFileDependencies(scanner, inputArtifact, fileToBeScanned,
-                scanner->recursive() ? &filesToScan : nullptr, (*cacheItem)[scanner->key()]);
+            scanForScannerFileDependencies(
+                scanner,
+                inputArtifact,
+                fileToBeScanned,
+                scanner->recursive() ? &filesToScan : nullptr,
+                (*cacheItem)[scanner->id()]);
         }
     }
 }

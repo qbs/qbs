@@ -70,7 +70,6 @@ public:
     virtual QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
                                             const char *fileTags) = 0;
     virtual bool recursive() const = 0;
-    virtual const void *key() const = 0;
     virtual bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                                const PropertyMapConstPtr &m2) const = 0;
     virtual bool cacheIsPerFile() const = 0;
@@ -92,7 +91,6 @@ private:
     QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
                                     const char *fileTags) override;
     bool recursive() const override;
-    const void *key() const override;
     QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                        const PropertyMapConstPtr &m2) const override;
@@ -111,7 +109,6 @@ private:
     QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
                                     const char *fileTags) override;
     bool recursive() const override;
-    const void *key() const override;
     QString createId() const override;
     bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
                                        const PropertyMapConstPtr &m2) const override;
