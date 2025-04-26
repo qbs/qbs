@@ -614,7 +614,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 1);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 1);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -626,7 +626,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -638,7 +638,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -650,7 +650,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -662,19 +662,19 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 1);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
 
     WAIT_FOR_NEW_TIMESTAMP();
-    touch("external.h");
+    touch("external1.h");
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p1.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 1);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -686,7 +686,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -698,7 +698,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 1);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 0);
@@ -714,7 +714,7 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"p2.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"p3.cpp\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"shared.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"external.h\""), 0);
+    QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 1);
