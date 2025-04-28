@@ -113,6 +113,7 @@ function commands(project, product, inputs, outputs, input, output)
     var cmd = new Command(fullPath(product), args(product, input, outputs));
     cmd.description = 'moc ' + input.fileName;
     cmd.highlight = 'codegen';
+    cmd.responseFileUsagePrefix = "@";
     return cmd;
 }
 
@@ -136,5 +137,6 @@ function generateMetaTypesCommands(inputs, output)
         ["--collect-json", "-o", output.filePath].concat(inputFilePaths));
     cmd.description = "generating " + output.fileName;
     cmd.highlight = "codegen";
+    cmd.responseFileUsagePrefix = "@";
     return cmd;
 }
