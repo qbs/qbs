@@ -318,8 +318,23 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         dict["extends"] = ModUtils.toJSLiteral(module.pluginData["extends"]);
     }
     indent = "    ";
-    var metaTypesFile = qtProps.libraryPath + "/metatypes/qt"
-            + qtProps.qtMajorVersion + module.qbsName + "_metatypes.json";
+
+    var useMajorVersion = qtProps.qtMajorVersion > 5 || !qtProps.mkspecPath.contains("macx");
+    var metaTypesFileNamePrefix = "qt" + (useMajorVersion ? qtProps.qtMajorVersion : "")
+            + module.qbsName + '_';
+    var metatypesFileNameSuffix = "metatypes.json";
+    var metaTypesFile;
+    if (qtProps.qtMajorVersion > 5) {
+        function isMetaTypesFileForModule(fileName) {
+            return fileName.startsWith(metaTypesFileNamePrefix)
+                    && fileName.endsWith(metatypesFileNameSuffix);
+        };
+        metaTypesFile = qtProps.archData + "/metatypes/"
+                + qtProps.metaTypeFiles.find(isMetaTypesFileForModule);
+    } else {
+        metaTypesFile = qtProps.libraryPath + "/metatypes/" + metaTypesFileNamePrefix
+                + metatypesFileNameSuffix;
+    }
     if (File.exists(metaTypesFile)) {
         if (additionalContent)
             additionalContent += "\n" + indent;

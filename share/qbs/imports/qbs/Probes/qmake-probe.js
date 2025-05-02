@@ -455,6 +455,12 @@ function getQtProperties(qmakeFilePath) {
         else if (qtProps.qtMajorVersion === 4 && qtProps.qtMinorVersion >= 8)
             qtProps.androidVersion = "1.6"; // Necessitas
     }
+
+    if (qtProps.qtMajorVersion > 5) {
+        qtProps.archData = pathQueryValue(queryResult, "QT_INSTALL_ARCHDATA");
+        qtProps.metaTypeFiles = File.directoryEntries(qtProps.archData + "/metatypes", File.Files);
+    }
+
     return qtProps;
 }
 
