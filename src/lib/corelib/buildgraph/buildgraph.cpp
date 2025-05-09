@@ -52,13 +52,10 @@
 #include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
-#include <language/propertymapinternal.h>
-#include <language/resolvedfilecontext.h>
+#include <language/property.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
 #include <logging/logger.h>
-#include <language/property.h>
-#include <logging/translator.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
@@ -281,7 +278,7 @@ private:
                                std::back_inserter(productDeps), getProductForName);
             }
         } else {
-            productDeps = product->dependencies;
+            productDeps = product->depsAsProductList();
         }
         for (const ResolvedProductPtr &dependency : std::as_const(productDeps)) {
             setupBaseProductScriptValue(engine, dependency.get());

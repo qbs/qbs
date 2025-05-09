@@ -125,6 +125,7 @@ public:
         int maxDependsChainLength = 0;
 
         bool required = true;
+        bool minimal = false;
     };
     using Modules = std::vector<Module>;
     using PropertyDeclarationMap = QMap<QString, PropertyDeclaration>;

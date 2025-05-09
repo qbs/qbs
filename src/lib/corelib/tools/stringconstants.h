@@ -118,6 +118,7 @@ public:
     QBS_STRING_CONSTANT(limitToSubProjectProperty, "limitToSubProject")
     QBS_STRING_CONSTANT(locationKey, "location")
     QBS_STRING_CONSTANT(messageKey, "message")
+    QBS_STRING_CONSTANT(minimalProperty, "minimal")
     QBS_STRING_CONSTANT(minimumQbsVersionProperty, "minimumQbsVersion")
     QBS_STRING_CONSTANT(moduleVar, "module")
     QBS_STRING_CONSTANT(moduleNameProperty, "moduleName")

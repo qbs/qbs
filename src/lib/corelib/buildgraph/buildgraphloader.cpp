@@ -42,16 +42,12 @@
 #include "emptydirectoriesremover.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
-#include "rulenode.h"
 #include "rulecommands.h"
+#include "rulenode.h"
+#include "rulesevaluationcontext.h"
 #include "transformer.h"
 
-#include <buildgraph/rulesevaluationcontext.h>
-#include <language/artifactproperties.h>
 #include <language/language.h>
-#include <language/propertymapinternal.h>
-#include <language/qualifiedid.h>
-#include <language/resolvedfilecontext.h>
 #include <loader/projectresolver.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
@@ -74,6 +70,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -247,8 +244,8 @@ static bool checkProductForChangedDependency(std::vector<ResolvedProductPtr> &ch
         return false;
     if (contains(changedProducts, product))
         return true;
-    for (const ResolvedProductPtr &dep : std::as_const(product->dependencies)) {
-        if (checkProductForChangedDependency(changedProducts, seenProducts, dep)) {
+    for (const ProductDependency &dep : std::as_const(product->dependencies)) {
+        if (checkProductForChangedDependency(changedProducts, seenProducts, dep.product)) {
             changedProducts << product;
             return true;
         }
@@ -749,13 +746,13 @@ static bool dependenciesAreEqual(const ResolvedProductConstPtr &p1,
 {
     if (p1->dependencies.size() != p2->dependencies.size())
         return false;
-    Set<QString> names1;
-    Set<QString> names2;
+    Set<std::pair<QString, bool>> deps1;
+    Set<std::pair<QString, bool>> deps2;
     for (const auto &dep : std::as_const(p1->dependencies))
-        names1 << dep->uniqueName();
+        deps1 << std::make_pair(dep.product->uniqueName(), dep.minimal);
     for (const auto &dep : std::as_const(p2->dependencies))
-        names2 << dep->uniqueName();
-    return names1 == names2;
+        deps2 << std::make_pair(dep.product->uniqueName(), dep.minimal);
+    return deps1 == deps2;
 }
 
 bool BuildGraphLoader::checkProductForChanges(const ResolvedProductPtr &restoredProduct,

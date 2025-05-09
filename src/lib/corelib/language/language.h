@@ -583,6 +583,28 @@ inline bool operator!=(const ExportedModule &m1, const ExportedModule &m2) { ret
 class TopLevelProject;
 class ScriptEngine;
 
+struct ProductDependency
+{
+    ProductDependency(const ResolvedProductPtr &p, bool minimal)
+        : product(p)
+        , minimal(minimal)
+    {}
+    ProductDependency() = default;
+
+    template<PersistentPool::OpType opType>
+    void completeSerializationOp(PersistentPool &pool)
+    {
+        pool.serializationOp<opType>(product, minimal);
+    }
+
+    ResolvedProductPtr product;
+    bool minimal = false;
+};
+inline bool operator==(const ProductDependency &dep1, const ProductDependency &dep2)
+{
+    return dep1.product == dep2.product && dep1.minimal == dep2.minimal;
+}
+
 class QBS_AUTOTEST_EXPORT ResolvedProduct
 {
 public:
@@ -602,7 +624,7 @@ public:
     QVariantMap productProperties;
     PropertyMapPtr moduleProperties;
     std::vector<RulePtr> rules;
-    std::vector<ResolvedProductPtr> dependencies;
+    std::vector<ProductDependency> dependencies;
     QHash<ResolvedProductConstPtr, QVariantMap> dependencyParameters;
     std::vector<FileTaggerConstPtr> fileTaggers;
     JobLimits jobLimits;
@@ -648,6 +670,9 @@ public:
 
     void cacheExecutablePath(const QString &origFilePath, const QString &fullFilePath);
     QString cachedExecutablePath(const QString &origFilePath) const;
+
+    std::vector<ResolvedProductPtr> depsAsProductList() const;
+    bool hasDependency(const ResolvedProductPtr &p) const;
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool);

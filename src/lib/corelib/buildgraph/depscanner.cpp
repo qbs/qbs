@@ -121,7 +121,7 @@ QStringList PluginDependencyScanner::collectModulesPaths(const ResolvedProduct *
     result << getModulesPath(product);
     // a module can also be in the dependent product
     for (const auto &dep : product->dependencies) {
-        const auto depProduct = dep.get();
+        const auto depProduct = dep.product.get();
         if (depProduct)
             result << getModulesPath(depProduct);
     }

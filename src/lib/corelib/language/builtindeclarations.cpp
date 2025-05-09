@@ -235,6 +235,10 @@ void BuiltinDeclarations::addDependsItem()
     item << nameProperty();
     item << PropertyDeclaration(StringConstants::submodulesProperty(),
                                 PropertyDeclaration::StringList);
+    item << PropertyDeclaration(
+        StringConstants::minimalProperty(),
+        PropertyDeclaration::Boolean,
+        StringConstants::falseValue());
     item << PropertyDeclaration(StringConstants::requiredProperty(), PropertyDeclaration::Boolean,
                                 StringConstants::trueValue());
     item << PropertyDeclaration(StringConstants::versionAtLeastProperty(),

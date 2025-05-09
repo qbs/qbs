@@ -1264,15 +1264,17 @@ void ProductResolverStage2::collectProductDependencies()
         const ResolvedProductPtr &dep = module.product->product;
         QBS_CHECK(dep);
         QBS_CHECK(dep != product);
-        product->dependencies << dep;
+        product->dependencies.emplace_back(dep, module.minimal);
         product->dependencyParameters.insert(dep, module.parameters); // TODO: Streamline this with normal module dependencies?
     }
 
     // TODO: We might want to keep the topological sorting and get rid of "module module dependencies".
-    std::sort(product->dependencies.begin(),product->dependencies.end(),
-              [](const ResolvedProductPtr &p1, const ResolvedProductPtr &p2) {
-        return p1->fullDisplayName() < p2->fullDisplayName();
-    });
+    std::sort(
+        product->dependencies.begin(),
+        product->dependencies.end(),
+        [](const ProductDependency &p1, const ProductDependency &p2) {
+            return p1.product->fullDisplayName() < p2.product->fullDisplayName();
+        });
 }
 
 void ExportsResolver::start()

@@ -822,10 +822,10 @@ bool ProductContext::dependenciesResolvingPending() const
             && !product && !delayedError.hasError();
 }
 
-std::pair<ProductDependency, ProductContext *> ProductContext::pendingDependency() const
+std::pair<ProductDependencyType, ProductContext *> ProductContext::pendingDependency() const
 {
     return dependenciesContext ? dependenciesContext->pendingDependency()
-                               : std::make_pair(ProductDependency::None, nullptr);
+                               : std::make_pair(ProductDependencyType::None, nullptr);
 }
 
 TimingData &TimingData::operator+=(const TimingData &other)

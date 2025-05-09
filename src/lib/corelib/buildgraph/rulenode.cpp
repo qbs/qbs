@@ -261,9 +261,9 @@ ArtifactSet RuleNode::currentInputArtifacts() const
     }
 
     for (const auto &dep : std::as_const(product->dependencies)) {
-        if (!dep->buildData)
+        if (!dep.product->buildData)
             continue;
-        for (Artifact * const a : filterByType<Artifact>(dep->buildData->allNodes())) {
+        for (Artifact * const a : filterByType<Artifact>(dep.product->buildData->allNodes())) {
             if (a->fileTags().intersects(m_rule->inputsFromDependencies)
                     && !a->fileTags().intersects(m_rule->excludedInputs))
                 s += a;

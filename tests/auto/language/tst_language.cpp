@@ -617,9 +617,9 @@ void TestLanguage::dependencyOnAllProfiles()
         const ResolvedProductConstPtr mainProduct = productsFromProject(project).value("main");
         QVERIFY(!!mainProduct);
         QCOMPARE(mainProduct->dependencies.size(), size_t { 2 });
-        for (const ResolvedProductPtr &p : mainProduct->dependencies) {
-            QCOMPARE(p->name, QLatin1String("dep"));
-            QVERIFY(p->profile() == "p1" || p->profile() == "p2");
+        for (const ProductDependency &p : mainProduct->dependencies) {
+            QCOMPARE(p.product->name, QLatin1String("dep"));
+            QVERIFY(p.product->profile() == "p1" || p.product->profile() == "p2");
         }
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
@@ -1249,9 +1249,9 @@ void TestLanguage::exports()
 
         product = products.value("A");
         QVERIFY(!!product);
-        QVERIFY(contains(product->dependencies, products.value("B")));
-        QVERIFY(contains(product->dependencies, products.value("C")));
-        QVERIFY(contains(product->dependencies, products.value("D")));
+        QVERIFY(contains(product->dependencies, ProductDependency{products.value("B"), false}));
+        QVERIFY(contains(product->dependencies, ProductDependency{products.value("C"), false}));
+        QVERIFY(contains(product->dependencies, ProductDependency{products.value("D"), false}));
         product = products.value("B");
         QVERIFY(!!product);
         QVERIFY(product->dependencies.empty());
@@ -3408,8 +3408,8 @@ void TestLanguage::recursiveProductDependencies()
         QVERIFY(!!p3);
         const ResolvedProductPtr p4 = products.value("p4");
         QVERIFY(!!p4);
-        QVERIFY(p1->dependencies == std::vector<ResolvedProductPtr>({p3, p4}));
-        QVERIFY(p2->dependencies == std::vector<ResolvedProductPtr>({p3, p4}));
+        QVERIFY(p1->depsAsProductList() == std::vector<ResolvedProductPtr>({p3, p4}));
+        QVERIFY(p2->depsAsProductList() == std::vector<ResolvedProductPtr>({p3, p4}));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
         qDebug() << e.toString();

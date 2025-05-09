@@ -453,14 +453,14 @@ void ProductsResolver::handleFinishedThreads()
                                         << product.displayName();
             const auto pending = product.pendingDependency();
             switch (pending.first) {
-            case ProductDependency::Single:
+            case ProductDependencyType::Single:
                 waitForSingleDependency(ProductWithLoaderState(product, &loaderState),
                                         *pending.second);
                 break;
-            case ProductDependency::Bulk:
+            case ProductDependencyType::Bulk:
                 waitForBulkDependency(ProductWithLoaderState(product, &loaderState));
                 break;
-            case ProductDependency::None:
+            case ProductDependencyType::None:
                 // This can happen if the dependency has finished in between the check in
                 // DependencyResolver and the one here.
                 QBS_CHECK(pending.second);

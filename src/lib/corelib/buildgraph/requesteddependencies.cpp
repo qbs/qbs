@@ -49,7 +49,7 @@ static Set<QString> depNamesForProduct(const ResolvedProduct *p)
 {
     Set<QString> names;
     for (const auto &dep : p->dependencies)
-        names.insert(dep->uniqueName());
+        names.insert(dep.product->uniqueName());
     for (const auto &m : p->modules) {
         if (!m->isProduct)
             names.insert(m->name);
