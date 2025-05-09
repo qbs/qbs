@@ -320,6 +320,7 @@ function linkerFlags(project, product, inputs, outputs) {
 
 function archiverFlags(project, product, inputs, outputs) {
     var args = ["-cl"];
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
 
     // Output.
     args.push(outputs.staticlibrary[0].filePath);

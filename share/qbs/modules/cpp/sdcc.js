@@ -381,6 +381,7 @@ function linkerFlags(project, product, inputs, outputs) {
 
 function archiverFlags(project, product, inputs, outputs) {
     var args = ["-rc"];
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
     args.push(outputs.staticlibrary[0].filePath);
     args = args.concat(Cpp.collectLinkerObjectPaths(inputs));
     return args;

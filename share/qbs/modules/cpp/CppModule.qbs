@@ -242,6 +242,8 @@ Module {
             + "linker."
     }
 
+    property stringList archiverFlags
+
     property stringList assemblerFlags
     PropertyOptions {
         name: "assemblerFlags"

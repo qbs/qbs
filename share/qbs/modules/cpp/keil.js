@@ -873,6 +873,7 @@ function archiverFlags(project, product, inputs, outputs) {
         if (product.cpp.debugInformation)
             args.push("--debug_symbols");
     }
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
 
     return args;
 }

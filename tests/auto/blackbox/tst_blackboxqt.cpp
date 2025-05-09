@@ -776,10 +776,13 @@ void TestBlackboxQt::qmlTypeRegistrar()
     QVERIFY(hasRegistrar != doesNotHaveRegistrar);
     if (doesNotHaveRegistrar)
         QSKIP("Qt version too old");
-    QCOMPARE(runQbs(), 0);
+    QbsRunParameters buildParams;
+    buildParams.arguments << "--command-echo-mode"
+                          << "command-line";
+    QCOMPARE(runQbs(buildParams), 0);
     const bool enabled = !importName.isEmpty();
-    QCOMPARE(m_qbsStdout.contains("running qmltyperegistrar"), enabled);
-    QCOMPARE(m_qbsStdout.contains("compiling myapp_qmltyperegistrations.cpp"), enabled);
+    QCOMPARE(m_qbsStdout.contains("--foreign-types"), enabled);
+    QCOMPARE(m_qbsStdout.contains("myapp_qmltyperegistrations.cpp.o"), enabled);
     const QString buildDir = relativeProductBuildDir("myapp");
     QCOMPARE(regularFileExists(buildDir + "/myapp.qmltypes"), enabled);
     QCOMPARE(regularFileExists(relativeBuildDir() + "/install-root/" + installDir

@@ -736,6 +736,7 @@ function libtoolCommands(project, product, inputs, outputs, input, output, expli
     var lib = outputs["staticlibrary"][0];
     var nativeOutputFileName = FileInfo.toWindowsSeparators(lib.filePath)
     args.push('/OUT:' + nativeOutputFileName)
+    Array.prototype.push.apply(args, product.cpp.archiverFlags);
     for (var i in inputs.obj) {
         var fileName = FileInfo.toWindowsSeparators(inputs.obj[i].filePath)
         args.push(fileName)
