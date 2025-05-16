@@ -1,6 +1,5 @@
 Project {
     property bool withTests: true
-    property bool installDebugInformation: true
     property stringList autotestArguments: []
     property stringList autotestWrapper: []
 

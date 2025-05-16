@@ -14,7 +14,6 @@ DynamicLibrary {
     name: "mylib"
     files: ["hello.cppm", "lib_global.h"]
     version: "1.0.0"
-    install: true
 
     Depends { name: "cpp" }
     cpp.defines: "MYLIB_LIBRARY"

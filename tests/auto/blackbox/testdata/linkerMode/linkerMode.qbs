@@ -6,24 +6,16 @@ Project {
             console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
         }
         files: qbs.targetOS.includes("darwin") ? "darwin.s" : "main.s"
+        installDir: ""
 
         cpp.linkerPath: cpp.compilerPathByLanguage["c"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
     }
 
     CppApplication {
         consoleApplication: true
         name: "LinkedProduct-C"
         files: ["main.c"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        installDir: ""
     }
 
     CppApplication {
@@ -32,24 +24,15 @@ Project {
         consoleApplication: true
         name: "LinkedProduct-Objective-C"
         files: ["main.m"]
-
+        installDir: ""
         cpp.dynamicLibraries: ["ObjC"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
     }
 
     CppApplication {
         consoleApplication: true
         name: "LinkedProduct-C++"
         files: ["main.cpp"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        installDir: ""
     }
 
     CppApplication {
@@ -58,13 +41,9 @@ Project {
         consoleApplication: true
         name: "LinkedProduct-Objective-C++"
         files: ["main.mm"]
+        installDir: ""
 
         cpp.dynamicLibraries: ["ObjC"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
     }
 
     CppApplication {
@@ -72,6 +51,7 @@ Project {
 
         name: "LinkedProduct-BlankApp"
         files: ["staticmain.c"]
+        installDir: ""
     }
 
     StaticLibrary {
@@ -79,5 +59,6 @@ Project {
 
         name: "LinkedProduct-C++StaticLibrary"
         files: ["staticlib.cpp"]
+        installDir: ""
     }
 }

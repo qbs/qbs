@@ -1,7 +1,5 @@
 DynamicLibrary {
     version: project.version
-    install: true
-    installDebugInformation: project.installDebugInformation
 
     Depends { name: 'cpp' }
     property string libraryMacro: name.replace(" ", "_").toUpperCase() + "_LIBRARY"

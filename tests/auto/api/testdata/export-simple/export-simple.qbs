@@ -1,7 +1,6 @@
 Project {
     Application {
         name : "HelloWorld"
-        destinationDirectory: "bin"
         Group {
             files : [ "main.cpp" ]
         }
@@ -37,7 +36,6 @@ Project {
 
     DynamicLibrary {
         name : "lib1"
-        destinationDirectory: "bin"
         Group {
             files : [ "lib1.cpp" ]
         }

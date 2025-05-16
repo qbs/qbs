@@ -7,11 +7,8 @@ Project {
         }
         Depends { name: "mylib" }
         files: ["main.cpp"]
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-            qbs.installDir: "bin"
-        }
+        installDir: "bin"
+        installDebugInformation: false
     }
     CppApplication {
         name: "internal_tool"
@@ -32,11 +29,8 @@ Project {
             qbs.install: true
             qbs.installDir: "include"
         }
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-            qbs.installDir: "lib"
-        }
+        installDir: "lib"
+        installDebugInformation: false
     }
 
     InstallPackage {

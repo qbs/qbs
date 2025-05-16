@@ -8,4 +8,5 @@ StaticLibrary {
     qbs.buildVariants: ["debug", "release"]
     Depends { name: "cpp" }
     files: ["lib.cpp"]
+    install: false
 }

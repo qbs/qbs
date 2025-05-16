@@ -6,7 +6,6 @@ StaticLibrary {
         "lib.h",
     ]
     version: "1.0.0"
-    install: true
 
     //! [1]
     Depends { name: 'cpp' }

@@ -48,6 +48,7 @@ NativeBinary {
             return "lib";
     }
 
+    install: !isStaticLibrary && !isForAndroid
     property bool installImportLib: false
     property string importLibInstallDir: "lib"
 

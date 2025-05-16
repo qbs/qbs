@@ -4,8 +4,6 @@ import qbs.FileInfo
 CppApplication {
     version: project.version
     consoleApplication: true
-    install: true
-    installDebugInformation: project.installDebugInformation
     // ...
     //! [0]
 

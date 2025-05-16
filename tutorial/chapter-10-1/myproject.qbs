@@ -11,7 +11,6 @@ CppApplication {
         return false;
     }
     consoleApplication: true
-    install: true
     files: ["hello.cppm", "main.cpp" ]
     cpp.cxxLanguageVersion: "c++20"
     cpp.forceUseCxxModules: true

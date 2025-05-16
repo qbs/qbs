@@ -8,6 +8,4 @@ CppApplication {
 //! [0]
 
     consoleApplication: true
-    install: true
-    installDebugInformation: project.installDebugInformation
 }

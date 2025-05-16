@@ -27,8 +27,9 @@ Project {
         name: "lib2"
         Depends { name: "cpp" }
         Depends { name: "lib5" }
+        install: false
 
-    Properties {
+        Properties {
             condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
         }
@@ -47,7 +48,6 @@ Project {
             bundle.isBundle: false
         }
 
-        install: true
         installImportLib: true
         installDir: "lib3"
         importLibInstallDir: installDir
@@ -72,7 +72,6 @@ Project {
             cpp.dynamicLibraryImportSuffix: ".a"
         }
 
-        install: true
         installImportLib: true
         installDir: "lib4"
         importLibInstallDir: installDir
@@ -100,6 +99,7 @@ Project {
         name: "app"
         consoleApplication: true
         files: "main.cpp"
+        install: false
 
         Depends { name: "lib1" }
         Depends { name: "lib2" }

@@ -6,7 +6,5 @@ CppApplication {
     version: "1.0.0"
 
     consoleApplication: true
-    install: true
-    installDebugInformation: true
 }
 //! [0]

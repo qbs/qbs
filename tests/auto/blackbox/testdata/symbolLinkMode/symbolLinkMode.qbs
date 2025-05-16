@@ -24,6 +24,7 @@ Project {
         name: "driver"
         files: ["main.cpp"]
         consoleApplication: true
+        installDir: "bin"
         property string installLib: "SHOULD_INSTALL_LIB=" + project.shouldInstallLibrary
         cpp.defines: {
             if (symbolLinkMode === "weak") {
@@ -36,12 +37,6 @@ Project {
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumMacosVersion: "10.7"
         cpp.rpaths: [cpp.rpathOrigin + "/../lib"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-            qbs.installDir: "bin"
-        }
     }
 
     DynamicLibrary {
@@ -54,6 +49,8 @@ Project {
         }
         name: "functions"
         files: ["lib.cpp"]
+        install: project.shouldInstallLibrary
+        installDir: "lib"
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumMacosVersion: "10.7"
         cpp.rpaths: [cpp.rpathOrigin]
@@ -61,13 +58,6 @@ Project {
         Properties {
             condition: qbs.targetOS.includes("darwin")
             cpp.sonamePrefix: "@rpath"
-        }
-
-        Group {
-            condition: project.shouldInstallLibrary
-            fileTagsFilter: product.type
-            qbs.install: true
-            qbs.installDir: "lib"
         }
 
         Export {
@@ -95,6 +85,7 @@ Project {
             bundle.isBundle: false
         }
         name: "indirect"
+        installDir: "lib"
         files: ["indirect.cpp"]
         cpp.cxxLanguageVersion: "c++11"
         cpp.minimumMacosVersion: "10.7"
@@ -104,12 +95,6 @@ Project {
             // reexport is incompatible with rpath,
             // "ERROR: ld: file not found: @rpath/libindirect.dylib for architecture x86_64"
             cpp.sonamePrefix: qbs.installRoot + "/lib"
-        }
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-            qbs.installDir: "lib"
         }
     }
 }

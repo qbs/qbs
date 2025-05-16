@@ -1516,21 +1516,23 @@
     \code
     Application {
         Group {
-            name: "Runtime resources"
-            files: "*.qml"
+            name: "Icons"
+            files: "*.png"
             qbs.install: true
-            qbs.installDir: "share/myproject"
+            qbs.installDir: "share/icons/myproject"
         }
         Group {
-            name: "The App itself"
-            fileTagsFilter: "application"
+            name: "Docs"
+            fileTagsFilter: "generated_docs"
             qbs.install: true
-            qbs.installDir: "bin"
+            qbs.installDir: "share/man/man7"
         }
     }
     \endcode
 
-    In this example, we want to install a couple of QML files and an executable.
+    In this example, we want to install some \c{.png} files and documentation built by the project.
+    The Application is installed automatically unless the \l{Application::install}{install}
+    property is set to \c false.
 
     When building, \QBS installs artifacts into the default root folder, namely
     \c{<build root>/install-root}. The \l{qbs::installPrefix}{qbs.installPrefix} and

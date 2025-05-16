@@ -91,13 +91,12 @@
     standalone binary file instead of an
     \l{https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/BundleTypes/BundleTypes.html}{application bundle}.
 
-    By default, the \l{Application::install}{CppApplication.install} property is \c false and thus
-    \QBS does not install the binary. If the \l{Application::install}{install} property is
-    \c true, when building a project, \QBS will also install it into an \e{installation root}
-    folder which by default is named \c install-root and located under the build directory. This
-    folder will contain only resulting artifacts without the build leftovers and files will have
-    the same layout as in the target system. The \l{Application::install}{install} property should
-    be set to \c true for all products that are to be distributed.
+    By default, \QBS installs binaries into an \e{installation root}
+    folder which by default is named \c install-root and located under the build directory.
+    This folder will contain only resulting artifacts without the build leftovers and files will
+    have the same layout as in the target system. In order to skip installation of the specific
+    Application product, set the \l{Application::install}{CppApplication.install} property to
+    \c false.
     See the \l{installing-files.html}{Installing Files} section for more details.
 
     We can now build and run our application from the project directory:
@@ -248,9 +247,9 @@
     \title Convenience Items
 
     As you might have noticed, we are repeating ourselves when setting the same properties in our
-    products - we set \l{Product::version}{version}, \l{Application::install}{install},
-    \l{cpp::rpaths}{cpp.rpaths}, and so on. For a single application and a library, that is not a
-    big deal, but what if we have a dozen libraries? Luckily, this can be achieved using item
+    products - we set \l{Product::version}{version}, \l{cpp::rpaths}{cpp.rpaths}, and so on.
+    For a single application and a library, that is not a big deal, but what if we have a dozen
+    libraries? Luckily, this can be achieved using item
     \l{language-introduction.html#reusing-project-file-code}{inheritance} - we move the common code
     to the base item and in the real product we will only set what is specific to that product (for
     example, the list of \l{Product::files}{files}).
@@ -370,9 +369,6 @@
     \l{special-property-values.html#project}{project} value. If the nearest project in the project
     tree does not have the desired property, \QBS looks it up in the parent project, potentially
     all the way up to the top-level project.
-    We also use the \l{Application::installDebugInformation}{installDebugInformation}
-    property here. By default, it has the same value as \l{Application::install}{install} but we
-    want to make the debug information install optional.
 
     Let's now disable the tests if \c project.withTests is \c false:
 
@@ -680,7 +676,6 @@
     // myproject.qbs
     CppApplication {
         consoleApplication: true
-        install: true
         files: ["hello.cppm", "main.cpp"]
         cpp.cxxLanguageVersion: "c++20"
         cpp.forceUseCxxModules: true
@@ -714,7 +709,6 @@
         name: "mylib"
         files: ["hello.cppm", "lib_global.h"]
         version: "1.0.0"
-        install: true
 
         Depends { name: "cpp" }
         cpp.defines: "MYLIB_LIBRARY"

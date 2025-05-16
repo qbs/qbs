@@ -3,7 +3,6 @@
 
 DynamicLibrary {
     version: "1.0.0"
-    install: true
 
     Depends { name: 'cpp' }
     property string libraryMacro: name.replace(" ", "_").toUpperCase() + "_LIBRARY"

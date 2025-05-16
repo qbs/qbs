@@ -1,7 +1,6 @@
 Project {
     property string version: "1.0.0"
     property bool withTests: true
-    property bool installDebugInformation: true
     property stringList autotestArguments: []
     property stringList autotestWrapper: []
 

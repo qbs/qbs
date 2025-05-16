@@ -3,6 +3,12 @@ import qbs.Host
 Project {
     CppApplication {
         name: "tool"
+        targetName: {
+            var result = name;
+            if (qbs.buildVariant === "debug")
+                result += "-debug";
+            return result;
+        }
         consoleApplication: true
         property bool _testPlatform: {
             var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();

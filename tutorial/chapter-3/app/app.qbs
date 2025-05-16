@@ -10,7 +10,6 @@ CppApplication {
     version: "1.0.0"
 
     consoleApplication: true
-    install: true
 
     //! [0]
     cpp.rpaths: {

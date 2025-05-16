@@ -7,7 +7,6 @@ CppApplication {
     name: "app"
 
     files: ["main.cpp"]
-    install: true
 
     cpp.rpaths: [cpp.rpathOrigin + "/../lib"]
     cpp.cxxLanguageVersion: "c++20"

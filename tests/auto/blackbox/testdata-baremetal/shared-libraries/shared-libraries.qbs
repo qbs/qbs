@@ -19,13 +19,11 @@ Project {
 
     DynamicLibrary {
         Depends { name: "cpp" }
-        destinationDirectory: "bin"
         name: "shared"
         files: ["shared.c"]
     }
     BareMetalApplication {
         Depends { name: "shared" }
-        destinationDirectory: "bin"
         name: "app"
         files: ["app.c"]
     }

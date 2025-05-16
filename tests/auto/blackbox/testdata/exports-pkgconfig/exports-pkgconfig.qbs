@@ -14,6 +14,8 @@ Project {
     }
     StaticLibrary {
         Depends { name: "cpp" }
+        Depends { name: "bundle" }
+        bundle.isBundle: false
         name: "BoringStaticLib"
         files: ["boringstaticlib.cpp"]
         Export {
@@ -34,7 +36,12 @@ Project {
         Depends { name: "cpp" }
         cpp.defines: ["FIRSTLIB"]
 
+        Depends { name: "bundle" }
+        bundle.isBundle: false
+
         qbs.installPrefix: "/opt/the firstlib"
+        installDir: "lib"
+        installImportLib: true
 
         Export {
             prefixMapping: [{prefix: "/somedir", replacement: "/otherdir"}]
@@ -52,12 +59,6 @@ Project {
             cpp.defines: exportingProduct.name
             cpp.includePaths: [FileInfo.joinPaths(exportingProduct.qbs.installPrefix, "include")]
             Qt.core.mocName: "muck"
-        }
-
-        Group {
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-            qbs.install: true
-            qbs.installDir: "lib"
         }
 
         Group {
@@ -85,6 +86,12 @@ Project {
         Depends { name: "cpp" }
         cpp.defines: ["SECONDLIB"]
 
+        Depends { name: "bundle" }
+        bundle.isBundle: false
+
+        installDir: "/opt/thesecondlib/lib"
+        installImportLib: true
+
         qbs.installPrefix: ""
 
         Depends { name: "TheFirstLib" }
@@ -109,12 +116,6 @@ Project {
                     cpp.warningsAreErrors: true
                 }
             }
-        }
-
-        Group {
-            fileTagsFilter: ["dynamiclibrary", "dynamiclibrary_import"]
-            qbs.install: true
-            qbs.installDir: "/opt/thesecondlib/lib"
         }
 
         Group {

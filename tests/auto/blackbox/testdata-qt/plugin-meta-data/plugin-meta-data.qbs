@@ -26,11 +26,7 @@ Project {
             condition: qbs.targetOS.includes("unix")
             cpp.rpaths: [cpp.rpathOrigin]
         }
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        installDir: ""
 
         files: ["app.cpp"]
     }
@@ -51,11 +47,7 @@ Project {
         cpp.sonamePrefix: qbs.targetOS.includes("darwin") ? "@rpath" : undefined
         cpp.includePaths: ["."]
         Qt.core.pluginMetaData: ["theKey=theValue"]
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
+        installDir: ""
 
         files: ["theplugin.cpp"]
 

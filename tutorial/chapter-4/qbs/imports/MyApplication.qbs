@@ -6,7 +6,6 @@ import qbs.FileInfo
 CppApplication {
     version: "1.0.0"
     consoleApplication: true
-    install: true
 
     cpp.rpaths: {
         if (!cpp.rpathOrigin)

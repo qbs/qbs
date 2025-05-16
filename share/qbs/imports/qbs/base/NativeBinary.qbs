@@ -33,7 +33,7 @@ Product {
     property bool isForDarwin: qbs.targetOS.contains("darwin")
     property bool isBundle: isForDarwin && bundle.isBundle
 
-    property bool install: false
+    property bool install: !isForAndroid
     property string installDir
     // Product artifacts should be installed if it's not multiplexed or aggregated,
     // or if it is multiplexed and it's the aggregate product

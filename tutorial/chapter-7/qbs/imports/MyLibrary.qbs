@@ -1,7 +1,5 @@
 DynamicLibrary {
     version: project.version
-    install: true
-    installDebugInformation: project.installDebugInformation
 //! [0]
 // qbs/imports/MyLibrary.qbs
     // ...
