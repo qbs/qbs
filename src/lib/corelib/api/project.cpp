@@ -685,10 +685,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 product.d->generatedArtifacts << ta;
             }
         }
-        for (const ResolvedProductPtr &resolvedDependentProduct
-             : std::as_const(resolvedProduct->dependencies)) {
-            product.d->dependencies << resolvedDependentProduct->fullDisplayName();
-        }
+        for (const ProductDependency &dep : std::as_const(resolvedProduct->dependencies))
+            product.d->dependencies << dep.product->fullDisplayName();
         std::sort(product.d->type.begin(), product.d->type.end());
         std::sort(product.d->groups.begin(), product.d->groups.end());
         std::sort(product.d->generatedArtifacts.begin(), product.d->generatedArtifacts.end());

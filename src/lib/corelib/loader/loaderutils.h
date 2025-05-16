@@ -84,7 +84,7 @@ using ModulePropertiesPerGroup = std::unordered_map<const Item *, QualifiedIdSet
 using FileLocations = QHash<std::pair<QString, QString>, CodeLocation>;
 
 enum class Deferral { Allowed, NotAllowed };
-enum class ProductDependency { None, Single, Bulk };
+enum class ProductDependencyType { None, Single, Bulk };
 
 class CancelException { };
 
@@ -146,7 +146,7 @@ class DependenciesContext
 {
 public:
     virtual ~DependenciesContext();
-    virtual std::pair<ProductDependency, ProductContext *> pendingDependency() const = 0;
+    virtual std::pair<ProductDependencyType, ProductContext *> pendingDependency() const = 0;
 
     bool dependenciesResolved = false;
 };
@@ -158,7 +158,7 @@ public:
     QString displayName() const;
     void handleError(const ErrorInfo &error);
     bool dependenciesResolvingPending() const;
-    std::pair<ProductDependency, ProductContext *> pendingDependency() const;
+    std::pair<ProductDependencyType, ProductContext *> pendingDependency() const;
 
     QString name;
     QString buildDirectory;

@@ -41,7 +41,7 @@ Product {
     property stringList extraArguments
 
     Depends { name: "Qt.core" }
-    Depends { productTypes: "qm"; limitToSubProject: product.limitToSubProject }
+    Depends { productTypes: "qm";  minimal: true; limitToSubProject: product.limitToSubProject }
 
     Rule {
         multiplex: true

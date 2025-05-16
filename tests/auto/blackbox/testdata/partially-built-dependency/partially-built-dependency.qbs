@@ -2,11 +2,17 @@ import qbs.File
 import qbs.TextFile
 
 Project {
+    property bool minimalDependency
     Product {
         name: "p"
         type: "obj"
         Depends { name: "cpp" }
-        Depends { name: "dep" }
+        Depends { condition: project.minimalDependency === undefined; name: "dep" }
+        Depends {
+            condition: project.minimalDependency !== undefined
+            name: "dep"
+            minimal: project.minimalDependency
+        }
         Rule {
             inputsFromDependencies: "cpp"
             Artifact {

@@ -241,6 +241,7 @@ private slots:
     void outputArtifactAutoTagging();
     void outputRedirection();
     void overrideProjectProperties();
+    void partiallyBuiltDependency_data();
     void partiallyBuiltDependency();
     void pathProbe_data();
     void pathProbe();

@@ -358,7 +358,7 @@ ArtifactSet RulesApplicator::collectAdditionalInputs(const FileTags &tags, const
         if (inputsSources == Dependencies) {
             for (const auto &depProduct : product->dependencies) {
                 for (Artifact * const ta :
-                     filterByType<Artifact>(depProduct->buildData->allNodes())) {
+                     filterByType<Artifact>(depProduct.product->buildData->allNodes())) {
                     if (ta->fileTags().contains(fileTag)
                             && !ta->fileTags().intersects(rule->excludedInputs)) {
                         artifacts << ta;

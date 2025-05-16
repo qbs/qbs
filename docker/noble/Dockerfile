@@ -51,6 +51,7 @@ RUN apt-get update -qq && \
         help2man \
         icoutils \
         libcapnp-dev \
+        libc++-18-dev \
         libclang-rt-18-dev \
         libdbus-1-3 \
         libfreetype6 \

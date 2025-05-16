@@ -48,17 +48,15 @@
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/productbuilddata.h>
 #include <buildgraph/projectbuilddata.h>
-#include <buildgraph/rulegraph.h> // TODO: Move to language?
 #include <buildgraph/transformer.h>
 #include <jsextensions/jsextensions.h>
 #include <language/value.h>
 #include <loader/loaderutils.h>
 #include <logging/categories.h>
-#include <logging/translator.h>
 #include <tools/buildgraphlocker.h>
-#include <tools/hostosinfo.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/scripttools.h>
@@ -496,6 +494,17 @@ QString ResolvedProduct::cachedExecutablePath(const QString &origFilePath) const
 {
     std::lock_guard<std::mutex> locker(m_executablePathCacheLock);
     return m_executablePathCache.value(origFilePath);
+}
+
+std::vector<ResolvedProductPtr> ResolvedProduct::depsAsProductList() const
+{
+    return transformed<std::vector<ResolvedProductPtr>>(
+        dependencies, [](const ProductDependency &dep) { return dep.product; });
+}
+
+bool ResolvedProduct::hasDependency(const ResolvedProductPtr &p) const
+{
+    return any_of(dependencies, [&p](const ProductDependency &dep) { return dep.product == p; });
 }
 
 void ResolvedGroup::restoreWildcards(const QString &buildDir)

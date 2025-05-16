@@ -88,6 +88,7 @@ public:
     VersionRange versionRange;
     QVariantMap parameters;
     bool limitToSubProject = false;
+    bool minimal = false;
     bool requiredLocally = true;
     bool requiredGlobally = true;
 };
@@ -121,6 +122,7 @@ public:
     VersionRange versionRange;
     QVariantMap parameters;
     bool limitToSubProject = false;
+    bool minimal = false;
     bool requiredLocally = true;
     bool requiredGlobally = true;
     bool checkProduct = true;
@@ -145,7 +147,7 @@ public:
     std::list<DependenciesResolvingState> stateStack;
 
 private:
-    std::pair<ProductDependency, ProductContext *> pendingDependency() const override;
+    std::pair<ProductDependencyType, ProductContext *> pendingDependency() const override;
 
     void setSearchPathsForProduct(LoaderState &loaderState);
 
@@ -505,6 +507,7 @@ LoadModuleResult DependenciesResolver::loadModule(
     if (m_product.item) {
         Item::Module module = createModule(dependency, moduleItem, productDep);
         module.required = dependency.requiredGlobally;
+        module.minimal = dependency.minimal;
         addLoadContext(module);
         module.maxDependsChainLength = dependsChainLength();
         m_product.item->addModule(module);
@@ -544,6 +547,7 @@ void DependenciesResolver::updateModule(
     forwardParameterDeclarations(dependency.item, m_product.item->modules());
     module.versionRange.narrowDown(dependency.versionRange);
     module.required |= dependency.requiredGlobally;
+    module.minimal &= dependency.minimal;
     if (dependsChainLength() > module.maxDependsChainLength)
         module.maxDependsChainLength = dependsChainLength();
 }
@@ -878,21 +882,23 @@ std::optional<EvaluatedDependsItem> DependenciesResolver::evaluateDependsItem(It
     adjustParametersScopes(item, item);
     forwardParameterDeclarations(item, m_product.item->modules());
     const QVariantMap parameters = extractParameters(item);
+    const bool minimal = evaluator.boolValue(item, StringConstants::minimalProperty());
 
     const FileTags productTypeTags = FileTags::fromStringList(productTypes);
     if (!productTypeTags.empty())
         m_product.bulkDependencies.emplace_back(productTypeTags, item->location());
     return EvaluatedDependsItem{
-        item,
-        QualifiedId::fromString(name),
-        submodules,
-        productTypeTags,
-        multiplexIds,
-        profiles,
-        {minVersion, maxVersion},
-        parameters,
-        limitToSubProject,
-        required};
+        .item = item,
+        .name = QualifiedId::fromString(name),
+        .subModules = submodules,
+        .productTypes = productTypeTags,
+        .multiplexIds = multiplexIds,
+        .profiles = profiles,
+        .versionRange{minVersion, maxVersion},
+        .parameters = parameters,
+        .limitToSubProject = limitToSubProject,
+        .minimal = minimal,
+        .requiredLocally = required};
 }
 
 // Potentially multiplexes a dependency along Depends.productTypes, Depends.subModules and
@@ -1039,6 +1045,7 @@ Item::Module DependenciesResolver::createModule(
     m.item = item;
     m.product = productDep;
     m.name = dependency.name;
+    m.minimal = dependency.minimal;
     m.required = dependency.requiredLocally;
     m.versionRange = dependency.versionRange;
     return m;
@@ -1051,6 +1058,7 @@ FullyResolvedDependsItem::FullyResolvedDependsItem(
     , name(product->name)
     , versionRange(dependency.versionRange)
     , parameters(dependency.parameters)
+    , minimal(dependency.minimal)
     , checkProduct(false)
 {}
 
@@ -1070,6 +1078,7 @@ FullyResolvedDependsItem::FullyResolvedDependsItem(
     , versionRange(dependency.versionRange)
     , parameters(dependency.parameters)
     , limitToSubProject(dependency.limitToSubProject)
+    , minimal(dependency.minimal)
     , requiredLocally(dependency.requiredLocally)
     , requiredGlobally(dependency.requiredGlobally)
 {}
@@ -1145,14 +1154,15 @@ DependenciesContextImpl::DependenciesContextImpl(ProductContext &product, Loader
         FullyResolvedDependsItem::makeBaseDependency());
 }
 
-std::pair<ProductDependency, ProductContext *> DependenciesContextImpl::pendingDependency() const
+std::pair<ProductDependencyType, ProductContext *> DependenciesContextImpl::pendingDependency()
+    const
 {
     QBS_CHECK(!stateStack.empty());
     if (const auto &currentDependsItem = stateStack.front().currentDependsItem;
         currentDependsItem && !currentDependsItem->productTypes.empty()) {
         qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
                                     << "to be delayed because of bulk dependency";
-        return {ProductDependency::Bulk, nullptr};
+        return {ProductDependencyType::Bulk, nullptr};
     }
     if (!stateStack.front().pendingResolvedDependencies.empty()) {
         if (ProductContext * const dep = stateStack.front().pendingResolvedDependencies
@@ -1161,17 +1171,17 @@ std::pair<ProductDependency, ProductContext *> DependenciesContextImpl::pendingD
                 qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
                                             << "to be delayed because of dependency "
                                                "to unfinished product" << dep->displayName();
-                return {ProductDependency::Single, dep};
+                return {ProductDependencyType::Single, dep};
             } else {
                 qCDebug(lcLoaderScheduling) << "product" << m_product.displayName()
                                             << "to be re-scheduled, as dependency "
                                             << dep->displayName()
                                             << "appears to have finished in the meantime";
-                return {ProductDependency::None, dep};
+                return {ProductDependencyType::None, dep};
             }
         }
     }
-    return {ProductDependency::None, nullptr};
+    return {ProductDependencyType::None, nullptr};
 }
 
 void DependenciesContextImpl::setSearchPathsForProduct(LoaderState &loaderState)

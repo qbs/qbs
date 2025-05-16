@@ -1998,3 +1998,29 @@
 
     \defaultvalue \c{false}
 */
+
+/*!
+    \qmlproperty bool cpp::forceUseImportStd
+    \since Qbs 3.0
+
+    Set this property to \c true to force the use of the C++23 standard library module via
+    \c{import std;}.
+
+    \note This property is only effective with toolchains and standard libraries that support
+    the C++23 standard library module.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::forceUseImportStdCompat
+    \since Qbs 3.0
+
+    Set this property to \c true to force the use of the C++23 standard library compatibility
+    module via \c{import std.compat;}.
+
+    \note This property is only effective with toolchains and standard libraries that support
+    the C++23 standard library compatibility module.
+
+    \defaultvalue \c{false}
+*/

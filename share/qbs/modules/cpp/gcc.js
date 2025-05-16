@@ -1791,3 +1791,52 @@ function wasmArtifacts(product)
 
       return artifacts;
 }
+
+function configureStdModules() {
+    try {
+        var probe = new Process();
+        // check which stdlib is used? this actually works:
+        // clang-18 -print-file-name=libstdc++.modules.json --sysroot /opt/gcc-15/
+        const modulesJsonFiles = [
+            "libc++.modules.json",
+            "libstdc++.modules.json",
+            "../../c++/libc++.modules.json",
+        ];
+        for (var i = 0; i < modulesJsonFiles.length; ++i) {
+            const modulesJsonFile = modulesJsonFiles[i];
+            const result = probe.exec(_compilerPath, ["-print-file-name=" + modulesJsonFile], false);
+            if (result !== 0)
+                continue;
+            const path = probe.readStdOut().trim();
+            if (path !== modulesJsonFile && FileInfo.isAbsolutePath(path) && File.exists(path)) {
+                const jsonFile = new TextFile(path, TextFile.ReadOnly);
+
+                const json = JSON.parse(jsonFile.readAll());
+                jsonFile.close();
+                const modules = json.modules
+                    .filter(function(module) {
+                        const logicalName = module["logical-name"];
+                        if (logicalName === "std" && (_forceUseImportStd || _forceUseImportStdCompat)) {
+                            return true;
+                        } else if (logicalName === "std.compat" && _forceUseImportStdCompat) {
+                            return true;
+                        }
+                        return false;
+                    })
+                    .map(function(module) {
+                        return FileInfo.joinPaths(FileInfo.path(path), module["source-path"]);
+                    })
+                    .filter(function(module) {
+                        return File.exists(module);
+                    });
+                if (modules.length > 0) {
+                    found = true;
+                    _stdModulesFiles = modules;
+                    break;
+                }
+            }
+        }
+    } finally {
+        probe.close();
+    }
+}

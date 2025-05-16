@@ -55,7 +55,6 @@
 
 #include <buildgraph/transformer.h>
 #include <language/language.h>
-#include <language/propertymapinternal.h>
 #include <language/scriptengine.h>
 #include <logging/categories.h>
 #include <logging/translator.h>
@@ -65,12 +64,12 @@
 #include <tools/profiling.h>
 #include <tools/progressobserver.h>
 #include <tools/qbsassert.h>
-#include <tools/qttools.h>
 #include <tools/settings.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdir.h>
+#include <QtCore/qhash.h>
 #include <QtCore/qtimer.h>
 
 #include <algorithm>
@@ -180,12 +179,27 @@ void Executor::setupAuxiliaryProducts()
     if (int(m_primaryProducts.size()) == int(m_allProducts.size()))
         return;
 
-    for (int i = 0; i < m_buildableProducts.size(); ++i) {
-        const ResolvedProductPtr product = m_buildableProducts.at(i);
-        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies)) {
-            if (!contains(m_buildableProducts, dependency))
-                m_buildableProducts.push_back(dependency);
-        }
+    // Collect dependencies. Products that are not minimal dependencies via *all* dependency chains
+    // become primary products, i.e. they will get fully built.
+    QHash<ResolvedProductPtr, bool> dependencies;
+    const std::function<void(const ResolvedProductPtr &, bool)> addDependency =
+        [&](const ResolvedProductPtr &p, bool minimal) {
+            auto &buildFully = dependencies[p];
+            if (!minimal)
+                buildFully = true;
+            for (const ProductDependency &dep : std::as_const(p->dependencies))
+                addDependency(dep.product, minimal || dep.minimal);
+        };
+
+    for (const ResolvedProductPtr &primary : std::as_const(m_primaryProducts)) {
+        for (const ProductDependency &dep : std::as_const(primary->dependencies))
+            addDependency(dep.product, dep.minimal);
+    }
+
+    for (auto it = dependencies.cbegin(); it != dependencies.cend(); ++it) {
+        m_buildableProducts << it.key();
+        if (it.value())
+            m_primaryProducts << it.key();
     }
 }
 
@@ -204,8 +218,8 @@ public:
     {
         Set<ResolvedProductPtr> allDependencies;
         for (const ResolvedProductPtr &product : m_allProducts) {
-            for (const ResolvedProductPtr &dep : product->dependencies)
-                allDependencies += dep;
+            for (const ProductDependency &dep : product->dependencies)
+                allDependencies += dep.product;
         }
         const Set<ResolvedProductPtr> rootProducts
                 = rangeTo<Set<ResolvedProductPtr>>(m_allProducts) - allDependencies;
@@ -220,8 +234,8 @@ private:
     {
         if (!m_seenProducts.insert(product).second)
             return;
-        for (const ResolvedProductPtr &dependency : std::as_const(product->dependencies))
-            traverse(dependency);
+        for (const ProductDependency &dependency : std::as_const(product->dependencies))
+            traverse(dependency.product);
         if (!product->buildData)
             return;
         product->buildData->setBuildPriority(m_priority--);

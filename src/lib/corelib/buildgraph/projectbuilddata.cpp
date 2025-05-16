@@ -48,7 +48,6 @@
 #include "rulesevaluationcontext.h"
 #include "transformer.h"
 
-#include <language/artifactproperties.h>
 #include <language/language.h>
 #include <language/preparescriptobserver.h>
 #include <language/scriptengine.h>
@@ -57,7 +56,6 @@
 #include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/qbsassert.h>
-#include <tools/qttools.h>
 #include <tools/stlutils.h>
 
 #include <memory>
@@ -69,7 +67,7 @@ static Set<ResolvedProductPtr> findDependentProducts(const ResolvedProductPtr &p
 {
     Set<ResolvedProductPtr> result;
     for (const ResolvedProductPtr &parent : product->topLevelProject()->allProducts()) {
-        if (contains(parent->dependencies, product))
+        if (parent->hasDependency(product))
             result += parent;
     }
     return result;
@@ -394,11 +392,11 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     ArtifactSetByFileTag artifactsPerFileTag;
 
     for (const auto &dependency : std::as_const(product->dependencies)) {
-        if (!dependency->enabled) {
+        if (!dependency.product->enabled) {
             QBS_CHECK(m_parameters.productErrorMode() == ErrorHandlingMode::Relaxed);
             continue;
         }
-        resolveProductBuildData(dependency);
+        resolveProductBuildData(dependency.product);
     }
 
     //add qbsFile artifact
@@ -429,7 +427,7 @@ void BuildDataResolver::resolveProductBuildData(const ResolvedProductPtr &produc
     CreateRuleNodes crn(product);
     ruleGraph.accept(&crn);
 
-    connectRulesToDependencies(product, product->dependencies);
+    connectRulesToDependencies(product, product->depsAsProductList());
 }
 
 static bool isRootRuleNode(RuleNode *ruleNode)

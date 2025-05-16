@@ -4,8 +4,12 @@
 * Errors during project resolving print a sort of stack trace now, giving users
   a better idea about what is going wrong.
 * The JavaScript backend was switched to `QuickJS-NG`, which is actively maintained.
+* Added support for C++ standard library modules - "import std;" and "import std.compat;".
 
 # Language
+* Introduced new property `minimal` to `Depends` item that controls whether the
+  dependency should get built in its entirety or only as far as needed by
+  the rules in the depending product.
 * Relative paths in `Export` items are now resolved relative to the importing product.
 * Top-level list property assignments no longer act as fallbacks for `Properties` items, but
   unconditionally contribute to the aggregate value of the property.

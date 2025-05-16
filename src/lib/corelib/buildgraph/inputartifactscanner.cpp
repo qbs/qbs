@@ -92,8 +92,8 @@ static void resolveDepencency(const RawScannedDependency &dependency,
                 dependencyInProduct = foundArtifact;
             } else if (!productOfDependencyIsDependency) {
                 dependencyInOtherProduct = foundArtifact;
-                productOfDependencyIsDependency
-                        = contains(product->dependencies, dependencyInOtherProduct->product.lock());
+                productOfDependencyIsDependency = product->hasDependency(
+                    dependencyInOtherProduct->product.lock());
             }
             break;
         }

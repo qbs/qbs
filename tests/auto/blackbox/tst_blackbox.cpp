@@ -2136,6 +2136,8 @@ void TestBlackbox::cxxModules_data()
     QTest::newRow("single-module") << "single-mod";
     QTest::newRow("dot-in-name") << "dot-in-name";
     QTest::newRow("export-import") << "export-import";
+    QTest::newRow("import-std") << "import-std";
+    QTest::newRow("import-std-compat") << "import-std-compat";
     QTest::newRow("dependent-modules") << "dep-mods";
     QTest::newRow("declaration-implementation") << "decl-impl";
     QTest::newRow("library-module") << "lib-mod";
@@ -3447,14 +3449,33 @@ void TestBlackbox::overrideProjectProperties()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::partiallyBuiltDependency_data()
+{
+    QTest::addColumn<QByteArray>("mode");
+    QTest::addColumn<bool>("expectBuilding");
+
+    QTest::newRow("default") << QByteArray("default") << true;
+    QTest::newRow("minimal") << QByteArray("minimal") << false;
+    QTest::newRow("full") << QByteArray("full") << true;
+}
+
 void TestBlackbox::partiallyBuiltDependency()
 {
+    QFETCH(QByteArray, mode);
+    QFETCH(bool, expectBuilding);
+
     QDir::setCurrent(testDataDir + "/partially-built-dependency");
-    QCOMPARE(runQbs(QbsRunParameters({"-p", "p"})), 0);
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params({"-p", "p"});
+    if (mode == "minimal")
+        params.arguments << "project.minimalDependency:true";
+    else if (mode == "full")
+        params.arguments << "project.minimalDependency:false";
+    QCOMPARE(runQbs(params), 0);
     QCOMPARE(m_qbsStdout.count("generating main.cpp"), 1);
     QCOMPARE(m_qbsStdout.count("copying main.cpp"), 1);
-    QCOMPARE(m_qbsStdout.count("compiling main.cpp"), 1);
-    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+    QCOMPARE(m_qbsStdout.count("compiling main.cpp"), expectBuilding ? 2 : 1);
+    QVERIFY2(m_qbsStdout.contains("linking") == expectBuilding, m_qbsStdout.constData());
 }
 
 void TestBlackbox::pathProbe_data()

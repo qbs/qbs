@@ -62,6 +62,7 @@ Project {
     }
     QtApplication {
         name: "qt2"
+        Depends { name: "qt1" } // Tests "minimal" propagation in Executor
         files: [
             "qt2-dummy.cpp",
             "qt2-dummy2.cpp",
@@ -71,6 +72,7 @@ Project {
     }
     CppApplication {
         name: "noqt"
+        Depends { name: "qt2" } // Tests "minimal" propagation in Executor
         files: "noqt-main.cpp"
     }
     Product {

@@ -157,6 +157,20 @@
 */
 
 /*!
+    \qmlproperty bool Depends::minimal
+
+    Setting this property to \c false instructs \QBS to build the respective product
+    only to the extent that is necessary for the depending product.
+    Otherwise (the default), the dependency gets fully built.
+    This property only has an effect if the user requested a subset of the project
+    to be built (that is, the -p option is used), the dependency is not in that subset
+    and no other product in the subset has a non-minimal dependency on it.
+
+    \defaultvalue \c false
+    \since Qbs 3.0
+*/
+
+/*!
     \qmlproperty string Depends::name
 
     The name of the dependent product or module.
