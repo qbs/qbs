@@ -510,7 +510,7 @@ function guessArchitecture(m) {
     var architecture;
     if (m) {
         // based on the search algorithm from qprocessordetection.h in qtbase
-        var arm64Defs = ["_M_ARM64", "__aarch64__", "__ARM64__"];
+        var arm64Defs = ["_M_ARM64", "__aarch64__", "__ARM64__", "__ARM_ARCH_ISA_A64"];
         if (hasAnyOf(m, ["__arm__", "__TARGET_ARCH_ARM", "_M_ARM"].concat(arm64Defs))) {
             if (hasAnyOf(m, arm64Defs)) {
                 architecture = "arm64";
@@ -529,7 +529,7 @@ function guessArchitecture(m) {
                         }
                     }
 
-                    if (i === 7 && m["_ARM_ARCH_7"] !== undefined) {
+                    if (i === 7 && (m["_ARM_ARCH_7"] !== undefined || m["_M_ARM"] === "7")) {
                         architecture += "v7";
                         foundSubarch = true;
                     }
