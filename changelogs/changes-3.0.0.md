@@ -6,6 +6,7 @@
 * The JavaScript backend was switched to `QuickJS-NG`, which is actively maintained.
 * Added support for C++ standard library modules - "import std;" and "import std.compat;".
 * Fixed support for arm64/armv7 with MSVC.
+* Fixed Conan module provider when there are multiple values in array.
 
 # Language
 * Introduced new property `minimal` to `Depends` item that controls whether the
