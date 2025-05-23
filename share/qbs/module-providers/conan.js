@@ -204,27 +204,27 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
             + "; version: " + ModUtils.toJSLiteral(dep.version) + "}");
     });
 
-    const buildBindirs = FileInfo.fromNativeSeparators(moduleInfo.build_bindirs);
+    const buildBindirs = moduleInfo.build_bindirs.map(FileInfo.fromNativeSeparators);
     writeLine("    readonly property stringList hostBinDirs: (" + ModUtils.toJSLiteral(buildBindirs) + ")");
-    const targetBindirs = FileInfo.fromNativeSeparators(cppInfo.bindirs);
+    const targetBindirs = cppInfo.bindirs.map(FileInfo.fromNativeSeparators);
     writeLine("    readonly property stringList binDirs: (" + ModUtils.toJSLiteral(targetBindirs) + ")");
 
     // TODO: there's a weird issue with system include dirs with xcode-less clang - incorrect include order?
-    writeCppProperty("includePaths", FileInfo.fromNativeSeparators(cppInfo.includedirs));
-    writeCppProperty("frameworkPaths", FileInfo.fromNativeSeparators(cppInfo.frameworkdirs));
+    writeCppProperty("includePaths", cppInfo.includedirs.map(FileInfo.fromNativeSeparators));
+    writeCppProperty("frameworkPaths", cppInfo.frameworkdirs.map(FileInfo.fromNativeSeparators));
     writeCppProperty("frameworks", cppInfo.frameworks);
     writeCppProperty("defines", cppInfo.defines);
     writeCppProperty("cFlags", cppInfo.cflags);
     writeCppProperty("cxxFlags", cppInfo.cxxflags);
     writeCppProperty("linkerFlags", (cppInfo.sharedlinkflags || []).concat(cppInfo.exelinkflags || []));
 
-    writeProperty("resources", FileInfo.fromNativeSeparators(cppInfo.resdirs));
+    writeProperty("resources", cppInfo.resdirs.map(FileInfo.fromNativeSeparators));
 
     const isForImport = targetOS.includes("windows")
     const libraryTypes = getLibraryTypes(moduleInfo.options);
     libraryTypes.forEach(function(libraryType){
         const cppInfoLibs = cppInfo.libs === null ? [] : cppInfo.libs;
-        const libdirs = FileInfo.fromNativeSeparators(cppInfo.libdirs);
+        const libdirs = cppInfo.libdirs.map(FileInfo.fromNativeSeparators);
         const libs = findLibs(cppInfoLibs, libdirs, libraryType, targetOS, isForImport)
             .concat(cppInfo.system_libs === null ? [] : cppInfo.system_libs);
         const property = libraryType === "shared" ? "dynamicLibraries" : "staticLibraries";

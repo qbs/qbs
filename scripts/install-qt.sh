@@ -271,17 +271,22 @@ function compute_url(){
             return 0
         fi
     else
+        HOST_OS_NAME=${HOST_OS//_x64/}
         REMOTE_BASES=(
             # New repository format (>=6.8.0)
             # qt6_680/qt6_680/qt.qt6.680.clang_64/6.8.3-0-*qtbase-*.7z
             "qt6_${VERSION//./}/qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
-            # qt6_680/qt6_680/qt.qt6.680.addons.qt5compat/6.8.3-0-*.7z
+            # qt6_680/qt6_680/qt.qt6.680.linux_gcc_64/6.8.3-0-*qtbase-*.7z
+            "qt6_${VERSION//./}/qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${HOST_OS_NAME}_${TOOLCHAIN}"
+            # qt6_680/qt6_680/qt.qt6.680.addons.qt5compat.clang_64/6.8.3-0-*.7z
             "qt6_${VERSION//./}/qt6_${VERSION//./}/qt.qt6.${VERSION//./}.addons.${COMPONENT}.${TOOLCHAIN}"
+            # qt6_680/qt6_680/qt.qt6.680.addons.qt5compat.linux_gcc_64/6.8.3-0-*.7z
+            "qt6_${VERSION//./}/qt6_${VERSION//./}/qt.qt6.${VERSION//./}.addons.${COMPONENT}.${HOST_OS_NAME}_${TOOLCHAIN}"
             # New repository format (>=6.0.0)
             "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
-            "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${HOST_OS//_x64/}_${TOOLCHAIN}"
+            "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${HOST_OS_NAME}_${TOOLCHAIN}"
             "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
-            "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${COMPONENT}.${HOST_OS//_x64/}_${TOOLCHAIN}"
+            "qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${COMPONENT}.${HOST_OS_NAME}_${TOOLCHAIN}"
             "qt6_${VERSION//./}_${ANDROID_ARCH}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
             "qt6_${VERSION//./}_${ANDROID_ARCH}/qt.qt6.${VERSION//./}.${COMPONENT}.${TOOLCHAIN}"
             "qt${VERSION//./_}/qt6_${VERSION//./}_${TOOLCHAIN}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
@@ -340,9 +345,12 @@ for COMPONENT in ${COMPONENTS}; do
         UNPACK_DIR="${INSTALL_DIR}/Tools/QtCreator"
         ARCHIVER_DIR="${UNPACK_DIR}"
         mkdir -p ${UNPACK_DIR}
-    elif [[ ! "${COMPONENT}" =~ "qtcreator" ]] && [[ "${VERSION}" > "6.8.1" ]]; then
+    elif [[ ! "${COMPONENT}" =~ "qtcreator" ]] && [[ "${VERSION}" > "6.8.0" ]]; then
         UNPACK_DIR="${INSTALL_DIR}"
         ARCHIVER_DIR="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}"
+        if [[ "${COMPONENT}" =~ "icu" ]]; then
+            ARCHIVER_DIR="${ARCHIVER_DIR}/lib"
+        fi
         mkdir -p ${ARCHIVER_DIR}
     else
         UNPACK_DIR="${INSTALL_DIR}"
