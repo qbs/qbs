@@ -1,11 +1,12 @@
+import qbs.Host
 CppApplication {
     Depends { name: "flatbuffers.c"; required: false }
 
     consoleApplication: true
     condition: {
-        var result = qbs.targetPlatform === qbs.hostPlatform;
+        var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();
         if (!result)
-            console.info("targetPlatform differs from hostPlatform");
+            console.info("target platform/arch differ from host platform/arch");
         return result && hasFlatbuffers;
     }
     property bool hasFlatbuffers: {

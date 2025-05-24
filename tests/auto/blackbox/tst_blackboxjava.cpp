@@ -75,7 +75,7 @@ void TestBlackboxJava::java()
         QSKIP("java.jdkPath not set and automatic detection failed");
     }
 
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Skip test in cross-compiled build");
 
     QCOMPARE(status, 0);

@@ -17,7 +17,7 @@ BareMetalProduct {
             }
 
             if (!supportsCrossRun())
-                console.info("targetPlatform differs from hostPlatform")
+                console.info("target platform/arch differ from host platform/arch")
         }
     }
 

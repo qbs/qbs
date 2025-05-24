@@ -120,7 +120,7 @@ void TestBlackboxBareMetal::application()
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
     QCOMPARE(runQbs(QbsRunParameters("build")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
 }
@@ -154,7 +154,7 @@ void TestBlackboxBareMetal::sharedLibraries()
     if (m_qbsStdout.contains("unsupported toolset:"))
         QSKIP(unsupportedToolsetMessage(m_qbsStdout));
     QCOMPARE(runQbs(QbsRunParameters("build")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("Hello from app"), m_qbsStdout.constData());

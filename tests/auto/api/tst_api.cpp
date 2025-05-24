@@ -1210,7 +1210,7 @@ void TestApi::explicitlyDependsOn()
     BuildDescriptionReceiver receiver;
     qbs::ErrorInfo errorInfo = doBuildProject("explicitly-depends-on", &receiver);
     VERIFY_NO_ERROR(errorInfo);
-    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+    if (m_logSink->output.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QVERIFY2(receiver.descriptions.contains("compiling compiler.cpp"),
              qPrintable(receiver.descriptions));
@@ -2354,7 +2354,7 @@ void TestApi::processResult()
     ProcessResultReceiver resultReceiver;
     const qbs::ErrorInfo errorInfo = doBuildProject("process-result",
             nullptr, &resultReceiver, nullptr, qbs::BuildOptions(), overridden);
-    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+    if (m_logSink->output.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(expectedExitCode != 0, errorInfo.hasError());
     QVERIFY(resultReceiver.results.size() > 1);
@@ -3027,7 +3027,7 @@ void TestApi::timeout()
     std::unique_ptr<qbs::SetupProjectJob> setupJob{
             qbs::Project().setupProject(setupParams, m_logSink, nullptr)};
     waitForFinished(setupJob.get());
-    if (m_logSink->output.contains("targetPlatform differs from hostPlatform"))
+    if (m_logSink->output.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
     auto project = setupJob->project();
@@ -3078,8 +3078,8 @@ void TestApi::toolInModule()
                 qbs::Project().setupProject(params, m_logSink, nullptr));
     QVERIFY(waitForFinished(setupJob.get()));
     QVERIFY2(!setupJob->error().hasError(), qPrintable(setupJob->error().toString()));
-    if (m_logSink->output.contains("Skip this test"))
-        QSKIP("Skip this test");
+    if (m_logSink->output.contains("target platform/arch differ from host platform/arch"))
+        QSKIP("Cannot run binaries in cross-compiled build");
 
     std::unique_ptr<qbs::BuildJob> buildJob(setupJob->project()
                                             .buildAllProducts(qbs::BuildOptions()));

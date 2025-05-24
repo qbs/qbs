@@ -7,8 +7,8 @@ Product {
             console.info("Qt is too old");
             return false;
         }
-        if (qbs.targetPlatform !== Host.platform()) {
-            console.info("targetPlatform differs from hostPlatform");
+        if (qbs.targetPlatform !== Host.platform() || qbs.architecture !== Host.architecture()) {
+            console.info("target platform/arch differ from host platform/arch");
             return false;
         }
         return true;

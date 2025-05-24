@@ -55,7 +55,7 @@ void TestBlackboxJobLimits::initTestCase()
 
     QDir::setCurrent(testDataDir + "/job-limits-init");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Skip test in cross-compiled build");
 }
 

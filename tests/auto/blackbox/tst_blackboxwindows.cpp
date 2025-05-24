@@ -265,6 +265,8 @@ void TestBlackboxWindows::wix()
     QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
     if (arch.isEmpty())
         arch = QByteArrayLiteral("x86");
+    if (arch.contains("arm"))
+        QSKIP("ARM is not supported for the WiX test");
 
     QDir::setCurrent(testDataDir + "/wix");
     QCOMPARE(runQbs(), 0);
@@ -293,6 +295,8 @@ void TestBlackboxWindows::wixDependencies()
     QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
     if (arch.isEmpty())
         arch = QByteArrayLiteral("x86");
+    if (arch.contains("arm"))
+        QSKIP("ARM is not supported for the WiX test");
 
     QDir::setCurrent(testDataDir + "/wixDependencies");
     QbsRunParameters params;

@@ -13,9 +13,11 @@ CppApplication {
     Probe {
         id: checker
         property string targetPlatform: qbs.targetPlatform
+        property string targetArchitecture: qbs.architecture
         configure: {
-            if (targetPlatform !== Host.platform())
-                console.info("targetPlatform differs from hostPlatform");
+            var result = targetPlatform === Host.platform() && targetArchitecture === Host.architecture();
+            if (!result)
+                console.info("target platform/arch differ from host platform/arch");
         }
     }
 }

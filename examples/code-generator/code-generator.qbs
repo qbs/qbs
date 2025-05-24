@@ -62,7 +62,14 @@ Project {
 
     // Generate and build a hello-world application.
     CppApplication {
-        condition: qbs.targetPlatform === qbs.hostPlatform
+        condition: {
+            var result = qbs.targetPlatform === qbs.hostPlatform
+                && (qbs.architecture === qbs.hostArchitecture
+                    || (qbs.architecture === "x86" && qbs.hostArchitecture === "x86_64"));
+            if (!result)
+                console.info("target platform/arch differ from host platform/arch");
+            return result;
+        }
         name: "hello-world"
         Depends { name: "hwgen" }
         Rule {

@@ -178,7 +178,7 @@ void TestBlackboxProviders::moduleProviders()
 
     // Resolving in dry-run mode must not leave any data behind.
     QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(m_qbsStdout.count("Running setup script for mygenerator"), 2);
     QVERIFY(!QFile::exists(relativeBuildDir()));

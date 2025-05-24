@@ -7,9 +7,9 @@ Project {
         files: "main.cpp"
 
         property bool skip: {
-            var result = qbs.targetPlatform !== Host.platform();
-            if (result)
-                console.info("Skip this test");
+            var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();
+            if (!result)
+                console.info("target platform/arch differ from host platform/arch");
             return result;
         }
 

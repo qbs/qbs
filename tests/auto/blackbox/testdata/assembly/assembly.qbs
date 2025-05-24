@@ -2,10 +2,8 @@ import qbs.TextFile
 
 Project {
     Product {
+        name: "properties"
         type: ["properties"]
-        property bool dummy: {
-            console.info("is emscripten: " + qbs.toolchain.includes("emscripten"));
-        }
         Depends { name: "cpp" }
         Rule {
             multiplex: true
@@ -16,11 +14,17 @@ Project {
             prepare: {
                 var cmd = new JavaScriptCommand();
                 cmd.outputFilePath = outputs.properties[0].filePath;
-                cmd.tc = product.qbs.toolchain;
+                cmd.toolchain = product.qbs.toolchain;
+                cmd.architecture = product.qbs.architecture;
+                cmd.silent = true;
                 cmd.sourceCode = function () {
                     var tf = new TextFile(outputFilePath, TextFile.WriteOnly);
                     try {
-                        tf.writeLine(JSON.stringify({ "qbs.toolchain": tc }, undefined, 4));
+                        const data = {
+                            "qbs.toolchain": toolchain,
+                            "qbs.architecture": architecture,
+                        };
+                        tf.writeLine(JSON.stringify(data, undefined, 4));
                     } finally {
                         tf.close();
                     }

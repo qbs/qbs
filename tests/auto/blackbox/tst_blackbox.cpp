@@ -875,7 +875,7 @@ void TestBlackbox::capnproto()
     QbsRunParameters params{QStringLiteral("resolve"), {QStringLiteral("-f"), projectFile}};
     params.arguments << arguments;
     QCOMPARE(runQbs(params), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     if (m_qbsStdout.contains("capnproto is not present"))
         QSKIP("capnproto is not present");
@@ -1365,7 +1365,7 @@ void TestBlackbox::dynamicLibraryInModule()
     QbsRunParameters appParams("build", QStringList({"-f", "theapp.qbs", installRootSpec}));
     appParams.buildDirectory = "appbuild";
     QCOMPARE(runQbs(appParams), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     appParams.command = "run";
     QCOMPARE(runQbs(appParams), 0);
@@ -1505,7 +1505,7 @@ void TestBlackbox::vcsGit()
     };
 
     QCOMPARE(runQbs({"resolve", {"-f", repoDir.path()}}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     // Run without git metadata.
     QbsRunParameters params("run", QStringList{"-f", repoDir.path()});
@@ -1614,7 +1614,7 @@ void TestBlackbox::vcsSubversion()
     failParams.command = "run";
     failParams.expectFailure = true;
     const int retval = runQbs(failParams);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     if (m_qbsStderr.contains("svn too old"))
         QSKIP("svn too old");
@@ -1913,7 +1913,7 @@ void TestBlackbox::configure()
 {
     QDir::setCurrent(testDataDir + "/configure");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
@@ -2375,7 +2375,7 @@ void TestBlackbox::trackAddFile()
     ccp("before", "work");
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
@@ -2508,7 +2508,7 @@ void TestBlackbox::trackRemoveFile()
     ccp("after", "work");
     QDir::setCurrent(testDataDir + "/trackAddFile/work");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
     QCOMPARE(runQbs(runParams), 0);
@@ -2554,7 +2554,7 @@ void TestBlackbox::trackAddFileTag()
     ccp("before", "work");
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
     QCOMPARE(runQbs(runParams), 0);
@@ -2580,7 +2580,7 @@ void TestBlackbox::trackRemoveFileTag()
     ccp("after", "work");
     QDir::setCurrent(testDataDir + "/trackFileTags/work");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QString objectSuffix = parsedObjectSuffix(m_qbsStdout);
     const QbsRunParameters runParams("run", QStringList{"-qp", "someapp"});
@@ -2818,7 +2818,7 @@ void TestBlackbox::responseFiles()
 {
     QDir::setCurrent(testDataDir + "/response-files");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "install";
@@ -3003,7 +3003,7 @@ void TestBlackbox::runMultiplexed()
 {
     QDir::setCurrent(testDataDir + "/run-multiplexed");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QbsRunParameters params("run");
@@ -3153,7 +3153,7 @@ void TestBlackbox::setupRunEnvironment()
 {
     QDir::setCurrent(testDataDir + "/setup-run-environment");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QString appFilePath = QDir::currentPath() + "/dryrun/"
                                 + relativeExecutableFilePath("app", m_qbsStdout);
@@ -4647,7 +4647,7 @@ void TestBlackbox::exportsQbs()
     QDir::setCurrent(testDataDir + "/exports-qbs");
 
     QCOMPARE(runQbs({"resolve", {"-f", "exports-qbs.qbs"}}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     // First we build exportable products and use them (as products) inside
     // the original project.
@@ -4794,7 +4794,7 @@ void TestBlackbox::flatbuf()
     QbsRunParameters resolveParams(
         "resolve", QStringList{"-f", projectFile, "moduleProviders.conan.installDirectory:build"});
     QCOMPARE(runQbs(resolveParams), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const bool withFlatbuffers = m_qbsStdout.contains("has flatbuffers: true");
     const bool withoutFlatbuffers = m_qbsStdout.contains("has flatbuffers: false");
@@ -5077,7 +5077,7 @@ void TestBlackbox::installableAsAuxiliaryInput()
 {
     QDir::setCurrent(testDataDir + "/installable-as-auxiliary-input");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("f-impl"), m_qbsStdout.constData());
@@ -5377,7 +5377,7 @@ void TestBlackbox::jsExtensionsProcess()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-process");
     QCOMPARE(runQbs({"resolve", {"-f", "process.qbs"}}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params(QStringList() << "-f" << "process.qbs");
     QCOMPARE(runQbs(params), 0);
@@ -5510,7 +5510,7 @@ void TestBlackbox::symbolLinkMode()
     QDir::setCurrent(testDataDir + "/symbolLinkMode");
 
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
@@ -5632,7 +5632,7 @@ void TestBlackbox::lexyacc()
         QSKIP("lex or yacc not present");
     QDir::setCurrent(testDataDir + "/lexyacc/one-grammar");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QString parserBinary = relativeExecutableFilePath("one-grammar", m_qbsStdout);
     QCOMPARE(runQbs(), 0);
@@ -5912,7 +5912,7 @@ void TestBlackbox::linkerModuleDefinition()
 {
     QDir::setCurrent(testDataDir + "/linker-module-definition");
     QCOMPARE(runQbs({"build"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs({"run"}), 0);
     const auto verifyOutput = [this](const QByteArrayList &symbols) {
@@ -6034,7 +6034,7 @@ void TestBlackbox::multiplexedTool()
 {
     QDir::setCurrent(testDataDir + "/multiplexed-tool");
     QCOMPARE(runQbs(QStringLiteral("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(), 0);
     QCOMPARE(m_qbsStdout.count("creating tool.out"), 4);
@@ -6566,7 +6566,7 @@ void TestBlackbox::properQuoting()
 {
     QDir::setCurrent(testDataDir + "/proper quoting");
     QCOMPARE(runQbs(), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params(QStringLiteral("run"), QStringList() << "-q" << "-p" << "Hello World");
     params.expectFailure = true; // Because the exit code is non-zero.
@@ -6628,7 +6628,7 @@ void TestBlackbox::protobuf()
 
     QbsRunParameters resolveParams("resolve", QStringList{"-f", projectFile} << properties);
     QCOMPARE(runQbs(resolveParams), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const bool withProtobuf = m_qbsStdout.contains("has protobuf: true");
     const bool withoutProtobuf = m_qbsStdout.contains("has protobuf: false");
@@ -6650,7 +6650,7 @@ void TestBlackbox::protobufLibraryInstall()
     rmDirR(relativeBuildDir());
     QbsRunParameters resolveParams("resolve", QStringList{"qbs.installPrefix:/usr/local"});
     QCOMPARE(runQbs(resolveParams), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const bool withProtobuf = m_qbsStdout.contains("has protobuf: true");
     const bool withoutProtobuf = m_qbsStdout.contains("has protobuf: false");
@@ -8167,23 +8167,30 @@ void TestBlackbox::assembly()
 {
     QDir::setCurrent(testDataDir + "/assembly");
 
-    QVERIFY(runQbs(QbsRunParameters("resolve")) == 0);
-    if (m_qbsStdout.contains("is emscripten: true"))
-        QSKIP("Irrelevant for emscripten");
-    QVERIFY(m_qbsStdout.contains("is emscripten: false"));
-    QVERIFY(runQbs() == 0);
+    QCOMPARE(runQbs(QbsRunParameters("build", {"-p", "properties"})), 0);
 
     const QVariantMap properties = ([&]() {
-        QFile propertiesFile(relativeProductBuildDir("assembly") + "/properties.json");
+        QFile propertiesFile(relativeProductBuildDir("properties") + "/properties.json");
         if (propertiesFile.open(QIODevice::ReadOnly))
             return QJsonDocument::fromJson(propertiesFile.readAll()).toVariant().toMap();
         return QVariantMap{};
     })();
     QVERIFY(!properties.empty());
     const auto toolchain = properties.value("qbs.toolchain").toStringList();
+    const auto architecture = properties.value("qbs.architecture").toString();
     QVERIFY(!toolchain.empty());
     const bool haveGcc = toolchain.contains("gcc");
     const bool haveMSVC = toolchain.contains("msvc");
+
+    if (toolchain.contains("emscripten")) {
+        QSKIP("Skipping test for emscripten");
+    }
+
+    if (haveMSVC && (architecture.contains("arm"))) {
+        QSKIP("Skipping test for MSVC ARM");
+    }
+
+    QCOMPARE(runQbs(QbsRunParameters("build")), 0);
 
     QCOMPARE(m_qbsStdout.contains("assembling testa.s"), haveGcc);
     QCOMPARE(m_qbsStdout.contains("compiling testb.S"), haveGcc);
@@ -8198,7 +8205,7 @@ void TestBlackbox::autotestWithDependencies()
 {
     QDir::setCurrent(testDataDir + "/autotest-with-dependencies");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QStringList({"-p", "autotest-runner"})), 0);
     QVERIFY2(m_qbsStdout.contains("i am the test app")
@@ -8213,7 +8220,7 @@ void TestBlackbox::autotestTimeout()
     QDir::setCurrent(testDataDir + "/autotest-timeout");
     QbsRunParameters resolveParameters("resolve", resolveParams);
     QCOMPARE(runQbs(resolveParameters), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters buildParameters(QStringList({"-p", "autotest-runner"}));
     buildParameters.expectFailure = expectFailure;
@@ -8262,7 +8269,7 @@ void TestBlackbox::autotests()
     if (!evilPropertySpec.isEmpty())
         resolveParams.arguments << evilPropertySpec;
     QCOMPARE(runQbs(resolveParams), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters testParams(QStringList{"-p", "autotest-runner"});
     if (!evilPropertySpec.isEmpty())
@@ -8514,7 +8521,7 @@ void TestBlackbox::envMerging()
     const QString keyName = HostOsInfo::isWindowsHost() ? "pATh" : "PATH";
     params.environment.insert(keyName, pathVal);
     QCOMPARE(runQbs(params), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     params.command = "build";
     QCOMPARE(runQbs(params), 0);
@@ -8635,7 +8642,7 @@ void TestBlackbox::nodejs()
         QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
     }
 
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(status, 0);
 
@@ -8725,7 +8732,7 @@ void TestBlackbox::includeLookup()
 {
     QDir::setCurrent(testDataDir + "/includeLookup");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
@@ -8857,7 +8864,7 @@ void TestBlackbox::loadableModule()
     QDir::setCurrent(testDataDir + QLatin1String("/loadablemodule"));
 
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
@@ -8873,7 +8880,7 @@ void TestBlackbox::localDeployment()
     QByteArray content = main.readAll();
     content.replace('\r', "");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QbsRunParameters params;
@@ -8889,7 +8896,7 @@ void TestBlackbox::makefileGenerator()
     QCOMPARE(runQbs(params), 0);
     if (HostOsInfo::isWindowsHost())
         return;
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QProcess make;
     make.setWorkingDirectory(QDir::currentPath() + '/' + relativeBuildDir());
@@ -8951,7 +8958,7 @@ void TestBlackbox::minimumSystemVersion()
     QbsRunParameters params({ "-f", file + ".qbs" });
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     params.command = "run";
     QCOMPARE(runQbs(params), 0);
@@ -9186,7 +9193,7 @@ void TestBlackbox::badInterpreter()
     QDir::setCurrent(testDataDir + QLatin1String("/badInterpreter"));
     QCOMPARE(runQbs(), 0);
 
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QbsRunParameters params("run");
@@ -9288,7 +9295,7 @@ void TestBlackbox::groupsInModules()
 {
     QDir::setCurrent(testDataDir + "/groups-in-modules");
     QCOMPARE(runQbs({"resolve"}), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     QCOMPARE(runQbs(params), 0);
@@ -9365,7 +9372,7 @@ void TestBlackbox::grpc()
     QVERIFY2(hasMods == !dontHaveMods, m_qbsStdout.constData());
     QCOMPARE(hasMods, hasModules);
 
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QbsRunParameters runParams;
@@ -9376,7 +9383,7 @@ void TestBlackbox::hostOsProperties()
 {
     QDir::setCurrent(testDataDir + "/host-os-properties");
     QCOMPARE(runQbs(QStringLiteral("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QStringLiteral("run")), 0);
     QVERIFY2(m_qbsStdout.contains(

@@ -99,7 +99,7 @@ void TestBlackboxQt::autoQrc()
 {
     QDir::setCurrent(testDataDir + "/auto-qrc");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})), 0);
     QVERIFY2(m_qbsStdout.simplified().contains("resource data: resource1 resource2"),
@@ -198,7 +198,7 @@ void TestBlackboxQt::forcedMoc()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     if (m_qbsStdout.contains("using qt4"))
         QSKIP("Qt version too old");
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStderr.contains("Hello from slot"), m_qbsStderr.constData());
@@ -249,7 +249,7 @@ void TestBlackboxQt::lrelease()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/lrelease"));
     QCOMPARE(runQbs(), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QVERIFY(regularFileExists(relativeProductBuildDir("lrelease-test") + "/de.qm"));
@@ -563,7 +563,7 @@ void TestBlackboxQt::pkgconfig()
 {
     QDir::setCurrent(testDataDir + "/pkgconfig");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QbsRunParameters params;
     params.command = "run";
@@ -638,7 +638,7 @@ void TestBlackboxQt::pluginMetaData()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     if (m_qbsStdout.contains("using qt4"))
         QSKIP("Qt version too old");
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     QVERIFY2(runQbs(QbsRunParameters("run", QStringList{"-p", "app"})) == 0,
@@ -709,7 +709,7 @@ void TestBlackboxQt::qdoc()
 {
     QDir::setCurrent(testDataDir + "/qdoc");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     if (m_qbsStdout.contains("Qt is too old"))
         QSKIP("Skip test since qdoc3 does not work properly");
@@ -721,7 +721,7 @@ void TestBlackboxQt::qmlDebugging()
 {
     QDir::setCurrent(testDataDir + "/qml-debugging");
     QCOMPARE(runQbs(), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
 
     const bool isGcc = m_qbsStdout.contains("is gcc: true");
@@ -835,7 +835,7 @@ void TestBlackboxQt::qtScxml()
 {
     QDir::setCurrent(testDataDir + "/qtscxml");
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(runQbs(), 0);
     if (m_qbsStdout.contains("QtScxml not present"))
@@ -1008,7 +1008,7 @@ void TestBlackboxQt::track_qrc()
     QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
     if (m_qbsStdout.contains("using qt4"))
         QSKIP("Qt version too old");
-    if (m_qbsStdout.contains("targetPlatform differs from hostPlatform"))
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     const QString fileName = relativeExecutableFilePath("i", m_qbsStdout);
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);

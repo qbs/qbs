@@ -4,9 +4,9 @@ Project {
     CppApplication {
         Depends { name: "capnproto.cpp"; required: false }
         condition: {
-            var result = qbs.targetPlatform === Host.platform();
+            var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();
             if (!result)
-                console.info("targetPlatform differs from hostPlatform");
+                console.info("target platform/arch differ from host platform/arch");
             if (!capnproto.cpp.present)
                 console.info("capnproto is not present");
             return result && capnproto.cpp.present;
