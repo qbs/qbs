@@ -231,7 +231,7 @@ QStringList getJsStringList(JSContext *ctx, JSValue val)
 {
     if (JS_IsString(val))
         return {getJsString(ctx, val)};
-    if (!JS_IsArray(ctx, val))
+    if (!JS_IsArray(val))
         return {};
     const int size = getJsIntProperty(ctx, val, QLatin1String("length"));
     QStringList l;
@@ -270,7 +270,7 @@ static QVariant getJsVariantImpl(JSContext *ctx, JSValue val, QList<JSValue> pat
             return QByteArray();
         return QByteArray(reinterpret_cast<const char *>(data), size);
     }
-    if (JS_IsArray(ctx, val)) {
+    if (JS_IsArray(val)) {
         if (path.contains(val))
             return {};
         path << val;

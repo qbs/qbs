@@ -529,7 +529,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
                 jsContext(),
                 JS_Call(jsContext(), fun, engine()->globalObject(), int(args.size()), argv.data()));
     engine()->throwOnJsError(m_rule->outputArtifactsScript.location());
-    if (!JS_IsArray(jsContext(), res))
+    if (!JS_IsArray(res))
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),
                         m_rule->outputArtifactsScript.location());
     const quint32 c = getJsIntProperty(jsContext(), res, StringConstants::lengthProperty());
@@ -588,7 +588,7 @@ class ArtifactBindingsExtractor
             }
 
             const JSValue value = desc.value;
-            if (JS_IsObject(value) && !JS_IsArray(m_ctx, value) && !JS_IsError(m_ctx, value)
+            if (JS_IsObject(value) && !JS_IsArray(value) && !JS_IsError(m_ctx, value)
                 && !JS_IsRegExp(value)) {
                 QString newModuleName;
                 if (!moduleName.isEmpty())

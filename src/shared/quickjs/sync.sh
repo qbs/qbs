@@ -9,23 +9,25 @@ fi;
 TARGET_DIR=$(dirname "$0")
 
 FILES="
-LICENSE
-cutils.h
-libbf.h
-libregexp.h
-libunicode.c
-libunicode-table.h
-list.h
-quickjs.c
-quickjs.h
+builtin-array-fromasync.h
 cutils.c
-libbf.c
-libregexp.c
+cutils.h
 libregexp-opcode.h
+libregexp.c
+libregexp.h
+libunicode-table.h
+libunicode.c
 libunicode.h
+LICENSE
+list.h
 quickjs-atom.h
 quickjs-c-atomics.h
-quickjs-opcode.h"
+quickjs-opcode.h
+quickjs.c
+quickjs.h
+xsum.c
+xsum.h
+"
 
 for FILE in $FILES
 do

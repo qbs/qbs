@@ -165,7 +165,7 @@ static QStringList toStringList(ScriptEngine *engine, const JSValue &scriptValue
 {
     if (JS_IsString(scriptValue))
         return {getJsString(engine->context(), scriptValue)};
-    if (JS_IsArray(engine->context(), scriptValue)) {
+    if (JS_IsArray(scriptValue)) {
         QStringList lst;
         int i = 0;
         for (;;) {
@@ -354,7 +354,7 @@ static void convertToPropertyType_impl(
     if (JS_IsUninitialized(v) || JS_IsUndefined(v) || engine->checkForJsError({}))
         return;
 
-    if (!decl.isScalar() && !JS_IsArray(ctx, v) && conversionType == ConversionType::ElementsOnly) {
+    if (!decl.isScalar() && !JS_IsArray(v) && conversionType == ConversionType::ElementsOnly) {
         const auto correspondingType = [](const PropertyDeclaration &decl) {
             switch (decl.type()) {
             case PropertyDeclaration::StringList:
@@ -417,7 +417,7 @@ static void convertToPropertyType_impl(
     case PropertyDeclaration::PathList:
     case PropertyDeclaration::StringList:
     {
-        if (!JS_IsArray(ctx, v)) {
+        if (!JS_IsArray(v)) {
             JSValue x = engine->newArray(1, JsValueOwner::ScriptEngine);
             JS_SetPropertyUint32(ctx, x, 0, JS_DupValue(ctx, v));
             v = x;
@@ -453,7 +453,7 @@ static void convertToPropertyType_impl(
         break;
     }
     case PropertyDeclaration::VariantList:
-        if (!JS_IsArray(ctx, v)) {
+        if (!JS_IsArray(v)) {
             JSValue x = engine->newArray(1, JsValueOwner::ScriptEngine);
             JS_SetPropertyUint32(ctx, x, 0, JS_DupValue(ctx, v));
             v = x;
@@ -726,7 +726,7 @@ private:
         JSContext * const ctx = m_engine.context();
         for (const JSValue &v : std::as_const(lst)) {
             QBS_ASSERT(!JS_IsError(ctx, v), continue);
-            if (JS_IsArray(ctx, v)) {
+            if (JS_IsArray(v)) {
                 const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());
                 for (quint32 j = 0; j < vlen; ++j)
                     JS_SetPropertyUint32(ctx, result, k++, JS_GetPropertyUint32(ctx, v, j));
@@ -952,7 +952,7 @@ static QString resultToString(JSContext *ctx, const JSValue &scriptValue)
 {
     if (JS_IsUndefined(scriptValue))
         return QLatin1String("undefined");
-    if (JS_IsArray(ctx, scriptValue))
+    if (JS_IsArray(scriptValue))
         return getJsStringList(ctx, scriptValue).join(QLatin1Char(','));
     if (JS_IsObject(scriptValue)) {
         return QStringLiteral("[Object: ")

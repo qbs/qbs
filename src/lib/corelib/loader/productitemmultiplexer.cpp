@@ -182,7 +182,7 @@ MultiplexInfo ProductItemMultiplexer::extractMultiplexInfo()
         const ScopedJsValue arr(ctx, evaluator.value(m_tempQbsModuleItem, key));
         if (JS_IsUndefined(arr))
             continue;
-        if (!JS_IsArray(ctx, arr))
+        if (!JS_IsArray(arr))
             throw ErrorInfo(Tr::tr("Property '%1' must be an array.").arg(key));
 
         const quint32 arrlen = getJsIntProperty(ctx, arr, StringConstants::lengthProperty());

@@ -278,7 +278,7 @@ void Transformer::createCommands(ScriptEngine *engine, const PrivateScriptFuncti
     engine->clearRequestedProperties();
     engine->throwOnJsError(script.location());
     commands.clear();
-    if (JS_IsArray(engine->context(), scriptValue)) {
+    if (JS_IsArray(scriptValue)) {
         const int count = JS_VALUE_GET_INT(getJsProperty(engine->context(), scriptValue,
                                                          StringConstants::lengthProperty()));
         for (qint32 i = 0; i < count; ++i) {

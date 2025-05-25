@@ -1,6 +1,7 @@
 add_qbs_library(qbsquickjs
     STATIC
     SOURCES
+        builtin-array-fromasync.h
         cutils.c cutils.h
         libbf.c libbf.h
         libregexp-opcode.h
@@ -12,6 +13,7 @@ add_qbs_library(qbsquickjs
         quickjs-c-atomics.h
         quickjs-opcode.h
         quickjs.c quickjs.h
+        xsum.c xsum.h
     DEFINES
         "CONFIG_VERSION=\"2021-03-27\""
 )

@@ -284,7 +284,7 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact,
         throw err;
     }
     QStringList list;
-    if (JS_IsArray(m_engine->context(), result)) {
+    if (JS_IsArray(result)) {
         const int count = getJsIntProperty(m_engine->context(), result,
                                            StringConstants::lengthProperty());
         list.reserve(count);

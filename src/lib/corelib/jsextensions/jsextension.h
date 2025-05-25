@@ -271,7 +271,7 @@ template<> struct FromArgHelper<QByteArray> {
             throw Tr::tr("%1 requires an array of bytes as argument %2")
                     .arg(QLatin1String(funcName)).arg(pos);
         };
-        if (!JS_IsArray(ctx, v))
+        if (!JS_IsArray(v))
             throwError();
         QByteArray data;
         data.resize(getJsIntProperty(ctx, v, QLatin1String("length")));
@@ -302,7 +302,7 @@ template<> struct FromArgHelper<QString> {
 };
 template<> struct FromArgHelper<QStringList> {
     static QStringList fromArg(JSContext *ctx, const char *funcName, int pos, JSValue v) {
-        if (!JS_IsArray(ctx, v)) {
+        if (!JS_IsArray(v)) {
             throw Tr::tr("%1 requires an array of strings as argument %2")
                     .arg(QLatin1String(funcName)).arg(pos);
         }

@@ -10,6 +10,7 @@ StaticLibrary {
     cpp.warningLevel: "none"
 
     files: [
+        "builtin-array-fromasync.h",
         "cutils.c",
         "cutils.h",
         "libbf.c",
@@ -26,6 +27,8 @@ StaticLibrary {
         "quickjs-opcode.h",
         "quickjs.c",
         "quickjs.h",
+        "xsum.c",
+        "xsum.h"
     ]
 
     Export {
