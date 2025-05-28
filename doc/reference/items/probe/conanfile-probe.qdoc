@@ -60,17 +60,19 @@
     import qbs.Probes
 
     Project {
+        property string conanInstallPath: conanProbe.generatedFilesPath
         Probes.ConanfileProbe {
             id: conanProbe
             conanfilePath: project.sourceDirectory + "/conanfile.py"
             generators: "QbsDeps"
         }
 
+        // somewhere in the project, maybe in a base item
         CppApplication {
             type: "application"
             files: "main.cpp"
             qbsModuleProviders: "conan"
-            moduleProviders.conan.installDirectory: conanProbe.generatedFilesPath
+            moduleProviders.conan.installDirectory: project.conanInstallPath
             Depends { name: "mylib" }
         }
     }
