@@ -238,7 +238,7 @@
     \sa {https://docs.conan.io/en/latest/reference/generators.html}{Available
     generators}
 
-    \autodetected
+    \defaultvalue \c auto-detected
 */
 
 /*!
