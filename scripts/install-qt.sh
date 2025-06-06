@@ -412,6 +412,13 @@ for COMPONENT in ${COMPONENTS}; do
             WASM_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
             QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
             sed -i.bak "s|\/home\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${WASM_QMAKE_FILE}"
+        elif [ "${TARGET_PLATFORM}" == "desktop" ] && [ "${TOOLCHAIN}" == "win64_msvc2022_arm64_cross_compiled" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
+            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+            sed -i.bak "s|HostData=target|HostData=../msvc2022_arm64_cross_compiled|g" "${CONF_FILE}"
+            sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/msvc2022_64|g" "${CONF_FILE}"
+            ARM64_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake.bat"
+            QMAKE_FILE='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qmake6.exe"'
+            sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qmake6.exe|${QMAKE_FILE}|g" "${ARM64_QMAKE_FILE}"
         else
             CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qt.conf"
             echo "[Paths]" > ${CONF_FILE}

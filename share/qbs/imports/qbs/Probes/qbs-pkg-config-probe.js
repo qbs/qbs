@@ -55,7 +55,16 @@ function getQmakePaths(pkg) {
             }
         }
         var suffix = FileInfo.executableSuffix();
-        return [FileInfo.joinPaths(binDir, "qmake" + suffix)];
+        var ret = [];
+        const infixes = ["", "5", "6"];
+        for (var index in infixes) {
+            const infix = infixes[index];
+            var fileName = FileInfo.joinPaths(binDir, "qmake" + infix + suffix);
+            if (File.exists(fileName)) {
+                ret.push(fileName);
+            }
+        }
+        return ret;
     }
 }
 

@@ -35,9 +35,9 @@ function pkgConfigToModuleName(packageName) {
     return packageName.replace(/\./g, '-');
 }
 
-function msvcPrefix() { return "win32-msvc"; }
-
-function isMsvcQt(qtProps) { return qtProps.mkspecName.startsWith(msvcPrefix()); }
+function isMsvcQt(qtProps) {
+    return qtProps.mkspecName.contains("-msvc");
+}
 
 function isMinGwQt(qtProps) {
     return qtProps.mkspecName.startsWith("win32-g++") || qtProps.mkspecName.startsWith("mingw");

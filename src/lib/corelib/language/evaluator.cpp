@@ -587,7 +587,7 @@ public:
     {
         JSValue result = m_value.apply(this);
         if (m_engine.checkForJsError(m_value.location()))
-            return JS_UNINITIALIZED;
+            return JS_UNDEFINED;
         if (JS_IsUninitialized(result))
             result = JS_UNDEFINED;
         convertToPropertyType(&m_engine, &m_item, m_decl, &m_value, ConversionType::Full, result);

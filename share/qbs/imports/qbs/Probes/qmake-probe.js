@@ -157,8 +157,13 @@ function msvcCompilerVersionForYear(year) {
     return mapping[year];
 }
 
+function msvcPrefix() { return "win32-msvc"; }
+
 function msvcCompilerVersionFromMkspecName(mkspecName) {
-    return msvcCompilerVersionForYear(mkspecName.slice(msvcPrefix().length));
+    if (mkspecName.startsWith(msvcPrefix())) {
+        return msvcCompilerVersionForYear(mkspecName.slice(msvcPrefix().length));
+    }
+    return undefined;
 }
 
 function addQtBuildVariant(qtProps, buildVariantName) {
