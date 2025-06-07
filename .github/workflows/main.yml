@@ -293,8 +293,6 @@ jobs:
     - name: Setup self-signed certificate
       run: |
         New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
-        Export-Certificate -Cert (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert)[0] -FilePath qbs-code-signing.crt
-        Import-Certificate -FilePath .\qbs-code-signing.crt -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
       shell: powershell
     - uses: TheMrMilchmann/setup-msvc-dev@v3
       with:
@@ -763,8 +761,6 @@ jobs:
     - name: Setup self-signed certificate
       run: |
         New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
-        Export-Certificate -Cert (Get-ChildItem Cert:\CurrentUser\My -CodeSigningCert)[0] -FilePath qbs-code-signing.crt
-        Import-Certificate -FilePath .\qbs-code-signing.crt -CertStoreLocation Cert:\CurrentUser\TrustedPublisher
       shell: powershell
     - name: Run Tests
       run: ${{ matrix.config.script }} ./release/install-root/bin
