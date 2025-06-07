@@ -1150,6 +1150,11 @@ typedef void FunctionExitedHandler(JSContext *ctx);
 void setFunctionEnteredHandler(JSContext *ctx, FunctionEnteredHandler *handler);
 void setFunctionExitedHandler(JSContext *ctx, FunctionExitedHandler *handler);
 
+#ifndef NDEBUG
+void watchRefCount(void *p);
+#endif
+
+
 /* Version */
 
 #define QJS_VERSION_MAJOR 0

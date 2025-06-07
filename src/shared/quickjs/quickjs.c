@@ -1009,6 +1009,11 @@ typedef enum OPCodeEnum {
     OP_TEMP_END,
 } OPCodeEnum;
 
+#ifndef NDEBUG
+void notifyRefCountIncrease(JSRefCountHeader *p);
+void notifyRefCountDecrease(JSRefCountHeader *p);
+#endif
+
 static int JS_InitAtoms(JSRuntime *rt);
 static JSAtom __JS_NewAtomInit(JSRuntime *rt, const char *str, int len,
                                int atom_type);
@@ -1354,6 +1359,9 @@ static JSValue js_dup(JSValue v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
+#ifndef NDEBUG
+        notifyRefCountIncrease(p);
+#endif
         p->ref_count++;
     }
     return v;
@@ -5733,6 +5741,9 @@ void JS_FreeValueRT(JSRuntime *rt, JSValue v)
 {
     if (JS_VALUE_HAS_REF_COUNT(v)) {
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
+#ifndef NDEBUG
+        notifyRefCountDecrease(p);
+#endif
         if (--p->ref_count <= 0) {
             js_free_value_rt(rt, v);
         }
@@ -5870,6 +5881,9 @@ static void mark_children(JSRuntime *rt, JSGCObjectHeader *gp,
 
 static void gc_decref_child(JSRuntime *rt, JSGCObjectHeader *p)
 {
+#ifndef NDEBUG
+    notifyRefCountDecrease((JSRefCountHeader*)p);
+#endif
     assert(p->ref_count > 0);
     p->ref_count--;
     if (p->ref_count == 0 && p->mark == 1) {
@@ -5902,6 +5916,9 @@ static void gc_decref(JSRuntime *rt)
 
 static void gc_scan_incref_child(JSRuntime *rt, JSGCObjectHeader *p)
 {
+#ifndef NDEBUG
+    notifyRefCountIncrease((JSRefCountHeader*)p);
+#endif
     p->ref_count++;
     if (p->ref_count == 1) {
         /* ref_count was 0: remove from tmp_obj_list and add at the
@@ -5914,6 +5931,9 @@ static void gc_scan_incref_child(JSRuntime *rt, JSGCObjectHeader *p)
 
 static void gc_scan_incref_child2(JSRuntime *rt, JSGCObjectHeader *p)
 {
+#ifndef NDEBUG
+    notifyRefCountIncrease((JSRefCountHeader*)p);
+#endif
     p->ref_count++;
 }
 
@@ -55953,6 +55973,27 @@ void setFunctionExitedHandler(JSContext *ctx, FunctionExitedHandler *handler)
 {
     ctx->handleFunctionExited = handler;
 }
+
+#ifndef NDEBUG
+static void *watchedRefCount = NULL;
+
+void notifyRefCountIncrease(JSRefCountHeader *p)
+{
+    if (p == watchedRefCount)
+        fprintf(stderr, "increasing ref count %d for %p\n", p->ref_count, watchedRefCount);
+}
+
+void notifyRefCountDecrease(JSRefCountHeader *p)
+{
+    if (p == watchedRefCount)
+        fprintf(stderr, "decreasing ref count %d for %p\n", p->ref_count, watchedRefCount);
+}
+
+void watchRefCount(void *p)
+{
+    watchedRefCount = p;
+}
+#endif
 
 uintptr_t js_std_cmd(int cmd, ...) {
     JSContext *ctx;
