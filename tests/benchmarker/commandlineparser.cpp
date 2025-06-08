@@ -111,11 +111,11 @@ void CommandLineParser::parse()
                            parser.helpText());
         }
     }
-    m_regressionThreshold = 5;
+    m_regressionThreshold = 50;
     if (parser.isSet(thresholdOption)) {
         bool ok = true;
         const QString rawThresholdValue = parser.value(thresholdOption);
-        m_regressionThreshold = rawThresholdValue.toInt(&ok);
+        m_regressionThreshold = 10 * rawThresholdValue.toInt(&ok);
         if (!ok)
             throwException(thresholdOption.names().constFirst(),
                            rawThresholdValue,

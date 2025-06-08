@@ -41,13 +41,13 @@ static bool hasRegression = false;
 
 static int relativeChange(qint64 oldVal, qint64 newVal)
 {
-    return newVal == 0 ? 0 : (newVal - oldVal) * 100 / oldVal;
+    return newVal == 0 ? 0 : (newVal - oldVal) * 1000 / oldVal;
 }
 
 static QByteArray relativeChangeString(int change)
 {
-    QByteArray changeString = QByteArray::number(change);
-    changeString += " %";
+    QByteArray changeString = QByteArray::number(change / 10);
+    changeString += " % (" + QByteArray::number(change) + " ‰)";
     if (change > 0)
         changeString.prepend('+');
     return changeString;
