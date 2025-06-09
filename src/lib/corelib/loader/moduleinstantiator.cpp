@@ -151,13 +151,6 @@ void ModuleInstantiator::exchangePlaceholderItem(Item *loadingItem, Item *module
     if (!moduleItemForItemValues->isPresentModule())
         return;
 
-    // This will yield false negatives for the case where there is an invalid property attached
-    // for a module that is actually found by pkg-config via the fallback provider.
-    // However, this is extremely rare compared to the case where the presence of the fallback
-    // module simply indicates "not present".
-    if (moduleItemForItemValues->isFallbackModule())
-        return;
-
     // If the old and the new items are the same, it means the existing item value already
     // pointed to a module instance (rather than a placeholder).
     // This can happen in two cases:

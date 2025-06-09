@@ -340,11 +340,6 @@ bool Item::isPresentModule() const
     return v && v->type() == Value::JSSourceValueType;
 }
 
-bool Item::isFallbackModule() const
-{
-    return hasProperty(QLatin1String("__fallback"));
-}
-
 void Item::setupForBuiltinType(DeprecationWarningMode deprecationMode, Logger &logger)
 {
     assertModuleLocked();
