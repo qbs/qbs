@@ -851,10 +851,10 @@ private:
         }
 
         ScopeChain scopeChain(m_evaluator);
-        const JSValue maybeExtraScope = createExtraScope(value, outerItem, outerScriptValue);
+        const ScopedJsValue maybeExtraScope(
+            m_engine.context(), createExtraScope(value, outerItem, outerScriptValue));
         if (m_engine.checkForJsError(value->location()))
             return JS_UNINITIALIZED;
-        const ScopedJsValue extraScopeMgr(m_engine.context(), maybeExtraScope);
         const Evaluator::FileContextScopes fileCtxScopes = m_evaluator.fileContextScopes(
             value->file());
         if (m_engine.checkForJsError(value->location()))
