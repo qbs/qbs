@@ -53,7 +53,7 @@ struct DotGraphNode
     QString label;
     bool enabled{true};
 
-    enum class Type { Product, Project, Module };
+    enum class Type { Product, Project, Module, Artifact, File };
     Type type;
 
     static QByteArray typeToString(Type type)
@@ -64,6 +64,10 @@ struct DotGraphNode
             return QByteArray("box");
         if (type == Type::Module)
             return QByteArray("diamond");
+        if (type == Type::Artifact)
+            return QByteArray("pentagon");
+        if (type == Type::File)
+            return QByteArray("note");
         return QByteArray("box");
     }
 

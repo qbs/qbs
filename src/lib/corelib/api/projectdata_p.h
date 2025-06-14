@@ -63,6 +63,7 @@ public:
     QStringList fileTags;
     PropertyMap properties;
     InstallData installData;
+    QStringList childPaths;
     bool isValid = false;
     bool isGenerated = false;
     bool isTargetArtifact = false;

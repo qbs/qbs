@@ -219,6 +219,61 @@ void GraphvizGenerator::writeProductGraph(
         dotGraph.addRelation({productNode, childNode});
     }
 
+    const auto fileTagsString = [](const ArtifactData &artifact) {
+        return QStringLiteral("[%1]").arg(artifact.fileTags().join(QLatin1String(", ")));
+    };
+
+    const auto productNode2 = dotGraph.addNode(
+        makeProductNode(dotGraph.createNodeId(), productMap.at(product.name())));
+
+    std::unordered_map<QString, size_t> artifactToNode;
+    std::unordered_map<QString, ArtifactData> artifactMap;
+
+    for (const auto &group : product.groups()) {
+        for (const auto &artifact : group.allSourceArtifacts()) {
+            artifactMap[artifact.filePath()] = artifact;
+        }
+    }
+
+    std::deque<std::pair<ArtifactData, size_t /*node*/>> artifactQueue;
+    for (const auto &artifact : product.generatedArtifacts()) {
+        artifactMap[artifact.filePath()] = artifact;
+        if (artifact.isTargetArtifact())
+            artifactQueue.push_back({artifact, productNode2});
+    }
+
+    // Traverse artifacts starting from target artifacts down to their dependencies.
+    // This way we create nodes only for artifacts reachable from the top of the graph.
+    // Otherwise, graph becomes too complicated.
+    while (!artifactQueue.empty()) {
+        const auto &[artifact, parentNodeId] = artifactQueue.front();
+        const auto currentPath = artifact.filePath();
+
+        auto &nodeId = artifactToNode[currentPath];
+        if (nodeId) {
+            dotGraph.addRelation({parentNodeId, nodeId});
+            artifactQueue.pop_front();
+            continue;
+        }
+        DotGraphNode node;
+        node.id = dotGraph.createNodeId();
+        node.label = QFileInfo(currentPath).fileName() + QLatin1String("\n")
+                     + fileTagsString(artifact);
+        node.type = artifact.isGenerated() ? DotGraphNode::Type::Artifact
+                                           : DotGraphNode::Type::File;
+        nodeId = dotGraph.addNode(std::move(node));
+
+        dotGraph.addRelation({parentNodeId, nodeId});
+
+        for (const auto &childPath : artifact.childPaths()) {
+            auto it = artifactMap.find(childPath);
+            if (it != artifactMap.end()) {
+                artifactQueue.push_back({it->second, nodeId});
+            }
+        }
+        artifactQueue.pop_front();
+    }
+
     const QString graphFilePath = getFileName(
         projectData, QLatin1String(".products/") + product.name());
     dotGraph.write(graphFilePath);

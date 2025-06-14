@@ -354,6 +354,11 @@ InstallData ArtifactData::installData() const
     return d->installData;
 }
 
+QStringList ArtifactData::childPaths() const
+{
+    return d->childPaths;
+}
+
 bool operator==(const ArtifactData &ad1, const ArtifactData &ad2)
 {
     return ad1.filePath() == ad2.filePath()

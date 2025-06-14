@@ -129,6 +129,7 @@ public:
     bool isTargetArtifact() const;
     PropertyMap properties() const;
     InstallData installData() const;
+    QStringList childPaths() const;
 
 private:
     QExplicitlySharedDataPointer<Internal::ArtifactDataPrivate> d;

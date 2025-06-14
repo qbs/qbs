@@ -285,6 +285,11 @@ ArtifactData ProjectPrivate::createArtifactData(const Artifact *artifact,
     ta.d->filePath = artifact->filePath();
     ta.d->fileTags = artifact->fileTags().toStringList();
     ta.d->properties.d->m_map = artifact->properties;
+    for (const Artifact *a : filterByType<Artifact>(artifact->children)) {
+        ta.d->childPaths << a->filePath();
+        for (const auto *f : a->fileDependencies)
+            ta.d->childPaths << f->filePath();
+    }
     ta.d->isGenerated = artifact->artifactType == Artifact::Generated;
     ta.d->isTargetArtifact = targetArtifacts.contains(const_cast<Artifact *>(artifact));
     ta.d->isValid = true;
@@ -678,6 +683,14 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
                 ta.d->filePath = it.key();
                 ta.d->fileTags = it.value().fileTags.toStringList();
                 ta.d->properties.d->m_map = it.value().properties;
+                Artifact * const child = lookupArtifact(resolvedProduct, it.key(), true);
+                if (child) {
+                    for (const Artifact *a : filterByType<Artifact>(child->children)) {
+                        ta.d->childPaths << a->filePath();
+                        for (const auto *f : a->fileDependencies)
+                            ta.d->childPaths << f->filePath();
+                    }
+                }
                 ta.d->isGenerated = true;
                 ta.d->isTargetArtifact = resolvedProduct->fileTags.intersects(it.value().fileTags);
                 ta.d->isValid = true;
