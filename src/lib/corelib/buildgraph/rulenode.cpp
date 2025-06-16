@@ -39,6 +39,7 @@
 
 #include "rulenode.h"
 
+#include "artifactrescuer.h"
 #include "buildgraph.h"
 #include "buildgraphvisitor.h"
 #include "productbuilddata.h"
@@ -77,12 +78,14 @@ QString RuleNode::toString() const
 RuleNode::ApplicationResult RuleNode::apply(
     const Logger &logger,
     const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-    const std::unordered_map<QString, const ResolvedProject *> &projectsByName)
+    const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+    InputArtifactScannerContext *inputArtifactScanContext)
 {
     ApplicationResult result;
     ArtifactSet allCompatibleInputs = currentInputArtifacts();
     const ArtifactSet explicitlyDependsOn = RulesApplicator::collectExplicitlyDependsOn(
         m_rule.get(), product.get());
+
     const ArtifactSet addedInputs = allCompatibleInputs - m_oldInputArtifacts;
     const ArtifactSet removedInputs = m_oldInputArtifacts - allCompatibleInputs;
     const ArtifactSet changedInputs = changedInputArtifacts(
@@ -141,13 +144,24 @@ RuleNode::ApplicationResult RuleNode::apply(
             upToDate = false;
     }
 
+    const bool mustApplyRule = !inputs.empty() || !m_rule->declaresInputs()
+                               || !m_rule->requiresInputs;
+
+    // Check if any outputs are out-of-date relative to their dependencies.
+    // If so, we need to scan even if the rule appears up-to-date.
+    ArtifactSet inputsToScan = inputs;
+    inputsToScan += collectInputsForOutOfDateOutputs(allCompatibleInputs);
+
+    const bool mustScan = mustApplyRule || !inputsToScan.empty();
+
+    InputArtifactScanner inputScanner(logger, inputArtifactScanContext);
+    const bool wasScanned = mustScan && inputScanner.scan(inputsToScan);
+
     if (upToDate) {
         qCDebug(lcExec) << "rule is up to date. Skipping.";
+        result.invalidatedArtifacts.unite(updateOutputsDependencies(inputScanner, wasScanned));
         return result;
     }
-
-    const bool mustApplyRule = !inputs.empty() || !m_rule->declaresInputs()
-            || !m_rule->requiresInputs;
 
     // For a non-multiplex rule, the removal of an input always implies that the
     // corresponding outputs disappear.
@@ -197,14 +211,40 @@ RuleNode::ApplicationResult RuleNode::apply(
         result.createdArtifacts = applicator.createdArtifacts();
         result.invalidatedArtifacts = applicator.invalidatedArtifacts();
         m_lastApplicationTime = FileTime::currentTime();
-        if (applicator.ruleUsesIo())
+
+        // Rescue artifact dependencies after the rule has been applied.
+        // This ensures that artifacts recreated by the rule have their rescue data removed,
+        // preventing them from being deleted at the end of the build.
+        rescueArtifactsAfterRuleApplication(logger, result.removedArtifacts);
+
+        if (applicator.ruleUsesIo() || wasScanned)
             m_needsToConsiderChangedInputs = true;
     } else {
         qCDebug(lcExec).noquote() << "prepare script does not need to run";
     }
+    result.invalidatedArtifacts.unite(updateOutputsDependencies(inputScanner, wasScanned));
     m_oldInputArtifacts = allCompatibleInputs;
     m_oldExplicitlyDependsOn = explicitlyDependsOn;
     product->topLevelProject()->buildData->setDirty();
+    return result;
+}
+
+/*
+    Updates the dependencies of the outputs of this rule.
+    Returns the set of outputs that had their dependencies updated - those will be invalidated.
+*/
+NodeSet RuleNode::updateOutputsDependencies(InputArtifactScanner &inputScanner, bool wasScanned)
+{
+    NodeSet result;
+    if (!wasScanned)
+        return result;
+
+    for (Artifact * const output : filterByType<Artifact>(parents)) {
+        if (output->transformer->rule != m_rule)
+            continue;
+        if (inputScanner.updateDependencies(output))
+            result.insert(output);
+    }
     return result;
 }
 
@@ -293,6 +333,49 @@ ArtifactSet RuleNode::changedInputArtifacts(
     return changedInputArtifacts;
 }
 
+ArtifactSet RuleNode::collectInputsForOutOfDateOutputs(const ArtifactSet &allCompatibleInputs) const
+{
+    ArtifactSet inputsToScan;
+
+    for (Artifact * const output : filterByType<Artifact>(parents)) {
+        if (output->transformer->rule != m_rule)
+            continue;
+
+        // Check if this output is up-to-date relative to its dependencies.
+        // A transformer marked for rerun (e.g. due to scanner invalidation in BuildGraphLoader)
+        // also forces the inputs to be re-scanned so newly discovered dependencies are wired up.
+        bool outputUpToDate = output->timestamp().isValid() && !output->transformer->markedForRerun;
+        if (outputUpToDate) {
+            for (Artifact *childArtifact : filterByType<Artifact>(output->children)) {
+                if (output->timestamp() < childArtifact->timestamp()) {
+                    outputUpToDate = false;
+                    break;
+                }
+            }
+        }
+        if (outputUpToDate) {
+            for (FileDependency *fileDependency : std::as_const(output->fileDependencies)) {
+                if (!fileDependency->timestamp().isValid()
+                    || output->timestamp() < fileDependency->timestamp()) {
+                    outputUpToDate = false;
+                    break;
+                }
+            }
+        }
+
+        // If output is out-of-date due to dependencies, include its inputs for scanning
+        if (!outputUpToDate) {
+            for (Artifact * const input : output->transformer->inputs) {
+                if (allCompatibleInputs.contains(input)) {
+                    inputsToScan += input;
+                }
+            }
+        }
+    }
+
+    return inputsToScan;
+}
+
 void RuleNode::removeOldInputArtifact(Artifact *artifact)
 {
     if (m_oldInputArtifacts.remove(artifact)) {
@@ -304,6 +387,25 @@ void RuleNode::removeOldInputArtifact(Artifact *artifact)
         qCDebug(lcBuildGraph) << "remove old explicitlyDependsOn" << artifact->filePath()
                               << "from rule" << rule()->toString();
         m_oldExplicitlyDependsOn.insert(nullptr);
+    }
+}
+
+void RuleNode::rescueArtifactsAfterRuleApplication(
+    const Logger &logger, QStringList &removedArtifacts)
+{
+    const auto productPtr = this->product.lock();
+    if (!productPtr || !productPtr->buildData)
+        return;
+
+    qCDebug(lcBuildGraph) << "Attempting to rescue artifacts for rule" << this->toString();
+
+    ArtifactRescuer rescuer(productPtr->topLevelProject(), logger, removedArtifacts);
+    // Iterate over all outputs produced by this rule and try to rescue their dependencies
+    for (Artifact *output : filterByType<Artifact>(parents)) {
+        if (output->transformer->rule != m_rule)
+            continue;
+
+        rescuer.rescueOldBuildData(output);
     }
 }
 

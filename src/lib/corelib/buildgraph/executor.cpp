@@ -38,7 +38,6 @@
 ****************************************************************************/
 #include "executor.h"
 
-#include "artifactrescuer.h"
 #include "buildgraph.h"
 #include "cycledetector.h"
 #include "emptydirectoriesremover.h"
@@ -577,7 +576,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
     QBS_CHECK(!m_evalContext->engine()->isActive());
 
     const RuleNode::ApplicationResult result = ruleNode->apply(
-        m_logger, m_productsByName, m_projectsByName);
+        m_logger, m_productsByName, m_projectsByName, m_inputArtifactScanContext);
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
     m_artifactsRemovedFromDisk << result.removedArtifacts;
@@ -825,50 +824,8 @@ void Executor::addExecutorJobs()
     }
 }
 
-bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
-{
-    bool buildingDependenciesFound = false;
-    NodeSet unbuiltDependencies;
-    for (BuildGraphNode * const dependency : std::as_const(artifact->children)) {
-        switch (dependency->buildState) {
-        case BuildGraphNode::Untouched:
-        case BuildGraphNode::Buildable:
-            qCDebug(lcExec).noquote() << "unbuilt dependency:" << dependency->toString();
-            unbuiltDependencies += dependency;
-            break;
-        case BuildGraphNode::Building: {
-            qCDebug(lcExec).noquote() << "dependency in state 'Building':" << dependency->toString();
-            buildingDependenciesFound = true;
-            break;
-        }
-        case BuildGraphNode::Built:
-            // do nothing
-            break;
-        }
-    }
-    if (!unbuiltDependencies.empty()) {
-        artifact->inputsScanned = false;
-        updateLeaves(unbuiltDependencies);
-        return true;
-    }
-    if (buildingDependenciesFound) {
-        artifact->inputsScanned = false;
-        return true;
-    }
-    return false;
-}
-
 void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 {
-    ArtifactRescuer rescuer(m_project, m_logger, m_artifactsRemovedFromDisk);
-    for (Artifact * const output : std::as_const(transformer->outputs)) {
-        // Rescuing build data can introduce new dependencies, potentially delaying execution of
-        // this transformer.
-        const bool childrenAddedDueToRescue = rescuer.rescueOldBuildData(output);
-        if (childrenAddedDueToRescue && checkForUnbuiltDependencies(output))
-            return;
-    }
-
     if (!transformerHasMatchingOutputTags(transformer)) {
         qCDebug(lcExec) << "file tags do not match. Skipping.";
         finishTransformer(transformer);
@@ -882,20 +839,6 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
     }
 
     const bool mustExecute = mustExecuteTransformer(transformer);
-    if (mustExecute || m_buildOptions.forceTimestampCheck()) {
-        for (Artifact * const output : std::as_const(transformer->outputs)) {
-            // Scan all input artifacts. If new dependencies were found during scanning, delay
-            // execution of this transformer.
-            InputArtifactScanner scanner(output, m_inputArtifactScanContext, m_logger);
-            AccumulatingTimer scanTimer(m_buildOptions.logElapsedTime()
-                                        ? &m_elapsedTimeScanners : nullptr);
-            scanner.scan();
-            scanTimer.stop();
-            if (scanner.newDependencyAdded() && checkForUnbuiltDependencies(output))
-                return;
-        }
-    }
-
     if (!mustExecute) {
         qCDebug(lcExec) << "Up to date. Skipping.";
         finishTransformer(transformer);
@@ -1163,7 +1106,6 @@ void Executor::syncFileDependencies()
 
 void Executor::prepareArtifact(Artifact *artifact)
 {
-    artifact->inputsScanned = false;
     artifact->timestampRetrieved = false;
 
     if (artifact->artifactType == Artifact::SourceFile) {

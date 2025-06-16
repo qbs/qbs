@@ -51,14 +51,7 @@
 namespace qbs {
 namespace Internal {
 
-Artifact::Artifact() :
-    artifactType(ArtifactType::Unknown),
-    inputsScanned(false),
-    timestampRetrieved(false),
-    alwaysUpdated(false),
-    oldDataPossiblyPresent(true)
-{
-}
+Artifact::Artifact() = default;
 
 Artifact::~Artifact()
 {
@@ -163,7 +156,6 @@ void Artifact::load(PersistentPool &pool)
     pool.load(pureProperties);
     artifactType = static_cast<ArtifactType>(pool.load<quint8>());
     alwaysUpdated = pool.load<bool>();
-    oldDataPossiblyPresent = pool.load<bool>();
 }
 
 void Artifact::store(PersistentPool &pool)
@@ -182,7 +174,6 @@ void Artifact::store(PersistentPool &pool)
     pool.store(pureProperties);
     pool.store(static_cast<quint8>(artifactType));
     pool.store(alwaysUpdated);
-    pool.store(oldDataPossiblyPresent);
 }
 
 } // namespace Internal

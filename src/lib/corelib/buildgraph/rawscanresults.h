@@ -113,7 +113,7 @@ public:
     }
 
 private:
-    QHash<QString, std::vector<ScanData>> m_rawScanData;
+    std::unordered_map<QString, std::vector<ScanData>> m_rawScanData;
 };
 
 } // namespace Internal

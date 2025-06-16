@@ -82,9 +82,9 @@ RawScanResults::ScanData &RawScanResults::findScanData(
 void RawScanResults::invalidateResults(const QString &scannerId)
 {
     for (auto it = m_rawScanData.begin(); it != m_rawScanData.end(); ++it) {
-        for (auto scanData = it.value().begin(); scanData != it.value().end();) {
+        for (auto scanData = it->second.begin(); scanData != it->second.end();) {
             if (scanData->scannerId == scannerId)
-                scanData = it.value().erase(scanData);
+                scanData = it->second.erase(scanData);
             else
                 ++scanData;
         }

@@ -109,11 +109,9 @@ public:
         Generated = 4
     };
 
-    ArtifactType artifactType;
-    bool inputsScanned : 1;                 // Do not serialize. Will be refreshed for every build.
-    bool timestampRetrieved : 1;            // Do not serialize. Will be refreshed for every build.
-    bool alwaysUpdated : 1;
-    bool oldDataPossiblyPresent : 1;
+    ArtifactType artifactType = ArtifactType::Unknown;
+    bool timestampRetrieved : 1 = false; // Do not serialize. Will be refreshed for every build.
+    bool alwaysUpdated : 1 = false;
 
     const TypeFilter<Artifact> parentArtifacts() const;
     const TypeFilter<Artifact> childArtifacts() const;

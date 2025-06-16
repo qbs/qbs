@@ -1,6 +1,7 @@
 /****************************************************************************
 **
 ** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2026 Ivan Komissarov (abbapoh@gmail.com).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -40,26 +41,17 @@
 #ifndef QBS_INPUTARTIFACTSCANNER_H
 #define QBS_INPUTARTIFACTSCANNER_H
 
-#include <language/filetags.h>
-#include <language/forward_decls.h>
+#include <buildgraph/forward_decls.h>
+#include <buildgraph/rawscanresults.h>
 #include <logging/logger.h>
 #include <tools/set.h>
 
-#include <QtCore/qhash.h>
-#include <QtCore/qstringlist.h>
-
-#include <optional>
-
-class ScannerPlugin;
+#include <deque>
 
 namespace qbs {
 namespace Internal {
 
 class Artifact;
-class FileResourceBase;
-class RawScanResult;
-class RawScanResults;
-class PropertyMapInternal;
 
 class DependencyScanner;
 using DependencyScannerPtr = std::shared_ptr<DependencyScanner>;
@@ -88,8 +80,9 @@ class InputArtifactScannerContext
     using ScannerKeyCacheItem = std::optional<ScannerKeyCacheData>;
     using ScannerKeyCache = QHash<QString /*id*/, ScannerKeyCacheItem>;
 
-    QHash<PropertyMapConstPtr, ScannerKeyCache> cachePerProperties;
-    QHash<Artifact *, ScannerKeyCache> cachePerFile;
+    std::unordered_map<PropertyMapConstPtr, ScannerKeyCache> cachePerProperties;
+
+    std::unordered_map<Artifact *, ScannerKeyCache> cachePerFile;
 
     using DependencyScannerCacheItem = std::optional<QList<DependencyScannerPtr>>;
     QHash<ResolvedProduct*, QHash<FileTag, DependencyScannerCacheItem>> scannersCache;
@@ -100,35 +93,36 @@ class InputArtifactScannerContext
 class InputArtifactScanner
 {
 public:
-    InputArtifactScanner(Artifact *artifact, InputArtifactScannerContext *ctx,
-                         Logger logger);
-    void scan();
-    bool newDependencyAdded() const { return m_newDependencyAdded; }
+    explicit InputArtifactScanner(Logger logger, InputArtifactScannerContext *ctx);
+
+    bool scan(const ArtifactSet &inputArtifacts);
+    bool updateDependencies(Artifact *artifact);
 
 private:
-    void scanForFileDependencies(Artifact *inputArtifact);
-    Set<DependencyScanner *> scannersForArtifact(const Artifact *artifact) const;
-    void scanForScannerFileDependencies(
+    bool scanInputArtifact(Artifact *inputArtifact);
+    void updateInputArtifactDependencies(Artifact *artifact, Artifact *inputArtifact);
+    Set<DependencyScanner *> scannersForArtifact(const Artifact *inputArtifact) const;
+    const RawScanResults::ScanData &scanForScannerFileDependencies(
         DependencyScanner *scanner,
         Artifact *inputArtifact,
         FileResourceBase *fileToBeScanned,
-        QList<FileResourceBase *> *filesToScan,
         InputArtifactScannerContext::ScannerKeyCacheItem &cache);
     void resolveScanResultDependencies(
+        Artifact *artifact,
         const Artifact *inputArtifact,
         const RawScanResult &scanResult,
-        QList<FileResourceBase *> *artifactsToScan,
+        std::deque<FileResourceBase *> *artifactsToScan,
         InputArtifactScannerContext::ScannerKeyCacheData &cache);
-    void handleDependency(ResolvedDependency &dependency);
-    void scanWithScannerPlugin(DependencyScanner *scanner, Artifact *inputArtifact,
-                               FileResourceBase *fileToBeScanned, RawScanResult *scanResult);
+    void handleDependency(Artifact *artifact, ResolvedDependency &dependency);
+    void scanWithScannerPlugin(
+        DependencyScanner *scanner,
+        Artifact *inputArtifact,
+        FileResourceBase *fileToBeScanned,
+        RawScanResult *scanResult);
 
-    Artifact * const m_artifact;
-    RawScanResults &m_rawScanResults;
-    InputArtifactScannerContext *const m_context;
-    QByteArray m_fileTagsForScanner;
-    bool m_newDependencyAdded;
+private:
     Logger m_logger;
+    InputArtifactScannerContext *m_context;
 };
 
 } // namespace Internal

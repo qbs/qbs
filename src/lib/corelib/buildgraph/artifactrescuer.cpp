@@ -62,7 +62,7 @@ namespace qbs {
 namespace Internal {
 
 ArtifactRescuer::ArtifactRescuer(
-    const TopLevelProjectPtr &project, Logger logger, QStringList &artifactsRemovedFromDisk)
+    TopLevelProject *project, Logger logger, QStringList &artifactsRemovedFromDisk)
     : m_project(project)
     , m_logger(std::move(logger))
     , m_artifactsRemovedFromDisk(artifactsRemovedFromDisk)
@@ -71,12 +71,6 @@ ArtifactRescuer::ArtifactRescuer(
 bool ArtifactRescuer::rescueOldBuildData(Artifact *artifact)
 {
     bool childrenAdded = false;
-    if (!artifact->oldDataPossiblyPresent)
-        return childrenAdded;
-    artifact->oldDataPossiblyPresent = false;
-    if (artifact->artifactType != Artifact::Generated)
-        return childrenAdded;
-
     ResolvedProduct * const product = artifact->product.get();
     RescuableArtifactData rad = product->buildData->removeFromRescuableArtifactData(
         artifact->filePath());

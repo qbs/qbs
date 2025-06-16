@@ -43,6 +43,7 @@
 #include "artifact.h"
 #include "buildgraphnode.h"
 #include "forward_decls.h"
+#include <buildgraph/inputartifactscanner.h>
 #include <language/forward_decls.h>
 #include <tools/dynamictypecheck.h>
 #include <tools/persistence.h>
@@ -53,6 +54,7 @@ namespace qbs {
 namespace Internal {
 
 class Logger;
+class InputArtifactScannerContext;
 
 class RuleNode : public BuildGraphNode
 {
@@ -77,7 +79,8 @@ public:
     ApplicationResult apply(
         const Logger &logger,
         const std::unordered_map<QString, const ResolvedProduct *> &productsByName,
-        const std::unordered_map<QString, const ResolvedProject *> &projectsByName);
+        const std::unordered_map<QString, const ResolvedProject *> &projectsByName,
+        InputArtifactScannerContext *inputArtifactScanContext);
     void removeOldInputArtifact(Artifact *artifact);
 
     void load(PersistentPool &pool) override;
@@ -99,6 +102,10 @@ private:
     ArtifactSet currentInputArtifacts() const;
     ArtifactSet changedInputArtifacts(
         const ArtifactSet &allCompatibleInputs, const ArtifactSet &explicitlyDependsOn) const;
+    ArtifactSet collectInputsForOutOfDateOutputs(const ArtifactSet &allCompatibleInputs) const;
+    NodeSet updateOutputsDependencies(InputArtifactScanner &inputScanner, bool scannersRan);
+
+    void rescueArtifactsAfterRuleApplication(const Logger &logger, QStringList &removedArtifacts);
 
     RuleConstPtr m_rule;
 

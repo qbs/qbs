@@ -56,16 +56,15 @@ class Artifact;
 class ArtifactRescuer
 {
 public:
-    ArtifactRescuer(
-        const TopLevelProjectPtr &project, Logger logger, QStringList &artifactsRemovedFromDisk);
+    ArtifactRescuer(TopLevelProject *project, Logger logger, QStringList &artifactsRemovedFromDisk);
 
     /*
-        Returns true if children were added to the artifact, delaying the execution.
+        Returns true if children were added to the artifact.
     */
     bool rescueOldBuildData(Artifact *artifact);
 
 private:
-    TopLevelProjectPtr m_project;
+    TopLevelProject *m_project = nullptr;
     Logger m_logger;
     QStringList &m_artifactsRemovedFromDisk;
 };
