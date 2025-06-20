@@ -151,6 +151,7 @@ jobs:
         qbs.buildVariant:release
         modules.cpp.compilerWrapper:clcache
         project.withTests:false
+        modules.qbsbuildconfig.enableBundledQt:true
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
         project.withDocumentation:true

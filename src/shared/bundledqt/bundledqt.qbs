@@ -35,7 +35,7 @@ Product {
     }
 
     readonly property string styleName: {
-        if (Utilities.versionCompare(Qt.core.version, "6.8.0") >= 0)
+        if (Utilities.versionCompare(Qt.core.version, "6.7.0") >= 0)
             return "qmodernwindowsstyle";
         return "qwindowsvistastyle";
     }
