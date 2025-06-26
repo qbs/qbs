@@ -7,5 +7,10 @@ Project {
     }
     Product {
         Depends { name: "dep" }
+        files: "toplevel.txt"
+        Group {
+            prefix: "subdir/"
+            Group { files: ["file1.txt", "file2.txt"] }
+        }
     }
 }

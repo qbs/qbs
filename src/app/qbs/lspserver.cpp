@@ -55,16 +55,21 @@
 #include <tools/stlutils.h>
 
 #include <QBuffer>
+#include <QDir>
+#include <QFileInfo>
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QMap>
 
+#include <functional>
+#include <optional>
 #include <unordered_map>
 #ifdef Q_OS_WINDOWS
 #include <process.h>
 #else
 #include <unistd.h>
 #endif
+#include <utility>
 
 namespace qbs::Internal {
 
@@ -158,6 +163,9 @@ public:
     void handleDidChangeNotification();
     void handleDidSaveNotification();
     void handleDidCloseNotification();
+
+    bool handleGotoDefViaCodeLinks(
+        const QString &sourceFile, const Document *sourceDoc, const CodePosition &sourcePos);
 
     QLocalServer server;
     QBuffer incomingData;
@@ -349,49 +357,143 @@ void LspServer::Private::handleGotoDefinitionRequest()
 {
     const lsp::TextDocumentPositionParams params(messageObject.value(lsp::paramsKey));
     const QString sourceFile = params.textDocument().uri().toLocalFile();
+    const CodePosition sourcePos = posFromLspPos(params.position());
     const Document *sourceDoc = nullptr;
     if (const auto it = documents.find(sourceFile); it != documents.end())
         sourceDoc = &it->second;
-    const auto fileEntry = codeLinks.constFind(sourceFile);
-    if (fileEntry == codeLinks.constEnd())
+
+    // First check the codeLinks, where we map locations of Depends items
+    // to the location of the corresponding product or module.
+    // For a cursor such as this:
+    //   Depends { name: "cpp" }
+    //                     ^
+    // We return the location of the module file that implements the cpp
+    // backend for that particular product, e.g. GenericGCC.qbs.
+    if (handleGotoDefViaCodeLinks(sourceFile, sourceDoc, sourcePos))
+        return;
+
+    if (!sourceDoc)
         return sendResponse(nullptr);
-    const CodePosition sourcePos = posFromLspPos(params.position());
-    if (sourceDoc && !sourceDoc->isPositionUpToDate(sourcePos))
+
+    // Now check for elements of the "files" property.
+    // For a cursor such as this:
+    // Group { prefix: "sources/"; files: "main.cpp" }
+    //                                      ^
+    // We return the absolute path of the file, including the
+    // group prefix.
+    // Note that if we recorded the location of all source artifacts,
+    // we would not need to do any parsing here and also we wouldn't
+    // be limited to string literals. But that's probably not worth
+    // the additional overhead.
+
+    const int offset = posToOffset(params.position(), sourceDoc->currentContent) - 1;
+    if (offset < 0 || offset >= sourceDoc->currentContent.length())
         return sendResponse(nullptr);
-    for (auto it = fileEntry->cbegin(); it != fileEntry->cend(); ++it) {
-        if (!it.key().contains(sourcePos))
-            continue;
-        if (sourceDoc && !sourceDoc->isPositionUpToDate(it.key().end()))
-            return sendResponse(nullptr);
-        QList<CodeLocation> targets = it.value();
-        QBS_ASSERT(!targets.isEmpty(), return sendResponse(nullptr));
-        for (auto it = targets.begin(); it != targets.end();) {
-            const Document *targetDoc = nullptr;
-            if (it->filePath() == sourceFile)
-                targetDoc = sourceDoc;
-            else if (const auto docIt = documents.find(it->filePath()); docIt != documents.end())
-                targetDoc = &docIt->second;
-            if (targetDoc && !targetDoc->isPositionUpToDate(CodePosition(it->line(), it->column())))
-                it = targets.erase(it);
-            else
-                ++it;
-        }
-        struct JsonArray : public QJsonArray { void reserve(std::size_t) {}};
-        const auto locations = transformed<JsonArray>(targets,
-                                                      [](const CodeLocation &loc) {
-            const lsp::Position startPos = lspPosFromCodeLocation(loc);
-            const lsp::Position endPos(startPos.line(), startPos.character() + 1);
-            lsp::Location targetLocation;
-            targetLocation.setUri(lsp::DocumentUri::fromProtocol(
-                                      QUrl::fromLocalFile(loc.filePath()).toString()));
-            targetLocation.setRange({startPos, endPos});
-            return QJsonObject(targetLocation);
-        });
-        if (locations.size() == 1)
-            return sendResponse(locations.first().toObject());
-        return sendResponse(locations);
+
+    using namespace QbsQmlJS;
+    using namespace QbsQmlJS::AST;
+    Engine engine;
+    Lexer lexer(&engine);
+    lexer.setCode(sourceDoc->currentContent, 1);
+    Parser parser(&engine);
+    parser.parse();
+    if (!parser.ast())
+        return sendResponse(nullptr);
+
+    AstNodeLocator locator(offset, *parser.ast());
+    const QList<Node *> &astPath = locator.path();
+
+    // The AST path looks as follows:
+    // ... -> UiObjectDefinition -> UiObjectInitializer -> ObjectMemberList
+    //     -> UiScriptBinding -> ExpressionStatement [-> ArrayLiteral]
+    // If the project file employs the syntactical sugar of using a single
+    // string for one-element arrays, then there is no ArrayLiteral; instead,
+    // the ExpressionStatement's expression is a StringLiteral that contains
+    // the file path.
+    // Sometimes, the AST path also ends in an ElementList instead of an ArrayLiteral.
+    // This discrepancy is probably a bug in the path() function.
+
+    const StringLiteral *filePathLiteral = nullptr;
+    const ElementList *elementList = nullptr;
+    int filesNodeIndex = 0;
+    int groupNodeIndex = 0;
+    const Node * const filePathNode = astPath.last();
+    if (filePathNode->kind == Node::Kind_ArrayLiteral) {
+        filesNodeIndex = astPath.size() - 3;
+        groupNodeIndex = astPath.size() - 6;
+        elementList = static_cast<const ArrayLiteral *>(filePathNode)->elements;
+    } else if (filePathNode->kind == Node::Kind_ElementList) {
+        filesNodeIndex = astPath.size() - 4;
+        groupNodeIndex = astPath.size() - 7;
+        elementList = static_cast<const ElementList *>(filePathNode);
+    } else if (filePathNode->kind == Node::Kind_ExpressionStatement) {
+        filesNodeIndex = astPath.size() - 2;
+        groupNodeIndex = astPath.size() - 5;
+        const auto filePathExpr
+            = static_cast<const ExpressionStatement *>(filePathNode)->expression;
+        if (filePathExpr && filePathExpr->kind == Node::Kind_StringLiteral)
+            filePathLiteral = static_cast<StringLiteral *>(filePathExpr);
     }
-    sendResponse(nullptr);
+    if (elementList) {
+        for (const ElementList *l = elementList; l; l = l->next) {
+            if (l->expression->kind != Node::Kind_StringLiteral)
+                continue;
+            const auto s = static_cast<StringLiteral *>(l->expression);
+            if (int(s->firstSourceLocation().offset) > offset)
+                break;
+            if (int(s->lastSourceLocation().offset + s->lastSourceLocation().length) > offset) {
+                filePathLiteral = s;
+                break;
+            }
+        }
+    }
+    if (!filePathLiteral)
+        return sendResponse(nullptr);
+    if (groupNodeIndex < 0)
+        return sendResponse(nullptr);
+    const auto filesNode = astPath.at(filesNodeIndex);
+    if (filesNode->kind != Node::Kind_UiScriptBinding
+        || static_cast<UiScriptBinding *>(filesNode)->qualifiedId->name != "files") {
+        return sendResponse(nullptr);
+    }
+    const Node * const groupNode = astPath.at(groupNodeIndex);
+    if (groupNode->kind != Node::Kind_UiObjectDefinition)
+        return sendResponse(nullptr);
+    const SourceLocation loc = groupNode->firstSourceLocation();
+    using GroupAndProduct = std::optional<std::pair<GroupData, ProductData>>;
+    const std::function<GroupAndProduct(const ProjectData &)> findGroup =
+        [&](const ProjectData &project) -> GroupAndProduct {
+        for (const ProductData &product : project.products()) {
+            for (const GroupData &group : product.groups()) {
+                if (group.location().filePath() == sourceFile
+                    && group.location().line() == int(loc.startLine)
+                    && group.location().column() == int(loc.startColumn))
+                    return std::make_pair(group, product);
+            }
+        }
+        for (const ProjectData &subProject : project.subProjects()) {
+            if (const auto &g = findGroup(subProject))
+                return g;
+        }
+        return {};
+    };
+    const auto groupAndProduct = findGroup(projectData);
+    if (!groupAndProduct)
+        return sendResponse(nullptr);
+    QString absoluteFilePath = filePathLiteral->value.toString();
+    absoluteFilePath.prepend(groupAndProduct->first.prefix());
+    if (QFileInfo(absoluteFilePath).isRelative()) {
+        absoluteFilePath = QFileInfo(groupAndProduct->second.location().filePath())
+                               .absoluteDir()
+                               .filePath(absoluteFilePath);
+    }
+    const lsp::Position startPos(0, 0);
+    const lsp::Position endPos(0, 1);
+    lsp::Location targetLocation;
+    targetLocation.setUri(
+        lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(absoluteFilePath).toString()));
+    targetLocation.setRange({lsp::Position(0, 0), lsp::Position(0, 1)});
+    sendResponse(QJsonObject(targetLocation));
 }
 
 // We operate under the assumption that the client has basic QML support.
@@ -599,6 +701,54 @@ void LspServer::Private::handleDidCloseNotification()
     documents.erase(docIt);
 }
 
+bool LspServer::Private::handleGotoDefViaCodeLinks(
+    const QString &sourceFile, const Document *sourceDoc, const CodePosition &sourcePos)
+{
+    if (sourceDoc && !sourceDoc->isPositionUpToDate(sourcePos))
+        return false;
+    const auto fileEntry = codeLinks.constFind(sourceFile);
+    if (fileEntry == codeLinks.constEnd())
+        return false;
+    for (auto it = fileEntry->begin(); it != fileEntry->cend(); ++it) {
+        if (!it.key().contains(sourcePos))
+            continue;
+        if (sourceDoc && !sourceDoc->isPositionUpToDate(it.key().end()))
+            return false;
+        QList<CodeLocation> targets = it.value();
+        QBS_ASSERT(!targets.isEmpty(), return false);
+        for (auto it = targets.begin(); it != targets.end();) {
+            const Document *targetDoc = nullptr;
+            if (it->filePath() == sourceFile)
+                targetDoc = sourceDoc;
+            else if (const auto docIt = documents.find(it->filePath()); docIt != documents.end())
+                targetDoc = &docIt->second;
+            if (targetDoc && !targetDoc->isPositionUpToDate(CodePosition(it->line(), it->column())))
+                it = targets.erase(it);
+            else
+                ++it;
+        }
+        struct JsonArray : public QJsonArray
+        {
+            void reserve(std::size_t) {}
+        };
+        const auto locations = transformed<JsonArray>(targets, [](const CodeLocation &loc) {
+            const lsp::Position startPos = lspPosFromCodeLocation(loc);
+            const lsp::Position endPos(startPos.line(), startPos.character() + 1);
+            lsp::Location targetLocation;
+            targetLocation.setUri(
+                lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(loc.filePath()).toString()));
+            targetLocation.setRange({startPos, endPos});
+            return QJsonObject(targetLocation);
+        });
+        if (locations.size() == 1)
+            sendResponse(locations.first().toObject());
+        else
+            sendResponse(locations);
+        return true;
+    }
+    return false;
+}
+
 static int posToOffset(const CodePosition &pos, const QString &doc)
 {
     int offset = 0;
@@ -626,4 +776,3 @@ bool Document::isPositionUpToDate(const lsp::Position &pos) const
 }
 
 } // namespace qbs::Internal
-

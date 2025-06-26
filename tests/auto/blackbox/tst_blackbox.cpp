@@ -7002,6 +7002,15 @@ void TestBlackbox::qbsLanguageServer_data()
     QTest::addRow("follow to module, invalidating insert")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:4:9") << QString()
         << QString("property bool dummy\n") << QString();
+    QTest::addRow("follow to file in product")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:10:25") << QString() << QString()
+        << (testDataDir + "/lsp/toplevel.txt:1:1");
+    QTest::addRow("follow to file in group (first element)")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:13:34") << QString() << QString()
+        << (testDataDir + "/lsp/subdir/file1.txt:1:1");
+    QTest::addRow("follow to file in group (last element)")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:13:48") << QString() << QString()
+        << (testDataDir + "/lsp/subdir/file2.txt:1:1");
     QTest::addRow("completion: LHS, module prefix")
         << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("P")
         << QString("Prefix.m1\nPrefix.m2\nPrefix.m3");
