@@ -81,18 +81,9 @@ MingwBaseModule {
                 args.push('-D');
                 args.push(platformDefines[i]);
             }
-            for (i in defines) {
-                args.push('-D');
-                args.push(defines[i]);
-            }
-            for (i in includePaths) {
-                args.push('-I');
-                args.push(includePaths[i]);
-            }
-            for (i in systemIncludePaths) {
-                args.push('-I');
-                args.push(systemIncludePaths[i]);
-            }
+            args = args.concat(Cpp.collectDefinesArguments(input));
+            args = args.concat(Cpp.collectIncludePathsArguments(input));
+            args = args.concat(Cpp.collectSystemIncludePathsArguments(input, "-I"));
 
             args.push("-O", "coff"); // Set COFF format explicitly.
             args = args.concat(['-i', input.filePath, '-o', output.filePath]);
