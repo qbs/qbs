@@ -13,4 +13,5 @@ Project {
             Group { files: ["file1.txt", "file2.txt"] }
         }
     }
+    references: "other.qbs"
 }

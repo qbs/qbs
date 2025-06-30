@@ -7011,6 +7011,9 @@ void TestBlackbox::qbsLanguageServer_data()
     QTest::addRow("follow to file in group (last element)")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:13:48") << QString() << QString()
         << (testDataDir + "/lsp/subdir/file2.txt:1:1");
+    QTest::addRow("follow \"references\"")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:16:24") << QString() << QString()
+        << (testDataDir + "/lsp/other.qbs:1:1");
     QTest::addRow("completion: LHS, module prefix")
         << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("P")
         << QString("Prefix.m1\nPrefix.m2\nPrefix.m3");

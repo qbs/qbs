@@ -375,7 +375,7 @@ void LspServer::Private::handleGotoDefinitionRequest()
     if (!sourceDoc)
         return sendResponse(nullptr);
 
-    // Now check for elements of the "files" property.
+    // Now check for elements of the "files" and "references" properties.
     // For a cursor such as this:
     // Group { prefix: "sources/"; files: "main.cpp" }
     //                                      ^
@@ -415,20 +415,20 @@ void LspServer::Private::handleGotoDefinitionRequest()
 
     const StringLiteral *filePathLiteral = nullptr;
     const ElementList *elementList = nullptr;
-    int filesNodeIndex = 0;
-    int groupNodeIndex = 0;
+    int bindingNodeIndex = 0;
+    int objectNodeIndex = 0;
     const Node * const filePathNode = astPath.last();
     if (filePathNode->kind == Node::Kind_ArrayLiteral) {
-        filesNodeIndex = astPath.size() - 3;
-        groupNodeIndex = astPath.size() - 6;
+        bindingNodeIndex = astPath.size() - 3;
+        objectNodeIndex = astPath.size() - 6;
         elementList = static_cast<const ArrayLiteral *>(filePathNode)->elements;
     } else if (filePathNode->kind == Node::Kind_ElementList) {
-        filesNodeIndex = astPath.size() - 4;
-        groupNodeIndex = astPath.size() - 7;
+        bindingNodeIndex = astPath.size() - 4;
+        objectNodeIndex = astPath.size() - 7;
         elementList = static_cast<const ElementList *>(filePathNode);
     } else if (filePathNode->kind == Node::Kind_ExpressionStatement) {
-        filesNodeIndex = astPath.size() - 2;
-        groupNodeIndex = astPath.size() - 5;
+        bindingNodeIndex = astPath.size() - 2;
+        objectNodeIndex = astPath.size() - 5;
         const auto filePathExpr
             = static_cast<const ExpressionStatement *>(filePathNode)->expression;
         if (filePathExpr && filePathExpr->kind == Node::Kind_StringLiteral)
@@ -449,51 +449,76 @@ void LspServer::Private::handleGotoDefinitionRequest()
     }
     if (!filePathLiteral)
         return sendResponse(nullptr);
-    if (groupNodeIndex < 0)
+    if (objectNodeIndex < 0)
         return sendResponse(nullptr);
-    const auto filesNode = astPath.at(filesNodeIndex);
-    if (filesNode->kind != Node::Kind_UiScriptBinding
-        || static_cast<UiScriptBinding *>(filesNode)->qualifiedId->name != "files") {
+    const auto filesNode = astPath.at(bindingNodeIndex);
+    if (filesNode->kind != Node::Kind_UiScriptBinding)
         return sendResponse(nullptr);
-    }
-    const Node * const groupNode = astPath.at(groupNodeIndex);
-    if (groupNode->kind != Node::Kind_UiObjectDefinition)
+    const QStringRef bindingName = static_cast<UiScriptBinding *>(filesNode)->qualifiedId->name;
+    const bool isFilesProperty = bindingName == "files";
+    const bool isReferencesProperty = bindingName == "references";
+    if (!isFilesProperty && !isReferencesProperty)
         return sendResponse(nullptr);
-    const SourceLocation loc = groupNode->firstSourceLocation();
-    using GroupAndProduct = std::optional<std::pair<GroupData, ProductData>>;
-    const std::function<GroupAndProduct(const ProjectData &)> findGroup =
-        [&](const ProjectData &project) -> GroupAndProduct {
-        for (const ProductData &product : project.products()) {
-            for (const GroupData &group : product.groups()) {
-                if (group.location().filePath() == sourceFile
-                    && group.location().line() == int(loc.startLine)
-                    && group.location().column() == int(loc.startColumn))
-                    return std::make_pair(group, product);
-            }
-        }
-        for (const ProjectData &subProject : project.subProjects()) {
-            if (const auto &g = findGroup(subProject))
-                return g;
-        }
-        return {};
-    };
-    const auto groupAndProduct = findGroup(projectData);
-    if (!groupAndProduct)
+    const Node * const objectNode = astPath.at(objectNodeIndex);
+    if (objectNode->kind != Node::Kind_UiObjectDefinition)
         return sendResponse(nullptr);
+    const SourceLocation loc = objectNode->firstSourceLocation();
     QString absoluteFilePath = filePathLiteral->value.toString();
-    absoluteFilePath.prepend(groupAndProduct->first.prefix());
-    if (QFileInfo(absoluteFilePath).isRelative()) {
-        absoluteFilePath = QFileInfo(groupAndProduct->second.location().filePath())
-                               .absoluteDir()
-                               .filePath(absoluteFilePath);
+    const auto sendFilePath = [&] {
+        const lsp::Position startPos(0, 0);
+        const lsp::Position endPos(0, 1);
+        lsp::Location targetLocation;
+        targetLocation.setUri(
+            lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(absoluteFilePath).toString()));
+        targetLocation.setRange({lsp::Position(0, 0), lsp::Position(0, 1)});
+        sendResponse(QJsonObject(targetLocation));
+    };
+    if (QFileInfo(absoluteFilePath).isAbsolute())
+        return sendFilePath();
+    if (isFilesProperty) {
+        using GroupAndProduct = std::optional<std::pair<GroupData, ProductData>>;
+        const std::function<GroupAndProduct(const ProjectData &)> findGroup =
+            [&](const ProjectData &project) -> GroupAndProduct {
+            for (const ProductData &product : project.products()) {
+                for (const GroupData &group : product.groups()) {
+                    if (group.location().filePath() == sourceFile
+                        && group.location().line() == int(loc.startLine)
+                        && group.location().column() == int(loc.startColumn))
+                        return std::make_pair(group, product);
+                }
+            }
+            for (const ProjectData &subProject : project.subProjects()) {
+                if (const auto &g = findGroup(subProject))
+                    return g;
+            }
+            return {};
+        };
+        const auto groupAndProduct = findGroup(projectData);
+        if (!groupAndProduct)
+            return sendResponse(nullptr);
+        absoluteFilePath.prepend(groupAndProduct->first.prefix());
+        if (QFileInfo(absoluteFilePath).isAbsolute())
+            return sendFilePath();
+    } else {
+        const std::function<std::optional<ProjectData>(const ProjectData &)> findProject =
+            [&](const ProjectData &project) -> std::optional<ProjectData> {
+            if (project.location().filePath() == sourceFile
+                && project.location().line() == int(loc.startLine)
+                && project.location().column() == int(loc.startColumn)) {
+                return project;
+            }
+            for (const ProjectData &subProject : project.subProjects()) {
+                if (const auto &p = findProject(subProject))
+                    return p;
+            }
+            return {};
+        };
+        const auto project = findProject(projectData);
+        if (!project)
+            return sendResponse(nullptr);
     }
-    const lsp::Position startPos(0, 0);
-    const lsp::Position endPos(0, 1);
-    lsp::Location targetLocation;
-    targetLocation.setUri(
-        lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(absoluteFilePath).toString()));
-    targetLocation.setRange({lsp::Position(0, 0), lsp::Position(0, 1)});
-    sendResponse(QJsonObject(targetLocation));
+    absoluteFilePath = QFileInfo(sourceFile).absoluteDir().filePath(absoluteFilePath);
+    sendFilePath();
 }
 
 // We operate under the assumption that the client has basic QML support.
