@@ -14,4 +14,5 @@ Project {
         }
     }
     references: "other.qbs"
+    MyProduct { name: "dummy" }
 }

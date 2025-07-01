@@ -40,22 +40,17 @@
 #ifndef QBS_ITEMREADER_H
 #define QBS_ITEMREADER_H
 
-#include <logging/logger.h>
-#include <tools/deprecationwarningmode.h>
-#include <tools/set.h>
+#include <tools/codelocation.h>
 
 #include <QtCore/qstringlist.h>
 
 #include <memory>
 
-namespace qbs {
-class SetupProjectParameters;
-namespace Internal {
-class Evaluator;
+namespace qbs::Internal {
 class Item;
-class ItemPool;
 class ItemReaderVisitorState;
 class LoaderState;
+class Logger;
 
 /*
  * Reads a qbs file and creates a tree of Item objects.
@@ -115,7 +110,6 @@ private:
     size_t m_oldSize{0};
 };
 
-} // namespace Internal
-} // namespace qbs
+} // namespace qbs::Internal
 
 #endif // QBS_ITEMREADER_H

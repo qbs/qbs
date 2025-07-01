@@ -48,6 +48,7 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/error.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qdiriterator.h>
@@ -58,10 +59,11 @@
 namespace qbs {
 namespace Internal {
 
-ItemReaderVisitorState::ItemReaderVisitorState(ItemReaderCache &cache, Logger &logger)
-    : m_cache(cache), m_logger(logger)
-{
-}
+ItemReaderVisitorState::ItemReaderVisitorState(LoaderState &loaderState)
+    : m_loaderState(loaderState)
+    , m_cache(loaderState.topLevelProject().itemReaderCache())
+    , m_logger(m_loaderState.logger())
+{}
 
 Item *ItemReaderVisitorState::readFile(const QString &filePath, const QStringList &searchPaths,
                                   ItemPool *itemPool)
@@ -144,6 +146,16 @@ void ItemReaderVisitorState::setMostDerivingItem(Item *item)
     m_mostDerivingItem = item;
 }
 
+DeprecationWarningMode ItemReaderVisitorState::deprecationWarningMode() const
+{
+    return m_loaderState.parameters().deprecationWarningMode();
+}
+
+void ItemReaderVisitorState::addCodeLink(
+    const QString &sourceFile, const CodeRange &sourceRange, const CodeLocation &targetLoc)
+{
+    m_loaderState.topLevelProject().addCodeLink(sourceFile, sourceRange, targetLoc);
+}
 
 } // namespace Internal
 } // namespace qbs

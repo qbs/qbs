@@ -126,6 +126,12 @@ bool ItemReaderASTVisitor::visit(AST::UiObjectDefinition *ast)
             m_visitorState.setMostDerivingItem(nullptr);
         QBS_CHECK(baseItem->type() <= ItemType::LastActualItem);
         itemType = baseItem->type();
+        const AST::SourceLocation startLoc = ast->qualifiedTypeNameId->firstSourceLocation();
+        const AST::SourceLocation endLoc = ast->qualifiedTypeNameId->lastSourceLocation();
+        const CodeRange sourceRange(
+            CodePosition(startLoc.startLine, startLoc.startColumn),
+            CodePosition(endLoc.startLine, endLoc.startColumn + endLoc.length));
+        m_visitorState.addCodeLink(m_file->filePath(), sourceRange, baseItem->location());
     } else {
         if (fullTypeName.size() > 1) {
             throw ErrorInfo(Tr::tr("Invalid item '%1'. Did you mean to set a module property?")

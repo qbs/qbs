@@ -73,9 +73,7 @@ ItemReader::ItemReader(LoaderState &loaderState) : m_loaderState(loaderState) {}
 
 void ItemReader::init()
 {
-    m_visitorState = std::make_unique<ItemReaderVisitorState>(
-        m_loaderState.topLevelProject().itemReaderCache(), m_loaderState.logger());
-    m_visitorState->setDeprecationWarningMode(m_loaderState.parameters().deprecationWarningMode());
+    m_visitorState = std::make_unique<ItemReaderVisitorState>(m_loaderState);
     m_projectFilePath  = m_loaderState.parameters().projectFilePath();
     setSearchPaths(m_loaderState.parameters().searchPaths());
     m_elapsedTime = m_loaderState.parameters().logElapsedTime() ? 0 : -1;

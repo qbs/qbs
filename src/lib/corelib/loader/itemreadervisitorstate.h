@@ -39,26 +39,25 @@
 #ifndef QBS_ITEMREADERVISITORSTATE_H
 #define QBS_ITEMREADERVISITORSTATE_H
 
+#include <tools/codelocation.h>
 #include <tools/deprecationwarningmode.h>
-#include <tools/set.h>
 
 #include <QtCore/qstringlist.h>
-
-#include <memory>
 
 namespace qbs {
 namespace Internal {
 class Item;
 class ItemPool;
 class ItemReaderCache;
+class LoaderState;
 class Logger;
 
 class ItemReaderVisitorState
 {
 public:
-    ItemReaderVisitorState(ItemReaderCache &cache, Logger &logger);
+    ItemReaderVisitorState(LoaderState &loaderState);
 
-    Logger &logger() { return m_logger; }
+    Logger &logger() const { return m_logger; }
 
     Item *readFile(const QString &filePath, const QStringList &searchPaths, ItemPool *itemPool);
 
@@ -67,11 +66,13 @@ public:
     Item *mostDerivingItem() const;
     void setMostDerivingItem(Item *item);
 
-    void setDeprecationWarningMode(DeprecationWarningMode mode) { m_deprecationWarningMode = mode; }
-    DeprecationWarningMode deprecationWarningMode() const { return m_deprecationWarningMode; }
+    DeprecationWarningMode deprecationWarningMode() const;
+
+    void addCodeLink(
+        const QString &sourceFile, const CodeRange &sourceRange, const CodeLocation &targetLoc);
 
 private:
-    DeprecationWarningMode m_deprecationWarningMode = defaultDeprecationWarningMode();
+    LoaderState &m_loaderState;
     ItemReaderCache &m_cache;
     Logger &m_logger;
     Item *m_mostDerivingItem = nullptr;
