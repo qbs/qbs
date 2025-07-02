@@ -15,4 +15,9 @@ Project {
     }
     references: "other.qbs"
     MyProduct { name: "dummy" }
+    Product {
+        name: "p"
+        Depends { name: "Prefix.m1" }
+        Prefix.m1.p1: true
+    }
 }

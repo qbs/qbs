@@ -105,6 +105,7 @@ public:
     QList<GroupData> groups;
     QVariantMap properties;
     PropertyMap moduleProperties;
+    QList<std::pair<QString, CodeLocation>> modules;
     QList<ArtifactData> generatedArtifacts;
     bool isEnabled = false;
     bool isRunnable = false;

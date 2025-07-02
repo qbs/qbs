@@ -1171,6 +1171,7 @@ void ProductResolverStage2::resolveModule(const QualifiedId &moduleName, Item *i
 
     const ResolvedModulePtr &module = moduleContext.module;
     module->name = moduleName.toString();
+    module->location = item->location();
     module->isProduct = isProduct;
     module->product = m_product.product.get();
     module->setupBuildEnvironmentScript.initialize(m_loaderState.topLevelProject()

@@ -661,6 +661,8 @@ void ProjectPrivate::retrieveProjectData(ProjectData &projectData,
         product.d->isMultiplexed = productIsMultiplexed(resolvedProduct);
         product.d->properties = resolvedProduct->productProperties;
         product.d->moduleProperties.d->m_map = resolvedProduct->moduleProperties;
+        for (const ResolvedModulePtr &m : std::as_const(resolvedProduct->modules))
+            product.d->modules << std::make_pair(m->name, m->location);
         for (const GroupPtr &resolvedGroup : resolvedProduct->groups) {
             if (resolvedGroup->targetOfModule.isEmpty() && resolvedGroup->files) {
                 product.d->groups << createGroupDataFromGroup(resolvedGroup, resolvedProduct);

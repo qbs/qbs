@@ -710,6 +710,15 @@ const PropertyMap &ProductData::moduleProperties() const
 }
 
 /*!
+ * \brief The module dependencies of this product including the locations of the
+ *        respective \c Module items.
+ */
+const QList<std::pair<QString, CodeLocation>> ProductData::modules() const
+{
+    return d->modules;
+}
+
+/*!
  * \brief Returns true if this Product is enabled in Qbs.
  * This method returns the \c condition property of the \c Product definition. If a product is
  * enabled, then it will be built in the current configuration.

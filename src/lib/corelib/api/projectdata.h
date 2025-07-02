@@ -226,6 +226,7 @@ public:
     const QList<GroupData> &groups() const;
     const QVariantMap &properties() const;
     const PropertyMap &moduleProperties() const;
+    const QList<std::pair<QString, CodeLocation>> modules() const;
     bool isEnabled() const;
     bool isRunnable() const;
     bool isMultiplexed() const;

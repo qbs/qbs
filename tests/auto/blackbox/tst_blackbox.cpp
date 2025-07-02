@@ -7017,6 +7017,15 @@ void TestBlackbox::qbsLanguageServer_data()
     QTest::addRow("follow item from import path")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:17:7") << QString() << QString()
         << (testDataDir + "/lsp/MyProduct.qbs:2:74");
+    QTest::addRow("follow to module in binding (first segment)")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:21:12") << QString() << QString()
+        << (testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1");
+    QTest::addRow("follow to module in binding (last segment)")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:21:17") << QString() << QString()
+        << (testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1");
+    QTest::addRow("follow to module property")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:21:20") << QString() << QString()
+        << (testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1");
     QTest::addRow("completion: LHS, module prefix")
         << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("P")
         << QString("Prefix.m1\nPrefix.m2\nPrefix.m3");
@@ -7093,7 +7102,7 @@ void TestBlackbox::qbsLanguageServer()
         args << "--insert-location" << insertLocation;
     lspClient.start(clientFilePath, args);
     QVERIFY2(lspClient.waitForStarted(), qPrintable(lspClient.errorString()));
-    QVERIFY2(lspClient.waitForFinished(), qPrintable(lspClient.errorString()));
+    QVERIFY2(lspClient.waitForFinished(-1), qPrintable(lspClient.errorString()));
     QString errMsg;
     if (lspClient.exitStatus() != QProcess::NormalExit)
         errMsg = lspClient.errorString();

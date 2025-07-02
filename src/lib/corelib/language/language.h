@@ -385,6 +385,7 @@ public:
     static ResolvedModulePtr create() { return ResolvedModulePtr(new ResolvedModule); }
 
     QString name;
+    CodeLocation location;
     QStringList moduleDependencies; // TODO: Still needed?
     PrivateScriptFunction setupBuildEnvironmentScript;
     PrivateScriptFunction setupRunEnvironmentScript;
@@ -396,8 +397,13 @@ public:
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(name, moduleDependencies, setupBuildEnvironmentScript,
-                                     setupRunEnvironmentScript, isProduct);
+        pool.serializationOp<opType>(
+            name,
+            location,
+            moduleDependencies,
+            setupBuildEnvironmentScript,
+            setupRunEnvironmentScript,
+            isProduct);
     }
 
 private:

@@ -52,6 +52,7 @@
 #include <parser/qmljslexer_p.h>
 #include <parser/qmljsparser_p.h>
 #include <tools/qbsassert.h>
+#include <tools/qttools.h>
 #include <tools/stlutils.h>
 
 #include <QBuffer>
@@ -141,6 +142,23 @@ private:
     QList<QbsQmlJS::AST::Node *> m_path;
 };
 
+static QJsonArray toLspLocations(const QList<CodeLocation> &locations)
+{
+    struct JsonArray : public QJsonArray
+    {
+        void reserve(std::size_t) {}
+    };
+    return transformed<JsonArray>(locations, [](const CodeLocation &loc) {
+        const lsp::Position startPos = lspPosFromCodeLocation(loc);
+        const lsp::Position endPos(startPos.line(), startPos.character() + 1);
+        lsp::Location targetLocation;
+        targetLocation.setUri(
+            lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(loc.filePath()).toString()));
+        targetLocation.setRange({startPos, endPos});
+        return QJsonObject(targetLocation);
+    });
+}
+
 class LspServer::Private
 {
 public:
@@ -166,6 +184,10 @@ public:
 
     bool handleGotoDefViaCodeLinks(
         const QString &sourceFile, const Document *sourceDoc, const CodePosition &sourcePos);
+    void handleGotoDefForModuleProperties(
+        const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node);
+
+    QList<ProductData> getRelevantProducts(const QString &sourceFile);
 
     QLocalServer server;
     QBuffer incomingData;
@@ -369,13 +391,16 @@ void LspServer::Private::handleGotoDefinitionRequest()
     //                     ^
     // We return the location of the module file that implements the cpp
     // backend for that particular product, e.g. GenericGCC.qbs.
+    // In addition, items provided via import paths are looked up here.
     if (handleGotoDefViaCodeLinks(sourceFile, sourceDoc, sourcePos))
         return;
 
     if (!sourceDoc)
         return sendResponse(nullptr);
 
-    // Now check for elements of the "files" and "references" properties.
+    // Now check for
+    //   a) elements of the "files" and "references" properties.
+    //   b) usages of module properties, e.g. "qbs.toolchain"
     // For a cursor such as this:
     // Group { prefix: "sources/"; files: "main.cpp" }
     //                                      ^
@@ -385,6 +410,17 @@ void LspServer::Private::handleGotoDefinitionRequest()
     // we would not need to do any parsing here and also we wouldn't
     // be limited to string literals. But that's probably not worth
     // the additional overhead.
+    // For case a), the AST path looks as follows:
+    // ... -> UiObjectDefinition -> UiObjectInitializer -> ObjectMemberList
+    //     -> UiScriptBinding -> ExpressionStatement [-> ArrayLiteral]
+    // If the project file employs the syntactical sugar of using a single
+    // string for one-element arrays, then there is no ArrayLiteral; instead,
+    // the ExpressionStatement's expression is a StringLiteral that contains
+    // the file path.
+    // Sometimes, the AST path also ends in an ElementList instead of an ArrayLiteral.
+    // This discrepancy is probably a bug in the path() function.
+    // Case b) is simpler: We just check whether the last element of the AST path is a
+    // qualified id.
 
     const int offset = posToOffset(params.position(), sourceDoc->currentContent) - 1;
     if (offset < 0 || offset >= sourceDoc->currentContent.length())
@@ -403,34 +439,27 @@ void LspServer::Private::handleGotoDefinitionRequest()
     AstNodeLocator locator(offset, *parser.ast());
     const QList<Node *> &astPath = locator.path();
 
-    // The AST path looks as follows:
-    // ... -> UiObjectDefinition -> UiObjectInitializer -> ObjectMemberList
-    //     -> UiScriptBinding -> ExpressionStatement [-> ArrayLiteral]
-    // If the project file employs the syntactical sugar of using a single
-    // string for one-element arrays, then there is no ArrayLiteral; instead,
-    // the ExpressionStatement's expression is a StringLiteral that contains
-    // the file path.
-    // Sometimes, the AST path also ends in an ElementList instead of an ArrayLiteral.
-    // This discrepancy is probably a bug in the path() function.
-
     const StringLiteral *filePathLiteral = nullptr;
     const ElementList *elementList = nullptr;
     int bindingNodeIndex = 0;
     int objectNodeIndex = 0;
-    const Node * const filePathNode = astPath.last();
-    if (filePathNode->kind == Node::Kind_ArrayLiteral) {
+    const Node * const lastNode = astPath.last();
+    if (lastNode->kind == Node::Kind_UiQualifiedId) {
+        return handleGotoDefForModuleProperties(
+            sourceFile, static_cast<const UiQualifiedId *>(lastNode));
+    }
+    if (lastNode->kind == Node::Kind_ArrayLiteral) {
         bindingNodeIndex = astPath.size() - 3;
         objectNodeIndex = astPath.size() - 6;
-        elementList = static_cast<const ArrayLiteral *>(filePathNode)->elements;
-    } else if (filePathNode->kind == Node::Kind_ElementList) {
+        elementList = static_cast<const ArrayLiteral *>(lastNode)->elements;
+    } else if (lastNode->kind == Node::Kind_ElementList) {
         bindingNodeIndex = astPath.size() - 4;
         objectNodeIndex = astPath.size() - 7;
-        elementList = static_cast<const ElementList *>(filePathNode);
-    } else if (filePathNode->kind == Node::Kind_ExpressionStatement) {
+        elementList = static_cast<const ElementList *>(lastNode);
+    } else if (lastNode->kind == Node::Kind_ExpressionStatement) {
         bindingNodeIndex = astPath.size() - 2;
         objectNodeIndex = astPath.size() - 5;
-        const auto filePathExpr
-            = static_cast<const ExpressionStatement *>(filePathNode)->expression;
+        const auto filePathExpr = static_cast<const ExpressionStatement *>(lastNode)->expression;
         if (filePathExpr && filePathExpr->kind == Node::Kind_StringLiteral)
             filePathLiteral = static_cast<StringLiteral *>(filePathExpr);
     }
@@ -537,19 +566,9 @@ void LspServer::Private::handleCompletionRequest()
     if (!sourceDoc)
         return sendResponse(nullptr);
 
-    // If there are products corresponding to this file, check only these when looking for modules.
-    // Otherwise, check all products.
-    const QList<ProductData> allProducts = projectData.allProducts();
-    if (allProducts.isEmpty())
-        return sendResponse(nullptr);
-    QList<ProductData> relevantProducts;
-    for (const ProductData &p : allProducts) {
-        if (p.location().filePath() == sourceFile)
-            relevantProducts << p;
-    }
+    const QList<ProductData> relevantProducts = getRelevantProducts(sourceFile);
     if (relevantProducts.isEmpty())
-        relevantProducts = allProducts;
-
+        return sendResponse(nullptr);
     QString identifierPrefix;
     QStringList modulePrefixes;
     const int offset = posToOffset(params.position(), sourceDoc->currentContent) - 1;
@@ -611,7 +630,7 @@ void LspServer::Private::handleCompletionRequest()
 
     QJsonArray results;
     QMap<QString, QString> namesAndTypes;
-    for (const ProductData &product : std::as_const(relevantProducts)) {
+    for (const ProductData &product : relevantProducts) {
         const PropertyMap &moduleProps = product.moduleProperties();
         const QStringList allModules = moduleProps.allModules();
         const QString moduleNameOrPrefix = modulePrefixes.join('.');
@@ -752,19 +771,7 @@ bool LspServer::Private::handleGotoDefViaCodeLinks(
             else
                 ++it;
         }
-        struct JsonArray : public QJsonArray
-        {
-            void reserve(std::size_t) {}
-        };
-        const auto locations = transformed<JsonArray>(targets, [](const CodeLocation &loc) {
-            const lsp::Position startPos = lspPosFromCodeLocation(loc);
-            const lsp::Position endPos(startPos.line(), startPos.character() + 1);
-            lsp::Location targetLocation;
-            targetLocation.setUri(
-                lsp::DocumentUri::fromProtocol(QUrl::fromLocalFile(loc.filePath()).toString()));
-            targetLocation.setRange({startPos, endPos});
-            return QJsonObject(targetLocation);
-        });
+        const QJsonArray locations = toLspLocations(targets);
         if (locations.size() == 1)
             sendResponse(locations.first().toObject());
         else
@@ -772,6 +779,50 @@ bool LspServer::Private::handleGotoDefViaCodeLinks(
         return true;
     }
     return false;
+}
+
+void LspServer::Private::handleGotoDefForModuleProperties(
+    const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node)
+{
+    QStringList qualifiedProperty;
+    for (const QbsQmlJS::AST::UiQualifiedId *qid = node; qid; qid = qid->next)
+        qualifiedProperty << qid->name.toString();
+    if (qualifiedProperty.size() < 2)
+        return sendResponse(nullptr);
+    const QList<ProductData> relevantProducts = getRelevantProducts(sourceFile);
+    if (relevantProducts.isEmpty())
+        return sendResponse(nullptr);
+    const QString moduleName = qualifiedProperty.mid(0, qualifiedProperty.size() - 1).join('.');
+    QSet<CodeLocation> moduleLocations;
+    for (const ProductData &p : relevantProducts) {
+        for (const auto &m : p.modules()) {
+            if (m.first == moduleName) {
+                moduleLocations << m.second;
+                break;
+            }
+        }
+    }
+    if (moduleLocations.isEmpty())
+        return sendResponse(nullptr);
+    const QJsonArray lspLocations = toLspLocations(toList(moduleLocations));
+    if (lspLocations.size() == 1)
+        return sendResponse(lspLocations.first().toObject());
+    sendResponse(lspLocations);
+}
+
+// If there are products corresponding to the given source file, return only these.
+// Otherwise, return all products.
+QList<ProductData> LspServer::Private::getRelevantProducts(const QString &sourceFile)
+{
+    const QList<ProductData> allProducts = projectData.allProducts();
+    QList<ProductData> relevantProducts;
+    for (const ProductData &p : allProducts) {
+        if (p.location().filePath() == sourceFile)
+            relevantProducts << p;
+    }
+    if (relevantProducts.isEmpty())
+        return allProducts;
+    return relevantProducts;
 }
 
 static int posToOffset(const CodePosition &pos, const QString &doc)
