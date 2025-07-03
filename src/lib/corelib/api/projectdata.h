@@ -56,6 +56,7 @@ namespace Internal {
 class ArtifactDataPrivate;
 class GroupDataPrivate;
 class InstallDataPrivate;
+class ModuleDataPrivate;
 class ProductDataPrivate;
 class ProjectPrivate;
 class ProjectDataPrivate;
@@ -195,6 +196,32 @@ QBS_EXPORT bool operator==(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator!=(const GroupData &lhs, const GroupData &rhs);
 QBS_EXPORT bool operator<(const GroupData &lhs, const GroupData &rhs);
 
+class QBS_EXPORT ModuleData
+{
+    friend class Internal::ProjectPrivate;
+
+public:
+    ModuleData();
+    ModuleData(const ModuleData &other);
+    ModuleData(ModuleData &&) noexcept;
+    ModuleData &operator=(const ModuleData &other);
+    ModuleData &operator=(ModuleData &&) noexcept;
+    ~ModuleData();
+
+    bool isValid() const;
+
+    CodeLocation location() const;
+    QString name() const;
+    const QList<std::pair<QString, CodeLocation>> &properties() const;
+
+private:
+    QExplicitlySharedDataPointer<Internal::ModuleDataPrivate> d;
+};
+
+QBS_EXPORT bool operator==(const ModuleData &lhs, const ModuleData &rhs);
+QBS_EXPORT bool operator!=(const ModuleData &lhs, const ModuleData &rhs);
+QBS_EXPORT bool operator<(const ModuleData &lhs, const ModuleData &rhs);
+
 class QBS_EXPORT ProductData
 {
     friend class Internal::ProjectPrivate;
@@ -226,7 +253,8 @@ public:
     const QList<GroupData> &groups() const;
     const QVariantMap &properties() const;
     const PropertyMap &moduleProperties() const;
-    const QList<std::pair<QString, CodeLocation>> modules() const;
+    const QList<ModuleData> &modules() const;
+
     bool isEnabled() const;
     bool isRunnable() const;
     bool isMultiplexed() const;

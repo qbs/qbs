@@ -107,6 +107,9 @@ public:
     Flags flags() const;
     void setFlags(Flags f);
 
+    CodeLocation location() const;
+    void setLocation(const CodeLocation &loc);
+
     const QStringList &allowedValues() const;
     void setAllowedValues(const QStringList &v);
 

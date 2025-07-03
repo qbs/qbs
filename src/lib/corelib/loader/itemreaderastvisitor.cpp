@@ -214,6 +214,7 @@ bool ItemReaderASTVisitor::visit(AST::UiPublicMember *ast)
     if (Q_UNLIKELY(ast->type == AST::UiPublicMember::Signal))
         throw ErrorInfo(Tr::tr("public member with signal type not supported"));
     p.setName(ast->name.toString());
+    p.setLocation(toCodeLocation(ast->identifierToken));
     p.setType(PropertyDeclaration::propertyTypeFromString(ast->memberType.toString()));
     if (p.type() == PropertyDeclaration::UnknownType) {
         throw ErrorInfo(Tr::tr("Unknown type '%1' in property declaration.")

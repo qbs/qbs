@@ -386,6 +386,7 @@ public:
 
     QString name;
     CodeLocation location;
+    QList<std::pair<QString, CodeLocation>> properties;
     QStringList moduleDependencies; // TODO: Still needed?
     PrivateScriptFunction setupBuildEnvironmentScript;
     PrivateScriptFunction setupRunEnvironmentScript;
@@ -400,6 +401,7 @@ public:
         pool.serializationOp<opType>(
             name,
             location,
+            properties,
             moduleDependencies,
             setupBuildEnvironmentScript,
             setupRunEnvironmentScript,

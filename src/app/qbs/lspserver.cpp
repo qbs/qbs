@@ -185,7 +185,7 @@ public:
     bool handleGotoDefViaCodeLinks(
         const QString &sourceFile, const Document *sourceDoc, const CodePosition &sourcePos);
     void handleGotoDefForModuleProperties(
-        const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node);
+        const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node, int offset);
 
     QList<ProductData> getRelevantProducts(const QString &sourceFile);
 
@@ -446,7 +446,7 @@ void LspServer::Private::handleGotoDefinitionRequest()
     const Node * const lastNode = astPath.last();
     if (lastNode->kind == Node::Kind_UiQualifiedId) {
         return handleGotoDefForModuleProperties(
-            sourceFile, static_cast<const UiQualifiedId *>(lastNode));
+            sourceFile, static_cast<const UiQualifiedId *>(lastNode), offset);
     }
     if (lastNode->kind == Node::Kind_ArrayLiteral) {
         bindingNodeIndex = astPath.size() - 3;
@@ -782,29 +782,43 @@ bool LspServer::Private::handleGotoDefViaCodeLinks(
 }
 
 void LspServer::Private::handleGotoDefForModuleProperties(
-    const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node)
+    const QString &sourceFile, const QbsQmlJS::AST::UiQualifiedId *node, int offset)
 {
     QStringList qualifiedProperty;
-    for (const QbsQmlJS::AST::UiQualifiedId *qid = node; qid; qid = qid->next)
+    bool cursorIsOnProperty = false;
+    for (const QbsQmlJS::AST::UiQualifiedId *qid = node; qid; qid = qid->next) {
         qualifiedProperty << qid->name.toString();
+        if (!qid->next && int(qid->firstSourceLocation().offset) <= offset)
+            cursorIsOnProperty = true;
+    }
     if (qualifiedProperty.size() < 2)
         return sendResponse(nullptr);
     const QList<ProductData> relevantProducts = getRelevantProducts(sourceFile);
     if (relevantProducts.isEmpty())
         return sendResponse(nullptr);
     const QString moduleName = qualifiedProperty.mid(0, qualifiedProperty.size() - 1).join('.');
-    QSet<CodeLocation> moduleLocations;
+    const QString propertyName = qualifiedProperty.last();
+    QSet<CodeLocation> locations;
     for (const ProductData &p : relevantProducts) {
-        for (const auto &m : p.modules()) {
-            if (m.first == moduleName) {
-                moduleLocations << m.second;
-                break;
+        for (const ModuleData &m : p.modules()) {
+            if (m.name() != moduleName)
+                continue;
+            if (cursorIsOnProperty) {
+                for (const auto &prop : m.properties()) {
+                    if (prop.first == propertyName) {
+                        locations << prop.second;
+                        break;
+                    }
+                }
+            } else {
+                locations << m.location();
             }
+            break;
         }
     }
-    if (moduleLocations.isEmpty())
+    if (locations.isEmpty())
         return sendResponse(nullptr);
-    const QJsonArray lspLocations = toLspLocations(toList(moduleLocations));
+    const QJsonArray lspLocations = toLspLocations(toList(locations));
     if (lspLocations.size() == 1)
         return sendResponse(lspLocations.first().toObject());
     sendResponse(lspLocations);

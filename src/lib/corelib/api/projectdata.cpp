@@ -249,6 +249,71 @@ bool operator<(const GroupData &lhs, const GroupData &rhs)
     return lhs.name() < rhs.name();
 }
 
+/*!
+ * \class ModuleData
+ * \brief The \c ModuleData class represents the instance of a module pulled in by a product.
+ */
+ModuleData::ModuleData()
+    : d(new ModuleDataPrivate)
+{}
+
+ModuleData::ModuleData(const ModuleData &other) = default;
+ModuleData::ModuleData(ModuleData &&) noexcept = default;
+ModuleData &ModuleData::operator=(const ModuleData &other) = default;
+ModuleData &ModuleData::operator=(ModuleData &&) noexcept = default;
+ModuleData::~ModuleData() = default;
+
+/*!
+ * \brief Returns true if and only if this object holds data that was initialized by Qbs.
+ */
+bool ModuleData::isValid() const
+{
+    return d->isValid;
+}
+
+/*!
+ * \brief Returns the location of the \c Module item corresponding to this module.
+ */
+CodeLocation ModuleData::location() const
+{
+    return d->location;
+}
+
+/*!
+ * \brief Returns the name of this module.
+ */
+QString ModuleData::name() const
+{
+    return d->name;
+}
+
+/*!
+ * \brief Returns the names of this module's properties along with the locations
+ *        where they are declared at.
+ */
+const QList<std::pair<QString, CodeLocation>> &ModuleData::properties() const
+{
+    return d->properties;
+}
+
+bool operator!=(const ModuleData &lhs, const ModuleData &rhs)
+{
+    return !(lhs == rhs);
+}
+
+bool operator==(const ModuleData &lhs, const ModuleData &rhs)
+{
+    if (!lhs.isValid() && !rhs.isValid())
+        return true;
+
+    return lhs.isValid() == rhs.isValid() && lhs.name() == rhs.name()
+           && lhs.location() == rhs.location() && lhs.properties() == rhs.properties();
+}
+
+bool operator<(const ModuleData &lhs, const ModuleData &rhs)
+{
+    return lhs.name() < rhs.name();
+}
 
 /*!
  * \class ArtifactData
@@ -710,10 +775,9 @@ const PropertyMap &ProductData::moduleProperties() const
 }
 
 /*!
- * \brief The module dependencies of this product including the locations of the
- *        respective \c Module items.
+ * \brief The module dependencies of this product.
  */
-const QList<std::pair<QString, CodeLocation>> ProductData::modules() const
+const QList<ModuleData> &ProductData::modules() const
 {
     return d->modules;
 }

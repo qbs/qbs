@@ -82,6 +82,15 @@ public:
     bool isValid = false;
 };
 
+class ModuleDataPrivate : public QSharedData
+{
+public:
+    QString name;
+    CodeLocation location;
+    QList<std::pair<QString, CodeLocation>> properties;
+    bool isValid = false;
+};
+
 class InstallableFilePrivate: public QSharedData
 {
 public:
@@ -105,7 +114,7 @@ public:
     QList<GroupData> groups;
     QVariantMap properties;
     PropertyMap moduleProperties;
-    QList<std::pair<QString, CodeLocation>> modules;
+    QList<ModuleData> modules;
     QList<ArtifactData> generatedArtifacts;
     bool isEnabled = false;
     bool isRunnable = false;

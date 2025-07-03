@@ -48,9 +48,10 @@
 #include <api/languageinfo.h>
 #include <loader/loaderutils.h>
 #include <logging/translator.h>
+#include <tools/codelocation.h>
 #include <tools/error.h>
-#include <tools/setupprojectparameters.h>
 #include <tools/qttools.h>
+#include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qmetatype.h>
@@ -104,6 +105,7 @@ public:
     QString initialValueSource;
     QStringList functionArgumentNames;
     DeprecationInfo deprecationInfo;
+    CodeLocation location;
 };
 
 PropertyDeclaration::PropertyDeclaration()
@@ -217,6 +219,16 @@ PropertyDeclaration::Flags PropertyDeclaration::flags() const
 void PropertyDeclaration::setFlags(Flags f)
 {
     d->flags = f;
+}
+
+CodeLocation PropertyDeclaration::location() const
+{
+    return d->location;
+}
+
+void PropertyDeclaration::setLocation(const CodeLocation &loc)
+{
+    d->location = loc;
 }
 
 const QStringList &PropertyDeclaration::allowedValues() const
