@@ -535,19 +535,20 @@ public:
                 propertyDependencies[fullPropName].insert(requestedProperties.top());
             m_requestedProperties.push(fullPropName);
         }
-        const auto matcher = [value](const std::pair<QString, const Value *> &prop) {
-            return prop.second == value;
+        const auto matcher = [&](const std::tuple<QString, const Item *, const Value *> &prop) {
+            return std::get<1>(prop) == itemOfProperty && std::get<2>(prop) == value;
         };
         if (auto it = std::find_if(m_evalStack.cbegin(), m_evalStack.cend(), matcher);
             it != m_evalStack.cend()) {
             ErrorInfo error(Tr::tr("Property '%1' refers to itself.").arg(name), value->location());
             for (auto it2 = std::next(it); it2 != m_evalStack.cend(); ++it2) {
                 error.append(
-                    QString::fromLatin1("  via '%1'").arg(it2->first), it2->second->location());
+                    QString::fromLatin1("  via '%1'").arg(std::get<0>(*it2)),
+                    std::get<2>(*it2)->location());
             }
             throw ErrorInfo(error);
         }
-        m_evalStack.emplace_back(name, value);
+        m_evalStack.emplace_back(name, itemOfProperty, value);
     }
 
     ~PropertyStackManager()

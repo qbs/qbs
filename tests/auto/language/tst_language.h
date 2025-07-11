@@ -151,6 +151,7 @@ private slots:
     void overriddenPropertiesAndPrototypes_data();
     void overriddenVariantProperty();
     void parameterTypes();
+    void projectPropertyForwarding();
     void pathProperties();
     void probesAndMultiplexing();
     void productConditions();
