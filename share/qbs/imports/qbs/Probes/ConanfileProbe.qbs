@@ -123,13 +123,13 @@ Probe {
         var p = new Process();
         p.start(executable, args);
         while (!p.waitForFinished(500)) {
-            const output = p.readStdOut();
+            const output = isConan2 ? p.readStdErr() : p.readStdOut();
             if (verbose && output) {
                 console.info(output);
             }
         }
         while (!p.atEnd()) {
-            const output = p.readStdOut();
+            const output = isConan2 ? p.readStdErr() : p.readStdOut();
             if (verbose && output) {
                 console.info(output);
             }
@@ -138,6 +138,10 @@ Probe {
             const errorOutput = p.readStdErr();
             p.close();
             throw errorOutput;
+        }
+        const output = isConan2 ? p.readStdErr() : p.readStdOut();
+        if (verbose && output) {
+            console.info(output);
         }
         p.close();
 
