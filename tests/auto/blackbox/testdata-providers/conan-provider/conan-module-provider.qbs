@@ -8,4 +8,5 @@ CppApplication {
     install: true
     Depends { name: "conanmoduleprovider.testlib" }
     Depends { name: "conanmoduleprovider.testlibheader" }
+    Depends { name: "conanmoduleprovider.lib-order-test" }
 }

@@ -198,7 +198,7 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
 
     writeLine("    Depends { name: 'cpp' }");
 
-    moduleInfo.dependencies.forEach(function(dep) {
+    moduleInfo.dependencies.reverse().forEach(function(dep) {
         const realDepName = reverseMapping[dep.name] || dep.name;
         writeLine("    Depends { name: " + ModUtils.toJSLiteral(realDepName)
             + "; version: " + ModUtils.toJSLiteral(dep.version) + "}");

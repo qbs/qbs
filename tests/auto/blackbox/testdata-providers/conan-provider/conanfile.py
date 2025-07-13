@@ -7,4 +7,4 @@ class Recipe(ConanFile):
     exports_sources = "*.cpp", "*.h", "*.txt"
     settings = "os", "compiler", "build_type", "arch"
 
-    requires = ["conanmoduleprovider.testlib/1.2.3", "conanmoduleprovider.testlibheader/0.1.0"]
+    requires = ["conanmoduleprovider.testlib/1.2.3", "conanmoduleprovider.testlibheader/0.1.0", "conanmoduleprovider.lib-order-test/1.0.0"]

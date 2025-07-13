@@ -112,6 +112,11 @@ void TestBlackboxProviders::conanProvider()
     conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
     QVERIFY(waitForProcessSuccess(conan));
 
+    // install lib-order-test
+    QDir::setCurrent(testDataDir + "/conan-provider/lib-order-test");
+    conan.start(executable, {"create", ".", "--profile:all=qbs-test"});
+    QVERIFY(waitForProcessSuccess(conan));
+
     // now build an app using those libs
     QDir::setCurrent(testDataDir + "/conan-provider");
 

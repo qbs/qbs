@@ -294,7 +294,7 @@ bool waitForProcessSuccess(QProcess &p, int msecs)
         return false;
     }
     if (p.exitCode() != 0) {
-        qDebug() << p.readAllStandardError();
+        qDebug().noquote() << p.readAllStandardError();
         return false;
     }
     return true;
