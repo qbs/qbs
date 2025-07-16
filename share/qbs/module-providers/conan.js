@@ -211,6 +211,7 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
 
     // TODO: there's a weird issue with system include dirs with xcode-less clang - incorrect include order?
     writeCppProperty("includePaths", cppInfo.includedirs.map(FileInfo.fromNativeSeparators));
+    writeProperty("libraryPaths", cppInfo.libdirs.map(FileInfo.fromNativeSeparators));
     writeCppProperty("frameworkPaths", cppInfo.frameworkdirs.map(FileInfo.fromNativeSeparators));
     writeCppProperty("frameworks", cppInfo.frameworks);
     writeCppProperty("defines", cppInfo.defines);
