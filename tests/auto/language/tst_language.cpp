@@ -2814,6 +2814,32 @@ void TestLanguage::parameterTypes()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::projectPropertyForwarding()
+{
+    bool exceptionCaught = false;
+    try {
+        defaultParameters.setProjectFilePath(testProject("project-property-forwarding.qbs"));
+        resolveProject();
+        QVERIFY(project);
+        QCOMPARE(project->projectProperties().value("prop").toString(), "parent");
+        QCOMPARE(int(project->subProjects.size()), 1);
+        QCOMPARE(
+            project->subProjects.front()->projectProperties().value("prop").toString(), "parent2");
+        QCOMPARE(int(project->subProjects.front()->subProjects.size()), 1);
+        QCOMPARE(
+            project->subProjects.front()
+                ->subProjects.front()
+                ->projectProperties()
+                .value("prop")
+                .toString(),
+            "parent22");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::pathProperties()
 {
     bool exceptionCaught = false;
