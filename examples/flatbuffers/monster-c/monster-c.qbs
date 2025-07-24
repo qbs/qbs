@@ -9,4 +9,5 @@ CppApplication {
         "monster.c",
         "../shared/monster.fbs"
     ]
+    qbsModuleProviders: "conan"
 }

@@ -131,11 +131,17 @@ function getLibraryTypes(options) {
 }
 
 function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
+    if (!installDirectory || installDirectory.trim() === "")
+        throw "Conan install directory is not set. Please define moduleProviders.conan.installDirectory in your product.";
+
+    const depsDir = FileInfo.joinPaths(installDirectory, "conan-qbs-deps");
+    if (!File.exists(depsDir))
+        throw "The directory '" + depsDir + "' does not exist. Ensure moduleProviders.conan.installDirectory points to a valid Conan install output.";
+
     const moduleMapping = {"protobuflib": "protobuf"}
     const realModuleName = moduleMapping[moduleName] || moduleName;
 
-    const moduleFilePath =
-        FileInfo.joinPaths(installDirectory, "conan-qbs-deps", realModuleName + ".json")
+    const moduleFilePath = FileInfo.joinPaths(depsDir, realModuleName + ".json")
     if (!File.exists(moduleFilePath))
         return [];
 

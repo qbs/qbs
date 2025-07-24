@@ -97,8 +97,11 @@ void TestBlackboxExamples::examples()
 {
     QFETCH(QString, example);
     QVERIFY(QDir::setCurrent(testDataDir + "/" + example));
+    QVERIFY(QDir::current().mkpath("build/conan-qbs-deps"));
     QbsRunParameters params(
-            {QStringLiteral("-f"), QFileInfo(example).fileName() + QStringLiteral(".qbs")});
+        {QStringLiteral("-f"),
+         QFileInfo(example).fileName() + QStringLiteral(".qbs"),
+         QStringLiteral("moduleProviders.conan.installDirectory:build")});
     QCOMPARE(runQbs(params), 0);
 }
 
