@@ -732,8 +732,16 @@
     Starting with C++23, you can use the standard library as a module by using \c{import std;} or
     \c{import std.compat;}.
 
-    In order to use \c{import std;}, you need to set the
-    \l{cpp::forceUseImportStd}{cpp.forceUseImportStd} property to \c{true}.
+    In order to use \c{import std;}, you need to define the \l{CppStd} product somewhere in your
+    project and add a dependency on it to products that require the \c{std} module:
+    \code
+    Project {
+        CppStd {}
+        CppApplication {
+            Depends { name: "CppStd" }
+        }
+    }
+    \endcode
 
     Here's a simple example that demonstrates the use of the standard library module:
 
@@ -752,10 +760,11 @@
     \snippet ../tutorial/chapter-10-3/myproject.qbs 1
 
     In order to use \c{import std.compat;}, you will also need to set the
-    \l{cpp::forceUseImportStdCompat}{cpp.forceUseImportStdCompat} to \c{true}:
+    \l{CppStd::useStdCompat}{CppStd.useStdCompat} property to \c{true}:
 
     \code
-    cpp.forceUseImportStd: true
-    cpp.forceUseImportCompatStd: true
+    CppStd {
+        useStdCompat: true
+    }
     \endcode
 */

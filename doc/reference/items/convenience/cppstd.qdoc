@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2025 Ivan Komissarov (abbapoh@gmail.com).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,22 +25,38 @@
 **
 ****************************************************************************/
 /*!
-    \previouspage AutotestRunner
-    \nextpage CppStd
-    \qmltype CppApplication
-    \inherits Application
+    \previouspage CppApplication
+    \nextpage DynamicLibrary
+    \qmltype CppStd
+    \inherits StaticLibrary
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
-    \keyword QML.CppApplication
+    \keyword QML.CppStd
 
-    \brief C++ application.
+    \brief A helper product for building C++ std modules.
 
-    A CppApplication is an \l{Application}{application} that has a dependency on the
-    \l{cpp} module. It is entirely equivalent to the following:
+    The dependencies of this product gain access to the \c{std} named
+    \l{https://en.cppreference.com/w/cpp/standard_library.html}{module}.
 
+    An example usage:
     \code
-    Application {
-        Depends { name: "cpp" }
+    Project {
+        CppStd {}
+        CppApplication {
+            Depends { name: "CppStd" }
+        }
     }
     \endcode
+
+    See the \l{tutorial-10.html}{C++20 Modules} page in the tutorial for details.
+    \since Qbs 3.1
+*/
+
+/*!
+    \qmlproperty bool CppStd::useStdCompat
+
+    Whether to build the \c{std.compat} module.
+
+    \defaultvalue \c false
+    \since Qbs 3.1
 */
