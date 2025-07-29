@@ -200,6 +200,25 @@ qbs::Version TestBlackbox::bisonVersion()
     return qbs::Version::fromString(words.last());
 }
 
+QMap<QString, QByteArray> TestBlackbox::getRepoStateFromApp() const
+{
+    QMap<QString, QByteArray> result;
+    const int startIndex = m_qbsStdout.indexOf("__");
+    if (startIndex == -1)
+        return result;
+    const int endIndex = m_qbsStdout.indexOf("__", startIndex + 2);
+    if (endIndex == -1)
+        return result;
+    const QByteArray data = m_qbsStdout.mid(startIndex + 2, endIndex - startIndex - 2);
+    const QList<QByteArray> entries = data.split(';');
+    for (const QByteArray &entry : entries) {
+        const int eqPos = entry.indexOf('=');
+        if (eqPos != -1)
+            result.insert(QString::fromLatin1(entry.left(eqPos)), entry.mid(eqPos + 1));
+    }
+    return result;
+}
+
 void TestBlackbox::sevenZip()
 {
     QDir::setCurrent(testDataDir + "/archiver");
@@ -1494,16 +1513,6 @@ void TestBlackbox::vcsGit()
     git.start(gitFilePath, QStringList({"config", "user.email", "me@example.com"}));
     QVERIFY(waitForProcessSuccess(git));
 
-    const auto getRepoStateFromApp = [this] {
-        const int startIndex = m_qbsStdout.indexOf("__");
-        if (startIndex == -1)
-            return QByteArray();
-        const int endIndex = m_qbsStdout.indexOf("__", startIndex + 2);
-        if (endIndex == -1)
-            return QByteArray();
-        return m_qbsStdout.mid(startIndex + 2, endIndex - startIndex - 2);
-    };
-
     QCOMPARE(runQbs({"resolve", {"-f", repoDir.path()}}), 0);
     if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
@@ -1514,14 +1523,23 @@ void TestBlackbox::vcsGit()
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
-    QByteArray newRepoState = getRepoStateFromApp();
-    QCOMPARE(newRepoState, QByteArray("none"));
-    QByteArray oldRepoState = newRepoState;
+    QMap<QString, QByteArray> newRepoState = getRepoStateFromApp();
+    QVERIFY(newRepoState.contains("repoState"));
+    QVERIFY(newRepoState.contains("latestTag"));
+    QVERIFY(newRepoState.contains("commitsSinceTag"));
+    QVERIFY(newRepoState.contains("commitSha"));
+    QCOMPARE(newRepoState["repoState"], QByteArray("none"));
+    QCOMPARE(newRepoState["latestTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitSha"], QByteArray("none"));
+    QMap<QString, QByteArray> oldRepoState = newRepoState;
 
     // Initial commit
     git.start(gitFilePath, QStringList({"add", "main.cpp"}));
     QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "initial commit"}));
+    QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"tag", "-a", "v1.0.0", "-m", "Version 1.0.0"}));
     QVERIFY(waitForProcessSuccess(git));
 
     // Run with git metadata.
@@ -1530,7 +1548,10 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
-    QVERIFY(oldRepoState != newRepoState);
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("0"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
     oldRepoState = newRepoState;
 
     // Run with no changes.
@@ -1560,7 +1581,10 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
-    QVERIFY(oldRepoState != newRepoState);
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 
     // https://bugreports.qt.io/projects/QBS/issues/QBS-1814
     oldRepoState = newRepoState;
@@ -1576,7 +1600,10 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
-    QVERIFY(oldRepoState != newRepoState);
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("2"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 }
 
 void TestBlackbox::vcsSubversion()
@@ -1619,11 +1646,21 @@ void TestBlackbox::vcsSubversion()
     if (m_qbsStderr.contains("svn too old"))
         QSKIP("svn too old");
     QCOMPARE(retval, 0);
-    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
+    QMap<QString, QByteArray> newRepoState = getRepoStateFromApp();
+    QVERIFY(newRepoState.contains("repoState"));
+    QVERIFY(newRepoState.contains("latestTag"));
+    QVERIFY(newRepoState.contains("commitsSinceTag"));
+    QVERIFY(newRepoState.contains("commitSha"));
+    QCOMPARE(newRepoState["repoState"], QByteArray("1"));
+    QCOMPARE(newRepoState["latestTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitSha"], QByteArray("none"));
+    QMap<QString, QByteArray> oldRepoState = newRepoState;
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
 
     // Run with changed source file.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -1631,7 +1668,8 @@ void TestBlackbox::vcsSubversion()
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
-    QVERIFY2(m_qbsStdout.contains("__1__"), m_qbsStdout.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
 
     // Add new file to repo.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -1641,7 +1679,8 @@ void TestBlackbox::vcsSubversion()
     proc.start(svnFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(proc));
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
-    QVERIFY2(m_qbsStdout.contains("__2__"), m_qbsStdout.constData());
+    newRepoState = getRepoStateFromApp();
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 }
 
 void TestBlackbox::versionCheck()

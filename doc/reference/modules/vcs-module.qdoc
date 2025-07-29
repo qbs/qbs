@@ -30,13 +30,14 @@
     \inqmlmodule QbsModules
     \since Qbs 1.10
 
-    \brief Provides support for version control systems.
+    \brief Provides support for version control systems (Git, SVN).
 
-    The \c vcs module provides the current state of the project's repository via
-    the \l{vcs::}{repoState} property. By default, a \c C header is also
-    generated, allowing for simple retrieval of the repository state directly
-    from within your C/C++ sources. This is useful to embed information into
-    binaries about the exact state of the repository from which they were built.
+    The \c vcs module provides information about the current state of the project's repository.
+    This is useful for embedding version information directly into your binaries, such as the
+    latest tag, number of commits since the tag, and current commit hash.
+
+    By default, a C header file is generated, which defines macros representing the repository
+    state. This allows C/C++ code to access this information at run time.
 
     For example:
 
@@ -47,6 +48,9 @@
     int main()
     {
         std::cout << "I was built from " << VCS_REPO_STATE << std::endl;
+        std::cout << "Latest tag: " << VCS_REPO_LATEST_TAG << std::endl;
+        std::cout << "Commits since tag: " << VCS_REPO_COMMITS_SINCE_TAG << std::endl;
+        std::cout << "Commit SHA: " << VCS_REPO_COMMIT_SHA << std::endl;
     }
     \endcode
 
@@ -54,14 +58,33 @@
     macro called \c VCS_REPO_STATE, which expands to a character constant
     describing the current state of the repository. For Git, this would be the
     current HEAD's commit hash.
+
+    Example:
+
+    \code
+    VCS_REPO_STATE = "v1.2.3-5-gabcdef0"
+    VCS_REPO_LATEST_TAG = "v1.2.3"
+    VCS_REPO_COMMITS_SINCE_TAG = "5"
+    VCS_REPO_COMMIT_SHA = "gabcdef0"
+    \endcode
+
+    For repositories without any tags, the commit hash will be used instead.
+    For SVN, only \l{vcs::}{repoState} is currently available.
 */
 
 /*!
     \qmlproperty string vcs::headerFileName
 
-    The name of the C header file to be created.
+    The name of the C header file to be generated. This header file defines the following macros:
 
-    Set this to \c undefined if you do not want a header file to be generated.
+    \list
+        \li \c VCS_REPO_STATE — Full repository state string
+        \li \c VCS_REPO_LATEST_TAG — Latest tag reachable from HEAD (or "none")
+        \li \c VCS_REPO_COMMITS_SINCE_TAG — Number of commits since latest tag (or "none")
+        \li \c VCS_REPO_COMMIT_SHA — Current commit SHA (or "none")
+    \endlist
+
+    Set this to \c undefined to disable header file generation.
 
     \defaultvalue \c{"vcs-repo-state.h"}
 */
@@ -78,11 +101,62 @@
 /*!
     \qmlproperty string vcs::repoState
 
-    The current state of the repository.
+    The full repository state string.
 
-    For example, in Git this is the commit hash of the current HEAD.
+    For Git, this corresponds to the output of:
+    \c {git describe --tags --always --long HEAD}
+
+    Example values:
+    \list
+        \li \c v1.0.0-3-gabc1234
+        \li \c abc1234-0-gabc1234
+    \endlist
+
+    For SVN, this is the current revision number.
 
     \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string vcs::repoLatestTag
+
+    The latest reachable tag in the repository.
+
+    For Git, this is the \c TAG component from \c git describe output.
+    If no tags are present, this will be set to \c "none".
+
+    For SVN, this property is currently not set and will be \c "none".
+
+    \nodefaultvalue
+    \since Qbs 3.1.0
+*/
+
+/*!
+    \qmlproperty string vcs::repoCommitsSinceTag
+
+    The number of commits since the latest tag.
+
+    For Git, this is the \c N component from \c git describe output.
+    If no tags are present, this will be set to \c "none".
+
+    For SVN, this property is currently not set and will be \c "none".
+
+    \nodefaultvalue
+    \since Qbs 3.1.0
+*/
+
+/*!
+    \qmlproperty string vcs::repoCommitSha
+
+    The abbreviated commit hash of HEAD.
+
+    For Git, this is the \c gSHA component from \c git describe output.
+    If no tags are present, this will be set to the commit hash prefixed with \c g.
+
+    For SVN, this property is currently not set and will be \c "none".
+
+    \nodefaultvalue
+    \since Qbs 3.1.0
 */
 
 /*!

@@ -16,6 +16,9 @@ Module {
 
     property string headerFileName: "vcs-repo-state.h"
     readonly property string repoState: gitProbe.repoState || subversionProbe.repoState
+    readonly property string repoLatestTag: gitProbe.repoLatestTag || subversionProbe.repoLatestTag
+    readonly property string repoCommitsSinceTag: gitProbe.repoCommitsSinceTag || subversionProbe.repoCommitsSinceTag
+    readonly property string repoCommitSha: gitProbe.repoCommitSha || subversionProbe.repoCommitSha
 
     // Internal
     readonly property string includeDir: FileInfo.joinPaths(product.buildDirectory, "vcs-include")
@@ -42,12 +45,18 @@ Module {
                 cmd.description = "generating " + output.fileName;
                 cmd.highlight = "codegen";
                 cmd.repoState = product.vcs.repoState;
+                cmd.repoLatestTag = product.vcs.repoLatestTag;
+                cmd.repoCommitsSinceTag = product.vcs.repoCommitsSinceTag;
+                cmd.repoCommitSha = product.vcs.repoCommitSha;
                 cmd.sourceCode = function() {
                     var f = new TextFile(output.filePath, TextFile.WriteOnly);
                     try {
                         f.writeLine("#ifndef VCS_REPO_STATE_H");
                         f.writeLine("#define VCS_REPO_STATE_H");
                         f.writeLine('#define VCS_REPO_STATE "' + (repoState ? repoState : "none") + '"')
+                        f.writeLine('#define VCS_REPO_LATEST_TAG "' + (repoLatestTag ? repoLatestTag : "none") + '"')
+                        f.writeLine('#define VCS_REPO_COMMITS_SINCE_TAG "' + (repoCommitsSinceTag ? repoCommitsSinceTag : "none") + '"')
+                        f.writeLine('#define VCS_REPO_COMMIT_SHA "' + (repoCommitSha ? repoCommitSha : "none") + '"')
                         f.writeLine("#endif");
                     } finally {
                         f.close();
@@ -107,6 +116,9 @@ Module {
         property var timestamp: File.lastModified(filePath)
 
         property string repoState
+        property string repoLatestTag
+        property string repoCommitsSinceTag
+        property string repoCommitSha
 
         configure: {
             if (!File.exists(filePath)) {
@@ -126,10 +138,25 @@ Module {
             try {
                 var proc = new Process();
                 proc.setWorkingDirectory(theRepoDir);
-                proc.exec(tool, ["describe", "--always", "HEAD"], true);
+                proc.exec(tool, ["describe", "--always", "--long", "HEAD"], true);
                 repoState = proc.readStdOut().trim();
-                if (repoState)
+                if (repoState) {
                     found = true;
+
+                    // tag is formatted as TAG-N-gSHA:
+                    // 1. latest tag is TAG
+                    // 2. number of commits since latest TAG is N
+                    // 3. latest commit is gSHA
+                    const tagSections = repoState.split("-");
+
+                    if (tagSections.length >= 3) {
+                        repoLatestTag = tagSections[0];
+                        repoCommitsSinceTag = tagSections[1];
+                        repoCommitSha = tagSections[2];
+                    } else  {
+                        repoCommitSha = "g" + tagSections[0];
+                    }
+                }
             } finally {
                 proc.close();
             }
@@ -146,6 +173,9 @@ Module {
         property var timestamp: File.lastModified(filePath)
 
         property string repoState
+        property string repoLatestTag
+        property string repoCommitsSinceTag
+        property string repoCommitSha
 
         configure: {
             var proc = new Process();

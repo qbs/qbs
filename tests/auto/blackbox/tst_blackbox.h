@@ -379,6 +379,7 @@ private:
     bool prepareAndRunConan();
     static bool lexYaccExist();
     static qbs::Version bisonVersion();
+    QMap<QString, QByteArray> getRepoStateFromApp() const;
 };
 
 #endif // TST_BLACKBOX_H
