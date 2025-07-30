@@ -45,6 +45,24 @@
     In \QBS, Core Foundation bundles are referred to as \e bundles,
     while Mach-O loadable bundles are referred to as \e {loadable modules}.
 
+    \target dependency-parameters-bundle
+    \section2 Dependency Parameters
+
+    \table
+    \header
+        \li Parameter
+        \li Type
+        \li Since
+        \li Default
+        \li Description
+    \row
+        \li \c{isForMainBundle}
+        \li \c{bool}
+        \li 3.1
+        \li true
+        \li If \c{false}, the dependency will not be copied into this main bundle.
+    \endtable
+
     \section2 Relevant File Tags
     \target filetags-bundle
 
@@ -84,6 +102,52 @@
         \li Source files with this tag will be copied to the \c{Resources} directory within
             a bundle.
     \endtable
+
+    \section2 Main bundles
+
+    It is possible to create a bundle that contains other products within itself. This is useful
+    for big applications which depend on custom frameworks and/or other applications.
+
+    Creating a main bundle is quite easy, simply set the \l{isMainBundle} property to \c true
+    and all dependencies will be copied automatically to appropriate locations:
+    \code
+    CppApplication {
+        name: "main"
+        files: "main.cpp"
+        Depends { name: "mylib" }
+        Depends { name: "bundle" }
+        bundle.isMainBundle: true
+    }
+    DynamicLibrary {
+        name: "mylib"
+        Depends { name: "cpp" }
+        files: "mylib.cpp"
+        install: false // skip installing the framework
+    }
+    \endcode
+
+    In order to exclude a dependency from the main bundle, set the \l{bundle::isForMainBundle}
+    property to \c false in the product:
+    \code
+    DynamicLibrary {
+        name: "otherlib"
+        Depends { name: "bundle" }
+        bundle.isForMainBundle: false
+    }
+    \endcode
+    Alternatively, set the \c{bundle.isForMainBundle} dependency parameter in the main bundle
+    itself:
+    \code
+    CppApplication {
+        name: "main"
+        Depends { name: "otherlib"; bundle.isForMainBundle: false }
+        // ...
+    }
+    \endcode
+    See the full example the the
+    \l{https://github.com/qbs/qbs/tree/master/examples/main-bundle}{examples} folder.
+
+    \note Currently, static frameworks and libraries are not supported as an input to a main bundle.
 */
 
 /*!
@@ -95,6 +159,26 @@
 
     \defaultvalue \c{true} for applications and dynamic libraries on Apple
     platforms, \c{false} otherwise.
+*/
+
+/*!
+    \qmlproperty bool bundle::isForMainBundle
+    \since Qbs 3.1
+
+    Set this property to \c false to skip copying of this product into any dependent main bundle.
+
+    \defaultvalue \c true.
+    \sa isMainBundle
+*/
+
+/*!
+    \qmlproperty bool bundle::isMainBundle
+    \since Qbs 3.1
+
+    Whether to copy dependencies into this bundle.
+
+    \defaultvalue \c false
+    \sa isForMainBundle
 */
 
 /*!
@@ -394,6 +478,17 @@
     \readonly
 
     The path of the bundle's \c Contents subdirectory.
+
+    The path is relative to the directory that contains the bundle.
+*/
+
+/*!
+    \qmlproperty string bundle::applicationsFolderPath
+    \readonly
+
+    The path of the directory where dependent applications will be copied.
+
+    This property applies only if \l{isMainBundle} is \c true.
 
     The path is relative to the directory that contains the bundle.
 */

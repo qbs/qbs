@@ -24,6 +24,7 @@
 
 # Apple support
 * Added support for Xcode 26.0.
+* Added support for embedding dependencies into a bundle.
 
 # Contributors
 * Christian Kandeler

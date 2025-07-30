@@ -103,6 +103,20 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
         else
             tags.push(fileTag, "primary");
 
+        // Non-main bundles should be copyable into main bundles
+        if (product.bundle && !product.bundle.isMainBundle && !product.bundle.isBundle) {
+            // Static libraries are not supported as an input to main bundle since
+            // they cannot be signed and main bundle should have all additional files signed.
+            if (fileTag !== "staticlibrary")
+                tags.push("bundle.main.input");
+            if (fileTag === "application")
+                tags.push("bundle.main.executable");
+            else if (fileTag === "dynamiclibrary")
+                tags.push("bundle.main.library");
+            else if (fileTag === "loadablemodule")
+                tags.push("bundle.main.plugin");
+        }
+
         if (product.codesign.enableCodeSigning)
             tags.push("codesign.signed_artifact");
 

@@ -224,7 +224,8 @@ UnixGCC {
         Rule {
             inputsFromDependencies: ["application"]
             multiplex: true
-            outputFileTags: ["bundle.input", "application", "primary", "debuginfo_app",
+            outputFileTags: ["bundle.input", "bundle.main.input", "bundle.main.executable",
+                             "application", "primary", "debuginfo_app",
                              "debuginfo_bundle", "bundle.variant_copy", "debuginfo_plist",
                              "codesign.signed_artifact"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "application", "app")
@@ -234,7 +235,8 @@ UnixGCC {
         Rule {
             inputsFromDependencies: ["loadablemodule"]
             multiplex: true
-            outputFileTags: ["bundle.input", "loadablemodule", "primary", "debuginfo_loadablemodule",
+            outputFileTags: ["bundle.input", "bundle.main.input", "bundle.main.plugin",
+                             "loadablemodule", "primary", "debuginfo_loadablemodule",
                              "debuginfo_bundle", "debuginfo_plist", "codesign.signed_artifact"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "loadablemodule",
                                                                          "loadablemodule")
@@ -244,7 +246,8 @@ UnixGCC {
         Rule {
             inputsFromDependencies: ["dynamiclibrary"]
             multiplex: true
-            outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_symbols", "primary",
+            outputFileTags: ["bundle.input", "bundle.main.input", "bundle.main.library",
+                             "dynamiclibrary", "dynamiclibrary_symbols", "primary",
                              "debuginfo_dll","debuginfo_bundle","bundle.variant_copy",
                              "debuginfo_plist", "codesign.signed_artifact", "dynamiclibrary_symlink"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
@@ -254,7 +257,8 @@ UnixGCC {
         Rule {
             inputsFromDependencies: ["staticlibrary"]
             multiplex: true
-            outputFileTags: ["bundle.input", "staticlibrary", "primary", "codesign.signed_artifact"]
+            outputFileTags: ["bundle.input", "bundle.main.input", "bundle.main.library",
+                             "staticlibrary", "primary", "codesign.signed_artifact"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "staticlibrary")
             prepare: Darwin.prepareLipo.apply(Darwin, arguments)
         }

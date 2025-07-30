@@ -349,10 +349,102 @@ function filePathToArtifactLike(filePath) {
     };
 }
 
+function getMainBundleTags(product) {
+    if (product.bundle.isMainBundle)
+        return [];
+
+    var tags = ["bundle.main.input"];
+    var packageType = product.bundle && product.bundle.packageType;
+
+    if (packageType === "APPL")
+        tags.push("bundle.main.application");
+    else if (packageType === "FMWK")
+        tags.push("bundle.main.framework");
+    else if (packageType === "BNDL")
+        tags.push("bundle.main.plugin");
+
+    return tags;
+}
+
+function getCopiedDepenendencyFilePath(product, input) {
+    var filePath = FileInfo.relativePath(input.product.buildDirectory, input.filePath)
+
+    if (input.fileTags.includes("bundle.main.executable"))
+        filePath = FileInfo.joinPaths(product.bundle.executablesFolderPath, filePath);
+    else if (input.fileTags.includes("bundle.main.application"))
+        filePath = FileInfo.joinPaths(product.bundle.applicationsFolderPath, filePath);
+    else if (input.fileTags.includes("bundle.main.library"))
+        filePath = FileInfo.joinPaths(product.bundle.frameworksFolderPath, filePath);
+    else if (input.fileTags.includes("bundle.main.framework"))
+        filePath = FileInfo.joinPaths(product.bundle.frameworksFolderPath, filePath);
+    else if (input.fileTags.includes("bundle.main.plugin"))
+        filePath = FileInfo.joinPaths(product.bundle.pluginsFolderPath, filePath);
+    else
+        return undefined;
+
+    return FileInfo.joinPaths(product.buildDirectory, filePath);
+}
+
+function generateMainBundleOutputs(product, inputs)
+{
+    var skippedDeps = {};
+    product.dependencies.forEach(function(dep) {
+        if (dep.parameters.bundle && dep.parameters.bundle.isForMainBundle === false)
+            skippedDeps[dep.name] = true;
+    });
+    var artifacts = [];
+    if (product.bundle.isMainBundle) {
+        (inputs["bundle.main.input"] || []).forEach(function(input) {
+            if (!input.bundle.isForMainBundle)
+                return;
+            if (skippedDeps[input.product.name])
+                return;
+            const filePath = getCopiedDepenendencyFilePath(product, input);
+            // We could probably just skip such files silently
+            if (filePath === undefined)
+                throw("Cannot determine main bundle file path for " + input.filePath);
+            artifacts.push({
+                filePath: filePath,
+                fileTags: ["bundle.content", "bundle.content.copied.from.dependencies"],
+                bundle: { _mainBundleInputFilePath: input.filePath },
+            });
+        });
+    }
+    return artifacts;
+}
+
+function generateMainBundleCommands(project, product, inputs, outputs, input, output,
+                                    explicitlyDependsOn)
+{
+    if (!product.bundle.isMainBundle)
+        return [];
+
+    const mainBundleOutputs = outputs["bundle.content.copied.from.dependencies"];
+    if (mainBundleOutputs.length === 0)
+        return [];
+
+    var cmd = new JavaScriptCommand();
+    cmd.description = "copying main bundle dependencies";
+    cmd.highlight = "filegen";
+    cmd.sources = mainBundleOutputs.map(function(output) {
+        return output.bundle._mainBundleInputFilePath;
+    });
+    cmd.destinations = mainBundleOutputs.map(function(output) {
+        return output.filePath;
+    });
+    cmd.sourceCode = function() {
+        for (var i = 0; i < sources.length; ++i) {
+            File.copy(sources[i], destinations[i]);
+        }
+    };
+    return [cmd];
+}
+
 function generateBundleOutputs(product, inputs)
 {
     var artifacts = [];
     if (product.bundle.isBundle) {
+        const mainBundleTags = getMainBundleTags(product);
         (inputs["bundle.input"] || []).forEach(function(input) {
             var fp = input.bundle._bundleFilePath;
             if (!fp)
@@ -361,7 +453,8 @@ function generateBundleOutputs(product, inputs)
                     ? ["bundle.application-executable"] : [];
             artifacts.push({
                 filePath: fp,
-                fileTags: ["bundle.content", "bundle.content.copied"].concat(extraTags)
+                fileTags: ["bundle.content", "bundle.content.copied"]
+                    .concat(extraTags).concat(mainBundleTags),
             });
         });
 
@@ -370,7 +463,7 @@ function generateBundleOutputs(product, inputs)
                 filePath: FileInfo.joinPaths(product.destinationDirectory,
                                              product.bundle.contentsFolderPath,
                                              input.fileName),
-                fileTags: ["bundle.provisioningprofile", "bundle.content"]
+                fileTags: ["bundle.provisioningprofile", "bundle.content"].concat(mainBundleTags),
             });
         });
 
@@ -389,7 +482,7 @@ function generateBundleOutputs(product, inputs)
             if (filePath) {
                 artifacts.push({
                     filePath: filePath,
-                    fileTags: ["bundle.content", "bundle.privacymanifest"]
+                    fileTags: ["bundle.content", "bundle.privacymanifest"].concat(mainBundleTags),
                 });
             }
         });
@@ -402,7 +495,7 @@ function generateBundleOutputs(product, inputs)
             if (publicHeaders.length > 0) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, "Headers"),
-                    fileTags: ["bundle.symlink.headers", "bundle.content"]
+                    fileTags: ["bundle.symlink.headers", "bundle.content"].concat(mainBundleTags),
                 });
             }
 
@@ -411,23 +504,23 @@ function generateBundleOutputs(product, inputs)
             if (privateHeaders.length > 0) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, "PrivateHeaders"),
-                    fileTags: ["bundle.symlink.private-headers", "bundle.content"]
+                    fileTags: ["bundle.symlink.private-headers", "bundle.content"].concat(mainBundleTags),
                 });
             }
 
             artifacts.push({
                 filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, "Resources"),
-                fileTags: ["bundle.symlink.resources", "bundle.content"]
+                fileTags: ["bundle.symlink.resources", "bundle.content"].concat(mainBundleTags),
             });
 
             artifacts.push({
                 filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.bundleName, product.targetName),
-                fileTags: ["bundle.symlink.executable", "bundle.content"]
+                fileTags: ["bundle.symlink.executable", "bundle.content"].concat(mainBundleTags),
             });
 
             artifacts.push({
                 filePath: FileInfo.joinPaths(product.destinationDirectory, product.bundle.versionsFolderPath, "Current"),
-                fileTags: ["bundle.symlink.version", "bundle.content"]
+                fileTags: ["bundle.symlink.version", "bundle.content"].concat(mainBundleTags),
             });
         }
 
@@ -438,7 +531,7 @@ function generateBundleOutputs(product, inputs)
             sources.forEach(function(source) {
                 artifacts.push({
                     filePath: FileInfo.joinPaths(destination, source.fileName),
-                    fileTags: ["bundle.hpp", "bundle.content"]
+                    fileTags: ["bundle.hpp", "bundle.content"].concat(mainBundleTags),
                 });
             });
         });
@@ -450,7 +543,7 @@ function generateBundleOutputs(product, inputs)
                 product, {baseDir: resource.path, fileName: resource.fileName});
             artifacts.push({
                 filePath: FileInfo.joinPaths(destination, resource.fileName),
-                fileTags: ["bundle.resource", "bundle.content"]
+                fileTags: ["bundle.resource", "bundle.content"].concat(mainBundleTags),
             });
         });
 
@@ -475,7 +568,7 @@ function generateBundleOutputs(product, inputs)
                         product.bundle.contentsFolderPath,
                         "_CodeSignature",
                         file),
-                    fileTags: ["bundle.code-signature", "bundle.content"]
+                    fileTags: ["bundle.code-signature", "bundle.content"].concat(mainBundleTags)
                 };
             }));
         }

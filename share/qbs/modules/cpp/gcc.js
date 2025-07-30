@@ -1634,8 +1634,9 @@ function appLinkerOutputArtifacts(product)
     var app = {
         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                      PathTools.applicationFilePath(product)),
-        fileTags: ["bundle.input", "application"].concat(
-            product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
+        fileTags: ["bundle.input", "application"]
+            .concat(product.cpp.isForMainBundle ? ["bundle.main.input", "bundle.main.executable"] : [])
+            .concat(product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
         bundle: {
             _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                 PathTools.bundleExecutableFilePath(product))
@@ -1662,8 +1663,8 @@ function moduleLinkerOutputArtifacts(product, inputs)
         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                      PathTools.loadableModuleFilePath(product)),
         fileTags: ["bundle.input", "loadablemodule"]
-                .concat(product.cpp.shouldSignArtifacts
-                        ? ["codesign.signed_artifact"] : []),
+            .concat(product.cpp.isForMainBundle ? ["bundle.main.input", "bundle.main.plugin"] : [])
+            .concat(product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
         bundle: {
             _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                 PathTools.bundleExecutableFilePath(product))
@@ -1732,8 +1733,8 @@ function dynamicLibLinkerOutputArtifacts(product)
         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                      PathTools.dynamicLibraryFilePath(product)),
         fileTags: ["bundle.input", "dynamiclibrary"]
-                .concat(product.cpp.shouldSignArtifacts
-                        ? ["codesign.signed_artifact"] : []),
+            .concat(product.cpp.isForMainBundle ? ["bundle.main.input", "bundle.main.library"] : [])
+            .concat(product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
         bundle: {
             _bundleFilePath: FileInfo.joinPaths(product.destinationDirectory,
                                                 PathTools.bundleExecutableFilePath(product))
