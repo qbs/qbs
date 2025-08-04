@@ -45,19 +45,19 @@
 #include <QtCore/qstring.h>
 #include <QtCore/qvariant.h>
 
-static QVariant fromObject(id obj);
-static QVariantMap fromDictionary(NSDictionary *dict);
-static QVariantList fromArray(NSArray *array);
+static QVariant fromObject(id obj, bool isPlist);
+static QVariantMap fromDictionary(NSDictionary *dict, bool isPlist);
+static QVariantList fromArray(NSArray *array, bool isPlist);
 
-static QVariant fromObject(id obj)
+static QVariant fromObject(id obj, bool isPlist)
 {
     QVariant value;
     if (!obj) {
         return value;
     } else if ([obj isKindOfClass:[NSDictionary class]]) {
-        value = fromDictionary(obj);
+        value = fromDictionary(obj, isPlist);
     } else if ([obj isKindOfClass:[NSArray class]]) {
-        value = fromArray(obj);
+        value = fromArray(obj, isPlist);
     } else if ([obj isKindOfClass:[NSString class]]) {
         value = QString::fromNSString(obj);
     } else if ([obj isKindOfClass:[NSData class]]) {
@@ -68,9 +68,17 @@ static QVariant fromObject(id obj)
         if (strcmp([(NSNumber *)obj objCType], @encode(BOOL)) == 0) {
             value = static_cast<bool>([obj boolValue]);
         } else if (strcmp([(NSNumber *)obj objCType], @encode(signed char)) == 0) {
-            value = [obj charValue];
+            if (isPlist) {
+                value = static_cast<bool>([obj boolValue]);
+            } else {
+                value = [obj charValue];
+            }
         } else if (strcmp([(NSNumber *)obj objCType], @encode(unsigned char)) == 0) {
-            value = [obj unsignedCharValue];
+            if (isPlist) {
+                value = static_cast<bool>([obj boolValue]);
+            } else {
+                value = [obj unsignedCharValue];
+            }
         } else if (strcmp([(NSNumber *)obj objCType], @encode(signed short)) == 0) {
             value = [obj shortValue];
         } else if (strcmp([(NSNumber *)obj objCType], @encode(unsigned short)) == 0) {
@@ -100,25 +108,25 @@ static QVariant fromObject(id obj)
     return value;
 }
 
-static QVariantMap fromDictionary(NSDictionary *dict)
+static QVariantMap fromDictionary(NSDictionary *dict, bool isPlist)
 {
     QVariantMap map;
     for (NSString *key in dict)
-        map[QString::fromNSString(key)] = fromObject([dict objectForKey:key]);
+        map[QString::fromNSString(key)] = fromObject([dict objectForKey:key], isPlist);
     return map;
 }
 
-static QVariantList fromArray(NSArray *array)
+static QVariantList fromArray(NSArray *array, bool isPlist)
 {
     QVariantList list;
     for (id obj in array)
-        list.push_back(fromObject(obj));
+        list.push_back(fromObject(obj, isPlist));
     return list;
 }
 
 QVariant QPropertyListUtils::fromPropertyList(id plist)
 {
-    return fromObject(plist);
+    return fromObject(plist, true);
 }
 
 static id toObject(const QVariant &variant);
