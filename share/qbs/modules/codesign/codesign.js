@@ -354,7 +354,7 @@ function prepareSign(project, product, inputs, outputs, input, output) {
                     + " (" + actualSigningIdentity.subjectInfo.CN + ")";
             cmd.outputFilePath = outputFilePath;
             cmd.stderrFilterFunction = function(stderr) {
-                return stderr.replace(outputFilePath + ": replacing existing signature\n", "");
+                return stderr.replace(/^.*: replacing existing signature\n$/, "");
             };
             cmds.push(cmd);
         }

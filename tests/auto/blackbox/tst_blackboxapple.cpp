@@ -726,6 +726,9 @@ void TestBlackboxApple::codesign()
     QFETCH(bool, multiArch);
     QFETCH(bool, multiVariant);
 
+    // on Apple silicon, apps are signed by default
+    const bool isSigned = HostOsInfo::hostOSArchitecture() == "arm64" || enableSigning;
+
     const auto xcodeVersion = findXcodeVersion();
 
     if (!xcodeVersion)
@@ -754,8 +757,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(appPath).exists());
     auto codeSignInfo = getCodeSignInfo(appPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
@@ -768,8 +771,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(libPath).exists());
     codeSignInfo = getCodeSignInfo(libPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
@@ -781,8 +784,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(pluginPath).isDir() == isBundle);
     codeSignInfo = getCodeSignInfo(pluginPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
