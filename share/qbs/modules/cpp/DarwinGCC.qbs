@@ -225,7 +225,7 @@ UnixGCC {
             inputsFromDependencies: ["application"]
             multiplex: true
             outputFileTags: ["bundle.input", "application", "primary", "debuginfo_app",
-                             "debuginfo_bundle", "bundle.variant_symlink", "debuginfo_plist",
+                             "debuginfo_bundle", "bundle.variant_copy", "debuginfo_plist",
                              "codesign.signed_artifact"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "application", "app")
             prepare: Darwin.prepareLipo.apply(Darwin, arguments)
@@ -245,7 +245,7 @@ UnixGCC {
             inputsFromDependencies: ["dynamiclibrary"]
             multiplex: true
             outputFileTags: ["bundle.input", "dynamiclibrary", "dynamiclibrary_symbols", "primary",
-                             "debuginfo_dll","debuginfo_bundle","bundle.variant_symlink",
+                             "debuginfo_dll","debuginfo_bundle","bundle.variant_copy",
                              "debuginfo_plist", "codesign.signed_artifact", "dynamiclibrary_symlink"]
             outputArtifacts: Darwin.lipoOutputArtifacts(product, inputs, "dynamiclibrary", "dll")
             prepare: Darwin.prepareLipo.apply(Darwin, arguments)

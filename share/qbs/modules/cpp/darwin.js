@@ -68,11 +68,11 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
     // Technically this doesn't affect qbs since qbs always uses full paths for internal
     // dependencies but the "normal" variant is always the one that is linked to, since the
     // alternative variants should only be chosen at runtime using the DYLD_IMAGE_SUFFIX variable.
-    // So for frameworks we'll create a symlink to the "default" variant as chosen by the user
+    // So for frameworks we'll create a copy of the "default" variant as chosen by the user
     // (we cannot do this automatically since the user must tell us which variant should be
     // preferred, if there are multiple alternative variants). Applications are fine without a
-    // symlink but still need an explicitly chosen variant to set as the CFBundleExecutable so that
-    // Finder/LaunchServices can launch it normally but for simplicity we'll just use the symlink
+    // copy but still need an explicitly chosen variant to set as the CFBundleExecutable so that
+    // Finder/LaunchServices can launch it normally but for simplicity we'll just use the copy
     // approach for all bundle types.
     var defaultVariant;
     if (!buildVariants.some(function (x) { return x.name === "release"; })
@@ -92,14 +92,14 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
         buildVariants.push({
             name: "release",
             suffix: "",
-            isSymLink: true
+            isVariantCopy: true
         });
     }
 
     Array.prototype.push.apply(list, buildVariants.map(function (variant) {
         var tags = ["bundle.input"];
-        if (variant.isSymLink)
-            tags.push("bundle.variant_symlink");
+        if (variant.isVariantCopy)
+            tags.push("bundle.variant_copy");
         else
             tags.push(fileTag, "primary");
 
@@ -113,11 +113,12 @@ function lipoOutputArtifacts(product, inputs, fileTag, debugSuffix) {
             fileTags: tags,
             qbs: {
                 buildVariant: variant.name,
-                _buildVariantFileName: variant.isSymLink && defaultVariant
-                                       ? FileInfo.fileName(PathTools.linkerOutputFilePath(
-                                                               fileTag, product,
-                                                               defaultVariant.suffix))
-                                       : undefined
+                _buildVariantFilePath: variant.isVariantCopy && defaultVariant
+                                        ? FileInfo.joinPaths(product.destinationDirectory,
+                                                             PathTools.linkerOutputFilePath(
+                                                                 fileTag, product,
+                                                                 defaultVariant.suffix))
+                                        : undefined
             },
             bundle: {
                 _bundleFilePath: product.destinationDirectory + "/"
@@ -143,12 +144,6 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
         return ["application", "dynamiclibrary", "staticlibrary", "loadablemodule"].includes(tag)
                 ? inputs[tag] : [];
     }));
-
-    (outputs["bundle.variant_symlink"] || []).map(function (symlink) {
-        cmd = new Command("ln", ["-sfn", symlink.qbs._buildVariantFileName, symlink.filePath]);
-        cmd.silent = true;
-        commands.push(cmd);
-    });
 
     for (var i = 0; i < outputs.primary.length; ++i) {
         var vInputs = allInputs.filter(function (f) {
@@ -176,6 +171,17 @@ function prepareLipo(project, product, inputs, outputs, input, output) {
 
         commands.push(cmd);
     }
+
+    (outputs["bundle.variant_copy"] || []).map(function (copy) {
+        cmd = new JavaScriptCommand();
+        cmd.src = copy.qbs._buildVariantFilePath;
+        cmd.dst = copy.filePath;
+        cmd.sourceCode = function () {
+            File.copy(src, dst);
+        };
+        cmd.silent = true;
+        commands.push(cmd);
+    });
 
     commands = commands.concat(
             Gcc.separateDebugInfoCommandsDarwin(product, outputs, outputs.primary));
