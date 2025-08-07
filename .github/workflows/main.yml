@@ -558,12 +558,12 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Test macOS (Xcode 15.1, arm64)',
-            runner: 'macos-14',
+            name: 'Test macOS (Xcode 16.4, arm64)',
+            runner: 'macos-15',
             target: 'desktop',
             toolchain: 'clang_64',
-            xcodeVersion: '15.1',
-            testProfile: 'xcode_15_1-macosx-arm64',
+            xcodeVersion: '16.4',
+            testProfile: 'xcode_16_4-macosx-arm64',
             qtVersion: '6.8.3',
             suffix: 'macos-arm64',
             script: './scripts/test-qbs.sh',
@@ -613,23 +613,23 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
+            name: 'Test macOS (Xcode 15.4, arm64)',
+            runner: 'macos-14',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '15.4',
+            testProfile: 'xcode_15_4-macosx-arm64',
+            qtVersion: '6.8.3',
+            suffix: 'macos-arm64',
+            script: './scripts/test-qbs.sh',
+          }
+        - {
             name: 'Test macOS (Xcode 14.3.1, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.3.1',
             testProfile: 'xcode_14_3_1-macosx-x86_64',
-            qtVersion: '6.8.3',
-            suffix: 'macos',
-            script: './scripts/test-qbs.sh',
-          }
-        - {
-            name: 'Test macOS (Xcode 14.2, x64)',
-            runner: 'macos-13',
-            target: 'desktop',
-            toolchain: 'clang_64',
-            xcodeVersion: '14.2',
-            testProfile: 'xcode_14_2-macosx-x86_64',
             qtVersion: '6.8.3',
             suffix: 'macos',
             script: './scripts/test-qbs.sh',
