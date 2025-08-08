@@ -24,6 +24,7 @@ Project {
         // Turn off multiplexing
         aggregate: false
         multiplexByQbsProperties: []
+        qbs.architecture: Helpers.getNewArch(qbs, project.xcodeVersion)
 
         install: true
         installDebugInformation: false
@@ -42,7 +43,7 @@ Project {
 
         // Force aggregation when not needed
         aggregate: true
-        qbs.architectures: [Helpers.getNewArch(qbs)]
+        qbs.architectures: [Helpers.getNewArch(qbs, project.xcodeVersion)]
         qbs.buildVariants: ["release"]
 
         install: true
@@ -62,6 +63,7 @@ Project {
         // Turn off multiplexing
         aggregate: false
         multiplexByQbsProperties: []
+        qbs.architecture: Helpers.getNewArch(qbs, project.xcodeVersion)
 
         install: true
         installDebugInformation: false
@@ -93,7 +95,7 @@ Project {
         cpp.minimumMacosVersion: "10.6"
         cpp.minimumIosVersion: "8.0"
         qbs.architectures: Helpers.getArchitectures(qbs, project.xcodeVersion)
-        qbs.architecture: Helpers.getNewArch(qbs)
+        qbs.architecture: Helpers.getNewArch(qbs, project.xcodeVersion)
         multiplexByQbsProperties: Helpers.enableOldArch(qbs, project.xcodeVersion)
                                   ? ["architectures", "buildVariants"]
                                   : ["buildVariants"]

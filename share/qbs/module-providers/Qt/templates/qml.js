@@ -117,7 +117,7 @@ function typeRegistrarCommands(project, product, inputs, outputs, input, output,
     var foreignTypes = product.Qt.qml.extraMetaTypesFiles || [];
     var metaTypeArtifactsFromDeps = explicitlyDependsOn["qt.core.metatypes"] || [];
     var filePathFromArtifact = function(a) { return a.filePath; };
-    foreignTypes = foreignTypes.concat(metaTypeArtifactsFromDeps.map(filePathFromArtifact));
+    foreignTypes = foreignTypes.uniqueConcat(metaTypeArtifactsFromDeps.map(filePathFromArtifact));
     if (foreignTypes.length > 0)
         args.push("--foreign-types=" + foreignTypes.join(","));
     args.push("-o", outputs.cpp[0].filePath);

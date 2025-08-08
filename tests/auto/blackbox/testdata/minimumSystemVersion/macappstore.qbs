@@ -13,5 +13,5 @@ CppApplication {
     files: ["main.mm"]
     consoleApplication: true
     cpp.frameworks: "Foundation"
-    cpp.minimumMacosVersion: "10.7.1"
+    cpp.minimumMacosVersion: qbs.architecture === "arm64" ? "11.0" : "10.7.1"
 }

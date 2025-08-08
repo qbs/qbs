@@ -8,5 +8,8 @@ int foo()
 #ifdef __x86_64__
     printf("Hello from " VARIANT " x86_64\n");
 #endif
+#ifdef __arm64__
+    printf("Hello from " VARIANT " arm64\n");
+#endif
     return 0;
 }

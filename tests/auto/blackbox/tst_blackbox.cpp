@@ -9100,8 +9100,12 @@ void TestBlackbox::minimumSystemVersion_data()
     }();
 
     const QString specific = []() -> QString {
-        if (HostOsInfo::isMacosHost())
-            return "__MAC_OS_X_VERSION_MIN_REQUIRED=1070\nversion 10.7\n";
+        if (HostOsInfo::isMacosHost()) {
+            if (HostOsInfo::hostOSArchitecture() == "arm64")
+                return "__MAC_OS_X_VERSION_MIN_REQUIRED=110000\nminos 11.0\n";
+            else
+                return "__MAC_OS_X_VERSION_MIN_REQUIRED=1070\nversion 10.7\n";
+        }
 
         if (HostOsInfo::isWindowsHost())
             return "WINVER=1538\n6.02 operating system version\n6.02 subsystem version\n";
@@ -9116,9 +9120,15 @@ void TestBlackbox::minimumSystemVersion_data()
     if (HostOsInfo::isWindowsHost())
         QTest::newRow("fakewindows") << "fakewindows" << "WINVER=1283\n5.03 operating system "
                                                          "version\n5.03 subsystem version\n";
-    if (HostOsInfo::isMacosHost())
-        QTest::newRow("macappstore") << "macappstore" << "__MAC_OS_X_VERSION_MIN_REQUIRED=1071\n"
-                                                         "version 10.7";
+    if (HostOsInfo::isMacosHost()) {
+        if (HostOsInfo::hostOSArchitecture() == "arm64") {
+            QTest::newRow("macappstore") << "macappstore"
+                                         << "__MAC_OS_X_VERSION_MIN_REQUIRED=110000";
+        } else {
+            QTest::newRow("macappstore") << "macappstore"
+                                         << "__MAC_OS_X_VERSION_MIN_REQUIRED=1071";
+        }
+    }
 }
 
 void TestBlackbox::missingBuildGraph()

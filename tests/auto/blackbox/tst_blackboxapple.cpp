@@ -233,7 +233,7 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/Contents/PkgInfo").isRegularFile());
 
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
-                                                "fatmultiappmultivariant").isFileSymLink());
+                                                "fatmultiappmultivariant").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
                                                 "fatmultiappmultivariant_debug").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/Contents/MacOS/"
@@ -255,7 +255,8 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/multilib.framework/Versions/Current").isDirSymLink());
 
         for (const QString variant : { "release", "debug", "profiling" }) {
-            for (const QString arch : { "x86_64" }) {
+            const QString arch = HostOsInfo::hostOSArchitecture() == "arm64" ? "arm64" : "x86_64";
+            for (const QString &arch : {arch}) {
                 QProcess process;
                 process.setProgram("/usr/bin/arch");
                 process.setArguments({
@@ -292,7 +293,7 @@ void TestBlackboxApple::appleMultiConfig()
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiapp.app/PkgInfo").isRegularFile());
 
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
-                                                "fatmultiappmultivariant").isFileSymLink());
+                                                "fatmultiappmultivariant").isRegularFile());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
                                                 "fatmultiappmultivariant_debug").isExecutable());
         QVERIFY(QFileInfo2(defaultInstallRoot + "/fatmultiappmultivariant.app/"
@@ -726,6 +727,9 @@ void TestBlackboxApple::codesign()
     QFETCH(bool, multiArch);
     QFETCH(bool, multiVariant);
 
+    // on Apple silicon, apps are signed by default
+    const bool isSigned = HostOsInfo::hostOSArchitecture() == "arm64" || enableSigning;
+
     const auto xcodeVersion = findXcodeVersion();
 
     if (!xcodeVersion)
@@ -754,8 +758,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(appPath).exists());
     auto codeSignInfo = getCodeSignInfo(appPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
@@ -768,8 +772,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(libPath).exists());
     codeSignInfo = getCodeSignInfo(libPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
@@ -781,8 +785,8 @@ void TestBlackboxApple::codesign()
     QVERIFY(QFileInfo(pluginPath).isDir() == isBundle);
     codeSignInfo = getCodeSignInfo(pluginPath);
     QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
-    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
-    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, isSigned);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !isSigned);
     if (!codeSignInfo.second.isEmpty()) {
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
@@ -872,54 +876,65 @@ void TestBlackboxApple::deploymentTarget_data()
     QTest::addColumn<QString>("lflags");
 
     const auto xcodeVersion = findXcodeVersion();
+    QTest::newRow("macos arm64") << "macosx" << macos << "arm64"
+                                 << "-triple arm64-apple-macosx11.0"
+                                 << "-platform_version macos 11.0.0";
     if (xcodeVersion < qbs::Version(10)) {
         QTest::newRow("macos x86") << "macosx" << macos << "x86"
                                    << "-triple i386-apple-macosx10.6"
                                    << "-macosx_version_min 10.6";
     }
     QTest::newRow("macos x86_64") << "macosx" << macos << "x86_64"
-                         << "-triple x86_64-apple-macosx10.6"
-                         << "10.6";
+                                  << "-triple x86_64-apple-macosx10.6"
+                                  << "10.6";
 
     if (xcodeVersion >= qbs::Version(6))
         QTest::newRow("macos x86_64h") << "macosx" << macos << "x86_64h"
-                             << "-triple x86_64h-apple-macosx10.12"
-                             << "10.12";
+                                       << "-triple x86_64h-apple-macosx10.12"
+                                       << "10.12";
 
-    QTest::newRow("ios armv7a") << "iphoneos" << ios << "armv7a"
-                         << "-triple thumbv7-apple-ios6.0"
-                         << "6.0";
-    QTest::newRow("ios armv7s") << "iphoneos" <<ios << "armv7s"
-                         << "-triple thumbv7s-apple-ios7.0"
-                         << "7.0";
+    if (xcodeVersion < qbs::Version(16)) {
+        QTest::newRow("ios armv7a") << "iphoneos" << ios << "armv7a"
+                                    << "-triple thumbv7-apple-ios6.0"
+                                    << "6.0";
+        QTest::newRow("ios armv7s") << "iphoneos" << ios << "armv7s"
+                                    << "-triple thumbv7s-apple-ios7.0"
+                                    << "7.0";
+    }
     if (xcodeVersion >= qbs::Version(5))
-        QTest::newRow("ios arm64") << "iphoneos" <<ios << "arm64"
-                             << "-triple arm64-apple-ios7.0"
-                             << "7.0";
-    QTest::newRow("ios-simulator x86") << "iphonesimulator" << ios_sim << "x86"
-                             << "-triple i386-apple-ios6.0"
-                             << "6.0";
+        QTest::newRow("ios arm64") << "iphoneos" << ios << "arm64"
+                                   << "-triple arm64-apple-ios7.0"
+                                   << "7.0";
+    if (xcodeVersion < qbs::Version(16)) {
+        QTest::newRow("ios-simulator x86") << "iphonesimulator" << ios_sim << "x86"
+                                           << "-triple i386-apple-ios6.0"
+                                           << "6.0";
+        if (xcodeVersion >= qbs::Version(5))
+            QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
+                                                  << "-triple x86_64-apple-ios7.0"
+                                                  << "7.0";
+    }
     if (xcodeVersion >= qbs::Version(5))
-        QTest::newRow("ios-simulator x86_64") << "iphonesimulator" << ios_sim << "x86_64"
-                                 << "-triple x86_64-apple-ios7.0"
-                                 << "7.0";
+        QTest::newRow("ios-simulator arm64") << "iphonesimulator" << ios_sim << "arm64"
+                                             << "-triple arm64-apple-ios7.0"
+                                             << "7.0";
 
     if (xcodeVersion >= qbs::Version(7)) {
         if (xcodeVersion >= qbs::Version(7, 1)) {
             QTest::newRow("tvos arm64") << "appletvos" << tvos << "arm64"
-                                 << "-triple arm64-apple-tvos9.0"
-                                 << "9.0";
+                                        << "-triple arm64-apple-tvos9.0"
+                                        << "9.0";
             QTest::newRow("tvos-simulator x86_64") << "appletvsimulator" << tvos_sim << "x86_64"
-                                     << "-triple x86_64-apple-tvos9.0"
-                                     << "9.0";
+                                                   << "-triple x86_64-apple-tvos9.0"
+                                                   << "9.0";
         }
 
         QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
-                             << "-triple thumbv7k-apple-watchos2.0"
-                             << "2.0";
+                                        << "-triple thumbv7k-apple-watchos2.0"
+                                        << "2.0";
         QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
-                                 << "-triple i386-apple-watchos2.0"
-                                 << "2.0";
+                                               << "-triple i386-apple-watchos2.0"
+                                               << "2.0";
     }
 }
 

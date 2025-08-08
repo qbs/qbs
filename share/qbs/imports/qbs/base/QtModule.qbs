@@ -7,7 +7,7 @@ Module {
                    || architectures.contains(qbs.architecture))
 
     readonly property bool isCombinedUIKitBuild: ["ios", "tvos", "watchos"].contains(targetPlatform)
-        && ["x86", "x86_64"].contains(qbs.architecture)
+        && (!qbs.architecture || ["x86", "x86_64"].contains(qbs.architecture))
         && qbs.targetPlatform === targetPlatform + "-simulator"
 
     Depends { name: "cpp" }
