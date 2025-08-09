@@ -203,10 +203,10 @@ qbs::Version TestBlackbox::bisonVersion()
 QMap<QString, QByteArray> TestBlackbox::getRepoStateFromApp() const
 {
     QMap<QString, QByteArray> result;
-    const int startIndex = m_qbsStdout.indexOf("__");
+    const int startIndex = m_qbsStdout.indexOf("==");
     if (startIndex == -1)
         return result;
-    const int endIndex = m_qbsStdout.indexOf("__", startIndex + 2);
+    const int endIndex = m_qbsStdout.indexOf("==", startIndex + 2);
     if (endIndex == -1)
         return result;
     const QByteArray data = m_qbsStdout.mid(startIndex + 2, endIndex - startIndex - 2);

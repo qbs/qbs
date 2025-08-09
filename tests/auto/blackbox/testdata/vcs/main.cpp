@@ -3,9 +3,9 @@
 
 int main()
 {
-    std::cout << "__"
+    std::cout << "=="
               << "repoState=" << VCS_REPO_STATE << ";"
               << "latestTag=" << VCS_REPO_LATEST_TAG << ";"
               << "commitsSinceTag=" << VCS_REPO_COMMITS_SINCE_TAG << ";"
-              << "commitSha=" << VCS_REPO_COMMIT_SHA << "__" << std::endl;
+              << "commitSha=" << VCS_REPO_COMMIT_SHA << "==" << std::endl;
 }
