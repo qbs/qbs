@@ -147,13 +147,13 @@ Module {
                     // 1. latest tag is TAG
                     // 2. number of commits since latest TAG is N
                     // 3. latest commit is gSHA
-                    const tagSections = repoState.split("-");
+                    const tagSections = repoState.split("-").reverse();
 
                     if (tagSections.length >= 3) {
-                        repoLatestTag = tagSections[0];
+                        repoCommitSha = tagSections[0];
                         repoCommitsSinceTag = tagSections[1];
-                        repoCommitSha = tagSections[2];
-                    } else  {
+                        repoLatestTag = tagSections.slice(2).reverse().join("-"); // Handle tags with dashes
+                    } else {
                         repoCommitSha = "g" + tagSections[0];
                     }
                 }

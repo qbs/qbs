@@ -1539,8 +1539,6 @@ void TestBlackbox::vcsGit()
     QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "initial commit"}));
     QVERIFY(waitForProcessSuccess(git));
-    git.start(gitFilePath, QStringList({"tag", "-a", "v1.0.0", "-m", "Version 1.0.0"}));
-    QVERIFY(waitForProcessSuccess(git));
 
     // Run with git metadata.
     WAIT_FOR_NEW_TIMESTAMP();
@@ -1548,9 +1546,10 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
-    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
-    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("0"));
+    QCOMPARE(newRepoState["latestTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("none"));
     QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("g")));
     QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
     oldRepoState = newRepoState;
 
@@ -1570,20 +1569,43 @@ void TestBlackbox::vcsGit()
     newRepoState = getRepoStateFromApp();
     QCOMPARE(oldRepoState, newRepoState);
 
-    // Add new file to repo.
+    // Add tag with dash
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("dummy.txt");
+    git.start(gitFilePath, QStringList({"add", "dummy.txt"}));
+    QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"commit", "-m", "dummy!"}));
+    QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"tag", "-a", "v1.0.0-beta", "-m", "Version 1.0.0-beta"}));
+    QVERIFY(waitForProcessSuccess(git));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0-beta"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("0"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("g")));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
+    oldRepoState = newRepoState;
+
+    // Add new file to repo. Add new tag
     WAIT_FOR_NEW_TIMESTAMP();
     touch("blubb.txt");
     git.start(gitFilePath, QStringList({"add", "blubb.txt"}));
     QVERIFY(waitForProcessSuccess(git));
     git.start(gitFilePath, QStringList({"commit", "-m", "blubb!"}));
     QVERIFY(waitForProcessSuccess(git));
+    git.start(gitFilePath, QStringList({"tag", "-a", "v1.0.0", "-m", "Version 1.0.0-beta"}));
+    QVERIFY(waitForProcessSuccess(git));
     QCOMPARE(runQbs(params), 0);
     QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
     QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
-    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("0"));
     QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("g")));
     QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 
     // https://bugreports.qt.io/projects/QBS/issues/QBS-1814
@@ -1601,8 +1623,9 @@ void TestBlackbox::vcsGit()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
     newRepoState = getRepoStateFromApp();
     QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
-    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("2"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
     QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("g")));
     QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 }
 
