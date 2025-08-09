@@ -428,56 +428,56 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Linux tests (gcc, Qt 6)',
+            name: 'Test Linux (gcc, Qt 6)',
             image: 'noble-qt6',
             suffix: 'linux-noble',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (clang, Qt 6)',
+            name: 'Test Linux (clang, Qt 6)',
             image: 'noble-qt6',
             suffix: 'linux-noble',
             profile: 'qt-clang_64',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (gcc, Qt 6, static)',
+            name: 'Test Linux (gcc, Qt 6, static)',
             image: 'noble-qt6-static',
             suffix: 'linux-noble',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run Linux tests (gcc, Qt 5)',
+            name: 'Test Linux (gcc, Qt 5)',
             image: 'noble-qt5',
             suffix: 'linux-noble',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }
         - {
-              name: 'Run Android tests (Qt 6.5)',
+              name: 'Test Android (Qt 6.5)',
               image: 'noble-android-65',
               suffix: 'linux-noble',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
           }
         - {
-            name: 'Run Android tests (Qt 5.15)',
+            name: 'Test Android (Qt 5.15)',
             image: 'noble-android-515',
             suffix: 'linux-noble',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
-            name: 'Run Android tests (ndk r25)',
+            name: 'Test Android (ndk r25)',
             image: 'noble-android-ndk-r25',
             suffix: 'linux-noble',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
-            name: 'Run WebAssembly tests',
+            name: 'Test WebAssembly',
             image: 'noble-qt6-wasm',
             suffix: 'linux-noble',
             profile: '',
@@ -511,7 +511,7 @@ jobs:
       run: docker compose run ${{ matrix.config.image }} ./scripts/print-cores.sh
 
   test-baremetal:
-    name: Run Baremetal tests (Linux)
+    name: Test Baremetal (Linux)
     runs-on: ubuntu-latest
     timeout-minutes: 60
     needs: build-linux
@@ -558,7 +558,7 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run macOS tests (Xcode 15.1, arm64)',
+            name: 'Test macOS (Xcode 15.1, arm64)',
             runner: 'macos-14',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -569,7 +569,7 @@ jobs:
             script: './scripts/test-qbs.sh',
             }
         - {
-            name: 'Run macOS tests (Xcode 15.1, x64)',
+            name: 'Test macOS (Xcode 15.1, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -580,7 +580,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 15.1, Qt 5.15, x64)',
+            name: 'Test macOS (Xcode 15.1, Qt 5.15, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -591,7 +591,7 @@ jobs:
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Run iOS tests (Xcode 15.1, arm64)',
+            name: 'Test iOS (Xcode 15.1, arm64)',
             runner: 'macos-13',
             target: 'ios',
             toolchain: 'ios',
@@ -602,7 +602,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run iOS-sim tests (Xcode 15.1, x64)',
+            name: 'Test iOS-sim (Xcode 15.1, x64)',
             runner: 'macos-13',
             target: 'ios',
             toolchain: 'ios',
@@ -613,7 +613,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.3.1, x64)',
+            name: 'Test macOS (Xcode 14.3.1, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -624,7 +624,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.2, x64)',
+            name: 'Test macOS (Xcode 14.2, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -635,7 +635,7 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode-less, x64)',
+            name: 'Test macOS (Xcode-less, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
@@ -725,7 +725,7 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Windows tests (MSVC 2022, x64)',
+            name: 'Test Windows (MSVC 2022, x64)',
             target: 'desktop',
             toolchain: 'win64_msvc2022_64',
             testProfile: 'MSVC2022-x64',
@@ -735,7 +735,7 @@ jobs:
             qmake: 'qmake.exe',
           }
         - {
-            name: 'Run Windows tests (MSVC 2022, arm64)',
+            name: 'Test Windows (MSVC 2022, arm64)',
             target: 'desktop',
             toolchain: 'win64_msvc2022_arm64_cross_compiled',
             testProfile: 'MSVC2022-x64_arm64',
@@ -745,7 +745,7 @@ jobs:
             qmake: 'qmake.bat',
           }
         - {
-            name: 'Run Windows tests (MSVC 2022, Qt 5.15)',
+            name: 'Test Windows (MSVC 2022, Qt 5.15)',
             target: 'desktop',
             toolchain: 'win64_msvc2019_64',
             testProfile: 'MSVC2022-x64',
@@ -755,7 +755,7 @@ jobs:
             qmake: 'qmake.exe',
           }
         - {
-            name: 'Run Windows tests (clang-cl)',
+            name: 'Test Windows (clang-cl)',
             target: 'desktop',
             toolchain: 'win64_msvc2022_64',
             testProfile: 'clang-cl-x86_64',
@@ -765,7 +765,7 @@ jobs:
             qmake: 'qmake.exe',
           }
         - {
-            name: 'Run Windows tests (MinGW)',
+            name: 'Test Windows (MinGW)',
             target: 'desktop',
             toolchain: 'win64_mingw',
             testProfile: 'mingw-qt',
@@ -852,47 +852,47 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run Windows tests (OpenWatcom DOS 32 bit)',
+            name: 'Test Windows (OpenWatcom DOS 32 bit)',
             testProfile: 'watcom-2_0_0-dos-x86',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (OpenWatcom DOS 16 bit)',
+            name: 'Test Windows (OpenWatcom DOS 16 bit)',
             testProfile: 'watcom-2_0_0-dos-x86_16',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (OpenWatcom OS/2 32 bit)',
+            name: 'Test Windows (OpenWatcom OS/2 32 bit)',
             testProfile: 'watcom-2_0_0-os2-x86',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (OpenWatcom OS/2 16 bit)',
+            name: 'Test Windows (OpenWatcom OS/2 16 bit)',
             testProfile: 'watcom-2_0_0-os2-x86_16',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (OpenWatcom Windows 32 bit)',
+            name: 'Test Windows (OpenWatcom Windows 32 bit)',
             testProfile: 'watcom-2_0_0-windows-x86',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (OpenWatcom Windows 16 bit)',
+            name: 'Test Windows (OpenWatcom Windows 16 bit)',
             testProfile: 'watcom-2_0_0-windows-x86_16',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (DigitalMars DOS 16 bit)',
+            name: 'Test Windows (DigitalMars DOS 16 bit)',
             testProfile: 'dmc-8_57_0-dos-x86_16',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (DigitalMars Windows 32 bit)',
+            name: 'Test Windows (DigitalMars Windows 32 bit)',
             testProfile: 'dmc-8_57_0-windows-x86',
             script: './scripts/test-baremetal.sh',
           }
         - {
-            name: 'Run Windows tests (DigitalMars Windows 16 bit)',
+            name: 'Test Windows (DigitalMars Windows 16 bit)',
             testProfile: 'dmc-8_57_0-windows-x86_16',
             script: './scripts/test-baremetal.sh',
           }
