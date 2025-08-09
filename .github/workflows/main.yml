@@ -156,14 +156,32 @@ jobs:
 
   build-macos:
     name: ${{ matrix.config.name }}
-    runs-on: macos-13
+    runs-on: ${{ matrix.config.runner }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
-            name: 'Build on macOS (Qbs)',
+            name: 'Build on macOS (Qbs, arm64)',
+            runner: 'macos-14',
+            profile: 'xcode_15_1-macosx-arm64',
+            toolchain: 'clang_64',
+            script: './scripts/build-qbs-with-qbs.sh',
+            options: 'modules.cpp.compilerWrapper:ccache
+                        modules.qbs.debugInformation:true
+                        modules.qbsbuildconfig.enableAddressSanitizer:false
+                        products.qbs_archive.targetName:qbs-macos-arm64-${{ github.run_id }}
+                        products.qbs_archive.includeTests:true',
+            cacheid: 'clang-arm64',
+            with_tests: 0,
+            suffix: 'macos-arm64',
+            }
+        - {
+            name: 'Build on macOS (Qbs, x64)',
+            runner: 'macos-13',
+            profile: 'xcode_15_1-macosx-x86_64',
+            toolchain: 'clang_64',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
@@ -175,7 +193,10 @@ jobs:
             suffix: 'macos',
           }
         - {
-            name: 'Build on macOS (CMake)',
+            name: 'Build on macOS (CMake, x64)',
+            runner: 'macos-13',
+            profile: 'xcode_15_1-macosx-x86_64',
+            toolchain: 'clang_64',
             script: './scripts/build-qbs-with-cmake.sh',
             options: '',
             cacheid: 'clang-cmake',
@@ -200,20 +221,26 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Install required packages
+      run: brew install ccache ninja p7zip
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Install Python dependencies
       run: |
-        brew install ccache ninja p7zip
-        python3 -m pip install --user beautifulsoup4 lxml
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
-        toolchain: clang_64
+        toolchain: ${{ matrix.config.toolchain }}
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
         qbs setup-qt --detect
-        qbs config profiles.qt.baseProfile xcode_14_2-macosx-x86_64
+        qbs config profiles.qt.baseProfile ${{ matrix.config.profile }}
         qbs config defaultProfile qt
         qbs config --list
     - name: Print ccache stats
@@ -531,73 +558,91 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Run macOS tests (Xcode 15.1)',
+            name: 'Run macOS tests (Xcode 15.1, arm64)',
+            runner: 'macos-14',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '15.1',
+            testProfile: 'xcode_15_1-macosx-arm64',
+            qtVersion: '6.8.3',
+            suffix: 'macos-arm64',
+            script: './scripts/test-qbs.sh',
+            }
+        - {
+            name: 'Run macOS tests (Xcode 15.1, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '15.1',
             testProfile: 'xcode_15_1-macosx-x86_64',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 15.1, Qt 5.15)',
+            name: 'Run macOS tests (Xcode 15.1, Qt 5.15, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '15.1',
             testProfile: 'xcode_15_1-macosx-x86_64',
             qtVersion: '5.15.2',
+            suffix: 'macos',
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Run iOS tests (Xcode 15.1)',
+            name: 'Run iOS tests (Xcode 15.1, arm64)',
             runner: 'macos-13',
             target: 'ios',
             toolchain: 'ios',
             xcodeVersion: '15.1',
             testProfile: 'xcode_15_1-iphoneos-arm64',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run iOS-sim tests (Xcode 15.1)',
+            name: 'Run iOS-sim tests (Xcode 15.1, x64)',
             runner: 'macos-13',
             target: 'ios',
             toolchain: 'ios',
             xcodeVersion: '15.1',
             testProfile: 'xcode_15_1-iphonesimulator-x86_64',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.3.1)',
+            name: 'Run macOS tests (Xcode 14.3.1, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.3.1',
             testProfile: 'xcode_14_3_1-macosx-x86_64',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode 14.2)',
+            name: 'Run macOS tests (Xcode 14.2, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '14.2',
             testProfile: 'xcode_14_2-macosx-x86_64',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Run macOS tests (Xcode-less)',
+            name: 'Run macOS tests (Xcode-less, x64)',
             runner: 'macos-13',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '',
             testProfile: 'clang',
             qtVersion: '6.8.3',
+            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
     steps:
@@ -605,10 +650,10 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v4
       with:
-        name: qbs-macos-${{ github.run_id }}.tar.gz
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xzf qbs-macos-${{ github.run_id }}.tar.gz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Update PATH
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
