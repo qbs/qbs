@@ -39,9 +39,19 @@
 #############################################################################
 set -eu
 
+ARCH=$(uname -m)
+case "$ARCH" in
+    x86_64)
+        ARCH=x64
+        ;;
+    arm64)
+        ARCH=arm64
+        ;;
+esac
+
 case "$OSTYPE" in
     *darwin*)
-        HOST_OS=mac_x64
+        HOST_OS=mac_$ARCH
         TOOLCHAIN=clang_64
         ;;
     msys)
@@ -77,6 +87,7 @@ if [ -z "${TOOLCHAIN}" ]; then
     exit 1
 fi
 
+echo $ARCH
 echo $HOST_OS
 echo $TOOLCHAIN
 
