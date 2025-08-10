@@ -174,6 +174,10 @@ private slots:
     void installPackage();
     void installRootFromProjectFile();
     void installTree();
+    void libraryType_data();
+    void libraryType();
+    void pluginType_data();
+    void pluginType();
     void invalidArtifactPath_data();
     void invalidArtifactPath();
     void invalidCommandProperty_data();

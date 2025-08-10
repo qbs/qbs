@@ -7,8 +7,6 @@ Library {
     Depends { name: "config.myproject" }
     Depends { name: "installpaths" }
 
-    type: config.myproject.staticBuild ? "staticlibrary" : "dynamiclibrary"
-
     Group {
         condition: publicHeaders.length > 0
         name: "Public Headers"
@@ -21,13 +19,13 @@ Library {
     readonly property string _nameUpper : name.replace(" ", "_").toUpperCase()
     property string libraryMacro: _nameUpper + "_LIBRARY"
     property string staticLibraryMacro: _nameUpper + "_STATIC_LIBRARY"
-    cpp.defines: config.myproject.staticBuild ? [staticLibraryMacro] : [libraryMacro]
+    cpp.defines: config.build.libraryType === "static" ? [staticLibraryMacro] : [libraryMacro]
     cpp.sonamePrefix: qbs.targetOS.contains("darwin") ? "@rpath" : undefined
 
     Export {
         Depends { name: "cpp" }
         cpp.includePaths: [exportingProduct.sourceDirectory]
-        cpp.defines: exportingProduct.config.myproject.staticBuild
+        cpp.defines: exportingProduct.config.build.libraryType === "static"
             ? [exportingProduct.staticLibraryMacro] : []
     }
 

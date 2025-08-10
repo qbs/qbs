@@ -5163,6 +5163,102 @@ void TestBlackbox::installRootFromProjectFile()
     QVERIFY2(QFile::exists(installedFile), qPrintable(installedFile));
 }
 
+void TestBlackbox::libraryType_data()
+{
+    QTest::addColumn<QString>("libraryType");
+    QTest::newRow("dynamic") << QStringLiteral("dynamic");
+    QTest::newRow("static") << QStringLiteral("static");
+}
+
+void TestBlackbox::libraryType()
+{
+    QFETCH(QString, libraryType);
+    QDir::setCurrent(testDataDir + "/library-type");
+
+    rmDirR(relativeBuildDir());
+
+    QStringList args{QStringLiteral("modules.config.build.libraryType:") + libraryType};
+
+    QCOMPARE(runQbs(QbsRunParameters("build", args)), 0);
+
+    const bool isWindows = m_qbsStdout.contains("is windows: yes");
+    const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
+    const bool isGcc = m_qbsStdout.contains("is gcc: yes");
+    QVERIFY(isWindows || isDarwin || isGcc);
+
+    const QString installRoot = QDir::currentPath() + '/' + relativeBuildDir() + "/install-root";
+
+    QString filePath;
+    if (libraryType == QLatin1String("dynamic")) {
+        if (isWindows) {
+            filePath = installRoot + QStringLiteral("/bin/mylib.dll");
+        } else if (isDarwin) {
+            filePath = installRoot + QStringLiteral("/lib/libmylib.dylib");
+        } else if (isGcc) {
+            filePath = installRoot + QStringLiteral("/lib/libmylib.so");
+        }
+    } else {
+        if (isWindows && !isGcc) {
+            filePath = installRoot + QStringLiteral("/lib/mylib.lib");
+        } else {
+            filePath = installRoot + QStringLiteral("/lib/libmylib.a");
+        }
+    }
+    if (filePath.isEmpty())
+        QSKIP("Cannot determine file name");
+
+    QVERIFY2(QFileInfo::exists(filePath), qPrintable(filePath));
+}
+
+void TestBlackbox::pluginType_data()
+{
+    QTest::addColumn<QString>("pluginType");
+    QTest::newRow("dynamic plugin") << QStringLiteral("pluginType:dynamic");
+    QTest::newRow("static plugin") << QStringLiteral("pluginType:static");
+    QTest::newRow("static library") << QStringLiteral("libraryType:static");
+}
+
+void TestBlackbox::pluginType()
+{
+    QFETCH(QString, pluginType);
+    QDir::setCurrent(testDataDir + "/plugin-type");
+
+    rmDirR(relativeBuildDir());
+
+    QStringList args{QStringLiteral("modules.config.build.") + pluginType};
+
+    QCOMPARE(runQbs(QbsRunParameters("build", args)), 0);
+
+    const bool isWindows = m_qbsStdout.contains("is windows: yes");
+    const bool isDarwin = m_qbsStdout.contains("is darwin: yes");
+    const bool isGcc = m_qbsStdout.contains("is gcc: yes");
+    QVERIFY(isWindows || isDarwin || isGcc);
+
+    const QString installRoot = QDir::currentPath() + '/' + relativeBuildDir() + "/install-root";
+    const QString pluginsDir = QStringLiteral("/lib/plugin_type/plugins");
+
+    QString filePath;
+    if (pluginType == QLatin1String("pluginType:dynamic")) {
+        if (isWindows) {
+            filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.dll");
+        } else if (isDarwin) {
+            filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.dylib");
+        } else if (isGcc) {
+            filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.so");
+        }
+    } else {
+        if (isWindows && !isGcc) {
+            filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.lib");
+        } else {
+            filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.a");
+        }
+    }
+    if (filePath.isEmpty())
+        QSKIP("Cannot determine file name");
+
+    QVERIFY2(QFileInfo::exists(filePath), qPrintable(filePath));
+}
+
 void TestBlackbox::installable()
 {
     QDir::setCurrent(testDataDir + "/installable");

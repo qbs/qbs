@@ -29,10 +29,14 @@
 ****************************************************************************/
 
 NativeBinary {
+    Depends { name: "config.build" }
     type: {
+        var defaultType = config.build.libraryType + "library";
         if (qbs.targetOS.contains("ios") && parseInt(cpp.minimumIosVersion, 10) < 8)
             return ["staticlibrary"];
-        return ["dynamiclibrary"].concat(isForAndroid ? ["android.nativelibrary"] : []);
+        if (defaultType === "dynamiclibrary" && isForAndroid)
+            return [defaultType, "android.nativelibrary"];
+        return [defaultType];
     }
 
     readonly property bool isDynamicLibrary: type.contains("dynamiclibrary")

@@ -517,18 +517,8 @@
 
     \title Configurable Library
 
-    In this chapter, we will make our library more configurable. We will add configuration options
-    to be able to choose between static and dynamic builds.
-
-    We start with some a new property in the \c ConfigMyProject item:
-    \code
-    // qbs/imports/ConfigMyProject.qbs
-    Module {
-        ...
-        property bool staticBuild: false
-        ...
-    }
-    \endcode
+    In this chapter, we will make our library more configurable to be able to choose between
+    static and dynamic builds.
 
     We need to do some modifications to export macros in the \c lib/lib_global.h header:
     \snippet ../tutorial/chapter-8/lib/lib_global.h 0
@@ -542,19 +532,13 @@
     First thing to notice is that we changed the type of the item from \l{DynamicLibrary} to the
     \l{Library} item which is a common base item for dynamic and static libraries.
 
-    Second, we change the \l{Product::type}{type} of the product so it depends on the \c staticBuild
-    property:
-    \code
-    type: config.myproject.staticBuild ? "staticlibrary" : "dynamiclibrary"
-    \endcode
-
-    Third, we change our \e{export macro} to be different in the static and dynamic builds to
+    Second, we change our \e{export macro} to be different in the static and dynamic builds to
     correspond with the changes we made to the \c lib_global.h:
     \code
     readonly property string _nameUpper : name.replace(" ", "_").toUpperCase()
     property string libraryMacro: _nameUpper + "_LIBRARY"
     property string staticLibraryMacro: _nameUpper + "_STATIC_LIBRARY"
-    cpp.defines: buildconfig.staticBuild ? [staticLibraryMacro] : [libraryMacro]
+    cpp.defines: config.build.libraryType === "static" ? [staticLibraryMacro] : [libraryMacro]
     \endcode
 
     Note that in a static build we export the \c MYLIB_STATIC_LIBRARY macro so that the dependent
@@ -562,14 +546,14 @@
     \code
     Export {
         ...
-        cpp.defines: exportingProduct.config.myproject.staticBuild
+        cpp.defines: exportingProduct.config.build.libraryType === "static"
             ? [exportingProduct.staticLibraryMacro] : []
     }
     \endcode
 
     Now we can build our project in dynamic or static mode:
     \code
-    $ qbs resolve modules.config.myproject.staticBuild:false && qbs build
+    $ qbs resolve modules.config.build.libraryType:static && qbs build
     ...
     $ ls default/install-root/usr/local/lib/
         libmylib.1.0.0.so

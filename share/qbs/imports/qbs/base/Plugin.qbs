@@ -29,8 +29,21 @@
 **
 ****************************************************************************/
 
-DynamicLibrary {
+Library {
     Depends { name: "config.install" }
-    installDir: config.install.plugins ? config.install.pluginsDirectory : undefined
+    Depends { name: "config.build" }
+    type: {
+        var defaultType = config.build.pluginType + "library";
+        if (qbs.targetOS.contains("ios") && parseInt(cpp.minimumIosVersion, 10) < 8)
+            return ["staticlibrary"];
+        if (defaultType === "dynamiclibrary" && isForAndroid)
+            return [defaultType, "android.nativelibrary"];
+        return [defaultType];
+    }
+    installDir: {
+        if (config.build.pluginType == "dynamic" && config.install.plugins)
+            return config.install.pluginsDirectory;
+        return undefined;
+    }
     debugInformationInstallDir: config.install.debugInformationDirectory || installDir
 }
