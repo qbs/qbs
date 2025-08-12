@@ -12,13 +12,15 @@ Module {
             return "git";
         if (type === "svn")
             return "svn";
+        if (type === "hg")
+            return "hg";
     }
 
     property string headerFileName: "vcs-repo-state.h"
-    readonly property string repoState: gitProbe.repoState || subversionProbe.repoState
-    readonly property string repoLatestTag: gitProbe.repoLatestTag || subversionProbe.repoLatestTag
-    readonly property string repoCommitsSinceTag: gitProbe.repoCommitsSinceTag || subversionProbe.repoCommitsSinceTag
-    readonly property string repoCommitSha: gitProbe.repoCommitSha || subversionProbe.repoCommitSha
+    readonly property string repoState: gitProbe.repoState || subversionProbe.repoState || mercurialProbe.repoState
+    readonly property string repoLatestTag: gitProbe.repoLatestTag || subversionProbe.repoLatestTag || mercurialProbe.repoLatestTag
+    readonly property string repoCommitsSinceTag: gitProbe.repoCommitsSinceTag || subversionProbe.repoCommitsSinceTag || mercurialProbe.repoCommitsSinceTag
+    readonly property string repoCommitSha: gitProbe.repoCommitSha || subversionProbe.repoCommitSha || mercurialProbe.repoCommitSha
 
     // Internal
     readonly property string includeDir: FileInfo.joinPaths(product.buildDirectory, "vcs-include")
@@ -26,7 +28,7 @@ Module {
 
     PropertyOptions {
         name: "type"
-        allowedValues: ["git", "svn"]
+        allowedValues: ["git", "svn", "hg"]
         description: "the version control system your project is using"
     }
 
@@ -99,6 +101,12 @@ Module {
                             && Utilities.versionCompare(detector.readStdOut().trim(), "1.9") < 0) {
                         throw "svn too old, version >= 1.9 required";
                     }
+                } else if (detector.exec(tool || "hg", ["root"]) === 0) {
+                    found = true;
+                    type = "hg";
+                    var hgRoot = detector.readStdOut().trim();
+                    metaDataBaseDir = FileInfo.joinPaths(hgRoot, ".hg");
+                    return;
                 }
             } finally {
                 detector.close();
@@ -186,6 +194,47 @@ Module {
                 repoState = proc.readStdOut().trim();
                 if (repoState)
                     found = true;
+            } finally {
+                proc.close();
+            }
+        }
+    }
+
+    Probe {
+        id: mercurialProbe
+        condition: type === "hg"
+
+        property string tool: toolFilePath
+        property string theRepoDir: repoDir
+        property string filePath: FileInfo.joinPaths(metaDataBaseDir, "dirstate")
+        property var timestamp: File.lastModified(filePath)
+
+        property string repoState
+        property string repoLatestTag
+        property string repoCommitsSinceTag
+        property string repoCommitSha
+
+        configure: {
+            if (!File.exists(filePath))
+                return;
+
+            var proc = new Process();
+            try {
+                proc.setWorkingDirectory(theRepoDir);
+                var template = "{latesttag}-{latesttagdistance}-m{node|short}";
+                if (proc.exec(tool || "hg", ["log", "-r", ".", "--template", template]) === 0) {
+                    repoState = proc.readStdOut().trim();
+                    found = true;
+
+                    // Parse output: TAG-N-mSHA
+                    const tagSections = repoState.split("-").reverse();
+
+                    if (tagSections.length >= 3) {
+                        repoCommitSha = tagSections[0];
+                        repoCommitsSinceTag = tagSections[1];
+                        repoLatestTag = tagSections.slice(2).reverse().join("-"); // Handle tags with dashes
+                    }
+                }
             } finally {
                 proc.close();
             }

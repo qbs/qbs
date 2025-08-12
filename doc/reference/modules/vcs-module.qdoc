@@ -30,7 +30,7 @@
     \inqmlmodule QbsModules
     \since Qbs 1.10
 
-    \brief Provides support for version control systems (Git, SVN).
+    \brief Provides support for version control systems (Git, SVN, Mercurial).
 
     The \c vcs module provides information about the current state of the project's repository.
     This is useful for embedding version information directly into your binaries, such as the
@@ -38,6 +38,13 @@
 
     By default, a C header file is generated, which defines macros representing the repository
     state. This allows C/C++ code to access this information at run time.
+
+    Supported version control systems:
+    \list
+        \li Git
+        \li Subversion (SVN)
+        \li Mercurial (hg)
+    \endlist
 
     For example:
 
@@ -68,7 +75,8 @@
     VCS_REPO_COMMIT_SHA = "gabcdef0"
     \endcode
 
-    For repositories without any tags, the commit hash will be used instead.
+    For Git repositories without any tags, the commit hash will be used instead.
+    For Mercurial repositories, the full repository state is always shown.
     For SVN, only \l{vcs::}{repoState} is currently available.
 */
 
@@ -108,8 +116,21 @@
 
     Example values:
     \list
-        \li \c v1.0.0-3-gabc1234
-        \li \c abc1234-0-gabc1234
+        \li \c abc1234 (no tags)
+        \li \c abc1234-0-gabc1234 (at tag)
+        \li \c v1.0.0-3-gabc1234 (3 commits after tag)
+    \endlist
+
+    For Mercurial, this corresponds to the output of:
+    \c {hg log -r . --template "{latesttag}-{latesttagdistance}-m{node|short}"}
+
+    Example values:
+    \list
+        \li \c null-0-m000000000000 (empty repo)
+        \li \c null-1-mabc1234 (no tags)
+        \li \c null-3-mabc1234 (4 commits, no tags)
+        \li \c v1.0.0-1-mabc1234 (at tag)
+        \li \c v1.0.0-3-mabc1234 (4 commits after tag)
     \endlist
 
     For SVN, this is the current revision number.
@@ -125,6 +146,8 @@
     For Git, this is the \c TAG component from \c git describe output.
     If no tags are present, this will be set to \c "none".
 
+    For Mercurial, this is the \c {latesttag} component from the template.
+
     For SVN, this property is currently not set and will be \c "none".
 
     \nodefaultvalue
@@ -139,6 +162,8 @@
     For Git, this is the \c N component from \c git describe output.
     If no tags are present, this will be set to \c "none".
 
+    For Mercurial, this is the \c {latesttagdistance} component from the template.
+
     For SVN, this property is currently not set and will be \c "none".
 
     \nodefaultvalue
@@ -152,6 +177,8 @@
 
     For Git, this is the \c gSHA component from \c git describe output.
     If no tags are present, this will be set to the commit hash prefixed with \c g.
+
+    For Mercurial, this is the \c m{node|short} component from the template.
 
     For SVN, this property is currently not set and will be \c "none".
 
@@ -175,7 +202,7 @@
 
     The version control system used in the project.
 
-    Currently, the supported values are \c{"git"} and \c{"svn"}.
+    Currently, the supported values are \c{"git"}, \c{"hg"} and \c{"svn"}.
 
     \defaultvalue auto-detected
 */

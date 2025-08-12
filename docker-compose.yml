@@ -26,7 +26,7 @@ services:
   noble-qt6: &noble-qt6
     << : *linux
     hostname: noble-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.8.3_2.5.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.8.3_2.5.1-1
     build:
       dockerfile: docker/noble/Dockerfile
       context: .
@@ -40,7 +40,7 @@ services:
   noble-qt5:
     << : *linux
     hostname: noble-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-5.15.2_2.5.1-1
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-5.15.2_2.5.1-2
     build:
       dockerfile: docker/noble/Dockerfile
       context: .

@@ -85,7 +85,7 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-18
 
 # Set up Python
 RUN python3 -m venv /venv && \
-    /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan
+    /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan mercurial
 
 ENV PATH=/venv/bin:${PATH}
 

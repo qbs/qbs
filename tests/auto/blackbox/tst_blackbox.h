@@ -362,6 +362,7 @@ private slots:
     void variantSuffix_data();
     void vcsGit();
     void vcsSubversion();
+    void vcsMercurial();
     void versionCheck();
     void versionCheck_data();
     void versionScript();

@@ -1706,6 +1706,116 @@ void TestBlackbox::vcsSubversion()
     QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
 }
 
+void TestBlackbox::vcsMercurial()
+{
+    const QString hgFilePath = findExecutable(QStringList("hg"));
+    if (hgFilePath.isEmpty())
+        QSKIP("hg not found");
+
+    // Set up repo.
+    QTemporaryDir repoDir;
+    QVERIFY(repoDir.isValid());
+    ccp(testDataDir + "/vcs", repoDir.path());
+    QDir::setCurrent(repoDir.path());
+
+    QProcess hg;
+    hg.start(hgFilePath, QStringList{"init"});
+    QVERIFY(waitForProcessSuccess(hg));
+
+    const QStringList credentials{"--config", "ui.username=\"My Name <me@example.com>\""};
+
+    QCOMPARE(runQbs({"resolve", {"-f", repoDir.path()}}), 0);
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+
+    // Run without hg metadata
+    QbsRunParameters params("run", QStringList{"-f", repoDir.path()});
+    params.workingDir = repoDir.path() + "/..";
+    params.buildDirectory = repoDir.path();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    QMap<QString, QByteArray> newRepoState = getRepoStateFromApp();
+    QVERIFY(newRepoState.contains("repoState"));
+    QVERIFY(newRepoState.contains("latestTag"));
+    QVERIFY(newRepoState.contains("commitsSinceTag"));
+    QVERIFY(newRepoState.contains("commitSha"));
+    QCOMPARE(newRepoState["repoState"], QByteArray("none"));
+    QCOMPARE(newRepoState["latestTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("none"));
+    QCOMPARE(newRepoState["commitSha"], QByteArray("none"));
+    QMap<QString, QByteArray> oldRepoState = newRepoState;
+
+    // Initial commit
+    hg.start(hgFilePath, QStringList{"add", "main.cpp"});
+    QVERIFY(waitForProcessSuccess(hg));
+    hg.start(hgFilePath, credentials + QStringList{"commit", "-m", "initial commit"});
+    QVERIFY(waitForProcessSuccess(hg));
+
+    // Run with hg metadata.
+    WAIT_FOR_NEW_TIMESTAMP();
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
+    QCOMPARE(newRepoState["latestTag"], QByteArray("null"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("m")));
+    oldRepoState = newRepoState;
+
+    // Run with no changes.
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
+
+    // Run with changed source file.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("main.cpp");
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(!m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(oldRepoState, newRepoState);
+
+    // Add tag with dash
+    WAIT_FOR_NEW_TIMESTAMP();
+    hg.start(hgFilePath, credentials + QStringList{"tag", "v1.0.0-beta"});
+    QVERIFY(waitForProcessSuccess(hg));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0-beta"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("m")));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
+    oldRepoState = newRepoState;
+
+    // Add new file to repo. Add new tag
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("blubb.txt");
+    hg.start(hgFilePath, QStringList{"add", "blubb.txt"});
+    QVERIFY(waitForProcessSuccess(hg));
+    hg.start(hgFilePath, credentials + QStringList{"commit", "-m", "blubb!"});
+    QVERIFY(waitForProcessSuccess(hg));
+    hg.start(hgFilePath, credentials + QStringList{"tag", "v1.0.0"});
+    QVERIFY(waitForProcessSuccess(hg));
+    QCOMPARE(runQbs(params), 0);
+    QVERIFY2(m_qbsStdout.contains("generating my-repo-state.h"), m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStderr.constData());
+    newRepoState = getRepoStateFromApp();
+    QCOMPARE(newRepoState["latestTag"], QByteArray("v1.0.0"));
+    QCOMPARE(newRepoState["commitsSinceTag"], QByteArray("1"));
+    QVERIFY(newRepoState["commitSha"] != QByteArray("none"));
+    QVERIFY(newRepoState["commitSha"].startsWith(QByteArray("m")));
+    QVERIFY(oldRepoState["repoState"] != newRepoState["repoState"]);
+}
+
 void TestBlackbox::versionCheck()
 {
     QDir::setCurrent(testDataDir + "/versioncheck");
