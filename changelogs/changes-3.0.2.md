@@ -1,6 +1,9 @@
 # General
 * Fixed spurious complaint about property binding loop (QBS-1845).
 
+# CI
+* Ad-hoc signed macOS artifacts are now published by release jobs.
+
 # C/C++ support
 * Made defines and include paths for windres unique.
 

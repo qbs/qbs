@@ -62,17 +62,41 @@ jobs:
         path: release/qbs-linux-${{ github.run_id }}.tar.gz
 
   build-macos:
-    name: Build on macOS
-    runs-on: macos-13
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.runner }}
     timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            name: 'Build on macOS (arm64)',
+            runner: 'macos-14',
+            profile: 'xcode_15_1-macosx-arm64',
+            toolchain: 'clang_64',
+            options: 'qbs.installPrefix:""
+                      modules.cpp.compilerWrapper:ccache
+                      project.withTests:false
+                      modules.qbsbuildconfig.enableUnitTests:false
+                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      products.qbs_archive.targetName:qbs-macos-arm64-${{ github.run_id }}',
+            suffix: 'macos-arm64',
+          }
+        - {
+            name: 'Build on macOS (x86_64)',
+            runner: 'macos-13',
+            profile: 'xcode_15_1-macosx-x86_64',
+            toolchain: 'clang_64',
+            options: 'qbs.installPrefix:""
+                      modules.cpp.compilerWrapper:ccache
+                      project.withTests:false
+                      modules.qbsbuildconfig.enableUnitTests:false
+                      modules.qbsbuildconfig.enableAddressSanitizer:false
+                      products.qbs_archive.targetName:qbs-macos-x86_64-${{ github.run_id }}',
+            suffix: 'macos-x86_64',
+          }
     env:
-      BUILD_OPTIONS: |
-        qbs.installPrefix:""
-        modules.cpp.compilerWrapper:ccache
-        project.withTests:false
-        modules.qbsbuildconfig.enableUnitTests:false
-        modules.qbsbuildconfig.enableAddressSanitizer:false
-        products.qbs_archive.targetName:qbs-macos-${{ github.run_id }}
+      BUILD_OPTIONS: ${{ matrix.config.options }}
       WITH_TESTS: 0
     steps:
     - uses: actions/checkout@v1
@@ -89,20 +113,26 @@ jobs:
         key: ${{ runner.os }}-release-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-release-ccache
     - name: Install required packages
+      run: brew install ccache
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+    - name: Install Python dependencies
       run: |
-        brew install ccache p7zip
-        python3 -m pip install --user beautifulsoup4 lxml
+        python -m pip install --upgrade pip
+        pip install beautifulsoup4 lxml
     - name: Install Qt
       uses: ./.github/actions/download-qt
       with:
-        toolchain: clang_64
+        toolchain: ${{ matrix.config.toolchain }}
     - name: Install Qt Creator
       uses: ./.github/actions/download-qtc
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
         qbs setup-qt --detect
-        qbs config profiles.qt.baseProfile xcode_14_2-macosx-x86_64
+        qbs config profiles.qt.baseProfile ${{ matrix.config.profile }}
         qbs config defaultProfile qt
         qbs config --list
     - name: Print ccache stats
@@ -114,8 +144,8 @@ jobs:
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v4'
       with:
-        name: qbs-macos-${{ github.run_id }}.tar.gz
-        path: release/qbs-macos-${{ github.run_id }}.tar.gz
+        name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
+        path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
 
   build-windows-with-docker:
     name: Build on Windows (Docker)
@@ -172,7 +202,7 @@ jobs:
   create-archives:
     name: Create Archives
     runs-on: ubuntu-latest
-    needs: [build-linux, build-windows-with-docker]
+    needs: [build-macos, build-linux, build-windows-with-docker]
     steps:
     - uses: actions/checkout@v1
       with:
@@ -214,6 +244,28 @@ jobs:
       run: |
         cp ./tmp/release/qbs.*.nupkg ./release
         cp ./tmp/release/qbs-windows-x86_64-*.zip ./release
+    - name: Download macOS arm64 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-macos-arm64-${{ github.run_id }}.tar.gz
+        path: ./tmp/
+    - name: Repack Macos arm64 artifact
+      run: |
+        mkdir -p tmp/qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}
+        tar xzf ./tmp/qbs-macos-arm64-${{ github.run_id }}.tar.gz -C tmp/qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}
+        cd tmp/
+        tar czf ../release/qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}
+    - name: Download macOS x86_64 artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: qbs-macos-x86_64-${{ github.run_id }}.tar.gz
+        path: ./tmp
+    - name: Repack Macos x86_64 artifact
+      run: |
+        mkdir -p tmp/qbs-macos-x86_64-${{ steps.get-version-name.outputs.version-name }}
+        tar xzf ./tmp/qbs-macos-x86_64-${{ github.run_id }}.tar.gz -C tmp/qbs-macos-x86_64-${{ steps.get-version-name.outputs.version-name }}
+        cd tmp/
+        tar czf ../release/qbs-macos-x86_64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-macos-x86_64-${{ steps.get-version-name.outputs.version-name }}
     - name: Copy changelog
       run: cp changelogs/changes-${{ steps.get-version-name.outputs.version-name }}.md release || echo "changelog not found"
     - name: Generate checksums
@@ -232,6 +284,7 @@ jobs:
           release/qbs-src-*.zip
           release/qbs-src-*.tar.gz
           release/qbs-linux-*.tar.gz
+          release/qbs-macos-*.tar.gz
           release/qbs.*.nupkg
           release/qbs-windows-x86_64-*.zip
           release/changes-*.md
