@@ -6,6 +6,7 @@
 
 # C/C++ support
 * Made defines and include paths for windres unique.
+* Fixed support for STABLE and CURRENT releases for FreeBSD.
 
 # Qt support
 * Fixed building Qt apps for iOS-simulator when qbs.architecture is undefined.
