@@ -10,7 +10,11 @@ QbsProduct {
         var result = [];
         result.push(FileInfo.joinPaths(qbs.installPrefix, qbsbuildconfig.libDirName, "pkgconfig"));
         result.push(FileInfo.joinPaths(qbs.installPrefix, "share", "pkgconfig"));
-        if (qbs.hostOS.contains("unix")) {
+        if (qbs.hostOS.contains("freebsd")) {
+            result.push("/usr/local/libdata/pkgconfig/");
+            result.push("/usr/libdata/pkgconfig/");
+            result.push("/usr/local/share/pkgconfig/");
+        } else if (qbs.hostOS.contains("unix")) {
             result.push("/usr/lib/pkgconfig/")
             result.push("/usr/share/pkgconfig/")
         }
