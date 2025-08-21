@@ -727,18 +727,18 @@ void TestBlackboxApple::codesign()
     QFETCH(bool, multiArch);
     QFETCH(bool, multiVariant);
 
-    // on Apple silicon, apps are signed by default
-    const bool isSigned = HostOsInfo::hostOSArchitecture() == "arm64" || enableSigning;
+    const auto xcode = findXcode();
 
-    const auto xcodeVersion = findXcodeVersion();
-
-    if (!xcodeVersion)
+    if (!xcode)
         QSKIP("requires Xcode profile");
+
+    const auto xcodeVersion = qbs::Version::fromString(xcode->value("version").toString());
+    const bool isSigned = xcode->value("isSignedByDefault").toBool() || enableSigning;
 
     QDir::setCurrent(testDataDir + "/codesign");
     QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
     // the test can't use xcode module to determine version itself
-    params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion->toString();
+    params.arguments << QStringLiteral("project.xcodeVersion:") + xcodeVersion.toString();
     params.arguments << QStringLiteral("project.isBundle:%1").arg(isBundle ? "true" : "false");
     params.arguments << QStringLiteral("project.enableSigning:%1")
                             .arg(enableSigning ? "true" : "false");
