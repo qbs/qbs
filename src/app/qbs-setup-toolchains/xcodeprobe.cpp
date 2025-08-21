@@ -48,12 +48,13 @@
 #include <tools/qttools.h>
 #include <tools/settings.h>
 
-#include <QtCore/qstringlist.h>
-#include <QtCore/qprocess.h>
 #include <QtCore/qbytearray.h>
-#include <QtCore/qfileinfo.h>
 #include <QtCore/qdir.h>
+#include <QtCore/qfileinfo.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qsettings.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qsysinfo.h>
 
 #include <regex>
 
@@ -91,10 +92,14 @@ static QStringList archList(const QString &applePlatformName)
             || applePlatformName == QStringLiteral("iphonesimulator")
             || applePlatformName == QStringLiteral("appletvsimulator")
             || applePlatformName == QStringLiteral("watchsimulator")) {
-        if (applePlatformName != QStringLiteral("appletvsimulator"))
-            archs << QStringLiteral("x86");
-        if (applePlatformName != QStringLiteral("watchsimulator"))
-            archs << QStringLiteral("x86_64");
+        if (QSysInfo::buildCpuArchitecture() == QStringLiteral("arm64")) {
+            archs << QStringLiteral("arm64");
+        } else {
+            if (applePlatformName != QStringLiteral("appletvsimulator"))
+                archs << QStringLiteral("x86");
+            if (applePlatformName != QStringLiteral("watchsimulator"))
+                archs << QStringLiteral("x86_64");
+        }
         if (applePlatformName == QStringLiteral("macosx"))
             archs << QStringLiteral("arm64");
     } else if (applePlatformName == QStringLiteral("iphoneos")
