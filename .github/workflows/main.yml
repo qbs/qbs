@@ -567,7 +567,18 @@ jobs:
             qtVersion: '6.8.3',
             suffix: 'macos-arm64',
             script: './scripts/test-qbs.sh',
-            }
+          }
+        - {
+            name: 'Test iOS (Xcode 16.4, arm64)',
+            runner: 'macos-15',
+            target: 'ios',
+            toolchain: 'ios',
+            xcodeVersion: '16.4',
+            testProfile: 'xcode_16_4-iphoneos-arm64',
+            qtVersion: '6.8.3',
+            suffix: 'macos-arm64',
+            script: './scripts/test-qbs.sh',
+          }
         - {
             name: 'Test macOS (Xcode 15.1, x64)',
             runner: 'macos-13',
@@ -589,17 +600,6 @@ jobs:
             qtVersion: '5.15.2',
             suffix: 'macos',
             script: './scripts/test-qt.sh',
-          }
-        - {
-            name: 'Test iOS (Xcode 15.1, arm64)',
-            runner: 'macos-13',
-            target: 'ios',
-            toolchain: 'ios',
-            xcodeVersion: '15.1',
-            testProfile: 'xcode_15_1-iphoneos-arm64',
-            qtVersion: '6.8.3',
-            suffix: 'macos',
-            script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Test iOS-sim (Xcode 15.1, x64)',
