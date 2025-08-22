@@ -4,7 +4,9 @@ import qbs.TextFile
 Product {
     property bool isSignedByDefault: {
         // on Apple silicon, apps are signed by default
-        return qbs.targetOS.includes("macos") && Host.architecture() === "arm64"
+        return Host.architecture() === "arm64"
+               && (qbs.targetOS.includes("macos")
+                || qbs.targetOS.includes("ios-simulator") && qbs.targetArchitecture === "arm64")
     }
     Depends { name: "xcode"; required: false }
     type: ["json"]

@@ -48,7 +48,10 @@ DarwinGCC {
         if (xcode.present && Utilities.versionCompare(xcode.version, "12.0") >= 0)
             return "8.0";
     }
-    targetSystem: "ios" + (minimumIosVersion || "")
+    targetSystem: {
+        return "ios" + (minimumIosVersion || "")
+            + (qbs.targetOS.includes('ios-simulator') ? "-simulator" : "");
+    }
 
     minimumDarwinVersion: minimumIosVersion
     minimumDarwinVersionCompilerFlag: qbs.targetOS.includes("ios-simulator")

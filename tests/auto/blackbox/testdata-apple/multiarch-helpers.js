@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Host = require("qbs.Host");
 var Utilities = require("qbs.Utilities");
 
 // Typically, multiple architectures are used for migration from "old" arch to a "new" one
@@ -38,16 +39,16 @@ function enableOldArch(qbs, xcodeVersion) {
             && xcodeVersion
             && (Utilities.versionCompare(xcodeVersion, "10") < 0
                 || Utilities.versionCompare(xcodeVersion, "12.2") >= 0)
-            || (qbs.targetOS.includes("ios")
+            || (qbs.targetOS.includes("ios") && !qbs.targetOS.includes("ios-simulator")
                 && Utilities.versionCompare(xcodeVersion, "14") < 0)
 }
 
 function getNewArch(qbs, xcodeVersion) {
+    const isNewXcode = xcodeVersion && Utilities.versionCompare(xcodeVersion, "12.2") >= 0;
     if (qbs.targetOS.includes("macos"))
-        return xcodeVersion
-                && Utilities.versionCompare(xcodeVersion, "12.2") >= 0 ? "arm64" : "x86_64";
+        return isNewXcode ? "arm64" : "x86_64";
     else if (qbs.targetOS.includes("ios-simulator"))
-        return "x86_64"
+        return "x86_64";
     else if (qbs.targetOS.includes("ios"))
         return "arm64"
     else if (qbs.targetOS.includes("tvos"))
