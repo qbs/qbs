@@ -38,7 +38,8 @@ function enableOldArch(qbs, xcodeVersion) {
             && xcodeVersion
             && (Utilities.versionCompare(xcodeVersion, "10") < 0
                 || Utilities.versionCompare(xcodeVersion, "12.2") >= 0)
-            || qbs.targetOS.includes("ios")
+            || (qbs.targetOS.includes("ios")
+                && Utilities.versionCompare(xcodeVersion, "14") < 0)
 }
 
 function getNewArch(qbs, xcodeVersion) {
