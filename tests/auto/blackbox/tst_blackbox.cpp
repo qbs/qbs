@@ -5690,16 +5690,22 @@ void TestBlackbox::jsExtensionsProcess()
     QVERIFY(output.exists());
     QVERIFY(output.open(QIODevice::ReadOnly));
     const QList<QByteArray> lines = output.readAll().trimmed().split('\n');
-    QCOMPARE(lines.size(), 9);
+    QCOMPARE(lines.size(), 15);
     QCOMPARE(lines.at(0).trimmed().constData(), "0");
     QVERIFY(lines.at(1).startsWith("qbs "));
     QCOMPARE(lines.at(2).trimmed().constData(), "true");
     QCOMPARE(lines.at(3).trimmed().constData(), "true");
     QCOMPARE(lines.at(4).trimmed().constData(), "0");
     QVERIFY(lines.at(5).startsWith("qbs "));
-    QCOMPARE(lines.at(6).trimmed().constData(), "false");
-    QCOMPARE(lines.at(7).trimmed().constData(), "should be");
-    QCOMPARE(lines.at(8).trimmed().constData(), "123");
+    QCOMPARE(lines.at(6).trimmed().constData(), "Unknown error");
+    QCOMPARE(lines.at(7).trimmed().constData(), "false");
+    QVERIFY(lines.at(8).trimmed() != "Unknown error");
+    QCOMPARE(lines.at(9).trimmed().constData(), "Unknown error");
+    QCOMPARE(lines.at(10).trimmed().constData(), "-1");
+    QVERIFY(lines.at(11).trimmed() != "Unknown error");
+    QVERIFY(lines.at(12).startsWith("Error running "));
+    QCOMPARE(lines.at(13).trimmed().constData(), "should be");
+    QCOMPARE(lines.at(14).trimmed().constData(), "123");
 }
 
 void TestBlackbox::jsExtensionsPropertyList()

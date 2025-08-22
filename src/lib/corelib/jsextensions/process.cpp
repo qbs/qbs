@@ -87,6 +87,7 @@ public:
     DEFINE_JS_FORWARDER(jsWrite, &Process::write, "Process.write")
     DEFINE_JS_FORWARDER(jsWriteLine, &Process::writeLine, "Process.writeLine")
     DEFINE_JS_FORWARDER(jsExitCode, &Process::exitCode, "Process.exitCode")
+    DEFINE_JS_FORWARDER(jsErrorString, &Process::errorString, "Process.errorString")
 
     static JSValue jsExec(JSContext *ctx, JSValueConst this_val, int argc, JSValueConst *argv)
     {
@@ -134,6 +135,8 @@ public:
     void writeLine(const QString &str);
 
     int exitCode() const { return m_qProcess->exitCode(); }
+
+    QString errorString() const { return m_qProcess->errorString(); }
 
     static JSValue jsShellQuote(JSContext *ctx, JSValue, int argc, JSValue *argv);
 
@@ -199,6 +202,7 @@ void Process::setupMethods(JSContext *ctx, JSValue obj)
     setupMethod(ctx, obj, "write", &jsWrite, 1);
     setupMethod(ctx, obj, "writeLine", &jsWriteLine, 1);
     setupMethod(ctx, obj, "exitCode", &jsExitCode, 0);
+    setupMethod(ctx, obj, "errorString", &jsErrorString, 0);
 }
 
 Process::Process(JSContext *)

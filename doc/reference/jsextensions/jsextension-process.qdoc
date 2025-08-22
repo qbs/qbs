@@ -58,6 +58,16 @@
     written to the process. After calling this function, any attempts to write to the process will do
     nothing. See \c QProcess::closeWriteChannel() for more details.
 
+    \section2 errorString
+    \code
+    errorString(): string
+    \endcode
+    Returns a human-readable description of the last error that occurred with the process.
+    This can be useful when \c start() or \c exec() fails, to provide more detailed information
+    about the reason (for example, "No such file or directory"). See \c QIODevice::errorString() for
+    more details.
+    \since Qbs 3.1.0
+
     \section2 exec
     \code
     exec(filePath: string, arguments: string[], throwOnError: boolean): number

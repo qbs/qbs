@@ -50,8 +50,27 @@ Project {
 
                     // Asynchronous run, unsuccessful.
                     process = new Process();
+                    output.writeLine(process.errorString());
                     output.writeLine(process.start("blubb", []));
+                    output.writeLine(process.errorString());
                     process.close();
+
+                    // Synchronous run, unsuccessful.
+                    process = new Process();
+                    output.writeLine(process.errorString());
+                    output.writeLine(process.exec("blubb", []));
+                    output.writeLine(process.errorString());
+                    process.close();
+
+                    // Synchronous run, unsuccessful (throw).
+                    process = new Process();
+                    try {
+                        process.exec("blubb", [], true);
+                    } catch (e) {
+                        output.writeLine(e);
+                    } finally {
+                        process.close();
+                    }
 
                     // closeWriteChannel test
                     process = new Process();
