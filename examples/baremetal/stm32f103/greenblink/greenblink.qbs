@@ -55,7 +55,7 @@ CppApplication {
         return (qbs.toolchain.contains("gcc")
                 || qbs.toolchain.contains("iar")
                 || qbs.toolchain.contains("keil"))
-                && !qbs.toolchain.contains("xcode")
+                && !qbs.targetOS.includes("darwin")
     }
     name: "stm32f103-greenblink"
     cpp.cLanguageVersion: "c99"

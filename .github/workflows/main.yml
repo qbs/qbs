@@ -638,14 +638,14 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Test macOS (Xcode-less, x64)',
-            runner: 'macos-13',
+            name: 'Test macOS (Xcode-less, arm64)',
+            runner: 'macos-15',
             target: 'desktop',
             toolchain: 'clang_64',
             xcodeVersion: '',
             testProfile: 'clang',
             qtVersion: '6.8.3',
-            suffix: 'macos',
+            suffix: 'macos-arm64',
             script: './scripts/test-qbs.sh',
           }
     steps:
@@ -698,7 +698,8 @@ jobs:
       if: matrix.config.xcodeVersion != ''
     - name: Setup Qbs (Xcode-less)
       run: |
-        qbs setup-toolchains /usr/bin/clang++ ${{ matrix.config.testProfile }}
+        qbs setup-toolchains $(brew --prefix llvm@18)/bin/clang ${{ matrix.config.testProfile }}
+        qbs config profiles.${{ matrix.config.testProfile }}.qbs.architecture arm64
         qbs setup-qt $(which qmake) qt
         qbs config profiles.qt.baseProfile ${{ matrix.config.testProfile }}
         qbs config defaultProfile qt

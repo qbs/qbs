@@ -55,7 +55,7 @@ CppApplication {
         return (qbs.toolchain.contains("gcc")
                 || qbs.toolchain.contains("iar")
                 || qbs.toolchain.contains("keil"))
-                && !qbs.toolchain.contains("xcode")
+                && !qbs.targetOS.includes("darwin")
     }
     name: "stm32f4discovery-blueblink"
     cpp.cLanguageVersion: "c99"
