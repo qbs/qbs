@@ -221,7 +221,7 @@ jobs:
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache
     - name: Install required packages
-      run: brew install ccache ninja p7zip
+      run: brew install ccache
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
@@ -251,6 +251,7 @@ jobs:
       run: ccache -s
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v4'
+      if: matrix.config.cacheid != 'clang-cmake'
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
@@ -659,7 +660,7 @@ jobs:
     - name: Update PATH
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
-      run: brew install capnp ccache grpc icoutils makensis protobuf p7zip
+      run: brew install capnp ccache grpc icoutils makensis protobuf
     - name: Set up Python
       uses: actions/setup-python@v5
       if: matrix.config.toolchain == 'clang_64'
@@ -670,9 +671,7 @@ jobs:
       uses: turtlebrowser/get-conan@main
     - name: Setup Conan
       if: matrix.config.toolchain == 'clang_64'
-      run: |
-        brew install ninja
-        ./scripts/setup-conan-profiles.sh
+      run: ./scripts/setup-conan-profiles.sh
     - name: Install Host Qt
       if: matrix.config.toolchain == 'ios'
       uses: ./.github/actions/download-qt
