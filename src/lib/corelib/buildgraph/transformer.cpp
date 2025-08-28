@@ -323,6 +323,28 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
     exportedModulesAccessedInCommands = other->exportedModulesAccessedInCommands;
 }
 
+void Transformer::rescueFromArtifactData(RescuableArtifactData &&rad)
+{
+    propertiesRequestedInPrepareScript = std::move(rad.propertiesRequestedInPrepareScript);
+    propertiesRequestedInCommands = std::move(rad.propertiesRequestedInCommands);
+    propertiesRequestedFromArtifactInPrepareScript = std::move(
+        rad.propertiesRequestedFromArtifactInPrepareScript);
+    propertiesRequestedFromArtifactInCommands = std::move(
+        rad.propertiesRequestedFromArtifactInCommands);
+    importedFilesUsedInPrepareScript = std::move(rad.importedFilesUsedInPrepareScript);
+    importedFilesUsedInCommands = std::move(rad.importedFilesUsedInCommands);
+    depsRequestedInPrepareScript = std::move(rad.depsRequestedInPrepareScript);
+    depsRequestedInCommands = std::move(rad.depsRequestedInCommands);
+    artifactsMapRequestedInPrepareScript = std::move(rad.artifactsMapRequestedInPrepareScript);
+    artifactsMapRequestedInCommands = std::move(rad.artifactsMapRequestedInCommands);
+    exportedModulesAccessedInPrepareScript = std::move(rad.exportedModulesAccessedInPrepareScript);
+    exportedModulesAccessedInCommands = std::move(rad.exportedModulesAccessedInCommands);
+    lastCommandExecutionTime = rad.lastCommandExecutionTime;
+    lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
+    commandsNeedChangeTracking = true;
+    markedForRerun = markedForRerun || rad.knownOutOfDate;
+}
+
 Set<QString> Transformer::jobPools() const
 {
     Set<QString> pools;

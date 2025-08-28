@@ -828,8 +828,8 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
         return;
 
     ResolvedProduct * const product = artifact->product.get();
-    const RescuableArtifactData rad
-            = product->buildData->removeFromRescuableArtifactData(artifact->filePath());
+    RescuableArtifactData rad = product->buildData->removeFromRescuableArtifactData(
+        artifact->filePath());
     if (!rad.isValid())
         return;
     qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
@@ -904,33 +904,9 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
     }
 
     if (canRescue) {
-        artifact->transformer->propertiesRequestedInPrepareScript
-                = rad.propertiesRequestedInPrepareScript;
-        artifact->transformer->propertiesRequestedInCommands
-                = rad.propertiesRequestedInCommands;
-        artifact->transformer->propertiesRequestedFromArtifactInPrepareScript
-                = rad.propertiesRequestedFromArtifactInPrepareScript;
-        artifact->transformer->propertiesRequestedFromArtifactInCommands
-                = rad.propertiesRequestedFromArtifactInCommands;
-        artifact->transformer->importedFilesUsedInPrepareScript
-                = rad.importedFilesUsedInPrepareScript;
-        artifact->transformer->importedFilesUsedInCommands = rad.importedFilesUsedInCommands;
-        artifact->transformer->depsRequestedInPrepareScript = rad.depsRequestedInPrepareScript;
-        artifact->transformer->depsRequestedInCommands = rad.depsRequestedInCommands;
-        artifact->transformer->artifactsMapRequestedInPrepareScript
-                = rad.artifactsMapRequestedInPrepareScript;
-        artifact->transformer->artifactsMapRequestedInCommands
-                = rad.artifactsMapRequestedInCommands;
-        artifact->transformer->exportedModulesAccessedInPrepareScript
-                = rad.exportedModulesAccessedInPrepareScript;
-        artifact->transformer->exportedModulesAccessedInCommands
-                = rad.exportedModulesAccessedInCommands;
-        artifact->transformer->lastCommandExecutionTime = rad.lastCommandExecutionTime;
-        artifact->transformer->lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
-        artifact->transformer->commandsNeedChangeTracking = true;
         artifact->setTimestamp(rad.timeStamp);
-        artifact->transformer->markedForRerun
-                = artifact->transformer->markedForRerun || rad.knownOutOfDate;
+        artifact->transformer->rescueFromArtifactData(std::move(rad));
+
         if (childrenAdded && !childrenToConnect.empty())
             *childrenAdded = true;
         for (Artifact * const child : childrenToConnect) {

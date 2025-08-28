@@ -58,8 +58,9 @@
 
 namespace qbs {
 namespace Internal {
-class Artifact;
 class AbstractCommand;
+class Artifact;
+class RescuableArtifactData;
 class Rule;
 
 class Transformer
@@ -102,6 +103,7 @@ public:
     void createCommands(ScriptEngine *engine, const PrivateScriptFunction &script,
                         const JSValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
+    void rescueFromArtifactData(RescuableArtifactData &&rad);
 
     Set<QString> jobPools() const;
 
