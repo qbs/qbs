@@ -16,3 +16,4 @@
 # Contributors
 * Björn Schäpers
 * Christian Kandeler
+* Pino Toscano
