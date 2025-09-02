@@ -110,7 +110,7 @@ FileTime FileTime::oldestTime()
 
 double FileTime::asDouble() const
 {
-    return static_cast<double>(m_fileTime);
+    return static_cast<double>(m_fileTime) / 10000000.0;
 }
 
 QString FileTime::toString() const
@@ -199,7 +199,8 @@ FileTime FileTime::oldestTime()
 
 double FileTime::asDouble() const
 {
-    return static_cast<double>(m_fileTime.tv_sec);
+    return static_cast<double>(m_fileTime.tv_sec)
+           + static_cast<double>(m_fileTime.tv_nsec) / 1000000000.0;
 }
 
 QString FileTime::toString() const
