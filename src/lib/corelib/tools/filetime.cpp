@@ -82,12 +82,11 @@ bool FileTime::isValid() const
 
 FileTime FileTime::currentTime()
 {
-    FileTime result;
     SYSTEMTIME st;
     GetSystemTime(&st);
-    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
-    SystemTimeToFileTime(&st, ft);
-    return result;
+    FILETIME ft{};
+    SystemTimeToFileTime(&st, &ft);
+    return fromFileTime(ft);
 }
 
 FileTime FileTime::oldestTime()
@@ -102,10 +101,9 @@ FileTime FileTime::oldestTime()
         0,
         0
     };
-    FileTime result;
-    auto const ft = reinterpret_cast<FILETIME *>(&result.m_fileTime);
-    SystemTimeToFileTime(&st, ft);
-    return result;
+    FILETIME ft{};
+    SystemTimeToFileTime(&st, &ft);
+    return fromFileTime(ft);
 }
 
 double FileTime::asDouble() const
@@ -115,9 +113,9 @@ double FileTime::asDouble() const
 
 QString FileTime::toString() const
 {
-    auto const ft = reinterpret_cast<const FILETIME *>(&m_fileTime);
+    const auto ft = toFileTime<FILETIME>(m_fileTime);
     SYSTEMTIME stUTC, stLocal;
-    FileTimeToSystemTime(ft, &stUTC);
+    FileTimeToSystemTime(&ft, &stUTC);
     SystemTimeToTzSpecificLocalTime(NULL, &stUTC, &stLocal);
     const QString result = QStringLiteral("%1.%2.%3 %4:%5:%6")
             .arg(stLocal.wDay, 2, 10, QLatin1Char('0')).arg(stLocal.wMonth, 2, 10, QLatin1Char('0')).arg(stLocal.wYear)

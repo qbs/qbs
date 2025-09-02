@@ -304,9 +304,7 @@ bool FileInfo::exists() const
 
 FileTime FileInfo::lastModified() const
 {
-    const FileTime::InternalType* ft_it;
-    ft_it = reinterpret_cast<const FileTime::InternalType*>(&z(m_stat)->ftLastWriteTime);
-    return {*ft_it};
+    return fromFileTime(z(m_stat)->ftLastWriteTime);
 }
 
 FileTime FileInfo::lastStatusChange() const

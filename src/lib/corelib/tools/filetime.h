@@ -52,6 +52,23 @@
 namespace qbs {
 namespace Internal {
 
+#if defined(Q_OS_WIN)
+template<typename T>
+T toFileTime(quint64 fileTime)
+{
+    T result;
+    result.dwLowDateTime = fileTime;
+    result.dwHighDateTime = fileTime >> 32;
+    return result;
+}
+template<typename T>
+quint64 fromFileTime(T fileTime)
+{
+    return static_cast<quint64>(fileTime.dwLowDateTime)
+           | (static_cast<quint64>(fileTime.dwHighDateTime) << 32);
+}
+#endif
+
 class QBS_AUTOTEST_EXPORT FileTime
 {
 public:
