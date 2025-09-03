@@ -510,6 +510,25 @@ void TestBlackbox::alwaysRun_data()
     QTest::newRow("Rule") << "rule.qbs";
 }
 
+void TestBlackbox::archiverFlags()
+{
+    QDir::setCurrent(testDataDir + "/archiver-flags");
+    QCOMPARE(runQbs(QbsRunParameters("resolve", QStringList("-n"))), 0);
+    if (!m_qbsStdout.contains("toolchain is MSVC"))
+        QSKIP("Test applies to MSVC toolchain only");
+    QCOMPARE(runQbs(QStringList({"-n", "--command-echo-mode", "command-line"})), 0);
+    const QByteArrayList output = m_qbsStdout.split('\n');
+    QByteArray archiveLine;
+    for (const QByteArray &line : output) {
+        if (line.contains("lib.exe") && line.contains(".lib")) {
+            archiveLine = line;
+            break;
+        }
+    }
+    QVERIFY(!archiveLine.isEmpty());
+    QVERIFY2(archiveLine.contains("/WX"), archiveLine.constData());
+}
+
 void TestBlackbox::artifactsMapChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/artifacts-map-change-tracking");
