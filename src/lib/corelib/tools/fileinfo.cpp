@@ -542,8 +542,13 @@ static bool createSymLink(const QByteArray &path1, const QString &path2)
   \note Function was adapted from qtc/src/libs/fileutils.cpp
 */
 
-bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
-        bool preserveSymLinks, bool copyDirectoryContents, QString *errorMessage)
+bool copyFileRecursion(
+    const QString &srcFilePath,
+    const QString &tgtFilePath,
+    bool preserveSymLinks,
+    bool copyDirectoryContents,
+    QString *errorMessage,
+    bool *skipped)
 {
     QFileInfo srcFileInfo(srcFilePath);
     QFileInfo tgtFileInfo(tgtFilePath);
@@ -579,8 +584,11 @@ bool copyFileRecursion(const QString &srcFilePath, const QString &tgtFilePath,
             return QDir::root().mkpath(tgtFilePath);
         }
     } else {
-        if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified())
+        if (tgtFileInfo.exists() && srcFileInfo.lastModified() <= tgtFileInfo.lastModified()) {
+            if (skipped)
+                *skipped = true;
             return true;
+        }
         QFile file(srcFilePath);
         QFile targetFile(tgtFilePath);
         if (targetFile.exists()) {

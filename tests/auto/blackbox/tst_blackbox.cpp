@@ -2602,6 +2602,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     const bool isGcc = m_qbsStdout.contains("is gcc: true");
     const bool isNotGcc = m_qbsStdout.contains("is gcc: false");
@@ -2613,6 +2614,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(!m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
     params.command = "resolve";
     QCOMPARE(runQbs(params), 0);
     params.command = "build";
@@ -2621,6 +2623,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY2(!m_qbsStdout.contains("compiling jsFileChange.cpp"), m_qbsStdout.constData());
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(), 0);
@@ -2628,6 +2631,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     WAIT_FOR_NEW_TIMESTAMP();
     REPLACE_IN_FILE("fileList.js", "return []", "return ['jsFileChange.cpp']");
@@ -2636,6 +2640,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     rmDirR(relativeBuildDir());
     REPLACE_IN_FILE("fileList.js", "['jsFileChange.cpp']", "[]");
@@ -2644,6 +2649,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     QFile cppFile("fileExists.cpp");
     QVERIFY(cppFile.open(QIODevice::WriteOnly));
@@ -2654,6 +2660,7 @@ void TestBlackbox::trackExternalProductChanges()
     QVERIFY(!m_qbsStdout.contains("compiling environmentChange.cpp"));
     QVERIFY(!m_qbsStdout.contains("compiling jsFileChange.cpp"));
     QVERIFY(m_qbsStdout.contains("compiling fileExists.cpp"));
+    QVERIFY2(m_qbsStdout.contains("Installing"), m_qbsStdout.constData());
 
     if (isNotGcc)
         QSKIP("The remainder of this test requires a GCC-like toolchain");

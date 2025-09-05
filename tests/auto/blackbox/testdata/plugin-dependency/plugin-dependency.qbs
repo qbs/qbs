@@ -19,11 +19,13 @@ Project {
     }
     DynamicLibrary {
         name: "plugin1"
+        install: false
         files: ["plugin1.cpp"]
         Depends { name: "cpp" }
     }
     DynamicLibrary {
         name: "plugin2"
+        install: false
         files: ["plugin2.cpp"]
         Depends { name: "cpp" }
         Export {
@@ -34,6 +36,7 @@ Project {
     }
     DynamicLibrary {
         name: "plugin3"
+        install: false
         files: ["plugin3.cpp"]
         Depends { name: "cpp" }
         Export {
@@ -44,6 +47,7 @@ Project {
     }
     DynamicLibrary {
         name: "plugin4"
+        install: false
         files: ["plugin4.cpp"]
         Depends { name: "cpp" }
         Export {
@@ -55,6 +59,7 @@ Project {
     }
     DynamicLibrary {
         name: "helper1"
+        install: false
         files: ["helper1.cpp"]
         Depends { name: "cpp" }
         Depends { name: "helper2"; cpp.link: false /* marker 2 */ }
@@ -65,6 +70,7 @@ Project {
     }
     DynamicLibrary {
         name: "helper2"
+        install: false
         files: ["helper2.cpp"]
         Depends { name: "cpp" }
         Export {

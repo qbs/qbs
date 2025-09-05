@@ -207,9 +207,6 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                                .arg(nativeFilePath, nativeTargetDir);
         return;
     }
-    m_logger.qbsDebug() << QStringLiteral("Copying file '%1' into target directory '%2'.")
-                           .arg(nativeFilePath, nativeTargetDir);
-
     if (!QDir::root().mkpath(targetDir)) {
         handleError(Tr::tr("Directory '%1' could not be created.").arg(nativeTargetDir));
         return;
@@ -239,8 +236,21 @@ void ProductInstaller::copyFile(const Artifact *artifact)
     m_targetFilePathsMap.insert(targetFilePath, artifact->filePath());
 
     QString errorMessage;
-    if (!copyFileRecursion(artifact->filePath(), targetFilePath, true, false, &errorMessage))
+    bool skipped = false;
+    if (!copyFileRecursion(
+            artifact->filePath(), targetFilePath, true, false, &errorMessage, &skipped)) {
         handleError(Tr::tr("Installation error: %1").arg(errorMessage));
+    } else if (skipped) {
+        m_logger.qbsDebug() << "skipping installation of" << nativeFilePath << "is up to date in"
+                            << nativeTargetDir;
+
+    } else {
+        const QString productPrefix = QLatin1Char('[') + artifact->product->fullDisplayName()
+                                      + QLatin1Char(']');
+        m_logger.qbsInfo() << productPrefix << ' '
+                           << Tr::tr("Installing file '%1' into '%2'.")
+                                  .arg(FileInfo::fileName(targetFilePath), nativeTargetDir);
+    }
 }
 
 void ProductInstaller::handleError(const QString &message)

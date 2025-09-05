@@ -101,8 +101,12 @@ bool removeFileRecursion(const QFileInfo &f, QString *errorMessage);
 
 bool QBS_AUTOTEST_EXPORT removeDirectoryWithContents(const QString &path, QString *errorMessage);
 bool QBS_AUTOTEST_EXPORT copyFileRecursion(
-    const QString &sourcePath, const QString &targetPath, bool preserveSymLinks,
-    bool copyDirectoryContents, QString *errorMessage);
+    const QString &sourcePath,
+    const QString &targetPath,
+    bool preserveSymLinks,
+    bool copyDirectoryContents,
+    QString *errorMessage,
+    bool *skipped = nullptr);
 
 } // namespace Internal
 } // namespace qbs
