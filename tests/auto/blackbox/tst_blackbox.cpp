@@ -344,6 +344,10 @@ void TestBlackbox::textTemplate()
     outputFilePath = relativeProductBuildDir("one") + "/lalala.txt";
     expectedOutputFilePath = QFINDTESTDATA("expected/lalala.txt");
     TEXT_FILE_COMPARE(outputFilePath, expectedOutputFilePath);
+    // Test @var@ syntax
+    outputFilePath = relativeProductBuildDir("one") + "/output_at.txt";
+    expectedOutputFilePath = QFINDTESTDATA("expected/output_at.txt");
+    TEXT_FILE_COMPARE(outputFilePath, expectedOutputFilePath);
 }
 
 static QStringList sortedFileList(const QByteArray &ba)

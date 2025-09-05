@@ -1,6 +1,12 @@
 import qbs.TextFile
 
 Module {
+    property string placeholder: "${}"
+    PropertyOptions {
+        name: "placeholder"
+        description: "The placeholder string to use for text template files."
+        allowedValues: ["${}", "@@"]
+    }
     property var dict: ({})
     property string outputTag: "text"
     property string outputFileName
@@ -24,7 +30,8 @@ Module {
                 try {
                     var src = new TextFile(input.filePath, TextFile.ReadOnly);
                     var dst = new TextFile(output.filePath, TextFile.WriteOnly);
-                    var rex = /\${(\$|\w+)}/g;
+                    const isDefaultPlaceholder = input.texttemplate.placeholder === "${}";
+                    var rex = isDefaultPlaceholder ? /\${(\$|\w+)}/g : /@(\@|\w+)@/g;
                     var match;
                     while (!src.atEof()) {
                         rex.lastIndex = 0;
@@ -35,8 +42,10 @@ Module {
                         for (var i = matches.length; --i >= 0;) {
                             match = matches[i];
                             var replacement;
-                            if (match[1] === "$") {
+                            if (isDefaultPlaceholder && match[1] === "$") {
                                 replacement = "$";
+                            } else if (!isDefaultPlaceholder && match[1] === "@") {
+                                replacement = "@";
                             } else {
                                 replacement = input.texttemplate.dict[match[1]];
                                 if (typeof replacement === "undefined") {

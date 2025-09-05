@@ -62,8 +62,32 @@
     Hello World!
     \endcode
 
+    The same result can be achieved using the alternative placeholder format:
+
+    \code
+    Product {
+        type: ["text"]
+        files: ["greeting.txt.in"]
+        Depends { name: "texttemplate" }
+        texttemplate.placeholder: "@@"
+        texttemplate.dict: ({
+                greeting: "Hello",
+                name: "World"
+            })
+    }
+    \endcode
+
+    Where \e{greeting.txt.in} contains:
+
+    \code
+    @greeting@ @name@!
+    \endcode
+
 
     \section2 Placeholder Syntax
+
+    The texttemplate module supports two placeholder formats, controlled by the
+    \c{placeholder} property.
 
     A placeholder \c{${foo}} is replaced by its corresponding value in
     \e{texttemplate.dict}.
@@ -71,6 +95,9 @@
 
     The placeholder \c{${$}} is always replaced with \c{$}.
     If you need a literal \c{${foo}} in your template, use \c{${$}{foo}}.
+
+    When \c{texttemplate.placeholder} is set to \c{"@@"}, placeholders use
+    the format \c{@foo@} instead.
 
     Placeholders that are not defined in the dictionary will produce an error.
 
@@ -114,4 +141,15 @@
     The output tag that is assigned to produced artifacts.
 
     \defaultvalue \c{"text"}
+*/
+
+/*!
+    \qmlproperty string texttemplate::placeholder
+
+    The placeholder format to use for text template files.
+
+    Possible values: \c{"${}"}, \c{"@@"}
+
+    \defaultvalue \c{"${}"}
+    \since Qbs 3.1
 */

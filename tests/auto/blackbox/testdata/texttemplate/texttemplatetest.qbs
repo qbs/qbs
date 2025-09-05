@@ -21,4 +21,9 @@ Product {
             b: "ti",
         })
     }
+    Group {
+        files: ["output_at.txt.in"]
+        texttemplate.placeholder: "@@"
+    }
 }
+
