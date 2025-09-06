@@ -8,6 +8,7 @@ StaticLibrary {
     cpp.defines: ['CONFIG_VERSION="2021-03-27"'].concat(qbsbuildconfig.dumpJsLeaks
                                                         ? "DUMP_LEAKS" : [])
     cpp.warningLevel: "none"
+    cpp.minimumMacosVersion: "11.0"
 
     files: [
         "builtin-array-fromasync.h",
