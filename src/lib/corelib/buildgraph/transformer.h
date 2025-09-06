@@ -104,6 +104,7 @@ public:
                         const JSValueList &args);
     void rescueChangeTrackingData(const TransformerConstPtr &other);
     void rescueFromArtifactData(RescuableArtifactData &&rad);
+    RescuableArtifactData rescueToArtifactData() const;
 
     Set<QString> jobPools() const;
 

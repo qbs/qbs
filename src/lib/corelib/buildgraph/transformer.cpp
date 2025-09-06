@@ -345,6 +345,30 @@ void Transformer::rescueFromArtifactData(RescuableArtifactData &&rad)
     markedForRerun = markedForRerun || rad.knownOutOfDate;
 }
 
+RescuableArtifactData Transformer::rescueToArtifactData() const
+{
+    RescuableArtifactData result;
+    result.propertiesRequestedInPrepareScript = propertiesRequestedInPrepareScript;
+    result.propertiesRequestedInCommands = propertiesRequestedInCommands;
+    result.propertiesRequestedFromArtifactInPrepareScript
+        = propertiesRequestedFromArtifactInPrepareScript;
+    result.propertiesRequestedFromArtifactInCommands = propertiesRequestedFromArtifactInCommands;
+    result.importedFilesUsedInPrepareScript = importedFilesUsedInPrepareScript;
+    result.importedFilesUsedInCommands = importedFilesUsedInCommands;
+    result.depsRequestedInPrepareScript = depsRequestedInPrepareScript;
+    result.depsRequestedInCommands = depsRequestedInCommands;
+    result.artifactsMapRequestedInPrepareScript = artifactsMapRequestedInPrepareScript;
+    result.artifactsMapRequestedInCommands = artifactsMapRequestedInCommands;
+    result.exportedModulesAccessedInPrepareScript = exportedModulesAccessedInPrepareScript;
+    result.exportedModulesAccessedInCommands = exportedModulesAccessedInCommands;
+    result.lastCommandExecutionTime = lastCommandExecutionTime;
+    result.lastPrepareScriptExecutionTime = lastPrepareScriptExecutionTime;
+    result.knownOutOfDate = markedForRerun;
+    result.commands = commands;
+
+    return result;
+}
+
 Set<QString> Transformer::jobPools() const
 {
     Set<QString> pools;

@@ -947,37 +947,11 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             continue;
         Artifact * const newArtifact = lookupArtifact(newlyResolvedProduct, oldArtifact, false);
         if (!newArtifact) {
-            RescuableArtifactData rad;
+            RescuableArtifactData rad = oldArtifact->transformer->rescueToArtifactData();
             rad.timeStamp = oldArtifact->timestamp();
-            rad.knownOutOfDate = oldArtifact->transformer->markedForRerun;
             rad.fileTags = oldArtifact->fileTags();
             rad.properties = oldArtifact->properties;
-            rad.commands = oldArtifact->transformer->commands;
-            rad.propertiesRequestedInPrepareScript
-                    = oldArtifact->transformer->propertiesRequestedInPrepareScript;
-            rad.propertiesRequestedInCommands
-                    = oldArtifact->transformer->propertiesRequestedInCommands;
-            rad.propertiesRequestedFromArtifactInPrepareScript
-                    = oldArtifact->transformer->propertiesRequestedFromArtifactInPrepareScript;
-            rad.propertiesRequestedFromArtifactInCommands
-                    = oldArtifact->transformer->propertiesRequestedFromArtifactInCommands;
-            rad.importedFilesUsedInPrepareScript
-                    = oldArtifact->transformer->importedFilesUsedInPrepareScript;
-            rad.importedFilesUsedInCommands = oldArtifact->transformer->importedFilesUsedInCommands;
-            rad.depsRequestedInPrepareScript
-                    = oldArtifact->transformer->depsRequestedInPrepareScript;
-            rad.depsRequestedInCommands = oldArtifact->transformer->depsRequestedInCommands;
-            rad.artifactsMapRequestedInPrepareScript
-                    = oldArtifact->transformer->artifactsMapRequestedInPrepareScript;
-            rad.artifactsMapRequestedInCommands
-                    = oldArtifact->transformer->artifactsMapRequestedInCommands;
-            rad.exportedModulesAccessedInPrepareScript
-                    = oldArtifact->transformer->exportedModulesAccessedInPrepareScript;
-            rad.exportedModulesAccessedInCommands
-                    = oldArtifact->transformer->exportedModulesAccessedInCommands;
-            rad.lastCommandExecutionTime = oldArtifact->transformer->lastCommandExecutionTime;
-            rad.lastPrepareScriptExecutionTime
-                    = oldArtifact->transformer->lastPrepareScriptExecutionTime;
+
             const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
             for (Artifact * const child : std::as_const(childrenInfo.children)) {
                 rad.children.emplace_back(child->product->name,
