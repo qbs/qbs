@@ -986,7 +986,8 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
                 transform(oldArtifact->fileDependencies, rad.fileDependencies,
                           std::mem_fn(&FileDependency::filePath));
             }
-            newlyResolvedProduct->buildData->addRescuableArtifactData(oldArtifact->filePath(), rad);
+            newlyResolvedProduct->buildData->addRescuableArtifactData(
+                oldArtifact->filePath(), std::move(rad));
         }
     }
 }

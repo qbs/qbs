@@ -115,10 +115,10 @@ RescuableArtifactData ProductBuildData::removeFromRescuableArtifactData(const QS
     return m_rescuableArtifactData.take(filePath);
 }
 
-void ProductBuildData::addRescuableArtifactData(const QString &filePath,
-                                                const RescuableArtifactData &rad)
+void ProductBuildData::addRescuableArtifactData(
+    const QString &filePath, RescuableArtifactData &&rad)
 {
-    m_rescuableArtifactData.insert(filePath, rad);
+    m_rescuableArtifactData[filePath] = std::move(rad);
 }
 
 bool ProductBuildData::checkAndSetJsArtifactsMapUpToDateFlag()
