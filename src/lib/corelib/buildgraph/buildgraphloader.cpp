@@ -379,10 +379,8 @@ void BuildGraphLoader::trackProjectChanges()
 
     checkAllProductsForChanges(allRestoredProducts, changedProducts);
 
-    std::shared_ptr<ProjectBuildData> oldBuildData;
     ChildListHash childLists;
     if (!changedProducts.empty()) {
-        oldBuildData = std::make_shared<ProjectBuildData>(restoredProject->buildData.get());
         for (const auto &product : std::as_const(allRestoredProducts)) {
             if (!product->buildData)
                 continue;
