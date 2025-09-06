@@ -817,21 +817,23 @@ void Executor::addExecutorJobs()
     }
 }
 
-void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = nullptr)
+/*
+    Returns true if children were added to the artifact, delaying the execution.
+*/
+bool Executor::rescueOldBuildData(Artifact *artifact)
 {
-    if (childrenAdded)
-        *childrenAdded = false;
+    bool childrenAdded = false;
     if (!artifact->oldDataPossiblyPresent)
-        return;
+        return childrenAdded;
     artifact->oldDataPossiblyPresent = false;
     if (artifact->artifactType != Artifact::Generated)
-        return;
+        return childrenAdded;
 
     ResolvedProduct * const product = artifact->product.get();
     RescuableArtifactData rad = product->buildData->removeFromRescuableArtifactData(
         artifact->filePath());
     if (!rad.isValid())
-        return;
+        return childrenAdded;
     qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
 
     std::vector<Artifact *> childrenToConnect;
@@ -907,8 +909,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
         artifact->setTimestamp(rad.timeStamp);
         artifact->transformer->rescueFromArtifactData(std::move(rad));
 
-        if (childrenAdded && !childrenToConnect.empty())
-            *childrenAdded = true;
+        childrenAdded = !childrenToConnect.empty();
         for (Artifact * const child : childrenToConnect) {
             if (safeConnect(artifact, child))
                 artifact->childrenAddedByScanner << child;
@@ -919,6 +920,7 @@ void Executor::rescueOldBuildData(Artifact *artifact, bool *childrenAdded = null
         m_artifactsRemovedFromDisk << artifact->filePath();
         qCDebug(lcBuildGraph) << "Data not rescued.";
     }
+    return childrenAdded;
 }
 
 bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
@@ -959,8 +961,7 @@ void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
     for (Artifact * const output : std::as_const(transformer->outputs)) {
         // Rescuing build data can introduce new dependencies, potentially delaying execution of
         // this transformer.
-        bool childrenAddedDueToRescue;
-        rescueOldBuildData(output, &childrenAddedDueToRescue);
+        const bool childrenAddedDueToRescue = rescueOldBuildData(output);
         if (childrenAddedDueToRescue && checkForUnbuiltDependencies(output))
             return;
     }
