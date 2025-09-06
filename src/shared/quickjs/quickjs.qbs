@@ -3,6 +3,9 @@ StaticLibrary {
 
     Depends { name: "qbsbuildconfig" }
     Depends { name: "cpp" }
+    Depends { name: "bundle" }
+
+    bundle.isBundle: false
 
     cpp.cLanguageVersion: qbs.toolchain.contains("msvc") ? "c11" : "gnu11"
     cpp.defines: ['CONFIG_VERSION="2021-03-27"'].concat(qbsbuildconfig.dumpJsLeaks
