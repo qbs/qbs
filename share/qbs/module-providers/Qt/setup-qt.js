@@ -308,6 +308,11 @@ function replaceSpecialValues(content, module, qtProps, abi) {
         dict.defaultQpaPlugin = ModUtils.toJSLiteral(defaultQpaPlugin(module, qtProps));
     if (module.qbsName === "qml")
         dict.qmlPath = pathToJSLiteral(qtProps.qmlPath);
+    if (module.isFramework && module.qbsName !== "core") {
+        if (additionalContent)
+            additionalContent += "\n    ";
+        additionalContent += "isFramework: true";
+    }
     if (module.isStaticLibrary && module.qbsName !== "core") {
         if (additionalContent)
             additionalContent += "\n    ";

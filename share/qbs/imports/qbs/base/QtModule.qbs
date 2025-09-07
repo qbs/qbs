@@ -48,6 +48,7 @@ Module {
                                  ? libFilePathDebug : libFilePathRelease
     property bool hasLibrary: true
     property bool isStaticLibrary: false
+    property bool isFramework: false
     property bool isPlugin: false
 
     property stringList architectures
@@ -79,8 +80,7 @@ Module {
         condition: enableLinking
         cpp.staticLibraries: staticLibs
         cpp.dynamicLibraries: dynamicLibs
-        cpp.frameworks: mFrameworks.concat(!isStaticLibrary && Qt.core.frameworkBuild
-                        ? [libNameForLinker] : [])
+        cpp.frameworks: mFrameworks.concat(isFramework ? [libNameForLinker] : [])
         cpp.systemFrameworkPaths: mFrameworkPaths
     }
 }

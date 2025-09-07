@@ -80,6 +80,7 @@ private slots:
     void qtKeywords();
     void quickCompiler();
     void qtScxml();
+    void qtXml();
     void removeMocHeaderFromFileList();
     void shadertools();
     void shadertools_data();

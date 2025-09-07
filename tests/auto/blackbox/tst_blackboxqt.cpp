@@ -849,6 +849,14 @@ void TestBlackboxQt::qtScxml()
     QVERIFY2(runQbs(params) != 0, m_qbsStdout.constData());
 }
 
+// see, https://bugreports.qt.io/projects/QBS/issues/QBS-1839
+// checks Qt.xml framework is linked correctly
+void TestBlackboxQt::qtXml()
+{
+    QDir::setCurrent(testDataDir + "/qt-xml");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxQt::removeMocHeaderFromFileList()
 {
     QDir::setCurrent(testDataDir + "/remove-moc-header-from-file-list");
