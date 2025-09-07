@@ -186,18 +186,18 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
     std::vector<std::pair<const RuleArtifact *, OutputArtifactInfo>> ruleArtifactArtifactMap;
     QList<Artifact *> outputArtifacts;
 
-    m_transformer = Transformer::create();
-    m_transformer->rule = m_rule;
-    m_transformer->inputs = inputArtifacts;
-    m_transformer->explicitlyDependsOn = m_explicitlyDependsOn;
-    m_transformer->alwaysRun = m_rule->alwaysRun;
-    m_oldTransformer.reset();
+    TransformerContext context;
+    context.transformer = Transformer::create();
+    context.transformer->rule = m_rule;
+    context.transformer->inputs = inputArtifacts;
+    context.transformer->explicitlyDependsOn = m_explicitlyDependsOn;
+    context.transformer->alwaysRun = m_rule->alwaysRun;
 
     engine()->clearRequestedProperties();
 
     // create the output artifacts from the set of input artifacts
-    m_transformer->setupInputs(engine(), prepareScriptContext);
-    m_transformer->setupExplicitlyDependsOn(engine(), prepareScriptContext);
+    context.transformer->setupInputs(engine(), prepareScriptContext);
+    context.transformer->setupExplicitlyDependsOn(engine(), prepareScriptContext);
     copyProperty(jsContext(), StringConstants::inputsVar(), prepareScriptContext, scope());
     copyProperty(jsContext(), StringConstants::inputVar(), prepareScriptContext, scope());
     copyProperty(jsContext(), StringConstants::explicitlyDependsOnVar(),
@@ -207,12 +207,12 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
     if (m_rule->isDynamic()) {
         const ScopedJsValueList argList
                 = engine()->argumentList(Rule::argumentNamesForOutputArtifacts(), scope());
-        outputArtifacts = runOutputArtifactsScript(inputArtifacts, argList);
+        outputArtifacts = runOutputArtifactsScript(inputArtifacts, argList, context);
     } else {
         Set<QString> outputFilePaths;
         for (const auto &ruleArtifact : m_rule->artifacts) {
             const OutputArtifactInfo &outputInfo = createOutputArtifactFromRuleArtifact(
-                        ruleArtifact, inputArtifacts, &outputFilePaths);
+                ruleArtifact, inputArtifacts, &outputFilePaths, context);
             if (!outputInfo.artifact)
                 continue;
             outputArtifacts.push_back(outputInfo.artifact);
@@ -220,7 +220,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
         }
         if (m_rule->artifacts.empty()) {
             outputArtifacts.push_back(createOutputArtifactFromRuleArtifact(
-                                          nullptr, inputArtifacts, &outputFilePaths).artifact);
+                                          nullptr, inputArtifacts, &outputFilePaths, context)
+                                          .artifact);
         }
     }
 
@@ -246,12 +247,12 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
         return;
 
     for (Artifact * const outputArtifact : std::as_const(outputArtifacts)) {
-        for (Artifact * const dependency : std::as_const(m_transformer->explicitlyDependsOn))
+        for (Artifact * const dependency : std::as_const(context.transformer->explicitlyDependsOn))
             connect(outputArtifact, dependency);
     }
 
-    if (inputArtifacts != m_transformer->inputs)
-        m_transformer->setupInputs(engine(), prepareScriptContext);
+    if (inputArtifacts != context.transformer->inputs)
+        context.transformer->setupInputs(engine(), prepareScriptContext);
 
     // change the transformer outputs according to the bindings in Artifact
     if (!ruleArtifactArtifactMap.empty()) {
@@ -299,25 +300,25 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
         }
     }
 
-    m_transformer->setupOutputs(engine(), prepareScriptContext);
-    const ScopedJsValueList argList = engine()->argumentList(Rule::argumentNamesForPrepare(),
-                                                             prepareScriptContext);
-    m_transformer->createCommands(engine(), m_rule->prepareScript, argList);
-    if (Q_UNLIKELY(m_transformer->commands.empty()))
+    context.transformer->setupOutputs(engine(), prepareScriptContext);
+    const ScopedJsValueList argList = engine()->argumentList(
+        Rule::argumentNamesForPrepare(), prepareScriptContext);
+    context.transformer->createCommands(engine(), m_rule->prepareScript, argList);
+    if (Q_UNLIKELY(context.transformer->commands.empty()))
         throw ErrorInfo(Tr::tr("There is a rule without commands: %1.")
                         .arg(m_rule->toString()), m_rule->prepareScript.location());
-    if (!m_oldTransformer || m_oldTransformer->outputs != m_transformer->outputs
-            || m_oldTransformer->inputs != m_transformer->inputs
-            || m_oldTransformer->explicitlyDependsOn != m_transformer->explicitlyDependsOn
-            || m_oldTransformer->commands != m_transformer->commands
-            || commandsNeedRerun(m_transformer.get(), m_product.get(), m_productsByName,
-                                 m_projectsByName)) {
+    if (!context.oldTransformer || context.oldTransformer->outputs != context.transformer->outputs
+        || context.oldTransformer->inputs != context.transformer->inputs
+        || context.oldTransformer->explicitlyDependsOn != context.transformer->explicitlyDependsOn
+        || context.oldTransformer->commands != context.transformer->commands
+        || commandsNeedRerun(
+            context.transformer.get(), m_product.get(), m_productsByName, m_projectsByName)) {
         for (Artifact * const output : std::as_const(outputArtifacts)) {
             output->clearTimestamp();
             m_invalidatedArtifacts += output;
         }
     }
-    m_transformer->commandsNeedChangeTracking = false;
+    context.transformer->commandsNeedChangeTracking = false;
 }
 
 ArtifactSet RulesApplicator::collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const
@@ -381,8 +382,10 @@ ArtifactSet RulesApplicator::collectExplicitlyDependsOn(const Rule *rule,
 }
 
 RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRuleArtifact(
-        const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
-        Set<QString> *outputFilePaths)
+    const RuleArtifactConstPtr &ruleArtifact,
+    const ArtifactSet &inputArtifacts,
+    Set<QString> *outputFilePaths,
+    TransformerContext &context)
 {
     QString outputPath;
     FileTags fileTags;
@@ -412,11 +415,15 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRul
         throw ErrorInfo(Tr::tr("Rule %1 already created '%2'.")
                         .arg(m_rule->toString(), outputPath));
     }
-    return createOutputArtifact(outputPath, fileTags, alwaysUpdated, inputArtifacts);
+    return createOutputArtifact(outputPath, fileTags, alwaysUpdated, inputArtifacts, context);
 }
 
-RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const QString &filePath,
-        const FileTags &fileTags, bool alwaysUpdated, const ArtifactSet &inputArtifacts)
+RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(
+    const QString &filePath,
+    const FileTags &fileTags,
+    bool alwaysUpdated,
+    const ArtifactSet &inputArtifacts,
+    TransformerContext &context)
 {
     const QString outputPath = resolveOutPath(filePath);
     if (m_rule->isDynamic()) {
@@ -471,8 +478,8 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const 
                               (*inputArtifacts.cbegin())->filePath()));
             throw error;
         }
-        m_transformer->rescueChangeTrackingData(outputArtifact->transformer);
-        m_oldTransformer = outputArtifact->transformer;
+        context.transformer->rescueChangeTrackingData(outputArtifact->transformer);
+        context.oldTransformer = outputArtifact->transformer;
         outputInfo.oldFileTags = outputArtifact->fileTags();
         outputInfo.oldProperties = outputArtifact->properties->value();
     } else {
@@ -499,9 +506,9 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(const 
         connect(outputArtifact, inputArtifact);
     }
 
-    outputArtifact->transformer = m_transformer;
-    m_transformer->outputs.insert(outputArtifact);
-    QBS_CHECK(m_rule->multiplex || m_transformer->inputs.size() == 1);
+    outputArtifact->transformer = context.transformer;
+    context.transformer->outputs.insert(outputArtifact);
+    QBS_CHECK(m_rule->multiplex || context.transformer->inputs.size() == 1);
 
     return outputInfo;
 }
@@ -512,8 +519,8 @@ public:
     using ErrorInfo::ErrorInfo;
 };
 
-QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
-        const JSValueList &args)
+QList<Artifact *> RulesApplicator::runOutputArtifactsScript(
+    const ArtifactSet &inputArtifacts, const JSValueList &args, TransformerContext &context)
 {
     QList<Artifact *> lst;
     const ScopedJsValue fun(jsContext(),
@@ -536,7 +543,7 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(const ArtifactSet &i
     for (quint32 i = 0; i < c; ++i) {
         try {
             ScopedJsValue val(engine()->context(), JS_GetPropertyUint32(jsContext(), res, i));
-            lst.push_back(createOutputArtifactFromScriptValue(val, inputArtifacts));
+            lst.push_back(createOutputArtifactFromScriptValue(val, inputArtifacts, context));
         } catch (const RuleOutputArtifactsException &roae) {
             ErrorInfo ei = roae;
             ei.prepend(Tr::tr("Error in Rule.outputArtifacts[%1]").arg(i),
@@ -620,8 +627,8 @@ public:
     }
 };
 
-Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const JSValue &obj,
-        const ArtifactSet &inputArtifacts)
+Artifact *RulesApplicator::createOutputArtifactFromScriptValue(
+    const JSValue &obj, const ArtifactSet &inputArtifacts, TransformerContext &context)
 {
     if (!JS_IsObject(obj)) {
         throw ErrorInfo(Tr::tr("Elements of the Rule.outputArtifacts array must be "
@@ -642,8 +649,8 @@ Artifact *RulesApplicator::createOutputArtifactFromScriptValue(const JSValue &ob
     const QVariant alwaysUpdatedVar = getJsVariantProperty(jsContext(), obj,
                                                            StringConstants::alwaysUpdatedProperty());
     const bool alwaysUpdated = alwaysUpdatedVar.isValid() ? alwaysUpdatedVar.toBool() : true;
-    OutputArtifactInfo outputInfo = createOutputArtifact(filePath, fileTags, alwaysUpdated,
-                                                         inputArtifacts);
+    OutputArtifactInfo outputInfo = createOutputArtifact(
+        filePath, fileTags, alwaysUpdated, inputArtifacts, context);
     if (outputInfo.artifact->fileTags().empty()) {
         // Check the file tags after file taggers were run.
         throw RuleOutputArtifactsException(

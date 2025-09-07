@@ -89,6 +89,11 @@ private:
     void doApply(const ArtifactSet &inputArtifacts, JSValue prepareScriptContext);
     ArtifactSet collectOldOutputArtifacts(const ArtifactSet &inputArtifacts) const;
 
+    struct TransformerContext
+    {
+        TransformerPtr transformer;
+        TransformerConstPtr oldTransformer;
+    };
     struct OutputArtifactInfo {
         Artifact *artifact = nullptr;
         bool newlyCreated = false;
@@ -96,14 +101,20 @@ private:
         QVariantMap oldProperties;
     };
     OutputArtifactInfo createOutputArtifactFromRuleArtifact(
-            const RuleArtifactConstPtr &ruleArtifact, const ArtifactSet &inputArtifacts,
-            Set<QString> *outputFilePaths);
-    OutputArtifactInfo createOutputArtifact(const QString &filePath, const FileTags &fileTags,
-            bool alwaysUpdated, const ArtifactSet &inputArtifacts);
-    QList<Artifact *> runOutputArtifactsScript(const ArtifactSet &inputArtifacts,
-            const JSValueList &args);
-    Artifact *createOutputArtifactFromScriptValue(const JSValue &obj,
-            const ArtifactSet &inputArtifacts);
+        const RuleArtifactConstPtr &ruleArtifact,
+        const ArtifactSet &inputArtifacts,
+        Set<QString> *outputFilePaths,
+        TransformerContext &context);
+    OutputArtifactInfo createOutputArtifact(
+        const QString &filePath,
+        const FileTags &fileTags,
+        bool alwaysUpdated,
+        const ArtifactSet &inputArtifacts,
+        TransformerContext &context);
+    QList<Artifact *> runOutputArtifactsScript(
+        const ArtifactSet &inputArtifacts, const JSValueList &args, TransformerContext &context);
+    Artifact *createOutputArtifactFromScriptValue(
+        const JSValue &obj, const ArtifactSet &inputArtifacts, TransformerContext &context);
     QString resolveOutPath(const QString &path) const;
     const RulesEvaluationContextPtr &evalContext() const;
     ScriptEngine *engine() const;
@@ -124,8 +135,6 @@ private:
     RuleNode *m_ruleNode = nullptr;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
-    TransformerPtr m_transformer;
-    TransformerConstPtr m_oldTransformer;
     QtMocScanner *m_mocScanner = nullptr;
     CppModulesScanner *m_cxxModulesScanner = nullptr;
     Logger m_logger;
