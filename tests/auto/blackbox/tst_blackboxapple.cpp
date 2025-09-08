@@ -749,8 +749,7 @@ void TestBlackboxApple::codesign()
     rmDirR(relativeBuildDir());
     QCOMPARE(runQbs(params), 0);
 
-    const int codeSignCount =
-            QString::fromUtf8(m_qbsStdout).count(QStringLiteral("codesign"));
+    const int codeSignCount = QString::fromUtf8(m_qbsStdout).count(QStringLiteral("codesign "));
     QCOMPARE(codeSignCount, expectedCount);
 
     const auto appName = isBundle ? QStringLiteral("A.app") : QStringLiteral("A");
@@ -810,11 +809,11 @@ void TestBlackboxApple::codesign_data()
     QTest::newRow("standalone, signed, multiarch") << 3 << false << true << true << false;
     QTest::newRow("bundle, signed, multiarch") << 3 << true << true << true << false;
     // here we sign all artifacts
-    QTest::newRow("standalone, signed, multivariant") << 15 << false << true << false << true;
-    QTest::newRow("bundle, signed, multivariant") << 15 << true << true << false << true;
+    QTest::newRow("standalone, signed, multivariant") << 6 << false << true << false << true;
+    QTest::newRow("bundle, signed, multivariant") << 6 << true << true << false << true;
     QTest::newRow("standalone, signed, multiarch, multivariant")
-        << 15 << false << true << true << true;
-    QTest::newRow("bundle, signed, multiarch, multivariant") << 15 << true << true << true << true;
+        << 6 << false << true << true << true;
+    QTest::newRow("bundle, signed, multiarch, multivariant") << 6 << true << true << true << true;
 }
 
 void TestBlackboxApple::deploymentTarget()
