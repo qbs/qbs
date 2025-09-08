@@ -503,6 +503,8 @@ void TestBlackboxApple::bundleStructure()
 
     QCOMPARE(status, 0);
 
+    const bool enableCodeSigning = m_qbsStdout.contains("enableCodeSigning: true");
+
     if (m_qbsStdout.contains("bundle.isShallow: false")) {
         // Test shallow bundles detection - bundles are not shallow only on macOS, so also check
         // the qbs.targetOS property
@@ -516,6 +518,14 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/PkgInfo").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources/resource.txt").isRegularFile());
+            // Application bundles have standard code signature
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(
+                    QFileInfo2(defaultInstallRoot + "/A.app/Contents/_CodeSignature/CodeResources")
+                        .isRegularFile());
+            }
         }
 
         if (productName == "B") {
@@ -538,6 +548,15 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources/Info.plist").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/Current").isDirSymLink());
+            // Dynamic libraries have standard code signature
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(
+                    QFileInfo2(
+                        defaultInstallRoot + "/B.framework/Versions/A/_CodeSignature/CodeResources")
+                        .isRegularFile());
+            }
         }
 
         if (productName == "C") {
@@ -560,6 +579,31 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources/Info.plist").isRegularFile());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/Current").isDirSymLink());
+            // Static libraries have additional code signature artifacts
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(
+                    QFileInfo2(
+                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeResources")
+                        .isRegularFile());
+                QVERIFY(
+                    QFileInfo2(
+                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeDirectory")
+                        .isRegularFile());
+                QVERIFY(QFileInfo2(
+                            defaultInstallRoot
+                            + "/C.framework/Versions/A/_CodeSignature/CodeRequirements")
+                            .isRegularFile());
+                QVERIFY(QFileInfo2(
+                            defaultInstallRoot
+                            + "/C.framework/Versions/A/_CodeSignature/CodeRequirements-1")
+                            .isRegularFile());
+                QVERIFY(
+                    QFileInfo2(
+                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeSignature")
+                        .isRegularFile());
+            }
         }
 
         if (productName == "D") {
@@ -571,6 +615,14 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/PkgInfo").exists());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources/resource.txt").isRegularFile());
+            // Application bundles have standard code signature
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(QFileInfo2(
+                            defaultInstallRoot + "/D.bundle/Contents/_CodeSignature/CodeResources")
+                            .isRegularFile());
+            }
         }
 
         if (productName == "E") {
@@ -582,6 +634,14 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/Contents/PkgInfo").exists());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources/resource.txt").isRegularFile());
+            // Application bundles have standard code signature
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(QFileInfo2(
+                            defaultInstallRoot + "/E.appex/Contents/_CodeSignature/CodeResources")
+                            .isRegularFile());
+            }
         }
 
         if (productName == "F") {
@@ -593,6 +653,14 @@ void TestBlackboxApple::bundleStructure()
             QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/PkgInfo").exists());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources").isRegularDir());
             QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources/resource.txt").isRegularFile());
+            // Application bundles have standard code signature
+            if (enableCodeSigning) {
+                QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/_CodeSignature")
+                            .isRegularDir());
+                QVERIFY(
+                    QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/_CodeSignature/CodeResources")
+                        .isRegularFile());
+            }
         }
 
         if (productName == "G") {

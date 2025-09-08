@@ -464,10 +464,25 @@ function generateBundleOutputs(product, inputs)
 
         if (Host.os().includes("darwin") && product.codesign
                 && product.codesign.enableCodeSigning) {
-            artifacts.push({
-                filePath: FileInfo.joinPaths(product.bundle.contentsFolderPath, "_CodeSignature/CodeResources"),
-                fileTags: ["bundle.code-signature", "bundle.content"]
-            });
+            var signatureFiles = ["CodeResources"];
+            // Static libraries generate additional code signature artifacts
+            // This is also true for any framework without a mach-o binary, but do we support those?
+            const isStaticLibrary = product.type.includes("staticlibrary");
+            if (isStaticLibrary) {
+                signatureFiles = signatureFiles.concat([
+                    "CodeDirectory",
+                    "CodeRequirements",
+                    "CodeRequirements-1",
+                    "CodeSignature",
+                ]);
+            }
+            Array.prototype.push.apply(artifacts, signatureFiles.map(function(file) {
+                return {
+                    filePath: FileInfo.joinPaths(
+                        product.bundle.contentsFolderPath, "_CodeSignature/" + file),
+                    fileTags: ["bundle.code-signature", "bundle.content"]
+                };
+            }));
         }
     }
     return artifacts;

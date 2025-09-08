@@ -3,11 +3,15 @@ Project {
 
     property stringList buildableProducts: ["A", "B", "C", "D", "E", "F", "G"]
 
+    property bool enableCodeSigning: !qbs.targetOS.includes("ios")
+        || qbs.targetOS.includes("ios-simulator")
+
     Product {
         Depends { name: "bundle" }
         condition: {
             console.info("bundle.isShallow: " + bundle.isShallow);
             console.info("qbs.targetOS: " + qbs.targetOS);
+            console.info("enableCodeSigning: " + project.enableCodeSigning);
             return false;
         }
     }
@@ -23,6 +27,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -40,6 +45,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -57,6 +63,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -70,6 +77,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -95,6 +103,7 @@ Project {
             files: ["resource.txt"]
             fileTags: ["bundle.input.resources"]
         }
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -108,6 +117,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -121,6 +131,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
@@ -134,6 +145,7 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
+        codesign.enableCodeSigning: project.enableCodeSigning
         files: ["dummy.c"]
         install: true
         installDir: ""
