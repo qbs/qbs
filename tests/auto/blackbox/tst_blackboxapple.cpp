@@ -40,6 +40,7 @@
 #include <QtXml/qdom.h>
 
 #include <regex>
+#include <unordered_set>
 
 #define WAIT_FOR_NEW_TIMESTAMP() waitForNewTimestamp(testDataDir)
 
@@ -535,10 +536,13 @@ void TestBlackboxApple::bundleStructure()
     const QString bundleExtension = productStructure.value("extension").toString();
     const QString bundlePath = defaultInstallRoot + "/" + productName + bundleExtension;
 
+    std::unordered_set<QString> expectedPaths;
+
     // Check directories
     const auto directories = productStructure.value("directories").toArray();
     for (const auto &dir : directories) {
         const QString dirPath = bundlePath + "/" + dir.toString();
+        expectedPaths.insert(dirPath);
         QVERIFY2(
             QFileInfo2(dirPath).isRegularDir(),
             qPrintable(QString("Directory does not exist: %1").arg(dirPath)));
@@ -548,6 +552,7 @@ void TestBlackboxApple::bundleStructure()
     const auto files = productStructure.value("files").toArray();
     for (const auto &file : files) {
         const QString filePath = bundlePath + "/" + file.toString();
+        expectedPaths.insert(filePath);
         QVERIFY2(
             QFileInfo2(filePath).isRegularFile(),
             qPrintable(QString("File does not exist: %1").arg(filePath)));
@@ -557,9 +562,22 @@ void TestBlackboxApple::bundleStructure()
     const auto symlinks = productStructure.value("symlinks").toArray();
     for (const auto &symlink : symlinks) {
         const QString symlinkPath = bundlePath + "/" + symlink.toString();
+        expectedPaths.insert(symlinkPath);
         QVERIFY2(
             QFileInfo2(symlinkPath).isSymLink(),
             qPrintable(QString("Symlink does not exist: %1").arg(symlinkPath)));
+    }
+
+    // Check that there are no extra entries beyond what's expected
+    QDirIterator it(
+        bundlePath, QDir::AllEntries | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString absolutePath = it.next();
+        const QString relativePath = QDir(bundlePath).relativeFilePath(absolutePath);
+
+        QVERIFY2(
+            expectedPaths.count(absolutePath) != 0,
+            qPrintable(QString("Unexpected file/directory found in bundle: %1").arg(relativePath)));
     }
 }
 

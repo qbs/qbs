@@ -3,14 +3,18 @@
     "extension": ".app",
     "directories": [
       "Contents",
+      "Contents/Headers",
+      "Contents/PrivateHeaders",
       "Contents/MacOS",
       "Contents/Resources",
       "Contents/_CodeSignature"
     ],
     "files": [
       "Contents/Info.plist",
-      "Contents/PkgInfo",
+      "Contents/Headers/dummy.h",
+      "Contents/PrivateHeaders/dummy_p.h",
       "Contents/MacOS/A",
+      "Contents/PkgInfo",
       "Contents/Resources/resource.txt",
       "Contents/_CodeSignature/CodeResources"
     ],
@@ -31,6 +35,7 @@
       "Versions/A/Headers/dummy.h",
       "Versions/A/PrivateHeaders/dummy_p.h",
       "Versions/A/Resources/Info.plist",
+      "Versions/A/Resources/resource.txt",
       "Versions/A/_CodeSignature/CodeResources"
     ],
     "symlinks": [
@@ -56,6 +61,7 @@
       "Versions/A/Headers/dummy.h",
       "Versions/A/PrivateHeaders/dummy_p.h",
       "Versions/A/Resources/Info.plist",
+      "Versions/A/Resources/resource.txt",
       "Versions/A/_CodeSignature/CodeResources",
       "Versions/A/_CodeSignature/CodeDirectory",
       "Versions/A/_CodeSignature/CodeRequirements",
@@ -74,13 +80,17 @@
     "extension": ".bundle",
     "directories": [
       "Contents",
+      "Contents/Headers",
       "Contents/MacOS",
       "Contents/Resources",
+      "Contents/PrivateHeaders",
       "Contents/_CodeSignature"
     ],
     "files": [
       "Contents/Info.plist",
+      "Contents/Headers/dummy.h",
       "Contents/MacOS/D",
+      "Contents/PrivateHeaders/dummy_p.h",
       "Contents/Resources/resource.txt",
       "Contents/_CodeSignature/CodeResources"
     ],
@@ -90,13 +100,17 @@
     "extension": ".appex",
     "directories": [
       "Contents",
+      "Contents/Headers",
       "Contents/MacOS",
       "Contents/Resources",
+      "Contents/PrivateHeaders",
       "Contents/_CodeSignature"
     ],
     "files": [
+      "Contents/Headers/dummy.h",
       "Contents/Info.plist",
       "Contents/MacOS/E",
+      "Contents/PrivateHeaders/dummy_p.h",
       "Contents/Resources/resource.txt",
       "Contents/_CodeSignature/CodeResources"
     ],
@@ -106,12 +120,16 @@
     "extension": ".xpc",
     "directories": [
       "Contents",
+      "Contents/Headers",
       "Contents/MacOS",
       "Contents/Resources",
+      "Contents/PrivateHeaders",
       "Contents/_CodeSignature"
     ],
     "files": [
       "Contents/Info.plist",
+      "Contents/Headers/dummy.h",
+      "Contents/PrivateHeaders/dummy_p.h",
       "Contents/MacOS/F",
       "Contents/Resources/resource.txt",
       "Contents/_CodeSignature/CodeResources"

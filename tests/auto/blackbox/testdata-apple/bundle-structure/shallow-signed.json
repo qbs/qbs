@@ -2,12 +2,16 @@
   "A": {
     "extension": ".app",
     "directories": [
+      "Headers",
+      "PrivateHeaders",
       "_CodeSignature"
     ],
     "files": [
       "A",
       "Info.plist",
       "PkgInfo",
+      "Headers/dummy.h",
+      "PrivateHeaders/dummy_p.h",
       "resource.txt",
       "_CodeSignature/CodeResources"
     ],
