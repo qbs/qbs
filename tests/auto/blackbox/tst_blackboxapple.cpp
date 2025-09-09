@@ -34,6 +34,7 @@
 #include <tools/qttools.h>
 
 #include <QtCore/qdiriterator.h>
+#include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
 #include <QtXml/qdom.h>
@@ -494,262 +495,71 @@ void TestBlackboxApple::bundleStructure()
     rmDirR(relativeBuildDir());
     const int status = runQbs(params);
     if (status != 0) {
-        QVERIFY2(m_qbsStderr.contains("Bundle product type "
-                                      + productTypeIdentifier.toLatin1()
-                                      + " is not supported."),
-                 m_qbsStderr.constData());
+        QVERIFY2(
+            m_qbsStderr.contains(
+                "Bundle product type " + productTypeIdentifier.toLatin1() + " is not supported."),
+            m_qbsStderr.constData());
         return;
     }
 
     QCOMPARE(status, 0);
 
     const bool enableCodeSigning = m_qbsStdout.contains("enableCodeSigning: true");
+    const bool isShallow = m_qbsStdout.contains("bundle.isShallow: true");
 
-    if (m_qbsStdout.contains("bundle.isShallow: false")) {
-        // Test shallow bundles detection - bundles are not shallow only on macOS, so also check
-        // the qbs.targetOS property
-        QVERIFY2(m_qbsStdout.contains("qbs.targetOS: macos"), m_qbsStdout);
-        if (productName == "A") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/MacOS/A").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/PkgInfo").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/Resources/resource.txt").isRegularFile());
-            // Application bundles have standard code signature
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Contents/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(
-                    QFileInfo2(defaultInstallRoot + "/A.app/Contents/_CodeSignature/CodeResources")
-                        .isRegularFile());
-            }
-        }
-
-        if (productName == "B") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isFileSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isDirSymLink());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isDirSymLink());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isDirSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Resources").isDirSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/B").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Headers/dummy.h").isRegularFile());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules").isRegularDir());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Modules/module.modulemap").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/Resources/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/Current").isDirSymLink());
-            // Dynamic libraries have standard code signature
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Versions/A/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(
-                    QFileInfo2(
-                        defaultInstallRoot + "/B.framework/Versions/A/_CodeSignature/CodeResources")
-                        .isRegularFile());
-            }
-        }
-
-        if (productName == "C") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isFileSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isDirSymLink());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isDirSymLink());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isDirSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Resources").isDirSymLink());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/C").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Headers/dummy.h").isRegularFile());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules").isRegularDir());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Modules/module.modulemap").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/Resources/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/Current").isDirSymLink());
-            // Static libraries have additional code signature artifacts
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(
-                    QFileInfo2(
-                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeResources")
-                        .isRegularFile());
-                QVERIFY(
-                    QFileInfo2(
-                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeDirectory")
-                        .isRegularFile());
-                QVERIFY(QFileInfo2(
-                            defaultInstallRoot
-                            + "/C.framework/Versions/A/_CodeSignature/CodeRequirements")
-                            .isRegularFile());
-                QVERIFY(QFileInfo2(
-                            defaultInstallRoot
-                            + "/C.framework/Versions/A/_CodeSignature/CodeRequirements-1")
-                            .isRegularFile());
-                QVERIFY(
-                    QFileInfo2(
-                        defaultInstallRoot + "/C.framework/Versions/A/_CodeSignature/CodeSignature")
-                        .isRegularFile());
-            }
-        }
-
-        if (productName == "D") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/MacOS/D").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/Resources/resource.txt").isRegularFile());
-            // Application bundles have standard code signature
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Contents/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(QFileInfo2(
-                            defaultInstallRoot + "/D.bundle/Contents/_CodeSignature/CodeResources")
-                            .isRegularFile());
-            }
-        }
-
-        if (productName == "E") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/MacOS/E").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/Contents/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/Resources/resource.txt").isRegularFile());
-            // Application bundles have standard code signature
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Contents/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(QFileInfo2(
-                            defaultInstallRoot + "/E.appex/Contents/_CodeSignature/CodeResources")
-                            .isRegularFile());
-            }
-        }
-
-        if (productName == "F") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/MacOS/F").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/Resources/resource.txt").isRegularFile());
-            // Application bundles have standard code signature
-            if (enableCodeSigning) {
-                QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/_CodeSignature")
-                            .isRegularDir());
-                QVERIFY(
-                    QFileInfo2(defaultInstallRoot + "/F.xpc/Contents/_CodeSignature/CodeResources")
-                        .isRegularFile());
-            }
-        }
-
-        if (productName == "G") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
-        }
-    } else if (m_qbsStdout.contains("bundle.isShallow: true")) {
-        QVERIFY2(m_qbsStdout.contains("qbs.targetOS:"), m_qbsStdout);
-        QVERIFY2(!m_qbsStdout.contains("qbs.targetOS: macos"), m_qbsStdout);
-        if (productName == "A") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/A").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/Info.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/PkgInfo").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/A.app/resource.txt").isRegularFile());
-        }
-
-        if (productName == "B") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/B").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Headers/dummy.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Info.plist").isRegularFile());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules").isRegularDir());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/Modules/module.modulemap").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/B.framework/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/B.framework/resource.txt").isRegularFile());
-        }
-
-        if (productName == "C") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/C").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Headers/dummy.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Info.plist").isRegularFile());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules").isRegularDir());
-            //QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/Modules/module.modulemap").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/C.framework/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/C.framework/resource.txt").isRegularFile());
-        }
-
-        if (productName == "D") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/D").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Headers/dummy.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/Info.plist").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/D.bundle/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/D.bundle/resource.txt").isRegularFile());
-        }
-
-        if (productName == "E") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/E").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Headers/dummy.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/Info.plist").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/E.appex/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/E.appex/resource.txt").isRegularFile());
-        }
-
-        if (productName == "F") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/F").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Headers/dummy.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/Info.plist").isRegularFile());
-            QVERIFY(!QFileInfo2(defaultInstallRoot + "/F.xpc/PkgInfo").exists());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/PrivateHeaders/dummy_p.h").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/F.xpc/resource.txt").isRegularFile());
-        }
-
-        if (productName == "G") {
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G").isRegularDir());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/ContentInfo.plist").isRegularFile());
-            QVERIFY(QFileInfo2(defaultInstallRoot + "/G/Contents/resource.txt").isRegularFile());
-        }
+    QString expectedStructureFile;
+    if (!isShallow) {
+        QVERIFY2(enableCodeSigning, m_qbsStdout);
+        expectedStructureFile = "deep.json";
     } else {
-        QVERIFY2(false, qPrintable(m_qbsStdout));
+        expectedStructureFile = enableCodeSigning ? "shallow-signed.json" : "shallow-unsigned.json";
+    }
+
+    const QString expectedStructurePath = testDataDir + "/bundle-structure/"
+                                          + expectedStructureFile;
+    QFile structureFile(expectedStructurePath);
+    QVERIFY2(
+        structureFile.open(QIODevice::ReadOnly),
+        qPrintable(QString("Could not open %1").arg(expectedStructurePath)));
+
+    QJsonParseError parseError;
+    const auto expectedStructure = QJsonDocument::fromJson(structureFile.readAll(), &parseError);
+    QVERIFY2(parseError.error == QJsonParseError::NoError, qPrintable(parseError.errorString()));
+
+    const auto allProducts = expectedStructure.object();
+    QVERIFY2(
+        allProducts.contains(productName),
+        qPrintable(QString("Product %1 not found in %2").arg(productName, expectedStructureFile)));
+
+    const auto productStructure = allProducts.value(productName).toObject();
+    const QString bundleExtension = productStructure.value("extension").toString();
+    const QString bundlePath = defaultInstallRoot + "/" + productName + bundleExtension;
+
+    // Check directories
+    const auto directories = productStructure.value("directories").toArray();
+    for (const auto &dir : directories) {
+        const QString dirPath = bundlePath + "/" + dir.toString();
+        QVERIFY2(
+            QFileInfo2(dirPath).isRegularDir(),
+            qPrintable(QString("Directory does not exist: %1").arg(dirPath)));
+    }
+
+    // Check files
+    const auto files = productStructure.value("files").toArray();
+    for (const auto &file : files) {
+        const QString filePath = bundlePath + "/" + file.toString();
+        QVERIFY2(
+            QFileInfo2(filePath).isRegularFile(),
+            qPrintable(QString("File does not exist: %1").arg(filePath)));
+    }
+
+    // Check symlinks
+    const auto symlinks = productStructure.value("symlinks").toArray();
+    for (const auto &symlink : symlinks) {
+        const QString symlinkPath = bundlePath + "/" + symlink.toString();
+        QVERIFY2(
+            QFileInfo2(symlinkPath).isSymLink(),
+            qPrintable(QString("Symlink does not exist: %1").arg(symlinkPath)));
     }
 }
 
@@ -757,7 +567,6 @@ void TestBlackboxApple::bundleStructure_data()
 {
     QTest::addColumn<QString>("productName");
     QTest::addColumn<QString>("productTypeIdentifier");
-    QTest::addColumn<bool>("isShallow");
 
     QTest::newRow("A") << "A" << "com.apple.product-type.application";
     QTest::newRow("ABadApple") << "ABadApple" << "com.apple.product-type.will.never.exist.ever.guaranteed";

@@ -1,0 +1,116 @@
+{
+  "A": {
+    "extension": ".app",
+    "directories": [
+      "_CodeSignature"
+    ],
+    "files": [
+      "A",
+      "Info.plist",
+      "PkgInfo",
+      "resource.txt",
+      "_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "B": {
+    "extension": ".framework",
+    "directories": [
+      "Headers",
+      "PrivateHeaders",
+      "_CodeSignature"
+    ],
+    "files": [
+      "B",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt",
+      "_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "C": {
+    "extension": ".framework",
+    "directories": [
+      "Headers",
+      "PrivateHeaders",
+      "_CodeSignature"
+    ],
+    "files": [
+      "C",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt",
+      "_CodeSignature/CodeResources",
+      "_CodeSignature/CodeDirectory",
+      "_CodeSignature/CodeRequirements",
+      "_CodeSignature/CodeRequirements-1",
+      "_CodeSignature/CodeSignature"
+    ],
+    "symlinks": []
+  },
+  "D": {
+    "extension": ".bundle",
+    "directories": [
+      "Headers",
+      "PrivateHeaders",
+      "_CodeSignature"
+    ],
+    "files": [
+      "D",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt",
+      "_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "E": {
+    "extension": ".appex",
+    "directories": [
+      "Headers",
+      "PrivateHeaders",
+      "_CodeSignature"
+    ],
+    "files": [
+      "E",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt",
+      "_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "F": {
+    "extension": ".xpc",
+    "directories": [
+      "Headers",
+      "PrivateHeaders",
+      "_CodeSignature"
+    ],
+    "files": [
+      "F",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt",
+      "_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "G": {
+    "extension": "",
+    "directories": [
+      "Contents"
+    ],
+    "files": [
+      "ContentInfo.plist",
+      "Contents/resource.txt"
+    ],
+    "symlinks": []
+  }
+}

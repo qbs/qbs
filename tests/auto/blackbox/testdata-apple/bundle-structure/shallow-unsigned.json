@@ -1,0 +1,99 @@
+{
+  "A": {
+    "extension": ".app",
+    "directories": [],
+    "files": [
+      "A",
+      "Info.plist",
+      "PkgInfo",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "B": {
+    "extension": ".framework",
+    "directories": [
+      "Headers",
+      "PrivateHeaders"
+    ],
+    "files": [
+      "B",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "C": {
+    "extension": ".framework",
+    "directories": [
+      "Headers",
+      "PrivateHeaders"
+    ],
+    "files": [
+      "C",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "D": {
+    "extension": ".bundle",
+    "directories": [
+      "Headers",
+      "PrivateHeaders"
+    ],
+    "files": [
+      "D",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "E": {
+    "extension": ".appex",
+    "directories": [
+      "Headers",
+      "PrivateHeaders"
+    ],
+    "files": [
+      "E",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "F": {
+    "extension": ".xpc",
+    "directories": [
+      "Headers",
+      "PrivateHeaders"
+    ],
+    "files": [
+      "F",
+      "Headers/dummy.h",
+      "Info.plist",
+      "PrivateHeaders/dummy_p.h",
+      "resource.txt"
+    ],
+    "symlinks": []
+  },
+  "G": {
+    "extension": "",
+    "directories": [
+      "Contents"
+    ],
+    "files": [
+      "ContentInfo.plist",
+      "Contents/resource.txt"
+    ],
+    "symlinks": []
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "A": {
+    "extension": ".app",
+    "directories": [
+      "Contents",
+      "Contents/MacOS",
+      "Contents/Resources",
+      "Contents/_CodeSignature"
+    ],
+    "files": [
+      "Contents/Info.plist",
+      "Contents/PkgInfo",
+      "Contents/MacOS/A",
+      "Contents/Resources/resource.txt",
+      "Contents/_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "B": {
+    "extension": ".framework",
+    "directories": [
+      "Versions",
+      "Versions/A",
+      "Versions/A/Headers",
+      "Versions/A/PrivateHeaders",
+      "Versions/A/Resources",
+      "Versions/A/_CodeSignature"
+    ],
+    "files": [
+      "Versions/A/B",
+      "Versions/A/Headers/dummy.h",
+      "Versions/A/PrivateHeaders/dummy_p.h",
+      "Versions/A/Resources/Info.plist",
+      "Versions/A/_CodeSignature/CodeResources"
+    ],
+    "symlinks": [
+      "B",
+      "Headers",
+      "PrivateHeaders",
+      "Resources",
+      "Versions/Current"
+    ]
+  },
+  "C": {
+    "extension": ".framework",
+    "directories": [
+      "Versions",
+      "Versions/A",
+      "Versions/A/Headers",
+      "Versions/A/PrivateHeaders",
+      "Versions/A/Resources",
+      "Versions/A/_CodeSignature"
+    ],
+    "files": [
+      "Versions/A/C",
+      "Versions/A/Headers/dummy.h",
+      "Versions/A/PrivateHeaders/dummy_p.h",
+      "Versions/A/Resources/Info.plist",
+      "Versions/A/_CodeSignature/CodeResources",
+      "Versions/A/_CodeSignature/CodeDirectory",
+      "Versions/A/_CodeSignature/CodeRequirements",
+      "Versions/A/_CodeSignature/CodeRequirements-1",
+      "Versions/A/_CodeSignature/CodeSignature"
+    ],
+    "symlinks": [
+      "C",
+      "Headers",
+      "PrivateHeaders",
+      "Resources",
+      "Versions/Current"
+    ]
+  },
+  "D": {
+    "extension": ".bundle",
+    "directories": [
+      "Contents",
+      "Contents/MacOS",
+      "Contents/Resources",
+      "Contents/_CodeSignature"
+    ],
+    "files": [
+      "Contents/Info.plist",
+      "Contents/MacOS/D",
+      "Contents/Resources/resource.txt",
+      "Contents/_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "E": {
+    "extension": ".appex",
+    "directories": [
+      "Contents",
+      "Contents/MacOS",
+      "Contents/Resources",
+      "Contents/_CodeSignature"
+    ],
+    "files": [
+      "Contents/Info.plist",
+      "Contents/MacOS/E",
+      "Contents/Resources/resource.txt",
+      "Contents/_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "F": {
+    "extension": ".xpc",
+    "directories": [
+      "Contents",
+      "Contents/MacOS",
+      "Contents/Resources",
+      "Contents/_CodeSignature"
+    ],
+    "files": [
+      "Contents/Info.plist",
+      "Contents/MacOS/F",
+      "Contents/Resources/resource.txt",
+      "Contents/_CodeSignature/CodeResources"
+    ],
+    "symlinks": []
+  },
+  "G": {
+    "extension": "",
+    "directories": [
+      "Contents"
+    ],
+    "files": [
+      "ContentInfo.plist",
+      "Contents/resource.txt"
+    ],
+    "symlinks": []
+  }
+}
