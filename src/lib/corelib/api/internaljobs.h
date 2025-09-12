@@ -91,6 +91,7 @@ signals:
     void newTaskStarted(const QString &description, int totalEffort, Internal::InternalJob *job);
     void totalEffortChanged(int totalEffort, Internal::InternalJob *job);
     void taskProgress(int value, Internal::InternalJob *job);
+    void reportCommandDescription(const QString &highlight, const QString &message);
 
 private:
     ErrorInfo m_error;
@@ -155,7 +156,6 @@ public:
     const TopLevelProjectPtr &project() const { return m_project; }
 
 signals:
-    void reportCommandDescription(const QString &highlight, const QString &message);
     void reportProcessResult(const qbs::ProcessResult &result);
 
 protected:

@@ -59,14 +59,19 @@
 namespace qbs {
 namespace Internal {
 
-ProductInstaller::ProductInstaller(TopLevelProjectPtr project,
-        QVector<ResolvedProductPtr> products, InstallOptions options,
-        ProgressObserver *observer, Logger logger)
-    : m_project(std::move(project)),
-      m_products(std::move(products)),
-      m_options(std::move(options)),
-      m_observer(observer),
-      m_logger(std::move(logger))
+ProductInstaller::ProductInstaller(
+    TopLevelProjectPtr project,
+    QVector<ResolvedProductPtr> products,
+    InstallOptions options,
+    ProgressObserver *observer,
+    Logger logger,
+    Reporter &&reporter)
+    : m_project(std::move(project))
+    , m_products(std::move(products))
+    , m_options(std::move(options))
+    , m_observer(observer)
+    , m_logger(std::move(logger))
+    , m_reporter(std::move(reporter))
 {
     if (!m_options.installRoot().isEmpty()) {
         QFileInfo installRootFileInfo(m_options.installRoot());
@@ -245,11 +250,11 @@ void ProductInstaller::copyFile(const Artifact *artifact)
                             << nativeTargetDir;
 
     } else {
-        const QString productPrefix = QLatin1Char('[') + artifact->product->fullDisplayName()
-                                      + QLatin1Char(']');
-        m_logger.qbsInfo() << productPrefix << ' '
-                           << Tr::tr("Installing file '%1' into '%2'.")
-                                  .arg(FileInfo::fileName(targetFilePath), nativeTargetDir);
+        m_reporter(
+            QString::fromLatin1("[%1] %2").arg(
+                artifact->product->fullDisplayName(),
+                Tr::tr("Installing file '%1' into '%2'.")
+                    .arg(FileInfo::fileName(targetFilePath), nativeTargetDir)));
     }
 }
 
