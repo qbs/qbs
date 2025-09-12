@@ -457,6 +457,25 @@ void TestBlackboxQt::mocAndCppCombining()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxQt::mocChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/moc-change-tracking");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling moc_class.cpp"), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    REPLACE_IN_FILE("moc-change-tracking.qbs", "// ", "");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(
+        m_qbsStdout.contains("compiling amalgamated_moc-change-tracking.cpp"),
+        m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("moc-change-tracking.qbs");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("linking"), m_qbsStdout.constData());
+}
+
 void TestBlackboxQt::mocFlags()
 {
     QDir::setCurrent(testDataDir + "/moc-flags");
