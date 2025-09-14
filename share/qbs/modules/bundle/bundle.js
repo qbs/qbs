@@ -456,12 +456,6 @@ function generateBundleOutputs(product, inputs)
             });
         }
 
-        var wrapperPath = FileInfo.joinPaths(
-                    product.destinationDirectory,
-                    product.bundle.bundleName);
-        for (var i = 0; i < artifacts.length; ++i)
-            artifacts[i].bundle = { wrapperPath: wrapperPath };
-
         if (Host.os().includes("darwin") && product.codesign
                 && product.codesign.enableCodeSigning) {
             var signatureFiles = ["CodeResources"];
