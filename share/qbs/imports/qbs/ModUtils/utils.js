@@ -491,9 +491,10 @@ var BlackboxOutputArtifactTracker = (function () {
         return fileList;
     };
     BlackboxOutputArtifactTracker.prototype.fixArtifactPaths = function (artifacts, realBasePath, fakeBasePath) {
-        for (var i = 0; i < artifacts.length; ++i)
-            artifacts[i].filePath = realBasePath
-                + artifacts[i].filePath.substr(fakeBasePath.length);
+        for (var i = 0; i < artifacts.length; ++i) {
+            artifacts[i].filePath = FileInfo.joinPaths(
+                realBasePath, FileInfo.relativePath(fakeBasePath, artifacts[i].filePath))
+        }
         return artifacts;
     };
     return BlackboxOutputArtifactTracker;
