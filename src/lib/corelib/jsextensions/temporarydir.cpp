@@ -51,7 +51,10 @@ namespace Internal {
 
 static bool tempDirIsCanonical()
 {
-#if QT_VERSION >= 0x050c00
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+    return false;
+#endif
+#if QT_VERSION >= QT_VERSION_CHECK(5, 12, 0)
     return true;
 #endif
     return false;
