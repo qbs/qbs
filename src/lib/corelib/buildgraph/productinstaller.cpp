@@ -253,7 +253,7 @@ void ProductInstaller::copyFile(const Artifact *artifact)
         m_reporter(
             QString::fromLatin1("[%1] %2").arg(
                 artifact->product->fullDisplayName(),
-                Tr::tr("Installing file '%1' into '%2'.")
+                Tr::tr("installing %1 into %2.")
                     .arg(FileInfo::fileName(targetFilePath), nativeTargetDir)));
     }
 }
