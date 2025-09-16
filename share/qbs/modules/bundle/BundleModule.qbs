@@ -93,6 +93,8 @@ Module {
             if (xcodeDeveloperPath && useXcodeBuildSpecs) {
                 specsPaths = Bundle.macOSSpecsPaths(xcodeVersion, xcodeDeveloperPath);
                 specsSeparator = " ";
+                if (Utilities.versionCompare(xcodeVersion, "26.0") >= 0)
+                    specsSeparator = "";
             }
 
             var reader = new Bundle.XcodeBuildSpecsReader(specsPaths,

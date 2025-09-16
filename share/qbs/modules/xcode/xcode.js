@@ -202,6 +202,32 @@ function boolFromSdkOrPlatform(varName, sdkProps, platformProps, defaultValue) {
     return defaultValue;
 }
 
+function specsBaseName(version, targetOS) {
+    const targetPlatform = targetOS[0];
+    const oldSpecNames = {
+        "macos": "MacOSX Architectures",
+        "ios": "iOS Device",
+        "ios-simulator": "iOS Simulator",
+        "tvos": "tvOS Device",
+        "tvos-simulator": "tvOS Simulator",
+        "watchos": "watchOS Device",
+        "watchos-simulator": "watchOS Simulator"
+    };
+    const newSpecNames = {
+        "macos": "macOSArchitectures",
+        "ios": "iOSDevice",
+        "ios-simulator": "iOSSimulator",
+        "tvos": "tvOSDevice",
+        "tvos-simulator": "tvOSSimulator",
+        "watchos": "watchOSDevice",
+        "watchos-simulator": "watchOSSimulator"
+    };
+    if (Utilities.versionCompare(version, "26") < 0) {
+        return oldSpecNames[targetPlatform];
+    }
+    return newSpecNames[targetPlatform];
+}
+
 function archsSpecsPath(version, targetOS, platformType, platformPath, devicePlatformPath,
                         developerPath) {
     if (Utilities.versionCompare(version, "13.3") >= 0) {
@@ -218,13 +244,7 @@ function archsSpecsPath(version, targetOS, platformType, platformPath, devicePla
         var baseDir = FileInfo.joinPaths(pluginsDir,
                                          "XCBSpecifications.ideplugin", "Contents", "Resources");
 
-        var baseName = targetOS.includes("macos") ? "MacOSX Architectures"
-                : targetOS.includes("ios-simulator") ? "iOS Simulator"
-                : targetOS.includes("ios") ? "iOS Device"
-                : targetOS.includes("tvos-simulator") ? "tvOS Simulator"
-                : targetOS.includes("tvos") ? "tvOS Device"
-                : targetOS.includes("watchos-simulator") ? "watchOS Simulator" : "watchOS Device";
-        return FileInfo.joinPaths(baseDir, baseName + ".xcspec");
+        return FileInfo.joinPaths(baseDir, specsBaseName(version, targetOS) + ".xcspec");
     }
     var _specsPluginBaseName;
     if (Utilities.versionCompare(version, "12") >= 0) {
