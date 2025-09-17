@@ -1678,7 +1678,8 @@ function moduleLinkerOutputArtifacts(product, inputs)
 
 function staticLibLinkerOutputArtifacts(product)
 {
-    var tags = ["bundle.input", "staticlibrary"];
+    var tags = ["bundle.input", "staticlibrary"]
+        .concat(product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []);
     var objs = inputs["obj"];
     var objCount = objs ? objs.length : 0;
     for (var i = 0; i < objCount; ++i) {
@@ -1702,6 +1703,7 @@ function staticLibLinkerOutputArtifacts(product)
 function staticLibLinkerCommands(project, product, inputs, outputs, input, output,
                                  explicitlyDependsOn)
 {
+    var commands = [];
     var args = ['rcs'];
     Array.prototype.push.apply(args, product.cpp.archiverFlags);
     args.push(output.filePath);
@@ -1715,7 +1717,13 @@ function staticLibLinkerCommands(project, product, inputs, outputs, input, outpu
     cmd.jobPool = "linker";
     cmd.responseFileUsagePrefix = '@';
     setResponseFileThreshold(cmd, product);
-    return cmd;
+    commands.push(cmd);
+
+    if (product.cpp.shouldSignArtifacts) {
+        Array.prototype.push.apply(
+            commands, Codesign.prepareSign(project, product, inputs, outputs, input, output));
+    }
+    return commands;
 }
 
 function dynamicLibLinkerOutputArtifacts(product)

@@ -455,7 +455,13 @@ CppModule {
             multiplex: true
             inputs: ["obj", "res", "linkerscript"]
             inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
-            outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+            outputFileTags: {
+                var tags = ["bundle.input", "bundle.main.input", "bundle.main.library",
+                             "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+                if (product.cpp.shouldSignArtifacts)
+                    tags.push("codesign.signed_artifact");
+                return tags;
+            }
             outputArtifacts: Gcc.staticLibLinkerOutputArtifacts(product, inputs)
             prepare: Gcc.staticLibLinkerCommands.apply(Gcc, arguments)
         }

@@ -686,6 +686,20 @@ void TestBlackboxApple::codesign()
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
         QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
     }
+
+    const auto staticLibName = isBundle ? QStringLiteral("D.framework") : QStringLiteral("libD.a");
+    const auto staticLibPath = defaultInstallRoot + "/" + staticLibName;
+    QVERIFY(QFileInfo(staticLibPath).exists());
+    codeSignInfo = getCodeSignInfo(staticLibPath);
+    QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
+    // static libraries are not signed by default so we check for enableSigning instead of isSigned
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    if (!codeSignInfo.second.isEmpty()) {
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
+        QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
+    }
 }
 
 void TestBlackboxApple::codesign_data()
@@ -698,17 +712,17 @@ void TestBlackboxApple::codesign_data()
 
     QTest::newRow("standalone, unsigned") << 0 << false << false << false << false;
     QTest::newRow("bundle, unsigned") << 0 << true << false << false << false;
-    QTest::newRow("standalone, signed") << 3 << false << true << false << false;
-    QTest::newRow("bundle, signed") << 3 << true << true << false << false;
+    QTest::newRow("standalone, signed") << 4 << false << true << false << false;
+    QTest::newRow("bundle, signed") << 4 << true << true << false << false;
     // here we only sign the resulting lipo artifact
-    QTest::newRow("standalone, signed, multiarch") << 3 << false << true << true << false;
-    QTest::newRow("bundle, signed, multiarch") << 3 << true << true << true << false;
+    QTest::newRow("standalone, signed, multiarch") << 4 << false << true << true << false;
+    QTest::newRow("bundle, signed, multiarch") << 4 << true << true << true << false;
     // here we sign all artifacts
-    QTest::newRow("standalone, signed, multivariant") << 6 << false << true << false << true;
-    QTest::newRow("bundle, signed, multivariant") << 6 << true << true << false << true;
+    QTest::newRow("standalone, signed, multivariant") << 8 << false << true << false << true;
+    QTest::newRow("bundle, signed, multivariant") << 8 << true << true << false << true;
     QTest::newRow("standalone, signed, multiarch, multivariant")
-        << 6 << false << true << true << true;
-    QTest::newRow("bundle, signed, multiarch, multivariant") << 6 << true << true << true << true;
+        << 8 << false << true << true << true;
+    QTest::newRow("bundle, signed, multiarch, multivariant") << 8 << true << true << true << true;
 }
 
 void TestBlackboxApple::codesignDestinationDirectory()
