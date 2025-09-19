@@ -59,6 +59,7 @@ private slots:
     void metaTypes();
     void mixedBuildVariants();
     void mocAndCppCombining();
+    void mocChangeTracking();
     void mocFlags();
     void mocCompilerDefines();
     void mocSameFileName();

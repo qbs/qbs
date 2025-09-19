@@ -48,6 +48,8 @@
 #include <QtCore/qhash.h>
 #include <QtCore/qlist.h>
 
+#include <functional>
+
 namespace qbs {
 namespace Internal {
 class ProgressObserver;
@@ -55,9 +57,14 @@ class ProgressObserver;
 class ProductInstaller
 {
 public:
-    ProductInstaller(TopLevelProjectPtr project,
-            QVector<ResolvedProductPtr> products,
-            InstallOptions options, ProgressObserver *observer, Logger logger);
+    using Reporter = std::function<void(const QString &)>;
+    ProductInstaller(
+        TopLevelProjectPtr project,
+        QVector<ResolvedProductPtr> products,
+        InstallOptions options,
+        ProgressObserver *observer,
+        Logger logger,
+        Reporter &&reporter);
     void install();
 
     static QString targetFilePath(const TopLevelProject *project, const QString &productSourceDir,
@@ -76,6 +83,7 @@ private:
     InstallOptions m_options;
     ProgressObserver * const m_observer;
     Logger m_logger;
+    const Reporter m_reporter;
     QHash<QString, QString> m_targetFilePathsMap;
 };
 

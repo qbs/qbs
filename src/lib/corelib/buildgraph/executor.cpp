@@ -305,8 +305,16 @@ void Executor::doBuild()
             ->moduleProperties->qbsPropertyValue(StringConstants::installRootProperty())
             .toString());
     installOptions.setKeepGoing(m_buildOptions.keepGoing());
+    auto installReporter = [this](const QString &desc) {
+        emit reportCommandDescription(QStringLiteral("filegen"), desc);
+    };
     m_productInstaller = new ProductInstaller(
-        m_project, m_buildableProducts, installOptions, m_progressObserver, m_logger);
+        m_project,
+        m_buildableProducts,
+        installOptions,
+        m_progressObserver,
+        m_logger,
+        std::move(installReporter));
     if (m_buildOptions.removeExistingInstallation())
         m_productInstaller->removeInstallRoot();
 

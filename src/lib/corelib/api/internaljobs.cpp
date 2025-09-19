@@ -455,7 +455,12 @@ void InternalInstallJob::init(const TopLevelProjectPtr &project,
 void InternalInstallJob::start()
 {
     try {
-        ProductInstaller(m_project, m_products, m_options, observer(), logger()).install();
+        auto reporter = [this](const QString &desc) {
+            emit reportCommandDescription(QStringLiteral("filegen"), desc);
+        };
+        ProductInstaller(
+            m_project, m_products, m_options, observer(), logger(), std::move(reporter))
+            .install();
     } catch (const ErrorInfo &error) {
         setError(error);
     }

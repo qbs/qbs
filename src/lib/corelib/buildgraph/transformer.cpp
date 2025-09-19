@@ -325,22 +325,25 @@ void Transformer::rescueChangeTrackingData(const TransformerConstPtr &other)
 
 void Transformer::rescueFromArtifactData(RescuableArtifactData &&rad)
 {
-    propertiesRequestedInPrepareScript = std::move(rad.propertiesRequestedInPrepareScript);
+    if (rad.lastPrepareScriptExecutionTime >= lastPrepareScriptExecutionTime) {
+        propertiesRequestedInPrepareScript = std::move(rad.propertiesRequestedInPrepareScript);
+        propertiesRequestedFromArtifactInPrepareScript = std::move(
+            rad.propertiesRequestedFromArtifactInPrepareScript);
+        importedFilesUsedInPrepareScript = std::move(rad.importedFilesUsedInPrepareScript);
+        depsRequestedInPrepareScript = std::move(rad.depsRequestedInPrepareScript);
+        artifactsMapRequestedInPrepareScript = std::move(rad.artifactsMapRequestedInPrepareScript);
+        exportedModulesAccessedInPrepareScript = std::move(
+            rad.exportedModulesAccessedInPrepareScript);
+        lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
+    }
     propertiesRequestedInCommands = std::move(rad.propertiesRequestedInCommands);
-    propertiesRequestedFromArtifactInPrepareScript = std::move(
-        rad.propertiesRequestedFromArtifactInPrepareScript);
     propertiesRequestedFromArtifactInCommands = std::move(
         rad.propertiesRequestedFromArtifactInCommands);
-    importedFilesUsedInPrepareScript = std::move(rad.importedFilesUsedInPrepareScript);
     importedFilesUsedInCommands = std::move(rad.importedFilesUsedInCommands);
-    depsRequestedInPrepareScript = std::move(rad.depsRequestedInPrepareScript);
     depsRequestedInCommands = std::move(rad.depsRequestedInCommands);
-    artifactsMapRequestedInPrepareScript = std::move(rad.artifactsMapRequestedInPrepareScript);
     artifactsMapRequestedInCommands = std::move(rad.artifactsMapRequestedInCommands);
-    exportedModulesAccessedInPrepareScript = std::move(rad.exportedModulesAccessedInPrepareScript);
     exportedModulesAccessedInCommands = std::move(rad.exportedModulesAccessedInCommands);
     lastCommandExecutionTime = rad.lastCommandExecutionTime;
-    lastPrepareScriptExecutionTime = rad.lastPrepareScriptExecutionTime;
     commandsNeedChangeTracking = true;
     markedForRerun = markedForRerun || rad.knownOutOfDate;
 }
