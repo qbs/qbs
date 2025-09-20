@@ -61,6 +61,10 @@
 namespace qbs {
 namespace Internal {
 
+#ifdef Q_OS_DARWIN
+bool nsCopyFile(const QString &srcFilePath, const QString &tgtFilePath, QString *errorMessage);
+#endif
+
 QString FileInfo::fileName(const QString &fp)
 {
     int last = fp.lastIndexOf(QLatin1Char('/'));
@@ -598,12 +602,17 @@ bool copyFileRecursion(
                         .arg(QDir::toNativeSeparators(tgtFilePath), targetFile.errorString());
             }
         }
+#ifdef Q_OS_DARWIN
+        if (!nsCopyFile(srcFilePath, tgtFilePath, errorMessage))
+            return false;
+#else
         if (!file.copy(tgtFilePath)) {
             *errorMessage = Tr::tr("Could not copy file '%1' to '%2'. %3")
                 .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath),
                      file.errorString());
             return false;
         }
+#endif
     }
     return true;
 }

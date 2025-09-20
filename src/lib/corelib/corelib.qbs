@@ -545,7 +545,8 @@ QbsLibrary {
         prefix: "tools/"
         files: [
             "applecodesignutils.cpp",
-            "applecodesignutils.h"
+            "applecodesignutils.h",
+            "fileinfo.mm"
         ]
     }
     Group {

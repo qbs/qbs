@@ -448,6 +448,7 @@ if(APPLE)
     set(TOOLS_MACOS_SOURCES
         applecodesignutils.cpp
         applecodesignutils.h
+        fileinfo.mm
         )
     list_transform_prepend(TOOLS_MACOS_SOURCES tools/)
     set(EXTERNAL_DEPENDS "-framework Foundation" "-framework Security")
