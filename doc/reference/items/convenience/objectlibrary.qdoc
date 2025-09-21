@@ -28,14 +28,14 @@
     \previouspage LoadableModule
     \nextpage Plugin
     \qmltype ObjectLibrary
-    \inherits Library
+    \inherits CppLibrary
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.ObjectLibrary
 
     \brief A collection of object files.
 
-    An ObjectLibrary item is a \l{Library}{library} of the \l{Product::}{type}
+    An ObjectLibrary item is a \l{CppLibrary}{library} of the \l{Product::}{type}
     \c "objectlibrary".
     It behaves exactly like a \l StaticLibrary, except that the object files are
     not packaged into a container. It is suitable if the library does not need to

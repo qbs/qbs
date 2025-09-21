@@ -85,6 +85,7 @@ private slots:
     void combinedSources();
     void commandFile();
     void compilerDefinesByLanguage();
+    void cppLibrary();
     void conditionalExport();
     void conditionalFileTagger();
     void configure();

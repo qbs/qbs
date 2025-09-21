@@ -5623,6 +5623,35 @@ void TestBlackbox::compilerDefinesByLanguage()
     QCOMPARE(runQbs(params), 0);
 }
 
+void TestBlackbox::cppLibrary()
+{
+    QDir::setCurrent(testDataDir + "/cpp-library");
+
+    QCOMPARE(runQbs(), 0);
+
+    // Determine target OS from qbs output
+    const bool isWindows = m_qbsStdout.contains("is windows");
+    const bool isDarwin = m_qbsStdout.contains("is darwin");
+    const bool isUnix = m_qbsStdout.contains("is unix");
+    const bool isEmscripten = m_qbsStdout.contains("is emscripten");
+
+    QVERIFY(isWindows || isDarwin || isUnix || isEmscripten);
+
+    const QString libExtension = isWindows ? ".dll" : (isDarwin ? ".dylib" : ".so");
+    const QString libDir = relativeBuildDir() + "/install-root/" + (isWindows ? "/bin/" : "/lib/");
+    const QString libFile = (isWindows ? "testlib" : "libtestlib") + libExtension;
+    QVERIFY(QFileInfo(libDir + libFile).exists());
+
+    // Test header installation - headers should be installed in subdirectories
+    const QString publicHeaderPath = relativeBuildDir()
+                                     + "/install-root/include/cpp-library/testlib/TestLib.h";
+    const QString privateHeaderPath
+        = relativeBuildDir() + "/install-root/include/cpp-library/testlib/private/TestLibPrivate.h";
+
+    QVERIFY(QFileInfo(publicHeaderPath).exists());
+    QVERIFY(QFileInfo(privateHeaderPath).exists());
+}
+
 void TestBlackbox::jsExtensionsFile()
 {
     QDir::setCurrent(testDataDir + "/jsextensions-file");

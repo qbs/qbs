@@ -1,5 +1,6 @@
 Project {
-    DynamicLibrary {
+    Library {
+        type: "dynamiclibrary"
         //Depends { name: "cpp" }
         name: "lib"
         files: "lib.cpp"

@@ -28,7 +28,7 @@
     \previouspage CppStd
     \nextpage InnoSetup
     \qmltype DynamicLibrary
-    \inherits Library
+    \inherits CppLibrary
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.DynamicLibrary
@@ -36,7 +36,7 @@
 
     \brief Dynamic library.
 
-    A DynamicLibrary item is a \l{Library}{library} of the \l{Product::}{type}
+    A DynamicLibrary item is a \l{CppLibrary}{library} of the \l{Product::}{type}
     \c "dynamiclibrary".
 
     For Android targets, the following applies:

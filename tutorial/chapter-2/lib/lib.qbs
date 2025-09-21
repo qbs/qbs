@@ -8,7 +8,6 @@ StaticLibrary {
     version: "1.0.0"
 
     //! [1]
-    Depends { name: 'cpp' }
     cpp.defines: ['CRUCIAL_DEFINE']
     //! [1]
 

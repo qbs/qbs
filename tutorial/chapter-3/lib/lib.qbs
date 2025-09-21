@@ -3,11 +3,8 @@
 
 DynamicLibrary {
     name: "mylib"
-    files: [
-        "lib.c",
-        "lib.h",
-        "lib_global.h",
-    ]
+    files: ["lib.c"]
+    publicHeaders: ["lib.h", "lib_global.h"]
     version: "1.0.0"
 
     Depends { name: "cpp" }

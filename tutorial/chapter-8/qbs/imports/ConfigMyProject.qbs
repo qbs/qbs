@@ -1,11 +1,11 @@
 import qbs.FileInfo
 Module {
+    property bool enableAddressSanitizer: false
+    Depends { name: "Sanitizers.address"; condition: enableAddressSanitizer }
 
     Depends { name: "cpp" }
-    Depends { name: "installpaths" }
     Depends { name: "config.install" }
 
-    property bool installPublicHeaders: false
     property bool enableRPath: true
     property stringList libRPaths: {
         if (enableRPath && cpp.rpathOrigin && product.installDir) {

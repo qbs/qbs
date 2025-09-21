@@ -23,7 +23,8 @@ Project {
         qbs.buildVariants: ["debug", "release"]
         qbs.profile: project.mingwProfile
     }
-    DynamicLibrary {
+    Library {
+        type: "dynamiclibrary"
         name: "lib"
 
         Depends { name: "cpp"; required: false }

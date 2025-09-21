@@ -145,7 +145,10 @@
 
     \snippet ../tutorial/chapter-2/lib/lib.qbs 0
     It contains the \l{StaticLibrary} item which sets the \l{Product::type}{type} of the product
-    to \c "staticlibrary" and sets some defaults like where to install that library.
+    to \c "staticlibrary" and sets some defaults like where to install that library. The
+    \l{StaticLibrary} item inherits the \l{CppLibrary} item which pulls in the dependency on the
+    \l{cpp} module.
+
     As before, we set the \l{Product::files}{files} property with a header:
     \snippet ../tutorial/chapter-2/lib/lib.h 0
     And we set the implementation file of our library:
@@ -155,12 +158,6 @@
     in our application. The source file requires a \c "CRUCIAL_DEFINE" to be
     passed to a preprocessor. That is why we set the \l{cpp::defines}{cpp.defines} property:
     \snippet ../tutorial/chapter-2/lib/lib.qbs 1
-
-    Note that unlike the \l{CppApplication} item, the \l{StaticLibrary} does not pull in the
-    dependency on the \l{cpp} module automatically - that is why we have to pull it in manually
-    using the \l{Depends} item. Without the \l{cpp} module, \QBS would not know how to turn a
-    \c{.c} file into an object file and the object file into a library. See
-    \l{Rules and Product Types} for details.
 
     Next, we need to tell \QBS where to look for public headers of our library when building
     products that depend on it. By default, \QBS knows nothing about the layout of our
@@ -216,7 +213,12 @@
     \snippet ../tutorial/chapter-3/lib/lib.qbs 0
 
     The most important change is that we changed the item type from \l{StaticLibrary} to
-    \l{DynamicLibrary}. We also added the \c MYLIB_LIBRARY to the list of
+    \l{DynamicLibrary}. We moved the \c "lib.h" header into the
+    \l{CppLibrary::publicHeaders}{publicHeaders} property. That way, the header will be installed
+    with the library to the \c{<qbs.installPrefix>/include/my project/mylib/} directory. If
+    you do not want to ship headers with your library, simply put those into the
+    \l{Product::files}{files} property like we did in the previous chapter.
+    We also added the \c MYLIB_LIBRARY to the list of
     \l{cpp::defines}{defines}. We do this only when building the library but we are not exporting
     it - that way the users of our library will have methods marked for import rather than export.
 
@@ -456,32 +458,25 @@
     Let's create a new item and add a new property to it:
     \snippet ../tutorial/chapter-7/qbs/imports/ConfigMyProject.qbs 0
 
-    We added the \c{installPublicHeaders} property that will allow us to configure whether we
-    need to install public headers for our library.
+    We added the \c{enableAddressSanitizer} property and a dependency on the
+    \l{Sanitizer.address} module if that property is set to \c{true}.
 
     Now let's use the item in a module:
     \snippet ../tutorial/chapter-7/qbs/modules/config/myproject/module.qbs 0
 
-    Now we can use our module in the \c{MyLibrary.qbs} item:
+    Now we can use our module in the \c{MyLibrary.qbs} item by pulling in the new module using
+    the \l{Depends} item:
     \snippet ../tutorial/chapter-7/qbs/imports/MyLibrary.qbs 0
 
-    We pull in the new module using the \l{Depends} item, similar to how we pulled in
-    the \l{cpp} module dependency earlier.
+    Now we can enable sanitizer build by setting the \c{enableAddressSanitizer} property from
+    command-line:
 
-    We add a new \c{publicHeaders} property that will contain the list of headers we want to
-    install.
+    \code
+    $ qbs resolve modules.config.myproject.enableAddressSanitizer:true
+    $ qbs build
+    \endcode
 
-    Finally, we create a \l{Group} item that installs headers listed by the \c{publicHeaders}
-    property to the \l{installpaths::include}{installpaths.include} directory.
-
-    Note that we use the \l{installpaths} module - it is pulled in by the
-    \l{DynamicLibrary} item and is available in all items that inherit that item.
-
-    Now we can rewrite the \c{lib/lib.qbs} to use the new property:
-
-    \snippet ../tutorial/chapter-7/lib/lib.qbs 0
-
-    Instead of the \c{config.myproject.installPublicHeaders} property, we could also use the
+    Instead of the \c{config.myproject.enableAddressSanitizer} property, we could also use the
     property in the \l{Project} item similar to how we did in the previous
     chapter. There is no strong preference which way to use, however using modules for
     configuration is more flexible as it is also possible to set properties of other modules
@@ -504,14 +499,6 @@
     We should also update the \c{MyApplication} item to add a dependency on the
     \c{"config.myproject"} in order to inject \l{cpp::rpaths}{cpp.rpaths} we set in the module:
     \snippet ../tutorial/chapter-7/qbs/imports/MyApplication.qbs 0
-
-    Let's change whether to install public headers when building our project:
-    \code
-        $ qbs modules.config.myproject.installPublicHeaders:true
-        ...
-        $ ls default/install-root/usr/local/include/
-        lib.h
-    \endcode
 */
 
 /*!

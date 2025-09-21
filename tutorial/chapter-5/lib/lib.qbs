@@ -1,7 +1,7 @@
 MyLibrary {
     name: "mylib"
-    files: [
-        "lib.c",
+    files: ["lib.c"]
+    publicHeaders: [
         "lib.h",
         "lib_global.h",
     ]

@@ -28,13 +28,13 @@
     \previouspage QtLupdateRunner
     \nextpage XPCService
     \qmltype StaticLibrary
-    \inherits Library
+    \inherits CppLibrary
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.StaticLibrary
 
     \brief Static library.
 
-    A StaticLibrary item is a \l{Library}{library} of the \l{Product::}{type}
+    A StaticLibrary item is a \l{CppLibrary}{library} of the \l{Product::}{type}
     \c "staticlibrary".
 */

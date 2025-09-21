@@ -1,6 +1,5 @@
 // ![0]
-Library {
-    Depends { name: "cpp" }
+CppLibrary {
     Depends { name: "config.myproject" }
     version: config.myproject.productVersion
 

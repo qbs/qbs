@@ -19,6 +19,7 @@ Module {
     property string libexec: "libexec/" + subdir
 
     property string plugins: lib + "/" + subdir + "/plugins"
+    property string headers: include + "/" + subdir
 
     property string share: "share/" + subdir
 
