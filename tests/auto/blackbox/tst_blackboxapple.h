@@ -60,6 +60,7 @@ private slots:
     void byteArrayInfoPlist();
     void codesign();
     void codesign_data();
+    void codesignDestinationDirectory();
     void deploymentTarget();
     void deploymentTarget_data();
     void dmg();

@@ -471,7 +471,10 @@ function generateBundleOutputs(product, inputs)
             Array.prototype.push.apply(artifacts, signatureFiles.map(function(file) {
                 return {
                     filePath: FileInfo.joinPaths(
-                        product.bundle.contentsFolderPath, "_CodeSignature/" + file),
+                        product.destinationDirectory,
+                        product.bundle.contentsFolderPath,
+                        "_CodeSignature",
+                        file),
                     fileTags: ["bundle.code-signature", "bundle.content"]
                 };
             }));

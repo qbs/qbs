@@ -711,6 +711,13 @@ void TestBlackboxApple::codesign_data()
     QTest::newRow("bundle, signed, multiarch, multivariant") << 6 << true << true << true << true;
 }
 
+void TestBlackboxApple::codesignDestinationDirectory()
+{
+    // checks that codesign does not break when destinationDirectory is set
+    QDir::setCurrent(testDataDir + "/codesign-destination-directory");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxApple::deploymentTarget()
 {
     QFETCH(QString, sdk);
