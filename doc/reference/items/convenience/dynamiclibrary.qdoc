@@ -25,7 +25,7 @@
 **
 ****************************************************************************/
 /*!
-    \previouspage CppApplication
+    \previouspage CppStd
     \nextpage InnoSetup
     \qmltype DynamicLibrary
     \inherits Library
