@@ -5136,6 +5136,8 @@ void TestBlackbox::installLocations()
                                      : "modules.config.install.dynamicLibrariesDirectory:")
                               : "products.thelib.installDir:";
         params.arguments.push_back(prop + dllDir);
+        if (!useModule)
+            params.arguments.push_back("products.theloadablemodule.installDir:" + dllDir);
         if (useModule && !useInstallPaths) {
             params.arguments.push_back("modules.config.install.frameworksDirectory:" + dllDir);
         }
@@ -5163,6 +5165,7 @@ void TestBlackbox::installLocations()
         } else {
             params.arguments.push_back("products.theapp.debugInformationInstallDir:" + dsymDir);
             params.arguments.push_back("products.thelib.debugInformationInstallDir:" + dsymDir);
+            params.arguments.push_back("products.theloadablemodule.debugInformationInstallDir:" + dsymDir);
             params.arguments.push_back("products.theplugin.debugInformationInstallDir:" + dsymDir);
         }
     }
@@ -5205,8 +5208,9 @@ void TestBlackbox::installLocations()
         isWindows  ? "theplugin.dll"
         : isDarwin ? "theplugin"
                    : "libtheplugin.so",
-        pluginDir.isEmpty() ? (isDarwin ? "/Library/Frameworks" : "/lib/install-locations/plugins/")
-                            : pluginDir,
+        pluginDir.isEmpty()
+            ? (isDarwin ? "/Library/Install-Locations/PlugIns" : "/lib/install-locations/plugins/")
+            : pluginDir,
         isDarwin ? (isMac ? "theplugin.bundle/Contents/MacOS" : "theplugin.bundle") : ""};
     const BinaryInfo pluginDsym = {
         isWindows  ? (!isMingw ? "theplugin.pdb" : "theplugin.dll.debug")
@@ -5227,6 +5231,19 @@ void TestBlackbox::installLocations()
                        : "theapp.debug",
         dsymDir.isEmpty() ? app.installDir : dsymDir,
         {}};
+    const BinaryInfo loadableModule = {
+        isWindows  ? "theloadablemodule.dll"
+        : isDarwin ? "theloadablemodule"
+                   : "libtheloadablemodule.so",
+        dllDir.isEmpty() ? (isDarwin ? "/Library/Frameworks" : (isWindows ? "/bin" : "/lib"))
+                         : (isWindows && useModule && useInstallPaths ? binDir : dllDir),
+        isDarwin ? (isMac ? "theloadablemodule.bundle/Contents/MacOS" : "theloadablemodule.bundle") : ""};
+    const BinaryInfo loadableModuleDsym = {
+        isWindows  ? (!isMingw ? "theloadablemodule.pdb" : "theloadablemodule.dll.debug")
+        : isDarwin ? "theloadablemodule.bundle.dSYM"
+                   : "libtheloadablemodule.so.debug",
+        dsymDir.isEmpty() ? loadableModule.installDir : dsymDir,
+        {}};
 
     const QString installRoot = QDir::currentPath() + "/default/install-root";
     const QString installPrefix = (isWindows || isEmscripten) ? QString() : "/usr/local";
@@ -5242,6 +5259,8 @@ void TestBlackbox::installLocations()
     }
     const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
     QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
+    const QString loadableModuleFilePath = loadableModule.absolutePath(fullInstallPrefix);
+    QVERIFY2(QFile::exists(loadableModuleFilePath), qPrintable(loadableModuleFilePath));
 
     const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
     QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
@@ -5249,6 +5268,8 @@ void TestBlackbox::installLocations()
     if (!isEmscripten) { // no separate debug info for emscripten libs
         const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
         QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
+        const QString loadableModuleDsymFilePath = loadableModuleDsym.absolutePath(fullInstallPrefix);
+        QVERIFY2(QFileInfo(loadableModuleDsymFilePath).exists(), qPrintable(loadableModuleDsymFilePath));
         const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
         QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
     }
@@ -5388,7 +5409,7 @@ void TestBlackbox::pluginType()
         if (isWindows) {
             filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.dll");
         } else if (isDarwin) {
-            filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.dylib");
+            filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.bundle");
         } else if (isGcc) {
             filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.so");
         }

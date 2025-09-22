@@ -1,4 +1,5 @@
 Project {
+    name: "Install-Locations"
     property bool dummy: {
         if (qbs.targetOS.includes("windows")) {
             console.info("is windows");
@@ -31,9 +32,15 @@ Project {
         cpp.separateDebugInformation: true
         files: "thelib.cpp"
     }
+    LoadableModule {
+        name: "theloadablemodule"
+        Depends { name: "cpp" }
+        cpp.separateDebugInformation: true
+        files: "theplugin.cpp"
+    }
     Project {
         name: "subproject"
-        LoadableModule {
+        Plugin {
             name: "theplugin"
             Depends { name: "cpp" }
             cpp.separateDebugInformation: true

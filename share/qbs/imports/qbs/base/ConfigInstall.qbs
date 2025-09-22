@@ -23,7 +23,8 @@ Module {
     property string pluginsDirectory: installpaths.plugins
 
     property bool loadableModules: install
-    property string loadableModulesDirectory: installpaths.library + "/" + installpaths.frameworks
+    property string loadableModulesDirectory:
+        installpaths.library + "/" + installpaths.topLevelProjectName + "/PlugIns"
 
     property bool debugInformation: install
     property string debugInformationDirectory

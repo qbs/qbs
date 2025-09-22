@@ -36,13 +36,20 @@ Library {
         var defaultType = config.build.pluginType + "library";
         if (qbs.targetOS.contains("ios") && parseInt(cpp.minimumIosVersion, 10) < 8)
             return ["staticlibrary"];
-        if (defaultType === "dynamiclibrary" && isForAndroid)
-            return [defaultType, "android.nativelibrary"];
+        if (defaultType === "dynamiclibrary") {
+            if (isForDarwin)
+                return ["loadablemodule"];
+            if (isForAndroid)
+                return [defaultType, "android.nativelibrary"];
+        }
         return [defaultType];
     }
     installDir: {
-        if (config.build.pluginType == "dynamic" && config.install.plugins)
+        if (config.build.pluginType == "dynamic" && config.install.plugins) {
+            if (isForDarwin && bundle.isBundle)
+                return config.install.loadableModulesDirectory
             return config.install.pluginsDirectory;
+        }
         return undefined;
     }
     debugInformationInstallDir: config.install.debugInformationDirectory || installDir
