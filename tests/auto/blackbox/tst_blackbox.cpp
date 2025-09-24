@@ -7364,6 +7364,9 @@ void TestBlackbox::qbsLanguageServer_data()
     QTest::addRow("follow item from import path")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:17:7") << QString() << QString()
         << (testDataDir + "/lsp/MyProduct.qbs:2:74");
+    QTest::addRow("follow built-in item")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:18:7") << QString() << QString()
+        << QString();
     QTest::addRow("follow to module in binding (first segment)")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:21:12") << QString() << QString()
         << (testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:1:1");
