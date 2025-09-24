@@ -440,6 +440,8 @@ void LspServer::Private::handleGotoDefinitionRequest()
 
     AstNodeLocator locator(offset, *parser.ast());
     const QList<Node *> &astPath = locator.path();
+    if (astPath.isEmpty())
+        return sendResponse(nullptr);
 
     const StringLiteral *filePathLiteral = nullptr;
     const ElementList *elementList = nullptr;
