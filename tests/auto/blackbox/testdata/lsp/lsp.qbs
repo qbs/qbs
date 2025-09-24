@@ -3,7 +3,7 @@ Project {
         name: "dep"
         Depends { name: "m" }
         Depends { name: "Prefix"; submodules: ["m1", "m2", "m3"] }
-
+        m.prop: true
     }
     Product {
         Depends { name: "dep" }

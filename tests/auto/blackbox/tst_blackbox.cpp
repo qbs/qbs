@@ -7373,6 +7373,9 @@ void TestBlackbox::qbsLanguageServer_data()
     QTest::addRow("follow to module property")
         << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:21:20") << QString() << QString()
         << (testDataDir + "/lsp/modules/Prefix/m1/m1.qbs:2:19");
+    QTest::addRow("follow to module property 2")
+        << "--goto-def" << (testDataDir + "/lsp/lsp.qbs:6:13") << QString() << QString()
+        << (testDataDir + "/lsp/modules/m/m.qbs:2:19");
     QTest::addRow("completion: LHS, module prefix")
         << "--completion" << (testDataDir + "/lsp/lsp.qbs:7:1") << QString() << QString("P")
         << QString("Prefix.m1\nPrefix.m2\nPrefix.m3");

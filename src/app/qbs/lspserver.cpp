@@ -420,7 +420,9 @@ void LspServer::Private::handleGotoDefinitionRequest()
     // Sometimes, the AST path also ends in an ElementList instead of an ArrayLiteral.
     // This discrepancy is probably a bug in the path() function.
     // Case b) is simpler: We just check whether the last element of the AST path is a
-    // qualified id.
+    // qualified id or a script binding. Apparently, we get the former if there are three
+    // or more components, and the latter otherwise. Again, this looks like a bug
+    // in the locator.
 
     const int offset = posToOffset(params.position(), sourceDoc->currentContent) - 1;
     if (offset < 0 || offset >= sourceDoc->currentContent.length())
@@ -447,6 +449,10 @@ void LspServer::Private::handleGotoDefinitionRequest()
     if (lastNode->kind == Node::Kind_UiQualifiedId) {
         return handleGotoDefForModuleProperties(
             sourceFile, static_cast<const UiQualifiedId *>(lastNode), offset);
+    }
+    if (lastNode->kind == Node::Kind_UiScriptBinding) {
+        return handleGotoDefForModuleProperties(
+            sourceFile, static_cast<const UiScriptBinding *>(lastNode)->qualifiedId, offset);
     }
     if (lastNode->kind == Node::Kind_ArrayLiteral) {
         bindingNodeIndex = astPath.size() - 3;
