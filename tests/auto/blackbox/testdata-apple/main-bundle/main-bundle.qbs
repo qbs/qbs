@@ -60,7 +60,6 @@ Project {
         installDir: ""
     }
 
-    // static framework is not copied by default
     StaticLibrary {
         Depends { name: "cpp" }
         name: "B"
@@ -68,12 +67,11 @@ Project {
         bundle.publicHeaders: ["dummy.h"]
         bundle.privateHeaders: ["dummy_p.h"]
         bundle.resources: ["resource.txt"]
-        // bundle.isForMainBundle: false
+        bundle.isForMainBundle: true // static library is not copied by default, override
         codesign.enableCodeSigning: project.enableCodeSigning
         qbs.architectures: project.multiplexArchitectures
             ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
-        // todo: debug framework variant lose code signing (set via xattr) when copied
-        // qbs.buildVariants: project.multiplexBuildVariants ? ["debug", "release"] : []
+        qbs.buildVariants: project.multiplexBuildVariants ? ["debug", "release"] : []
         files: ["dummy.c"]
         install: false
         installDir: ""
@@ -108,11 +106,11 @@ Project {
         installDir: ""
     }
 
-    // static library is not copied by default
     StaticLibrary {
         Depends { name: "cpp" }
         name: "E"
         bundle.isBundle: false
+        bundle.isForMainBundle: true
         codesign.enableCodeSigning: project.enableCodeSigning
         qbs.architectures: project.multiplexArchitectures
             ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []

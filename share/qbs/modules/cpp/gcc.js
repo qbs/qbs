@@ -1680,6 +1680,7 @@ function moduleLinkerOutputArtifacts(product, inputs)
 function staticLibLinkerOutputArtifacts(product)
 {
     var tags = ["bundle.input", "staticlibrary"]
+        .concat(product.cpp.isForMainBundle ? ["bundle.main.input", "bundle.main.library"] : [])
         .concat(product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []);
     var objs = inputs["obj"];
     var objCount = objs ? objs.length : 0;
