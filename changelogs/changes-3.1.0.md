@@ -22,6 +22,10 @@
 # Qt Support
 * Fixed iOS support with Qt >= 6.8 (QBS-1839).
 
+# Apple support
+* Added support for Xcode 26.0.
+* Added support for embedding dependencies into a bundle.
+
 # Contributors
 * Christian Kandeler
 * Ivan Komissarov

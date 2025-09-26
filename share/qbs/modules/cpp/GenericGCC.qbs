@@ -248,6 +248,10 @@ CppModule {
                                                 && codesign.enableCodeSigning
                                                 // codesigning is done during the lipo step
                                                 && !product.multiplexed
+    readonly property bool isForMainBundle: product.bundle
+                                            && product.bundle.isForMainBundle
+                                            && !product.bundle.isBundle
+                                            && !product.multiplexed
 
     property string internalVersion: {
         if (product.version === undefined)
@@ -443,6 +447,8 @@ CppModule {
                 var tags = ["bundle.input", "dynamiclibrary", "dynamiclibrary_symlink",
                             "dynamiclibrary_symbols", "debuginfo_dll", "debuginfo_bundle",
                             "dynamiclibrary_import", "debuginfo_plist"];
+                if (product.cpp.isForMainBundle)
+                    tags = tags.concat(["bundle.main.library", "bundle.main.input"]);
                 if (product.cpp.shouldSignArtifacts)
                     tags.push("codesign.signed_artifact");
                 return tags;
@@ -455,7 +461,13 @@ CppModule {
             multiplex: true
             inputs: ["obj", "res", "linkerscript"]
             inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
-            outputFileTags: ["bundle.input", "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+            outputFileTags: {
+                var tags = ["bundle.input", "bundle.main.input", "bundle.main.library",
+                             "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
+                if (product.cpp.shouldSignArtifacts)
+                    tags.push("codesign.signed_artifact");
+                return tags;
+            }
             outputArtifacts: Gcc.staticLibLinkerOutputArtifacts(product, inputs)
             prepare: Gcc.staticLibLinkerCommands.apply(Gcc, arguments)
         }
@@ -472,8 +484,10 @@ CppModule {
             }
             inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
             outputFileTags: {
-                var tags = ["bundle.input", "loadablemodule", "debuginfo_loadablemodule",
-                            "debuginfo_bundle", "debuginfo_plist"];
+                var tags = ["bundle.input", "loadablemodule",
+                            "debuginfo_loadablemodule", "debuginfo_bundle", "debuginfo_plist"];
+                if (product.cpp.isForMainBundle)
+                    tags = tags.concat(["bundle.main.plugin", "bundle.main.input"]);
                 if (product.cpp.shouldSignArtifacts)
                     tags.push("codesign.signed_artifact");
                 return tags;
@@ -494,8 +508,10 @@ CppModule {
             }
             inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
             outputFileTags: {
-                var tags = ["bundle.input", "application", "debuginfo_app", "debuginfo_bundle",
-                            "debuginfo_plist"];
+                var tags = ["bundle.input", "application",
+                            "debuginfo_app", "debuginfo_bundle", "debuginfo_plist"];
+                if (product.cpp.isForMainBundle)
+                    tags = tags.concat(["bundle.main.executable", "bundle.main.input"]);
                 if (product.cpp.shouldSignArtifacts)
                     tags.push("codesign.signed_artifact");
                 if (product.cpp.generateLinkerMapFile)

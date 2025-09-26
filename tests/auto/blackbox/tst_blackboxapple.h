@@ -60,6 +60,7 @@ private slots:
     void byteArrayInfoPlist();
     void codesign();
     void codesign_data();
+    void codesignDestinationDirectory();
     void deploymentTarget();
     void deploymentTarget_data();
     void dmg();
@@ -68,6 +69,8 @@ private slots:
     void iconset();
     void iconsetApp();
     void infoPlist();
+    void mainBundle();
+    void mainBundle_data();
     void privacymanifest();
     void infoPlistVariables();
     void lipoSymlinks();

@@ -597,6 +597,111 @@ void TestBlackboxApple::bundleStructure_data()
     QTest::newRow("G") << "G" << "com.apple.product-type.in-app-purchase-content";
 }
 
+void TestBlackboxApple::mainBundle()
+{
+    QFETCH(bool, multiplexArchitectures);
+    QFETCH(bool, multiplexBuildVariants);
+
+    QDir::setCurrent(testDataDir + "/main-bundle");
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
+
+    const auto xcodeVersion = findXcodeVersion();
+    if (!xcodeVersion)
+        QSKIP("requires Xcode profile");
+
+    params.arguments << "project.xcodeVersion:" + xcodeVersion->toString();
+    if (multiplexArchitectures)
+        params.arguments << "project.multiplexArchitectures:true";
+    if (multiplexBuildVariants)
+        params.arguments << "project.multiplexBuildVariants:true";
+
+    rmDirR(relativeBuildDir());
+    const int status = runQbs(params);
+    QCOMPARE(status, 0);
+
+    const bool enableCodeSigning = m_qbsStdout.contains("enableCodeSigning: true");
+    const bool isShallow = m_qbsStdout.contains("bundle.isShallow: true");
+
+    QString expectedStructureFile;
+    if (!isShallow) {
+        QVERIFY2(enableCodeSigning, m_qbsStdout);
+        expectedStructureFile = "deep.json";
+    } else {
+        expectedStructureFile = enableCodeSigning ? "shallow-signed.json" : "shallow-unsigned.json";
+    }
+
+    const QString expectedStructurePath = testDataDir + "/main-bundle/" + expectedStructureFile;
+    QFile structureFile(expectedStructurePath);
+    QVERIFY2(
+        structureFile.open(QIODevice::ReadOnly),
+        qPrintable(QString("Could not open %1").arg(expectedStructurePath)));
+
+    QJsonParseError parseError;
+    const auto expectedStructure = QJsonDocument::fromJson(structureFile.readAll(), &parseError);
+    QVERIFY2(parseError.error == QJsonParseError::NoError, qPrintable(parseError.errorString()));
+
+    const auto structure = expectedStructure.object();
+    const QString appPath = defaultInstallRoot + "/MainApp.app";
+
+    std::unordered_set<QString> expectedPaths;
+
+    // Check directories
+    const auto directories = structure.value("directories").toArray();
+    for (const auto &dir : directories) {
+        const QString dirPath = appPath + "/" + dir.toString();
+        expectedPaths.insert(dirPath);
+        QVERIFY2(
+            QFileInfo2(dirPath).isRegularDir(),
+            qPrintable(QString("Directory does not exist: %1").arg(dirPath)));
+    }
+
+    // Check files
+    const auto files = structure.value("files").toArray();
+    for (const auto &file : files) {
+        const QString filePath = appPath + "/" + file.toString();
+        expectedPaths.insert(filePath);
+        QVERIFY2(
+            QFileInfo2(filePath).isRegularFile(),
+            qPrintable(QString("File does not exist: %1").arg(filePath)));
+    }
+
+    // Check symlinks
+    const auto symlinks = structure.value("symlinks").toArray();
+    for (const auto &symlink : symlinks) {
+        const QString symlinkPath = appPath + "/" + symlink.toString();
+        expectedPaths.insert(symlinkPath);
+        QVERIFY2(
+            QFileInfo2(symlinkPath).isSymLink(),
+            qPrintable(QString("Symlink does not exist: %1").arg(symlinkPath)));
+    }
+
+    // Check that there are no extra entries beyond what's expected
+    QDirIterator it(appPath, QDir::AllEntries | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
+    while (it.hasNext()) {
+        const QString absolutePath = it.next();
+        const QString relativePath = QDir(appPath).relativeFilePath(absolutePath);
+
+        // skip debug build variants manually
+        if (multiplexBuildVariants && QFileInfo(absolutePath).baseName().endsWith("_debug"))
+            continue;
+
+        QVERIFY2(
+            expectedPaths.count(absolutePath) != 0,
+            qPrintable(QString("Unexpected file/directory found in bundle: %1").arg(relativePath)));
+    }
+}
+
+void TestBlackboxApple::mainBundle_data()
+{
+    QTest::addColumn<bool>("multiplexArchitectures");
+    QTest::addColumn<bool>("multiplexBuildVariants");
+
+    QTest::newRow("no multiplexing") << false << false;
+    QTest::newRow("multiplex architectures") << true << false;
+    QTest::newRow("multiplex build variants") << false << true;
+    QTest::newRow("multiplex architectures and build variants") << true << true;
+}
+
 void TestBlackboxApple::byteArrayInfoPlist()
 {
     QDir::setCurrent(testDataDir + "/byteArrayInfoPlist");
@@ -686,6 +791,20 @@ void TestBlackboxApple::codesign()
         QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
         QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
     }
+
+    const auto staticLibName = isBundle ? QStringLiteral("D.framework") : QStringLiteral("libD.a");
+    const auto staticLibPath = defaultInstallRoot + "/" + staticLibName;
+    QVERIFY(QFileInfo(staticLibPath).exists());
+    codeSignInfo = getCodeSignInfo(staticLibPath);
+    QVERIFY(codeSignInfo.first != CodeSignResult::Failed);
+    // static libraries are not signed by default so we check for enableSigning instead of isSigned
+    QCOMPARE(codeSignInfo.first == CodeSignResult::Signed, enableSigning);
+    QCOMPARE(codeSignInfo.second.isEmpty(), !enableSigning);
+    if (!codeSignInfo.second.isEmpty()) {
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Executable")));
+        QVERIFY(codeSignInfo.second.contains(QByteArrayLiteral("Identifier")));
+        QCOMPARE(codeSignInfo.second.value(QByteArrayLiteral("Signature")), "adhoc");
+    }
 }
 
 void TestBlackboxApple::codesign_data()
@@ -698,17 +817,24 @@ void TestBlackboxApple::codesign_data()
 
     QTest::newRow("standalone, unsigned") << 0 << false << false << false << false;
     QTest::newRow("bundle, unsigned") << 0 << true << false << false << false;
-    QTest::newRow("standalone, signed") << 3 << false << true << false << false;
-    QTest::newRow("bundle, signed") << 3 << true << true << false << false;
+    QTest::newRow("standalone, signed") << 4 << false << true << false << false;
+    QTest::newRow("bundle, signed") << 4 << true << true << false << false;
     // here we only sign the resulting lipo artifact
-    QTest::newRow("standalone, signed, multiarch") << 3 << false << true << true << false;
-    QTest::newRow("bundle, signed, multiarch") << 3 << true << true << true << false;
+    QTest::newRow("standalone, signed, multiarch") << 4 << false << true << true << false;
+    QTest::newRow("bundle, signed, multiarch") << 4 << true << true << true << false;
     // here we sign all artifacts
-    QTest::newRow("standalone, signed, multivariant") << 6 << false << true << false << true;
-    QTest::newRow("bundle, signed, multivariant") << 6 << true << true << false << true;
+    QTest::newRow("standalone, signed, multivariant") << 8 << false << true << false << true;
+    QTest::newRow("bundle, signed, multivariant") << 8 << true << true << false << true;
     QTest::newRow("standalone, signed, multiarch, multivariant")
-        << 6 << false << true << true << true;
-    QTest::newRow("bundle, signed, multiarch, multivariant") << 6 << true << true << true << true;
+        << 8 << false << true << true << true;
+    QTest::newRow("bundle, signed, multiarch, multivariant") << 8 << true << true << true << true;
+}
+
+void TestBlackboxApple::codesignDestinationDirectory()
+{
+    // checks that codesign does not break when destinationDirectory is set
+    QDir::setCurrent(testDataDir + "/codesign-destination-directory");
+    QCOMPARE(runQbs(), 0);
 }
 
 void TestBlackboxApple::deploymentTarget()

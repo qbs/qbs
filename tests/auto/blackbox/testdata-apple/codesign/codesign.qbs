@@ -54,4 +54,20 @@ Project {
             multiArch ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
         qbs.buildVariants: project.multiVariant ? ["debug", "release"] : []
     }
+
+    StaticLibrary {
+        Depends { name: "cpp" }
+        name: "D"
+        version: "1.0.0"
+        bundle.isBundle: project.isBundle
+        files: "app.cpp"
+        codesign.enableCodeSigning: project.enableSigning
+        codesign.signingType: "ad-hoc"
+        install: true
+        installDir: ""
+        qbs.architectures:
+            multiArch ? Helpers.getArchitectures(qbs, project.xcodeVersion) : []
+        qbs.buildVariants: project.multiVariant ? ["debug", "release"] : []
+    }
+
 }

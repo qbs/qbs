@@ -24,16 +24,8 @@ Project {
         name: "app"
         files: ["main.c"]
 
-        Properties {
-            condition: qbs.targetOS.includes("darwin")
-            bundle.isBundle: false
-        }
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
         destinationDirectory: project.buildDirectory
+        install: false
     }
 
     DynamicLibrary {
@@ -41,15 +33,6 @@ Project {
         name: "lib"
         files: ["main.c"]
 
-        Properties {
-            condition: qbs.targetOS.includes("darwin")
-            bundle.isBundle: false
-        }
-
-        Group {
-            fileTagsFilter: product.type
-            qbs.install: true
-        }
         Rule {
             // This rule tries to provoke the installer into building too early (and the test
             // verifies that it does not) by causing the build of the installables to take
@@ -81,5 +64,6 @@ Project {
             }
         }
         destinationDirectory: project.buildDirectory
+        install: false
     }
 }

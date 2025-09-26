@@ -102,4 +102,8 @@ NativeBinary {
         qbs.installDir: debugInformationInstallDir
         qbs.installSourceBase: destinationDirectory
     }
+    Group {
+        condition: isBundle
+        product.bundle.isForMainBundle: !isStaticLibrary
+    }
 }

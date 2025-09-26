@@ -93,6 +93,8 @@ Module {
             if (xcodeDeveloperPath && useXcodeBuildSpecs) {
                 specsPaths = Bundle.macOSSpecsPaths(xcodeVersion, xcodeDeveloperPath);
                 specsSeparator = " ";
+                if (Utilities.versionCompare(xcodeVersion, "26.0") >= 0)
+                    specsSeparator = "";
             }
 
             var reader = new Bundle.XcodeBuildSpecsReader(specsPaths,
@@ -120,6 +122,8 @@ Module {
                             || !product.multiplexConfigurationId ? ["bundle.content"] : []
 
     property bool isBundle: !product.consoleApplication && qbs.targetOS.includes("darwin")
+    property bool isMainBundle: false
+    property bool isForMainBundle: true
 
     readonly property bool isShallow: bundleSettingsProbe.xcodeSettings["SHALLOW_BUNDLE"] === "YES"
 
@@ -173,6 +177,7 @@ Module {
     readonly property string executablePath: bundleSettingsProbe.xcodeSettings["EXECUTABLE_PATH"]
 
     readonly property string contentsFolderPath: bundleSettingsProbe.xcodeSettings["CONTENTS_FOLDER_PATH"]
+    readonly property string applicationsFolderPath: FileInfo.joinPaths(contentsFolderPath, "Applications")
     readonly property string documentationFolderPath: bundleSettingsProbe.xcodeSettings["DOCUMENTATION_FOLDER_PATH"]
     readonly property string executableFolderPath: bundleSettingsProbe.xcodeSettings["EXECUTABLE_FOLDER_PATH"]
     readonly property string executablesFolderPath: bundleSettingsProbe.xcodeSettings["EXECUTABLES_FOLDER_PATH"]
@@ -311,9 +316,13 @@ Module {
         // Make sure the inputs of this rule are only those rules which produce outputs compatible
         // with the type of the bundle being produced.
         excludedInputs: Bundle.excludedAuxiliaryInputs(project, product)
+        // We need to wait for the main bundle inputs to be copied before signing
+        explicitlyDependsOn: ["bundle.content.copied.from.dependencies"]
 
         outputFileTags: [
             "bundle.content",
+            "bundle.main.input",
+            "bundle.main.application", "bundle.main.framework", "bundle.main.plugin",
             "bundle.symlink.headers", "bundle.symlink.private-headers",
             "bundle.symlink.resources", "bundle.symlink.executable",
             "bundle.symlink.version", "bundle.hpp", "bundle.resource",
@@ -321,5 +330,20 @@ Module {
             "bundle.code-signature", "bundle.privacymanifest"]
         outputArtifacts: Bundle.generateBundleOutputs(product, inputs)
         prepare: Bundle.generateBundleCommands.apply(Bundle, arguments)
+    }
+
+    Rule {
+        condition: qbs.targetOS.includes("darwin")
+        multiplex: true
+        requiresInputs: false
+        inputsFromDependencies: ["bundle.main.input"]
+
+        outputFileTags: ["bundle.content", "bundle.content.copied.from.dependencies"]
+        outputArtifacts: Bundle.generateMainBundleOutputs(product, inputs)
+        prepare: Bundle.generateMainBundleCommands.apply(Bundle, arguments)
+    }
+
+    Parameter {
+        property bool isForMainBundle: true
     }
 }

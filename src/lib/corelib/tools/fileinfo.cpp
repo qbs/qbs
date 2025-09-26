@@ -61,6 +61,10 @@
 namespace qbs {
 namespace Internal {
 
+#ifdef Q_OS_DARWIN
+bool nsCopyFile(const QString &srcFilePath, const QString &tgtFilePath, QString *errorMessage);
+#endif
+
 QString FileInfo::fileName(const QString &fp)
 {
     int last = fp.lastIndexOf(QLatin1Char('/'));
@@ -511,15 +515,23 @@ static QByteArray storedLinkTarget(const QString &filePath)
     return {result.data(), static_cast<decltype(std::declval<QByteArray>().size())>(result.size())};
 }
 
-static bool createSymLink(const QByteArray &path1, const QString &path2)
+static bool createSymLink(const QByteArray &path1, const QString &path2, bool *skipped)
 {
 #ifdef Q_OS_UNIX
     const QByteArray newPath = QFile::encodeName(path2);
+    char curTarget[PATH_MAX];
+    const ssize_t bytesRead = readlink(newPath.constData(), curTarget, sizeof curTarget);
+    if (bytesRead != -1 && path1.size() == bytesRead && path1 == QByteArray(curTarget, bytesRead)) {
+        if (skipped)
+            *skipped = true;
+        return true;
+    }
     unlink(newPath.constData());
     return symlink(path1.constData(), newPath.constData()) == 0;
 #else
-    Q_UNUSED(path1);
-    Q_UNUSED(path2);
+    Q_UNUSED(path1)
+    Q_UNUSED(path2)
+    Q_UNUSED(skipped)
     return false;
 #endif // Q_OS_UNIX
 }
@@ -561,7 +573,7 @@ bool copyFileRecursion(
     if (HostOsInfo::isAnyUnixHost() && preserveSymLinks && srcFileInfo.isSymLink()) {
         // For now, disable symlink preserving copying on Windows.
         // MS did a good job to prevent people from using symlinks - even if they are supported.
-        if (!createSymLink(storedLinkTarget(srcFilePath), tgtFilePath)) {
+        if (!createSymLink(storedLinkTarget(srcFilePath), tgtFilePath, skipped)) {
             *errorMessage = Tr::tr("The symlink '%1' could not be created.")
                     .arg(tgtFilePath);
             return false;
@@ -598,12 +610,17 @@ bool copyFileRecursion(
                         .arg(QDir::toNativeSeparators(tgtFilePath), targetFile.errorString());
             }
         }
+#ifdef Q_OS_DARWIN
+        if (!nsCopyFile(srcFilePath, tgtFilePath, errorMessage))
+            return false;
+#else
         if (!file.copy(tgtFilePath)) {
             *errorMessage = Tr::tr("Could not copy file '%1' to '%2'. %3")
                 .arg(QDir::toNativeSeparators(srcFilePath), QDir::toNativeSeparators(tgtFilePath),
                      file.errorString());
             return false;
         }
+#endif
     }
     return true;
 }
