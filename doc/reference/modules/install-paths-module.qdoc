@@ -85,7 +85,7 @@
 
     The location where to install Frameworks on Apple platforms.
 
-    \defaultvalue \c "Frameworks"
+    \defaultvalue \c "Library/Frameworks"
 */
 
 /*!
@@ -121,6 +121,14 @@
 */
 
 /*!
+    \qmlproperty string installpaths::loadableModules
+
+    The location where to install loadable modules (bundle plugins) on Apple platforms.
+
+    \defaultvalue \c "Library/<ProjectName>/PlugIns"
+*/
+
+/*!
     \qmlproperty string installpaths::subdir
 
     The additional directory appended to the libexec, share and plugins paths.
@@ -132,6 +140,8 @@
     \qmlproperty string installpaths::plugins
 
     The location where to install plugins.
+
+    On Apple platforms, non-bundle loadable modules are also installed here.
 
     \defaultvalue \l{lib} + \c{"/"} + \l{subdir} + \c{"/plugins"}
 */

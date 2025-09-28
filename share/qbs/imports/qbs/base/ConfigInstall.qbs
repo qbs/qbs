@@ -14,7 +14,7 @@ Module {
     property string staticLibrariesDirectory: installpaths.lib
 
     property bool frameworks: install
-    property string frameworksDirectory: installpaths.library + "/" + installpaths.frameworks
+    property string frameworksDirectory: installpaths.frameworks
 
     property bool importLibraries: false
     property string importLibrariesDirectory: installpaths.lib
@@ -23,8 +23,7 @@ Module {
     property string pluginsDirectory: installpaths.plugins
 
     property bool loadableModules: install
-    property string loadableModulesDirectory:
-        installpaths.library + "/" + installpaths.topLevelProjectName + "/PlugIns"
+    property string loadableModulesDirectory: installpaths.loadableModules
 
     property bool debugInformation: install
     property string debugInformationDirectory

@@ -23,6 +23,7 @@ Module {
     property string share: "share/" + subdir
 
     property string applications: "Applications"
-    property string frameworks: "Frameworks"
+    property string frameworks: library + "/Frameworks"
+    property string loadableModules: library + "/" + topLevelProjectName + "/PlugIns"
     property string library: "Library"
 }
