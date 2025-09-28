@@ -1,0 +1,56 @@
+{
+  "app": {
+    "fileName": "theapp.exe",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "bindir",
+    "subDir": ""
+  },
+  "appDsym": {
+    "fileName": "theapp.exe.debug",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "dll": {
+    "fileName": "thelib.dll",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "bindir",
+    "subDir": ""
+  },
+  "dllDsym": {
+    "fileName": "thelib.dll.debug",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "lib": {
+    "fileName": "thelib.lib",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "libdir",
+    "subDir": ""
+  },
+  "plugin": {
+    "fileName": "theplugin.dll",
+    "defaultInstallDir": "/lib/install-locations/plugins/",
+    "customInstallDir": "pluginDir",
+    "subDir": ""
+  },
+  "pluginDsym": {
+    "fileName": "theplugin.dll.debug",
+    "defaultInstallDir": "/lib/install-locations/plugins/",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "loadableModule": {
+    "fileName": "theloadablemodule.dll",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "bindir",
+    "subDir": ""
+  },
+  "loadableModuleDsym": {
+    "fileName": "theloadablemodule.dll.debug",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  }
+}

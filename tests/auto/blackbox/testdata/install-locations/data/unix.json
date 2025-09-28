@@ -1,0 +1,50 @@
+{
+  "app": {
+    "fileName": "theapp",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "bindir",
+    "subDir": ""
+  },
+  "appDsym": {
+    "fileName": "theapp.debug",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "dll": {
+    "fileName": "libthelib.so",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "libdir",
+    "subDir": ""
+  },
+  "dllDsym": {
+    "fileName": "libthelib.so.debug",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "plugin": {
+    "fileName": "libtheplugin.so",
+    "defaultInstallDir": "/lib/install-locations/plugins/",
+    "customInstallDir": "pluginDir",
+    "subDir": ""
+  },
+  "pluginDsym": {
+    "fileName": "libtheplugin.so.debug",
+    "defaultInstallDir": "/lib/install-locations/plugins/",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "loadableModule": {
+    "fileName": "libtheloadablemodule.so",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "libdir",
+    "subDir": ""
+  },
+  "loadableModuleDsym": {
+    "fileName": "libtheloadablemodule.so.debug",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  }
+}

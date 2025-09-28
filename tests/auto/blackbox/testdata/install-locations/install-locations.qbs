@@ -1,20 +1,23 @@
 Project {
     name: "Install-Locations"
     property bool dummy: {
-        if (qbs.targetOS.includes("windows")) {
-            console.info("is windows");
+        var toolchain = "unknown";
+        if (qbs.toolchain.includes("emscripten")) {
+            toolchain = "emscripten";
         } else if (qbs.targetOS.includes("darwin")) {
-            console.info("is darwin");
             if (qbs.targetOS.includes("macos"))
-                console.info("is mac");
+                toolchain = "macos";
+            else
+                toolchain = "darwin";
+        } else if (qbs.targetOS.includes("windows")) {
+            if (qbs.toolchain.includes("mingw"))
+                toolchain = "mingw";
+            else
+                toolchain = "msvc";
         } else {
-            console.info("is unix");
+            toolchain = "unix";
         }
-
-        if (qbs.toolchain.includes("mingw"))
-            console.info("is mingw");
-        if (qbs.toolchain.includes("emscripten"))
-            console.info("is emscripten")
+        console.info("===toolchain:" + toolchain + "===");
     }
     CppApplication {
         name: "theapp"
