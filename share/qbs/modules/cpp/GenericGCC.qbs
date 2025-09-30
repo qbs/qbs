@@ -442,7 +442,8 @@ CppModule {
                 }
                 return tags;
             }
-            inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary", "dynamiclibrary_import"]
+            inputsFromDependencies: ["dynamiclibrary_symbols", "staticlibrary", "objectlibrary",
+                "dynamiclibrary_import"]
             outputFileTags: {
                 var tags = ["bundle.input", "dynamiclibrary", "dynamiclibrary_symlink",
                             "dynamiclibrary_symbols", "debuginfo_dll", "debuginfo_bundle",
@@ -460,7 +461,8 @@ CppModule {
             name: "staticLibraryLinker"
             multiplex: true
             inputs: ["obj", "res", "linkerscript"]
-            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
+            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import",
+                "staticlibrary", "objectlibrary"]
             outputFileTags: {
                 var tags = ["bundle.input", "bundle.main.input", "bundle.main.library",
                              "staticlibrary", "c_staticlibrary", "cpp_staticlibrary"]
@@ -482,7 +484,8 @@ CppModule {
                 }
                 return tags;
             }
-            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
+            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import",
+                "staticlibrary", "objectlibrary"]
             outputFileTags: {
                 var tags = ["bundle.input", "loadablemodule",
                             "debuginfo_loadablemodule", "debuginfo_bundle", "debuginfo_plist"];
@@ -506,7 +509,8 @@ CppModule {
                 }
                 return tags;
             }
-            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import", "staticlibrary"]
+            inputsFromDependencies: ["dynamiclibrary_symbols", "dynamiclibrary_import",
+                "staticlibrary", "objectlibrary"]
             outputFileTags: {
                 var tags = ["bundle.input", "application",
                             "debuginfo_app", "debuginfo_bundle", "debuginfo_plist"];

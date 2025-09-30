@@ -134,7 +134,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
         outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: COSMIC.prepareLinker.apply(COSMIC, arguments)
@@ -144,7 +144,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: Cpp.staticLibraryLinkerOutputTags()
         outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: COSMIC.prepareArchiver.apply(COSMIC, arguments)

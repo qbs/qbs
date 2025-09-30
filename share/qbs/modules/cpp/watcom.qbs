@@ -167,7 +167,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "res", "linkerscript"]
-        inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
         outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
         outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: WATCOM.prepareLinker.apply(WATCOM, arguments)
@@ -178,7 +178,7 @@ CppModule {
         condition: qbs.targetOS.includes("windows")
         multiplex: true
         inputs: ["obj", "res"]
-        inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
         outputFileTags: Cpp.dynamicLibraryLinkerOutputTags();
         outputArtifacts: Cpp.dynamicLibraryLinkerOutputArtifacts(product)
         prepare: WATCOM.prepareLinker.apply(WATCOM, arguments)
@@ -188,7 +188,7 @@ CppModule {
         id: libraryManager
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
         outputFileTags: Cpp.staticLibraryLinkerOutputTags()
         outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: WATCOM.prepareLibraryManager.apply(WATCOM, arguments)

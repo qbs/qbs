@@ -102,7 +102,9 @@ private slots:
     void isRunnable();
     void linkDynamicLibs();
     void linkDynamicAndStaticLibs();
+    void linkDynamicAndObjectLibs();
     void linkStaticAndDynamicLibs();
+    void linkObjectAndDynamicLibs();
     void listBuildSystemFiles();
     void localProfiles();
     void localProfiles_data();

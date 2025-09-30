@@ -322,6 +322,8 @@ private slots:
     void setupRunEnvironment();
     void staticLibDeps();
     void staticLibDeps_data();
+    void objectLibDeps();
+    void objectLibDeps_data();
     void smartRelinking();
     void smartRelinking_data();
     void soVersion();

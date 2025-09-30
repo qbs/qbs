@@ -138,7 +138,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
         outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: KEIL.prepareLinker.apply(KEIL, arguments)
@@ -148,7 +148,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: Cpp.staticLibraryLinkerOutputTags()
         outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: KEIL.prepareArchiver.apply(KEIL, arguments)

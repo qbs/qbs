@@ -331,7 +331,8 @@ function collectLibraryDependencies(product) {
         if (dep.parameters.cpp && dep.parameters.cpp.link === false)
             return;
 
-        var staticLibraryArtifacts = dep.artifacts["staticlibrary"];
+        var staticLibraryArtifacts = dep.artifacts["staticlibrary"]
+                || dep.artifacts["objectlibrary"];
         var dynamicLibraryArtifacts = staticLibraryArtifacts
                 ? null : dep.artifacts["dynamiclibrary_import"];
         if (staticLibraryArtifacts) {
@@ -425,7 +426,10 @@ function collectLinkerScriptPaths(inputs) {
 }
 
 function collectLinkerObjectPaths(inputs) {
-    return inputs.obj ? inputs.obj.map(function(obj) { return obj.filePath; }) : [];
+    return inputs.obj
+            ? inputs.obj.filter(function(obj) { return !obj.fileTags.includes("objectlibrary"); })
+              .map(function(obj) { return obj.filePath; })
+            : [];
 }
 
 function collectResourceObjectPaths(inputs) {

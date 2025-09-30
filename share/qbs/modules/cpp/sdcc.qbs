@@ -140,7 +140,7 @@ CppModule {
         id: applicationLinker
         multiplex: true
         inputs: ["obj", "linkerscript"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: SDCC.extraApplicationLinkerOutputTags().concat(
                             Cpp.applicationLinkerOutputTags(generateLinkerMapFile))
         outputArtifacts: SDCC.extraApplicationLinkerOutputArtifacts(product).concat(
@@ -152,7 +152,7 @@ CppModule {
         id: staticLibraryLinker
         multiplex: true
         inputs: ["obj"]
-        inputsFromDependencies: ["staticlibrary"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary"]
         outputFileTags: Cpp.staticLibraryLinkerOutputTags()
         outputArtifacts: Cpp.staticLibraryLinkerOutputArtifacts(product)
         prepare: SDCC.prepareArchiver.apply(SDCC, arguments)

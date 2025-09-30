@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2017 The Qt Company Ltd.
+** Copyright (C) 2025 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -25,24 +25,20 @@
 **
 ****************************************************************************/
 /*!
-    \previouspage ObjectLibrary
-    \nextpage QtGuiApplication
-    \qmltype QtApplication
-    \inherits CppApplication
+    \previouspage LoadableModule
+    \nextpage QtApplication
+    \qmltype ObjectLibrary
+    \inherits Library
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
-    \keyword QML.QtApplication
+    \keyword QML.ObjectLibrary
 
-    \brief Application with a dependency on the Qt Core module.
+    \brief A collection of object files.
 
-    A QtApplication is a \l{CppApplication}{C++ application} that has a
-    \l{Depends}{dependency} on the \l{Qt.core} module. It is entirely
-    equivalent to the following:
-
-    \code
-    CppApplication {
-        Depends { name: "Qt.core" }
-    }
-    \endcode
-
+    An ObjectLibrary item is a \l{Library}{library} of the \l{Product::}{type}
+    \c "objectlibrary".
+    It behaves exactly like a \l StaticLibrary, except that the object files are
+    not packaged into a container. It is suitable if the library does not need to
+    be installed and distributed, for instance when it is used as an internal
+    abstraction inside a project.
 */

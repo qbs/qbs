@@ -510,6 +510,23 @@ Module {
         }
     }
 
+    // This rule does not create any commands, but is needed for transitive dependencies
+    // on object libraries to work. While it could be argued that such dependencies
+    // should be exported instead, we have traditionally supported the "private dependency"
+    // use case for static libs, and we want object libraries to work as a
+    // drop-in replacement for these.
+    Rule {
+        inputsFromDependencies: ["objectlibrary", "staticlibrary", "dynamiclibrary_import"]
+        outputFileTags: "objectlibrary"
+        outputArtifacts: []
+        prepare: {
+            var cmd = new JavaScriptCommand();
+            cmd.silent = true;
+            cmd.sourceCode = function() {};
+            return cmd;
+        }
+    }
+
     FileTagger {
         patterns: ["*.c"]
         fileTags: combineCSources ? ["c.combine"] : ["c"]

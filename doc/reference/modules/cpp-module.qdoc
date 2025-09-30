@@ -225,6 +225,11 @@
         \li The rule that creates static libraries (typically via a linker) attaches this tag
             to its output artifact.
     \row
+        \li \c{"objectlibrary"}
+        \li n/a
+        \li 3.2.0
+        \li The \l ObjectLibrary item attaches this tag to its \c "obj" artifacts.
+    \row
         \li \c{"versionscript"}
         \li -
         \li 1.5.0

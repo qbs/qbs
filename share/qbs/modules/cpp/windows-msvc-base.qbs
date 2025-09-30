@@ -171,7 +171,8 @@ CppModule {
         name: "applicationLinker"
         multiplex: true
         inputs: ['obj', 'res', 'native.pe.manifest', 'def']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_app"]
+        inputsFromDependencies: ['staticlibrary', 'objectlibrary', 'dynamiclibrary_import',
+            "debuginfo_app"]
         outputFileTags: {
             var tags = ["application", "debuginfo_app"];
             if (generateLinkerMapFile)
@@ -188,7 +189,8 @@ CppModule {
         name: "dynamicLibraryLinker"
         multiplex: true
         inputs: ['obj', 'res', 'native.pe.manifest', 'def']
-        inputsFromDependencies: ['staticlibrary', 'dynamiclibrary_import', "debuginfo_dll"]
+        inputsFromDependencies: ['staticlibrary', 'objectlibrary', 'dynamiclibrary_import',
+            "debuginfo_dll"]
         outputFileTags: {
             var tags = ["dynamiclibrary", "dynamiclibrary_import", "debuginfo_dll"];
             if (shouldSignArtifacts)

@@ -159,7 +159,7 @@ function collectLibraryDependencies(product, isDarwin) {
         }
     }
 
-    function traverse(dep, isBelowIndirectDynamicLib) {
+    function traverse(dep, isBelowIndirectDynamicLib, someDepConsumesObjects) {
         if (publicDeps[dep.name])
             return;
 
@@ -167,9 +167,11 @@ function collectLibraryDependencies(product, isDarwin) {
             return;
 
         var isStaticLibrary = typeof dep.artifacts["staticlibrary"] !== "undefined";
-        var isDynamicLibrary = !isStaticLibrary
+        var isObjectLibrary = !isStaticLibrary
+                && typeof dep.artifacts["objectlibrary"] !== "undefined";
+        var isDynamicLibrary = !isStaticLibrary && !isObjectLibrary
                 && typeof dep.artifacts[tagForLinkingAgainstSharedLib] !== "undefined";
-        if (!isStaticLibrary && !isDynamicLibrary)
+        if (!isStaticLibrary && !isObjectLibrary && !isDynamicLibrary)
             return;
         if (isBelowIndirectDynamicLib && privateDeps[dep.name])
             return;
@@ -182,11 +184,16 @@ function collectLibraryDependencies(product, isDarwin) {
             // the multiplexed dependency, and depend only on the aggregate one.
             if (depdep.name === dep.name)
                 return;
-            traverse(depdep, nextIsBelowIndirectDynamicLib);
+            traverse(depdep, nextIsBelowIndirectDynamicLib,
+                     someDepConsumesObjects || !isObjectLibrary);
         });
-        if (isStaticLibrary) {
+
+        if (isStaticLibrary || isObjectLibrary) {
             if (!isBelowIndirectDynamicLib) {
-                addArtifactFilePaths(dep, "staticlibrary", addPublicFilePath);
+                if (isStaticLibrary || !someDepConsumesObjects) {
+                    addArtifactFilePaths(dep, isStaticLibrary ? "staticlibrary" : "objectlibrary",
+                                         addPublicFilePath);
+                }
                 if (product.cpp.importPrivateLibraries)
                     addExternalLibs(dep);
                 publicDeps[dep.name] = true;
@@ -203,7 +210,7 @@ function collectLibraryDependencies(product, isDarwin) {
     }
 
     function traverseDirectDependency(dep) {
-        traverse(dep, false);
+        traverse(dep, false, false);
     }
 
     product.dependencies.forEach(traverseDirectDependency);

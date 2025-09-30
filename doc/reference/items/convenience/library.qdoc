@@ -38,7 +38,8 @@
     \brief Generic library.
 
     A Library item is a base item for native libraries and can have \l{Product::}{type} set to
-    one of the following values: \c "dynamiclibrary", \c "staticlibrary", \c "loadablemodule".
+    one of the following values: \c "dynamiclibrary", \c "staticlibrary", \c "objectlibrary",
+    \c "loadablemodule".
 
     The default \l{Product::}{type} value is \c "dynamiclibrary" except for iOS prior to
     version 8, in which case the default value is \c "staticlibrary".
