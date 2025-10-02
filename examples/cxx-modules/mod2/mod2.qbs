@@ -4,8 +4,9 @@ CppApplication {
             // see https://gcc.gnu.org/pipermail/gcc-bugs/2023-November/842674.html
             // || qbs.toolchainType === "gcc"
             // || qbs.toolchainType === "mingw"
-            || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16))
+            || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16)) {
             return true;
+        }
         console.info("Unsupported toolchainType " + qbs.toolchainType);
         return false;
     }
