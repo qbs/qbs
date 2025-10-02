@@ -3619,6 +3619,15 @@ void TestLanguage::wildcards_data()
             << (QStringList() << "*.whatever")
             << QStringList()
             << QStringList();
+    QTest::newRow(QByteArray("case sensitivity"))
+            << useGroup
+            << (QStringList{"test1.txt", "test2.TXT"})
+            << QString()
+            << QString()
+            << (QStringList{"*.TXT"})
+            << QStringList()
+            << (HostOsInfo::isWindowsHost() ? QStringList{"test1.txt", "test2.TXT"}
+                                            : QStringList("test2.TXT"));
 }
 
 void TestLanguage::wildcards()

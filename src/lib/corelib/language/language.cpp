@@ -807,6 +807,8 @@ void SourceWildCards::expandPatterns(Set<QString> &result, const QStringList &pa
     }
     if (filePattern != StringConstants::dotDot() && filePattern != StringConstants::dot())
         itFilters |= QDir::NoDotAndDotDot;
+    if (HostOsInfo::fileNameCaseSensitivity() == Qt::CaseSensitive)
+        itFilters |= QDir::CaseSensitive;
 
     QDirIterator it(baseDir, QStringList(filePattern), itFilters, itFlags);
     while (it.hasNext()) {

@@ -31,6 +31,8 @@
 
 #include "tst_blackboxbase.h"
 
+#include <optional>
+
 class TestBlackboxQt : public TestBlackboxBase
 {
     Q_OBJECT
