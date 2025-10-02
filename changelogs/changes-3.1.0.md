@@ -10,6 +10,10 @@
 * Added a `Graphviz` generator to visualize project structures.
 * The bundled QuickJS was updated to version 0.10.1.
 
+# Language
+* Expansion of wildcards appearing on the right-hand side of a `files` property is now
+  done in a case-sensitive manner on non-Windows hosts (QBS-1844).
+
 # C/C++ support
 * The `CppStd` convenience item was introduced to be able to use the `std.cppm` C++ module
   without having to build it for every product.
