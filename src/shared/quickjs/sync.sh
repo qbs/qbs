@@ -12,6 +12,8 @@ FILES="
 builtin-array-fromasync.h
 cutils.c
 cutils.h
+dtoa.c
+dtoa.h
 libregexp-opcode.h
 libregexp.c
 libregexp.h
@@ -25,8 +27,6 @@ quickjs-c-atomics.h
 quickjs-opcode.h
 quickjs.c
 quickjs.h
-xsum.c
-xsum.h
 "
 
 for FILE in $FILES

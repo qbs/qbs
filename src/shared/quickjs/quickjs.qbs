@@ -17,6 +17,8 @@ StaticLibrary {
         "builtin-array-fromasync.h",
         "cutils.c",
         "cutils.h",
+        "dtoa.c",
+        "dtoa.h",
         "libbf.c",
         "libbf.h",
         "libregexp-opcode.h",
@@ -31,8 +33,6 @@ StaticLibrary {
         "quickjs-opcode.h",
         "quickjs.c",
         "quickjs.h",
-        "xsum.c",
-        "xsum.h"
     ]
 
     Export {
