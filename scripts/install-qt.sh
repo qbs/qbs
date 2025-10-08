@@ -272,6 +272,7 @@ function compute_url(){
         fi
     else
         HOST_OS_NAME=${HOST_OS//_x64/}
+        HOST_OS_NAME=${HOST_OS_NAME//_arm64/}
         REMOTE_BASES=(
             # New repository format (>=6.8.0)
             # qt6_680/qt6_680/qt.qt6.680.clang_64/6.8.3-0-*qtbase-*.7z
