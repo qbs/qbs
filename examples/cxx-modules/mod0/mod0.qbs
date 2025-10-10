@@ -1,8 +1,8 @@
 CppApplication {
     condition: {
         if (qbs.toolchainType === "msvc"
-            || qbs.toolchainType === "gcc"
-            || qbs.toolchainType === "mingw"
+            || (qbs.toolchainType === "gcc" && cpp.compilerVersionMajor >= 11)
+            || (qbs.toolchainType === "mingw" && cpp.compilerVersionMajor >= 13)
             || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16))
             return true;
         console.info("Unsupported toolchainType " + qbs.toolchainType);

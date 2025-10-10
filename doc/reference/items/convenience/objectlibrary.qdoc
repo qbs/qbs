@@ -26,7 +26,7 @@
 ****************************************************************************/
 /*!
     \previouspage LoadableModule
-    \nextpage QtApplication
+    \nextpage Plugin
     \qmltype ObjectLibrary
     \inherits Library
     \inqmlmodule QbsConvenienceItems

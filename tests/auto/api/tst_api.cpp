@@ -1590,7 +1590,7 @@ void TestApi::linkDynamicAndStaticLibs()
     QVERIFY(isGcc);
 
     // The dependent static libs should not appear in the link command for the executable.
-    static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
+    static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX "'? ");
     QString appLinkCmd;
     for (const QString &line : std::as_const(bdr.descriptionLines)) {
         const auto ln = line.toStdString();
@@ -1665,7 +1665,7 @@ void TestApi::linkStaticAndDynamicLibs()
 
     // The dependencies libdynamic1.so and libstatic2.a must not appear in the link command for the
     // executable. The -rpath-link line for libdynamic1.so must be there.
-    static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX " ");
+    static const std::regex appLinkCmdRex(" -o [^ ]*/HelloWorld" QBS_HOST_EXE_SUFFIX "'? ");
     QString appLinkCmd;
     for (const QString &line : std::as_const(bdr.descriptionLines)) {
         const auto ln = line.toStdString();

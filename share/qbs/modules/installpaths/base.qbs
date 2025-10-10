@@ -8,14 +8,14 @@ Module {
     property string include: "include"
     property string lib: "lib"
 
-    // the name of the top-level project
-    property string subdir: {
+    property string topLevelProjectName: {
         var p = project;
         while (p.parent !== undefined) {
             p = p.parent;
         }
-        return p.name.toLowerCase();
+        return p.name;
     }
+    property string subdir: topLevelProjectName.toLowerCase();
     property string libexec: "libexec/" + subdir
 
     property string plugins: lib + "/" + subdir + "/plugins"
@@ -23,6 +23,7 @@ Module {
     property string share: "share/" + subdir
 
     property string applications: "Applications"
-    property string frameworks: "Frameworks"
+    property string frameworks: library + "/Frameworks"
+    property string loadableModules: library + "/" + topLevelProjectName + "/PlugIns"
     property string library: "Library"
 }

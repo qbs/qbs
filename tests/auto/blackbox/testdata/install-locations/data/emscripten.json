@@ -1,0 +1,32 @@
+{
+  "app": {
+    "fileName": "theapp.js",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "bindir",
+    "subDir": ""
+  },
+  "appDsym": {
+    "fileName": "theapp.wasm.debug.wasm",
+    "defaultInstallDir": "/bin",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "dll": {
+    "fileName": "libthelib.so",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "libdir",
+    "subDir": ""
+  },
+  "plugin": {
+    "fileName": "libtheplugin.so",
+    "defaultInstallDir": "/lib/install-locations/plugins/",
+    "customInstallDir": "pluginDir",
+    "subDir": ""
+  },
+  "loadableModule": {
+    "fileName": "libtheloadablemodule.so",
+    "defaultInstallDir": "/lib",
+    "customInstallDir": "libdir",
+    "subDir": ""
+  }
+}

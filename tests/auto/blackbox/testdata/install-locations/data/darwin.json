@@ -1,0 +1,50 @@
+{
+  "app": {
+    "fileName": "theapp",
+    "defaultInstallDir": "/Applications",
+    "customInstallDir": "bindir",
+    "subDir": "theapp.app"
+  },
+  "appDsym": {
+    "fileName": "theapp.app.dSYM",
+    "defaultInstallDir": "/Applications",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "dll": {
+    "fileName": "thelib",
+    "defaultInstallDir": "/Library/Frameworks",
+    "customInstallDir": "libdir",
+    "subDir": "thelib.framework"
+  },
+  "dllDsym": {
+    "fileName": "thelib.framework.dSYM",
+    "defaultInstallDir": "/Library/Frameworks",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "plugin": {
+    "fileName": "theplugin",
+    "defaultInstallDir": "/Library/Install-Locations/PlugIns",
+    "customInstallDir": "pluginDir",
+    "subDir": "theplugin.bundle"
+  },
+  "pluginDsym": {
+    "fileName": "theplugin.bundle.dSYM",
+    "defaultInstallDir": "/Library/Install-Locations/PlugIns",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  },
+  "loadableModule": {
+    "fileName": "theloadablemodule",
+    "defaultInstallDir": "/Library/Frameworks",
+    "customInstallDir": "libdir",
+    "subDir": "theloadablemodule.bundle"
+  },
+  "loadableModuleDsym": {
+    "fileName": "theloadablemodule.bundle.dSYM",
+    "defaultInstallDir": "/Library/Frameworks",
+    "customInstallDir": "dsymDir",
+    "subDir": ""
+  }
+}

@@ -5111,169 +5111,122 @@ void TestBlackbox::installedTransformerOutput()
 
 void TestBlackbox::installLocations_data()
 {
-    QTest::addColumn<QString>("binDir");
-    QTest::addColumn<QString>("dllDir");
-    QTest::addColumn<QString>("libDir");
-    QTest::addColumn<QString>("pluginDir");
-    QTest::addColumn<QString>("dsymDir");
-    QTest::addColumn<bool>("useModule");
-    QTest::addColumn<bool>("useInstallPaths");
-    QTest::newRow("explicit values, direct")
-        << QString("bindir") << QString("dlldir") << QString("libdir") << QString("pluginDir")
-        << QString("dsymDir") << false << false;
-    QTest::newRow("explicit values, using config.install module")
-        << QString("bindir") << QString("dlldir") << QString("libdir") << QString("pluginDir")
-        << QString("dsymDir") << true << false;
-    QTest::newRow("explicit values, using installpaths module")
-        << QString("bindir") << QString("dlldir") << QString("libdir") << QString("pluginDir")
-        << QString("dsymDir") << false << true;
-    QTest::newRow("default values")
-        << QString() << QString() << QString() << QString() << QString() << false << false;
+    QTest::addColumn<QString>("testCase");
+    QTest::newRow("default values") << QString("default");
+    QTest::newRow("explicit values, direct") << QString("direct");
+    QTest::newRow("explicit values, using config.install module") << QString("config");
+    QTest::newRow("explicit values, using installpaths module") << QString("installpaths");
 }
 
 void TestBlackbox::installLocations()
 {
+    QFETCH(QString, testCase);
+
     QDir::setCurrent(testDataDir + "/install-locations");
-    QFETCH(QString, binDir);
-    QFETCH(QString, dllDir);
-    QFETCH(QString, libDir);
-    QFETCH(QString, pluginDir);
-    QFETCH(QString, dsymDir);
-    QFETCH(bool, useModule);
-    QFETCH(bool, useInstallPaths);
+    rmDirR(relativeBuildDir());
+
     QbsRunParameters params("resolve");
-    if (!binDir.isEmpty()) {
-        const auto prop = useModule
-                              ? (useInstallPaths ? "modules.installpaths.bin:"
-                                                 : "modules.config.install.binariesDirectory:")
-                              : "products.theapp.installDir:";
-        params.arguments.push_back(prop + binDir);
-        if (useModule && !useInstallPaths) {
-            params.arguments.push_back("modules.config.install.applicationsDirectory:" + binDir);
-        }
-    }
-    if (!dllDir.isEmpty()) {
-        const auto prop = useModule
-                              ? (useInstallPaths
-                                     ? "modules.installpaths.lib:"
-                                     : "modules.config.install.dynamicLibrariesDirectory:")
-                              : "products.thelib.installDir:";
-        params.arguments.push_back(prop + dllDir);
-        if (useModule && !useInstallPaths) {
-            params.arguments.push_back("modules.config.install.frameworksDirectory:" + dllDir);
-        }
-    }
-    if (!libDir.isEmpty()) {
-        const auto prop = useModule ? "modules.config.install.importLibrariesDirectory:"
-                                    : "products.thelib.importLibInstallDir:";
-        params.arguments.push_back(prop + libDir);
-    }
-    if (!pluginDir.isEmpty()) {
-        const auto prop = useModule
-                              ? (useInstallPaths ? "modules.installpaths.plugins:"
-                                                 : "modules.config.install.pluginsDirectory:")
-                              : "products.theplugin.installDir:";
-        params.arguments.push_back(prop + pluginDir);
-        if (useModule && !useInstallPaths) {
-            params.arguments.push_back(
-                "modules.config.install.loadableModulesDirectory:" + pluginDir);
-        }
-    }
-    if (!dsymDir.isEmpty()) {
-        if (useModule) {
-            params.arguments.push_back(
-                "modules.config.install.debugInformationDirectory:" + dsymDir);
-        } else {
+
+    QCOMPARE(runQbs(params), 0);
+
+    // Extract toolchain name from console output
+    const QString output = QString::fromLocal8Bit(m_qbsStdout);
+    const QRegularExpression pattern(
+        QRegularExpression::anchoredPattern(".*===toolchain:(.*)===.*"),
+        QRegularExpression::DotMatchesEverythingOption);
+    const QRegularExpressionMatch match = pattern.match(output);
+    QVERIFY2(match.hasMatch(), qPrintable(output));
+    QCOMPARE(pattern.captureCount(), 1);
+    const QString toolchain = match.captured(1);
+    QVERIFY2(toolchain != "unknown", qPrintable(output));
+
+    if (testCase != "default") {
+        const QString binDir = "bindir";
+        const QString libDir = "libdir";
+        const QString pluginDir = "pluginDir";
+        const QString dsymDir = "dsymDir";
+
+        if (testCase == "direct") {
+            params.arguments.push_back("products.theapp.installDir:" + binDir);
+            if (toolchain == "msvc" || toolchain == "mingw") {
+                params.arguments.push_back("products.thelib.installDir:" + binDir);
+                params.arguments.push_back("products.theloadablemodule.installDir:" + binDir);
+            } else {
+                params.arguments.push_back("products.thelib.installDir:" + libDir);
+                params.arguments.push_back("products.theloadablemodule.installDir:" + libDir);
+            }
+            params.arguments.push_back("products.thelib.importLibInstallDir:" + libDir);
+            params.arguments.push_back("products.theplugin.installDir:" + pluginDir);
             params.arguments.push_back("products.theapp.debugInformationInstallDir:" + dsymDir);
             params.arguments.push_back("products.thelib.debugInformationInstallDir:" + dsymDir);
+            params.arguments.push_back(
+                "products.theloadablemodule.debugInformationInstallDir:" + dsymDir);
             params.arguments.push_back("products.theplugin.debugInformationInstallDir:" + dsymDir);
+        } else if (testCase == "config") {
+            params.arguments.push_back("modules.config.install.binariesDirectory:" + binDir);
+            params.arguments.push_back("modules.config.install.applicationsDirectory:" + binDir);
+            if (toolchain == "msvc" || toolchain == "mingw") {
+                params.arguments.push_back(
+                    "modules.config.install.dynamicLibrariesDirectory:" + binDir);
+            } else {
+                params.arguments.push_back(
+                    "modules.config.install.dynamicLibrariesDirectory:" + libDir);
+            }
+            params.arguments.push_back("modules.config.install.frameworksDirectory:" + libDir);
+            params.arguments.push_back("modules.config.install.importLibrariesDirectory:" + libDir);
+            params.arguments.push_back("modules.config.install.pluginsDirectory:" + pluginDir);
+            params.arguments.push_back(
+                "modules.config.install.loadableModulesDirectory:" + pluginDir);
+            params.arguments.push_back(
+                "modules.config.install.debugInformationDirectory:" + dsymDir);
+        } else if (testCase == "installpaths") {
+            params.arguments.push_back("modules.installpaths.bin:" + binDir);
+            params.arguments.push_back("modules.installpaths.applications:" + binDir);
+            params.arguments.push_back("modules.installpaths.lib:" + libDir);
+            params.arguments.push_back("modules.installpaths.frameworks:" + libDir);
+            params.arguments.push_back("modules.installpaths.plugins:" + pluginDir);
+            params.arguments.push_back("modules.installpaths.loadableModules:" + pluginDir);
+            params.arguments.push_back(
+                "modules.config.install.debugInformationDirectory:" + dsymDir);
         }
     }
+
     QCOMPARE(runQbs(params), 0);
-    const bool isWindows = m_qbsStdout.contains("is windows");
-    const bool isDarwin = m_qbsStdout.contains("is darwin");
-    const bool isMac = m_qbsStdout.contains("is mac");
-    const bool isUnix = m_qbsStdout.contains("is unix");
-    const bool isMingw = m_qbsStdout.contains("is mingw");
-    const bool isEmscripten = m_qbsStdout.contains("is emscripten");
-    QVERIFY(isWindows || isDarwin || isUnix);
     QCOMPARE(runQbs(QbsRunParameters(QStringList("--clean-install-root"))), 0);
 
-    struct BinaryInfo
-    {
-        QString fileName;
-        QString installDir;
-        QString subDir;
+    const QString jsonFilePath = testDataDir + "/install-locations/data/" + toolchain + ".json";
+    QFile jsonFile(jsonFilePath);
+    QVERIFY2(jsonFile.open(QIODevice::ReadOnly), qPrintable(jsonFilePath));
 
-        QString absolutePath(const QString &prefix) const
-        {
-            return QDir::cleanPath(prefix + '/' + installDir + '/' + subDir + '/' + fileName);
-        }
-    };
+    QJsonParseError parseError;
+    const auto jsonDoc = QJsonDocument::fromJson(jsonFile.readAll(), &parseError);
+    QVERIFY2(parseError.error == QJsonParseError::NoError, qPrintable(parseError.errorString()));
 
-    const BinaryInfo dll = {
-        isWindows  ? "thelib.dll"
-        : isDarwin ? "thelib"
-                   : "libthelib.so",
-        dllDir.isEmpty() ? (isDarwin ? "/Library/Frameworks" : (isWindows ? "/bin" : "/lib"))
-                         : (isWindows && useModule && useInstallPaths ? binDir : dllDir),
-        isDarwin ? "thelib.framework" : ""};
-    const BinaryInfo dllDsym = {
-        isWindows  ? (!isMingw ? "thelib.pdb" : "thelib.dll.debug")
-        : isDarwin ? "thelib.framework.dSYM"
-                   : "libthelib.so.debug",
-        dsymDir.isEmpty() ? dll.installDir : dsymDir,
-        {}};
-    const BinaryInfo plugin = {
-        isWindows  ? "theplugin.dll"
-        : isDarwin ? "theplugin"
-                   : "libtheplugin.so",
-        pluginDir.isEmpty() ? (isDarwin ? "/Library/Frameworks" : "/lib/install-locations/plugins/")
-                            : pluginDir,
-        isDarwin ? (isMac ? "theplugin.bundle/Contents/MacOS" : "theplugin.bundle") : ""};
-    const BinaryInfo pluginDsym = {
-        isWindows  ? (!isMingw ? "theplugin.pdb" : "theplugin.dll.debug")
-        : isDarwin ? "theplugin.bundle.dSYM"
-                   : "libtheplugin.so.debug",
-        dsymDir.isEmpty() ? plugin.installDir : dsymDir,
-        {}};
-    const BinaryInfo app = {
-        isWindows      ? "theapp.exe"
-        : isEmscripten ? "theapp.js"
-                       : "theapp",
-        binDir.isEmpty() ? isDarwin ? "/Applications" : "/bin" : binDir,
-        isDarwin ? isMac ? "theapp.app/Contents/MacOS" : "theapp.app" : ""};
-    const BinaryInfo appDsym = {
-        isWindows      ? (!isMingw ? "theapp.pdb" : "theapp.exe.debug")
-        : isDarwin     ? "theapp.app.dSYM"
-        : isEmscripten ? "theapp.wasm.debug.wasm"
-                       : "theapp.debug",
-        dsymDir.isEmpty() ? app.installDir : dsymDir,
-        {}};
+    const auto jsonObject = jsonDoc.object();
 
     const QString installRoot = QDir::currentPath() + "/default/install-root";
-    const QString installPrefix = (isWindows || isEmscripten) ? QString() : "/usr/local";
+    const QString installPrefix = (toolchain == "msvc" || toolchain == "mingw"
+                                   || toolchain == "emscripten")
+                                      ? QString()
+                                      : "/usr/local";
     const QString fullInstallPrefix = installRoot + '/' + installPrefix + '/';
-    const QString appFilePath = app.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFile::exists(appFilePath), qPrintable(appFilePath));
-    const QString dllFilePath = dll.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFile::exists(dllFilePath), qPrintable(dllFilePath));
-    if (isWindows && !isEmscripten) {
-        const BinaryInfo lib = {"thelib.lib", libDir.isEmpty() ? "/lib" : libDir, ""};
-        const QString libFilePath = lib.absolutePath(fullInstallPrefix);
-        QVERIFY2(QFile::exists(libFilePath), qPrintable(libFilePath));
-    }
-    const QString pluginFilePath = plugin.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFile::exists(pluginFilePath), qPrintable(pluginFilePath));
 
-    const QString appDsymFilePath = appDsym.absolutePath(fullInstallPrefix);
-    QVERIFY2(QFileInfo(appDsymFilePath).exists(), qPrintable(appDsymFilePath));
+    // Verify all binaries exist in expected locations
+    for (auto it = jsonObject.begin(); it != jsonObject.end(); ++it) {
+        const QString key = it.key();
+        const auto info = it.value().toObject();
 
-    if (!isEmscripten) { // no separate debug info for emscripten libs
-        const QString dllDsymFilePath = dllDsym.absolutePath(fullInstallPrefix);
-        QVERIFY2(QFileInfo(dllDsymFilePath).exists(), qPrintable(dllDsymFilePath));
-        const QString pluginDsymFilePath = pluginDsym.absolutePath(fullInstallPrefix);
-        QVERIFY2(QFile::exists(pluginDsymFilePath), qPrintable(pluginDsymFilePath));
+        const QString fileName = info.value("fileName").toString();
+        const QString installDir = testCase == "default"
+                                       ? info.value("defaultInstallDir").toString()
+                                       : info.value("customInstallDir").toString();
+        const QString subDir = info.value("subDir").toString();
+
+        const QString filePath = QDir::cleanPath(
+            fullInstallPrefix + '/' + installDir + '/' + subDir + '/' + fileName);
+
+        QVERIFY2(
+            QFile::exists(filePath), qPrintable(QString("File does not exist: %1").arg(filePath)));
     }
 }
 
@@ -5411,7 +5364,7 @@ void TestBlackbox::pluginType()
         if (isWindows) {
             filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.dll");
         } else if (isDarwin) {
-            filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.dylib");
+            filePath = installRoot + pluginsDir + QStringLiteral("/myplugin.bundle");
         } else if (isGcc) {
             filePath = installRoot + pluginsDir + QStringLiteral("/libmyplugin.so");
         }

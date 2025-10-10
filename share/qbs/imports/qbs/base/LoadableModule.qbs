@@ -28,9 +28,6 @@
 **
 ****************************************************************************/
 
-Plugin {
+DynamicLibrary {
     type: isForDarwin ? ["loadablemodule"] : base
-    installDir: config.install.loadableModules && isForDarwin && bundle.isBundle
-        ? config.install.loadableModulesDirectory
-        : base
 }

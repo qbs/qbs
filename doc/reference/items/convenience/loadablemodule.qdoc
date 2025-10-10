@@ -29,12 +29,17 @@
     \previouspage Library
     \nextpage ObjectLibrary
     \qmltype LoadableModule
-    \inherits Plugin
+    \inherits DynamicLibrary
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.LoadableModule
 
     \brief Loadable module.
 
-    Same as the \l{Plugin} item.
+    A LoadableModule item is a \l{Product}{product} of the \l{Product::}{type}
+    \c{"loadablemodule"}. It exists for the convenience of project file authors.
+
+    Unlike the \l{Plugin} item, the LoadableModule item cannot be build as static library and is
+    installed into the same directory as \l{DynamicLibrary} items. Prefer using \l{Plugin} item in
+    new code.
 */

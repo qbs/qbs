@@ -27,7 +27,7 @@
 **
 ****************************************************************************/
 /*!
-    \previouspage Library
+    \previouspage ObjectLibrary
     \nextpage QtApplication
     \qmltype Plugin
     \inherits Library
@@ -37,8 +37,15 @@
 
     \brief Plugin base item.
 
-    A Plugin item is a \l{DynamicLibrary} that is installed to the \{installpaths::plugins}
-    directory.
+    A Plugin item is a \l{Library} that is installed to the
+    \l{ConfigInstall::pluginsDirectory}{pluginsDirectory}.
+    It can be built as a dynamic or static library; the behavior is controlled
+    by the \l{ConfigBuild::pluginType}{config.build.pluginType} property.
+
+    On Apple platforms, the Plugin item has the \c{"loadablemodule"} type when building as dynamic
+    plugin. If \l{bundle::isBundle}{bundle.isBundle} is set to \c true (the default), artifacts
+    are installed into the
+    \l{ConfigInstall::loadableModulesDirectory}{loadableModulesDirectory}.
 
     This item exists for the convenience of project file authors.
 */
