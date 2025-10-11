@@ -501,6 +501,10 @@
     \c rpaths will be automatically exported to all products that depend on the
     \c{config.myproject} module.
 
+    We should also update the \c{MyApplication} item to add a dependency on the
+    \c{"config.myproject"} in order to inject \l{cpp::rpaths}{cpp.rpaths} we set in the module:
+    \snippet ../tutorial/chapter-7/qbs/imports/MyApplication.qbs 0
+
     Let's change whether to install public headers when building our project:
     \code
         $ qbs modules.config.myproject.installPublicHeaders:true
