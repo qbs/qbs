@@ -1834,7 +1834,10 @@ function configureStdModules() {
                         return false;
                     })
                     .map(function(module) {
-                        return FileInfo.joinPaths(FileInfo.path(path), module["source-path"]);
+                        const sourcePath = module["source-path"];
+                        if (FileInfo.isAbsolutePath(sourcePath))
+                            return sourcePath;
+                        return FileInfo.joinPaths(FileInfo.path(path), sourcePath);
                     })
                     .filter(function(module) {
                         return File.exists(module);
