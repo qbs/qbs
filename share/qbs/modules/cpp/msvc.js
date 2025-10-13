@@ -411,7 +411,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         function (a) {
             return a.filePath;
         });
-    var generateManifestFiles = !linkDLL && product.cpp.generateManifestFile;
+    var generateManifestFiles = product.cpp.generateManifestFile;
     var useClangCl = product.qbs.toolchain.includes("clang-cl");
     var canEmbedManifest = useClangCl || product.cpp.compilerVersionMajor >= 17 // VS 2012
 
