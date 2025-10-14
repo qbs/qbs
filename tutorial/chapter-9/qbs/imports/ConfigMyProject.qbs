@@ -11,7 +11,6 @@ Module {
     Depends { name: "config.install" }
 
     property bool installPublicHeaders: false
-    property bool staticBuild: false
     property bool enableRPath: true
     property stringList libRPaths: {
         if (enableRPath && cpp.rpathOrigin && product.installDir) {
