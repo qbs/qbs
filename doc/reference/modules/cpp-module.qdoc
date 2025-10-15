@@ -181,6 +181,12 @@
             This file tag only has an effect with GCC-like toolchains. The linker needs to be
             \c{ld}-compatible.
     \row
+        \li \c{"native.pe.manifest"}
+        \li *.manifest
+        \li 1.8.0
+        \li This tag is automatically assigned to Microsoft manifest files. Manifests are embedded
+            into the resulting binary.
+    \row
         \li \c{"obj"}
         \li n/a
         \li 1.0.1
