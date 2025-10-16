@@ -21,7 +21,7 @@ CppApplication {
         }
         prepare: {
             var cmd = new JavaScriptCommand();
-            cmd.description = "generating" + output.fileName + " from " + input.fileName;
+            cmd.description = "generating " + output.fileName + " from " + input.fileName;
             cmd.highlight = "codegen";
             cmd.sourceCode = function() {
                 var plist = new BundleTools.infoPlistContents(input.filePath);
