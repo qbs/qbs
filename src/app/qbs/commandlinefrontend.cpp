@@ -598,7 +598,8 @@ void CommandLineFrontend::updateTimestamps()
 void CommandLineFrontend::dumpNodesTree()
 {
     QFile stdOut;
-    stdOut.open(stdout, QIODevice::WriteOnly);
+    if (!stdOut.open(stdout, QIODevice::WriteOnly))
+        throw ErrorInfo(Tr::tr("Cannot write to standard output."));
     const ErrorInfo error = m_projects.front().dumpNodesTree(stdOut, productsToUse()
                                                              .value(m_projects.front()));
     if (error.hasError())

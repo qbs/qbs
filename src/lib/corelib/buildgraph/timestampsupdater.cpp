@@ -68,7 +68,8 @@ public:
         // the executor will look at it.
         for (Artifact * const targetArtifact : product->targetArtifacts()) {
             if (FileInfo(targetArtifact->filePath()).exists())
-                QFile(targetArtifact->filePath()).open(QIODevice::WriteOnly | QIODevice::Append);
+                (void) QFile(targetArtifact->filePath())
+                    .open(QIODevice::WriteOnly | QIODevice::Append);
         }
     }
 
