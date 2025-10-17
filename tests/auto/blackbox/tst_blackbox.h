@@ -324,6 +324,7 @@ private slots:
     void staticLibDeps_data();
     void objectLibDeps();
     void objectLibDeps_data();
+    void rpathLink();
     void smartRelinking();
     void smartRelinking_data();
     void soVersion();

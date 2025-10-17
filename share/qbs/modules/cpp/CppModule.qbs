@@ -211,6 +211,7 @@ Module {
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property string rpathOrigin
     property stringList rpaths
+    property stringList rpathLinkDirs
     property string sonamePrefix: ""
     property bool useRPaths: true
     property bool useRPathLink

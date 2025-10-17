@@ -1543,10 +1543,26 @@
 
     A list of \c rpaths that are passed to the linker. Paths that also appear in
     \l{cpp::}{systemRunPaths} are ignored.
+    This property has no effect if \l useRPaths is not enabled.
 
     \nodefaultvalue
 
     \sa{How do I make use of rpaths?}
+*/
+
+/*!
+    \qmlproperty stringList cpp::rpathLinkDirs
+    \since Qbs 3.2
+
+    \unixproperty
+
+    A list of \c paths that are passed to the linker as arguments to the
+    \l rpathLinkFlag.
+    Setting this property might be required in some cases when \l useRPaths
+    is disabled.
+    This property has no effect if \l useRPathLink is not enabled.
+
+    \nodefaultvalue
 */
 
 /*!

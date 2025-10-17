@@ -208,6 +208,7 @@ Module {
         return frameworks;
     }
     cpp.rpaths: useRPaths ? libPath : undefined
+    cpp.rpathLinkDirs: useRPaths ? undefined : libPath
     Properties {
         condition: qbs.toolchain.contains("msvc") && config.contains("static_runtime")
         cpp.runtimeLibrary: "static"

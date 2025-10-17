@@ -3433,6 +3433,37 @@ void TestBlackbox::objectLibDeps_data()
     return staticLibDeps_data();
 }
 
+void TestBlackbox::rpathLink()
+{
+    QDir::setCurrent(testDataDir + "/rpath-link");
+
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    const bool isUnixGcc = m_qbsStdout.contains("is gcc on unix: true");
+    const bool isNotUnixGcc = m_qbsStdout.contains("is gcc on unix: false");
+    QCOMPARE(isUnixGcc, !isNotUnixGcc);
+    if (isNotUnixGcc)
+        QSKIP("only applies with gcc on unix systems");
+
+    // First build and install the libs
+    QCOMPARE(runQbs(), 0);
+
+    // Now that the libs are installed, resolve with consumer.
+    QCOMPARE(runQbs(QbsRunParameters("resolve", {"project.enableConsumer:true"})), 0);
+
+    // Building should fail initially, as the indirect dependency's location is not specified.
+    QbsRunParameters failParams;
+    failParams.expectFailure = true;
+    QVERIFY(runQbs(failParams) != 0);
+    QVERIFY2(m_qbsStderr.contains("needed by"), m_qbsStderr.constData());
+
+    // Now add the rpath-link and expect success.
+    QCOMPARE(
+        runQbs(QbsRunParameters(
+            "resolve", {"project.enableConsumer:true", "project.enableRPathLink:true"})),
+        0);
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::smartRelinking()
 {
     QDir::setCurrent(testDataDir + "/smart-relinking");

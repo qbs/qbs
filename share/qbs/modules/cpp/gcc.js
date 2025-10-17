@@ -272,7 +272,6 @@ function escapeLinkerFlags(product, inputs, linkerFlags) {
 function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPath) {
     var isDarwin = product.qbs.targetOS.includes("darwin");
     var libraryDependencies = collectLibraryDependencies(product, isDarwin);
-    var rpaths = (product.cpp.useRPaths !== false) ? product.cpp.rpaths : undefined;
     var systemRunPaths = product.cpp.systemRunPaths || [];
     var canonicalSystemRunPaths = systemRunPaths.map(function(p) {
         return File.canonicalFilePath(p);
@@ -366,11 +365,18 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
                 && !canonicalSystemRunPaths.includes(File.canonicalFilePath(p)));
     };
 
+    if (product.cpp.useRPathLink && !product.cpp.rpathLinkFlag)
+        throw new Error("cpp.useRPathLink is enabled, but cpp.rpathLinkFlag is not defined");
+
     if (!product.qbs.targetOS.includes("windows")) {
+        var rpaths = product.cpp.useRPaths ? product.cpp.rpaths : undefined;
         for (i in rpaths) {
             if (isNotSystemRunPath(rpaths[i]))
                 escapableLinkerFlags.push("-rpath", fixupRPath(rpaths[i]));
         }
+        var rpathLinks = product.cpp.useRPathLink ? product.cpp.rpathLinkDirs : undefined;
+        for (i in rpathLinks)
+            escapableLinkerFlags.push("-rpath-link", rpathLinks[i]);
     }
 
     if (product.cpp.entryPoint)
@@ -503,8 +509,6 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     }
 
     if (product.cpp.useRPathLink) {
-        if (!product.cpp.rpathLinkFlag)
-            throw new Error("Using rpath-link but cpp.rpathLinkFlag is not defined");
         Array.prototype.push.apply(escapableLinkerFlags, libraryDependencies.rpath_link.map(
                                        function(dir) {
                                            return product.cpp.rpathLinkFlag + dir;
