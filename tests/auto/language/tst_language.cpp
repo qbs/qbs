@@ -897,14 +897,14 @@ void TestLanguage::enumerateProjectProperties()
     try {
         resolveProject("enum-project-props.qbs");
         QVERIFY(!!project);
-        auto products = productsFromProject(project);
+        const auto products = productsFromProject(project);
         QCOMPARE(products.size(), 1);
-        auto product = products.values().front();
-        auto files = product->groups.front()->files;
+        const ResolvedProductConstPtr product = *products.begin();
         QCOMPARE(product->groups.size(), size_t(1));
+        const auto files = product->groups.front()->files;
         QVERIFY(files);
         QCOMPARE(files->size(), size_t(1));
-        auto fileName = FileInfo::fileName(files->front()->absoluteFilePath);
+        const QString fileName = FileInfo::fileName(files->front()->absoluteFilePath);
         QCOMPARE(fileName, QString("dummy.txt"));
     } catch (const ErrorInfo &e) {
         exceptionCaught = true;
