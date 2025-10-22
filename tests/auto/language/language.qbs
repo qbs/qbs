@@ -6,6 +6,12 @@ QbsUnittest {
 
     testName: "language"
     condition: qbsbuildconfig.enableUnitTests
+
+    Properties {
+        condition: qbs.toolchain.contains("mingw")
+        cpp.cxxFlags: "-Wno-maybe-uninitialized"
+    }
+
     files: [
         "tst_language.cpp",
         "tst_language.h"
