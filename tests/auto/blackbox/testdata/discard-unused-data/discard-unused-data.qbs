@@ -1,7 +1,7 @@
 CppApplication {
     name: "app"
     type: base.concat("custom")
-
+    consoleApplication: true
     property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
 
     files: "main.cpp"

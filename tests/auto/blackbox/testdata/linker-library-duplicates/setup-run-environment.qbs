@@ -33,6 +33,7 @@ Project {
 
     CppApplication {
         name: "main"
+        consoleApplication: true
         files: "main.cpp"
 
         Depends { name: "lib1"; cpp.link: false }

@@ -3,6 +3,7 @@ import qbs.File
 Project {
     Application {
         name: "MyApp"
+        consoleApplication: true
         files: ["main.cpp", "myapp.blubb"]
         Depends { name: "blubber" }
     }

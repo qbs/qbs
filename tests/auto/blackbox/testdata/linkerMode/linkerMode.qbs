@@ -48,7 +48,7 @@ Project {
 
     CppApplication {
         Depends { name: "LinkedProduct-C++StaticLibrary" }
-
+        consoleApplication: true
         name: "LinkedProduct-BlankApp"
         files: ["staticmain.c"]
         installDir: ""

@@ -12,6 +12,7 @@ CppApplication {
         return result;
     }
     name: "consumer"
+    consoleApplication: true
     qbsSearchPaths: "default/install-root/usr/qbs"
     property string outTag: "cpp"
     Depends { name: "MyLib" }

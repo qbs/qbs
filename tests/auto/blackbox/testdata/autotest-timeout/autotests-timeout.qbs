@@ -10,6 +10,7 @@ Project {
                              + Host.platform() + "/" + Host.architecture() + ")");
             return result;
         }
+        consoleApplication: true
         name: "testApp"
         type: ["application", "autotest"]
         Depends { name: "autotest" }

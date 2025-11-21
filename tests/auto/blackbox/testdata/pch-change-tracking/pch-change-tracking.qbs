@@ -1,4 +1,5 @@
 CppApplication {
+    consoleApplication: true
     files: [
         "header1.h",
         "header2.cpp",

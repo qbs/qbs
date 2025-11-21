@@ -26,6 +26,7 @@ Project {
     CppApplication {
         Depends { name: "lib1"; cpp.link: false }
         Depends { name: "lib2"; cpp.link: false }
+        consoleApplication: true
         files: ["main.cpp"]
         cpp.libraryPaths: [project.libDir]
         cpp.staticLibraries: ["lib1", "lib2", "lib1"]

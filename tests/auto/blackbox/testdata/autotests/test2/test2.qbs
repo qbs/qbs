@@ -1,4 +1,5 @@
 CppApplication {
+    consoleApplication: true
     name: "test2"
     type: base.concat("autotest")
 

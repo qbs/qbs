@@ -22,6 +22,7 @@ Project {
     Application {
         Depends { name: "cpp" }
         name: "app"
+        consoleApplication: true
         files: ["main.c"]
 
         destinationDirectory: project.buildDirectory

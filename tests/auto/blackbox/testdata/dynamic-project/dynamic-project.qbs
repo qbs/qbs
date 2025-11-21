@@ -25,6 +25,7 @@ Project
                 try {
                     file.writeLine("CppApplication");
                     file.writeLine("{");
+                    file.writeLine("\tconsoleApplication: true");
                     file.writeLine("\tfiles: [ \"" + productSrcDir + "/*.cpp\" ]");
                     file.writeLine("}");
                 } finally {

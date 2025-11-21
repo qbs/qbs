@@ -3,6 +3,7 @@ import qbs.Host
 Project {
     CppApplication {
         name: "tool"
+        consoleApplication: true
         files: "main.c"
     }
 

@@ -11,6 +11,7 @@ Project {
     }
     CppApplication {
         name: "theApp"
+        consoleApplication: true
         cpp.libraryPaths: project.buildDirectory
         files: ["main.cpp"]
         cpp.staticLibraries: ['@' + sourceDirectory + '/'

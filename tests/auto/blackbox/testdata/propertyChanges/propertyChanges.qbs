@@ -8,17 +8,20 @@ Project {
     property string testProperty: "default value"
     CppApplication {
         name: qbs.enableDebugCode ? "product 1.debug" : "product 1.release"
+        consoleApplication: true
         cpp.defines: ["blubb1"]
         files: "source1.cpp"
     }
     CppApplication {
         Depends { name: 'library' }
         name: "product 2"
+        consoleApplication: true
         cpp.defines: project.projectDefines
         files: "source2.cpp"
     }
     CppApplication {
         name: "product 3"
+        consoleApplication: true
         cpp.defines: Environment.getEnv("QBS_BLACKBOX_DEFINE")
         files: "source3.cpp"
     }

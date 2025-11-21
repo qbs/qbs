@@ -1,4 +1,5 @@
 CppApplication {
+    consoleApplication: true
     files: ["app.c"]
 
     property bool enableObjectiveC: qbs.targetOS.includes("darwin")

@@ -1,5 +1,6 @@
 CppApplication {
     name: "app"
+    consoleApplication: true
     property bool enableNewestModule: true
 
     Depends { name: "oldmodule" }

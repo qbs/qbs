@@ -15,6 +15,7 @@ Project {
 
     CppApplication {
         name: "app"
+        consoleApplication: true
         Depends { name: "theLib" }
         files: ["main.cpp"]
         property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }

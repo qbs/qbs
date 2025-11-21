@@ -1,6 +1,7 @@
 Project {
     CppApplication {
         name: "app-map"
+        consoleApplication: true
         files: ["main.cpp"]
         // lld-link has different flag for map files, test it by switching to "lld" linkerVariant
         Properties { condition: qbs.toolchain.includes("clang-cl"); cpp.linkerVariant: "lld" }
@@ -8,12 +9,14 @@ Project {
     }
     CppApplication {
         name: "app-nomap"
+        consoleApplication: true
         files: ["main.cpp"]
         Properties { condition: qbs.toolchain.includes("clang-cl"); cpp.linkerVariant: "lld" }
         cpp.generateLinkerMapFile: false
     }
     CppApplication {
         name: "app-nomap-default"
+        consoleApplication: true
         files: ["main.cpp"]
     }
 

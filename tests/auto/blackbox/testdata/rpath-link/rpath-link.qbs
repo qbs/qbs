@@ -69,7 +69,7 @@ Project {
     CppApplication {
         name: "consumer"
         condition: enableConsumer
-
+        consoleApplication: true
         qbsSearchPaths: qbs.installRoot + "/qbs"
         Depends { name: "direct-installed" }
 

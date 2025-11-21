@@ -1,5 +1,6 @@
 CppApplication {
     name: "theapp"
+    consoleApplication: true
     files: [
         "combinable.cpp",
         "main.cpp",

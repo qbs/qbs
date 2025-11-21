@@ -24,6 +24,7 @@ Project {
     }
     CppApplication {
         name: "theApp"
+        consoleApplication: true
         cpp.includePaths: [project.buildDirectory]
         files: ["main.cpp"]
         Depends { name: "bundle" }

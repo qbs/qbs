@@ -6,6 +6,7 @@ import "util.js" as Utils
 Project {
     CppApplication {
         name: "app"
+        consoleApplication: true
         files: ["main.cpp"]
         Depends { name: "dep" }
     }

@@ -1,5 +1,6 @@
 CppApplication {
     Depends { name: "cpufeatures" }
+    consoleApplication: true
     cpufeatures.x86_sse2: true
     cpufeatures.x86_avx: true
     cpufeatures.x86_avx512f: false

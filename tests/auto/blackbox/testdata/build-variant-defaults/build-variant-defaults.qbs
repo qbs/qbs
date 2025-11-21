@@ -13,4 +13,5 @@ CppApplication {
             throw "Invalid defaults";
         return valid;
     }
+    consoleApplication: true
 }

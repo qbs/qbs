@@ -11,6 +11,7 @@ Project {
             return result;
         }
         name: "theapp"
+        consoleApplication: true
         cpp.minimumMacosVersion: "10.7" // For -rpath
         Depends { name: "theotherlib" }
         Depends { name: "thethirdlib" }

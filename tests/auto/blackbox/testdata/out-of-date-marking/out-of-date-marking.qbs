@@ -2,6 +2,7 @@ import qbs.TextFile
 
 CppApplication {
     name: "app"
+    consoleApplication: true
     files: "main.c"
     cpp.includePaths: buildDirectory
     Rule {

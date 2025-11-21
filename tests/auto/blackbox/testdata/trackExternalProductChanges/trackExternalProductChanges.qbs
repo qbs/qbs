@@ -2,6 +2,7 @@ import qbs.Environment
 import "fileList.js" as FileList
 
 CppApplication {
+    consoleApplication: true
     property stringList filesFromEnv: Environment.getEnv("QBS_TEST_PULL_IN_FILE_VIA_ENV")
                                       ? ["environmentChange.cpp"] : []
     files: ["main.cpp"].concat(FileList.fileList()).concat(filesFromEnv).concat(FileList.filesFromFs(path))

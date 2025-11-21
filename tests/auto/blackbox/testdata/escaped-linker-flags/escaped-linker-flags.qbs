@@ -1,5 +1,6 @@
 CppApplication {
     name: "app"
+    consoleApplication: true
     property bool escapeLinkerFlags
     Properties {
         condition: escapeLinkerFlags

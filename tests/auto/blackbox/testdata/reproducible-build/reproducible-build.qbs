@@ -1,5 +1,6 @@
 CppApplication {
     name: "the product"
+    consoleApplication: true
     files: ["file1.cpp", "file2.cpp", "main.cpp"]
     cpp.cxxFlags: ["-flto"]
     Probe {

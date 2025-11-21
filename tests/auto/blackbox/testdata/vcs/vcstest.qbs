@@ -9,6 +9,7 @@ CppApplication {
                          + Host.platform() + "/" + Host.architecture() + ")");
         return result;
     }
+    consoleApplication: true
     Depends { name: "vcs" }
     vcs.headerFileName: "my-repo-state.h"
     files: ["main.cpp"]

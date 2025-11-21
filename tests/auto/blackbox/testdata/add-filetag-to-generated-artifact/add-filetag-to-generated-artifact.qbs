@@ -3,6 +3,7 @@ import qbs.File
 Project {
     property bool enableTagging
     CppApplication {
+        consoleApplication: true
         name: "my_app"
         property bool dummy: { console.info("executable suffix: " + cpp.executableSuffix); }
         files: "main.cpp"

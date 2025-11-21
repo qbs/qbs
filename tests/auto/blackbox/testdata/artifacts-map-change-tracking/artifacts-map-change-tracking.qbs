@@ -2,6 +2,7 @@ import qbs.File
 
 Project {
     CppApplication {
+        consoleApplication: true
         name: "TheApp"
         targetName: "TheBinary"
         Rule {

@@ -11,6 +11,7 @@ Project {
     }
     Application {
         name: "app"
+        consoleApplication: true
         Depends { name: "dep" }
     }
 }

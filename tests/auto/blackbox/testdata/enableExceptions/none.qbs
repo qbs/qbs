@@ -1,4 +1,5 @@
 CppApplication {
+    consoleApplication: true
     files: ["emptymain.cpp"]
 
     Group {

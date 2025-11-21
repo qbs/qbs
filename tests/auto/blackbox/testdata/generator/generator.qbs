@@ -2,6 +2,7 @@ import qbs.TextFile
 
 CppApplication {
     name: "app"
+    consoleApplication: true
     files: "main.cpp"
     Group {
         files: "input.txt"

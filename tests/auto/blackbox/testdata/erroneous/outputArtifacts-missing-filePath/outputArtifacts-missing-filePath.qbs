@@ -1,5 +1,6 @@
 CppApplication {
     type: base.concat("txt")
+    consoleApplication: true
     files : ["main.cpp"]
     Rule {
         inputs: ["application"]

@@ -17,6 +17,7 @@ Project {
     }
 
     CppApplication {
+        consoleApplication: true
         Depends { name: "coreutils" }
         files: ["main.cpp"]
     }

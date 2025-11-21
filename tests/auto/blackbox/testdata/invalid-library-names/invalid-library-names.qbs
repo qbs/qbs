@@ -3,6 +3,7 @@ Project {
     property var values: [null, undefined, 5, [], ""]
     property int valueIndex
     CppApplication {
+        consoleApplication: true
         cpp.dynamicLibraries: [project.values[project.valueIndex]]
         cpp.staticLibraries: [project.values[project.valueIndex]]
         cpp.libraries: [project.values[project.valueIndex]]

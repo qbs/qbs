@@ -15,6 +15,7 @@ Project {
             return result;
         }
         name: "app"
+        consoleApplication: true
         Depends { name: "installed-header" }
         Rule {
             multiplex: true

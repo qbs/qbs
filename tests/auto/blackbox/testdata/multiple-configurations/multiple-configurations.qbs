@@ -6,6 +6,7 @@ Project {
     }
     CppApplication {
         name: "app"
+        consoleApplication: true
         Depends { name: "lib" }
         cpp.includePaths: project.sourceDirectory
         files: ["file.cpp", "file.h", "main.cpp"]

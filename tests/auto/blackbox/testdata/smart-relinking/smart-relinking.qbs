@@ -22,6 +22,7 @@ Project {
     CppApplication {
         condition: tcProbe.found
         name:"app"
+        consoleApplication: true
         Depends { name: "lib" }
         Depends { name: "staticlib" }
         files: ["main.cpp"]

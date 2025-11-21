@@ -10,6 +10,7 @@ Project {
     }
     CppApplication {
         name: "theProduct"
+        consoleApplication: true
         Depends { name: "dep" }
         files: "main.cpp"
     }

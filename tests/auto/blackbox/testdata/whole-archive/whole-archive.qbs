@@ -52,22 +52,26 @@ Project {
 
     CppApplication {
         name: "app1"
+        consoleApplication: true
         Depends { name: "dynamiclib" }
         files: ["main1.cpp"]
     }
 
     CppApplication {
         name: "app2"
+        consoleApplication: true
         Depends { name: "dynamiclib" }
         files: ["main2.cpp"]
     }
     CppApplication {
         name: "app3"
+        consoleApplication: true
         Depends { name: "dynamiclib" }
         files: ["main3.cpp"]
     }
     CppApplication {
         name: "app4"
+        consoleApplication: true
         Depends { name: "dynamiclib" }
         files: ["main4.cpp"]
     }

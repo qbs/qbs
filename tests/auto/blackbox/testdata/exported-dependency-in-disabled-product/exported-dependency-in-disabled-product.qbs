@@ -1,6 +1,7 @@
 Project {
     Application {
         name: "app"
+        consoleApplication: true
         Depends { name: "dep"; required: false }
         files: "main.cpp"
     }

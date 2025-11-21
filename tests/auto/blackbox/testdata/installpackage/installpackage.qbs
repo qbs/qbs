@@ -1,6 +1,7 @@
 Project {
     CppApplication {
         name: "public_tool"
+        consoleApplication: true
         Properties {
             condition: qbs.targetOS.includes("darwin")
             bundle.isBundle: false
@@ -12,6 +13,7 @@ Project {
     }
     CppApplication {
         name: "internal_tool"
+        consoleApplication: true
         Depends { name: "mylib" }
         files: ["main.cpp"]
     }

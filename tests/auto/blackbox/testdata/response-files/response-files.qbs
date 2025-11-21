@@ -5,6 +5,7 @@ import qbs.TextFile
 Project {
     CppApplication {
         name: "cat-response-file"
+        consoleApplication: true
         files: ["cat-response-file.cpp"]
         cpp.enableExceptions: true
     }

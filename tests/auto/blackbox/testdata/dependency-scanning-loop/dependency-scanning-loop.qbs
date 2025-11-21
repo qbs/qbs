@@ -3,6 +3,7 @@ import qbs.TextFile
 
 CppApplication {
     name: "app"
+    consoleApplication: true
     cpp.includePaths: buildDirectory
     Group {
         files: "main.cpp"

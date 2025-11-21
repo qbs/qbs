@@ -9,7 +9,7 @@ Project {
         }
     }
     property pathList res: theProbe.found ? theProbe.result : []
-
+    consoleApplication: true
     Group {
         name: "files"
         files: res

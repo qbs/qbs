@@ -3,6 +3,7 @@ import qbs.Host
 Project {
     CppApplication {
         name: "myapp"
+        consoleApplication: true
         files: ["main.cpp"]
         Depends {
             name: "plugin1"                             // not to be linked

@@ -21,6 +21,7 @@ Project {
     }
     CppApplication {
         name: "the_app"
+        consoleApplication: true
         property bool link
         Depends { name: "the_lib"; cpp.link: product.link }
         files: "main.cpp"

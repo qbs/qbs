@@ -1,5 +1,6 @@
 CppApplication {
     name: "p"
+    consoleApplication: true
     property string linkerVariant
     Probe {
         id: gccProbe

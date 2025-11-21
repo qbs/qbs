@@ -7,6 +7,7 @@ CppApplication {
                 console.info("msvc");
         }
     }
+    consoleApplication: true
     files: [
         "file.c",
         "main.cpp",
