@@ -40,6 +40,7 @@
 #ifndef QBS_SETUPTOOLCHAINS_PROBE_H
 #define QBS_SETUPTOOLCHAINS_PROBE_H
 
+#include <tools/stlutils.h>
 #include <tools/version.h>
 
 #include <QtCore/qfileinfo.h>
@@ -47,9 +48,11 @@
 #include <QtCore/qstringlist.h>
 
 #include <functional> // for std::function
-#include <tuple> // for std::tie
+#include <tuple>      // for std::tie
 
-namespace qbs { class Settings; }
+namespace qbs {
+class Settings;
+}
 
 QStringList systemSearchPaths();
 
@@ -57,8 +60,11 @@ QString findExecutable(const QString &fileName);
 
 QString toolchainTypeFromCompilerName(const QString &compilerName);
 
-void createProfile(const QString &profileName, const QString &toolchainType,
-                   const QString &compilerFilePath, qbs::Settings *settings);
+void createProfile(
+    const QString &profileName,
+    const QString &toolchainType,
+    const QString &compilerFilePath,
+    qbs::Settings *settings);
 
 void probe(qbs::Settings *settings);
 
@@ -67,6 +73,13 @@ struct ToolchainInstallInfo
     QFileInfo compilerPath;
     qbs::Version compilerVersion;
 };
+
+inline bool operator==(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
+{
+    const auto lp = lhs.compilerPath.absoluteFilePath();
+    const auto rp = rhs.compilerPath.absoluteFilePath();
+    return std::tie(lp, lhs.compilerVersion) == std::tie(rp, rhs.compilerVersion);
+}
 
 inline bool operator<(const ToolchainInstallInfo &lhs, const ToolchainInstallInfo &rhs)
 {
@@ -81,5 +94,21 @@ bool isSameExecutable(const QString &exe1, const QString &exe2);
 
 using MacrosMap = QMap<QString, QString>;
 MacrosMap dumpMacros(const std::function<QStringList()> &func);
+
+namespace std {
+
+template<>
+struct hash<ToolchainInstallInfo>
+{
+    std::size_t operator()(const ToolchainInstallInfo &v) const noexcept
+    {
+        std::size_t seed = 0;
+        qbs::Internal::hashCombineHelper(seed, v.compilerPath.absoluteFilePath());
+        qbs::Internal::hashCombineHelper(seed, v.compilerVersion);
+        return seed;
+    }
+};
+
+} // namespace std
 
 #endif // Header guard
