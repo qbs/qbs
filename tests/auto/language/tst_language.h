@@ -139,6 +139,8 @@ private slots:
     void moduleWithProductDependency();
     void modules_data();
     void modules();
+    void multipleModuleBackendsViaOwnProperty_data();
+    void multipleModuleBackendsViaOwnProperty();
     void multiplexedExports();
     void multiplexingByProfile();
     void multiplexingByProfile_data();

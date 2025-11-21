@@ -200,12 +200,14 @@ public:
         const QVariantMap &config,
         const QString &key,
         const SetupProjectParameters &parameters,
-        Logger &logger);
+        Logger &logger,
+        bool ignoreNonExisting = false);
     void overrideProperties(
         const QVariantMap &config,
         const QualifiedId &namePrefix,
         const SetupProjectParameters &parameters,
-        Logger &logger);
+        Logger &logger,
+        bool ignoreNonExisting = false);
 
 private:
     ItemValuePtr itemProperty(const QString &name, const Item *itemTemplate,

@@ -330,6 +330,14 @@ Item *ModuleLoader::createAndInitModuleItem(const QString &moduleName, const QSt
         module->setProperty(it.key(), v);
     }
 
+    // This is a limited version of ModuleInstantiator::overrideProperties() that does not
+    // take per-product overrides into account (doing that would break our prototype caching).
+    // Non-existing properties are ignored, because they might apply to specific module back-ends.
+    const QString overrideKey = QStringLiteral("modules.") + moduleName;
+    const SetupProjectParameters &parameters = m_loaderState.parameters();
+    module->overrideProperties(
+        parameters.overriddenValuesTree(), overrideKey, parameters, m_loaderState.logger(), true);
+
     return module;
 }
 

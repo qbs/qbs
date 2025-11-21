@@ -2579,6 +2579,43 @@ void TestLanguage::modules()
     QCOMPARE(product->productProperties.value("foo").toString(), expectedProductProperty);
 }
 
+void TestLanguage::multipleModuleBackendsViaOwnProperty_data()
+{
+    QTest::addColumn<QString>("type");
+    QTest::addColumn<QString>("expectedValue");
+
+    QTest::newRow("default") << QString() << QString("value1");
+    QTest::newRow("no-op override") << QString("type1") << QString("value1");
+    QTest::newRow("actual override") << QString("type2") << QString("value2");
+}
+
+void TestLanguage::multipleModuleBackendsViaOwnProperty()
+{
+    QFETCH(QString, type);
+    QFETCH(QString, expectedValue);
+
+    bool exceptionCaught = false;
+    try {
+        if (!type.isEmpty()) {
+            defaultParameters.setOverriddenValues(
+                {{"modules.multiple_backends_via_own_property.type", type}});
+        }
+        resolveProject("multiple-module-backends-via-own-property.qbs");
+        QVERIFY(!!project);
+        const auto products = project->allProducts();
+        QCOMPARE(products.size(), size_t(1));
+        QCOMPARE(
+            products.front()
+                ->moduleProperties->moduleProperty("multiple_backends_via_own_property", "value")
+                .toString(),
+            expectedValue);
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::multiplexedExports()
 {
     bool exceptionCaught = false;

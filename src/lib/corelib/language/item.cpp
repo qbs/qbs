@@ -370,13 +370,17 @@ void Item::copyProperty(const QString &propertyName, Item *target) const
     target->setProperty(propertyName, property(propertyName));
 }
 
-void Item::overrideProperties(const QVariantMap &config, const QString &key,
-                              const SetupProjectParameters &parameters, Logger &logger)
+void Item::overrideProperties(
+    const QVariantMap &config,
+    const QString &key,
+    const SetupProjectParameters &parameters,
+    Logger &logger,
+    bool ignoreNonExisting)
 {
     const QVariant configMap = config.value(key);
     if (configMap.isNull())
         return;
-    overrideProperties(configMap.toMap(), QualifiedId(key), parameters, logger);
+    overrideProperties(configMap.toMap(), QualifiedId(key), parameters, logger, ignoreNonExisting);
 }
 
 static const char *valueType(const Value *v)
@@ -509,10 +513,11 @@ void Item::setPropertyDeclarations(const Item::PropertyDeclarationMap &decls)
 }
 
 void Item::overrideProperties(
-        const QVariantMap &overridden,
-        const QualifiedId &namePrefix,
-        const SetupProjectParameters &parameters,
-         Logger &logger)
+    const QVariantMap &overridden,
+    const QualifiedId &namePrefix,
+    const SetupProjectParameters &parameters,
+    Logger &logger,
+    bool ignoreNonExisting)
 {
     if (overridden.isEmpty())
         return;
@@ -520,9 +525,11 @@ void Item::overrideProperties(
             ++it) {
         const PropertyDeclaration decl = propertyDeclaration(it.key());
         if (!decl.isValid()) {
-            ErrorInfo error(Tr::tr("Unknown property: %1.%2").
-                    arg(namePrefix.toString(), it.key()));
-            handlePropertyError(error, parameters, logger);
+            if (!ignoreNonExisting) {
+                ErrorInfo error(
+                    Tr::tr("Unknown property: %1.%2").arg(namePrefix.toString(), it.key()));
+                handlePropertyError(error, parameters, logger);
+            }
             continue;
         }
         const auto overridenValue = VariantValue::create(PropertyDeclaration::convertToPropertyType(
