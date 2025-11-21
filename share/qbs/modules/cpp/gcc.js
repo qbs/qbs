@@ -882,9 +882,13 @@ function compilerFlags(project, product, outputs, input, output, explicitlyDepen
     if (!pchOutput && pchInputs && pchInputs.length === 1
             && ModUtils.moduleProperty(input, 'usePrecompiledHeader', tag)) {
         var pchInput = pchInputs[0];
-        var pchFilePath = FileInfo.joinPaths(FileInfo.path(pchInput.filePath),
-                                             pchInput.completeBaseName);
-        args.push(input.cpp.preincludeFlag, pchFilePath);
+        if (input.qbs.toolchain.includes("clang")) {
+            args.push("-include-pch", pchInput.filePath);
+        } else {
+            var pchFilePath = FileInfo.joinPaths(FileInfo.path(pchInput.filePath),
+                                                 pchInput.completeBaseName);
+            args.push(input.cpp.preincludeFlag, pchFilePath);
+        }
     }
 
     args = args.concat(Cpp.collectPreincludePathsArguments(input));
