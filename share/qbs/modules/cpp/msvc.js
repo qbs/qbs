@@ -327,11 +327,9 @@ function prepareCompilerInternal(project, product, inputs, outputs, input, outpu
             // clang-cl complains when pch file is not included
             args.push("/FI" + FileInfo.toWindowsSeparators(input.filePath));
             args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
-            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
         } else { // real msvc
             args.push("/Yc");
             args.push("/Fp" + FileInfo.toWindowsSeparators(pchOutput.filePath));
-            args.push("/Fo" + FileInfo.toWindowsSeparators(objOutput.filePath));
             args.push(FileInfo.toWindowsSeparators(input.filePath));
         }
 
