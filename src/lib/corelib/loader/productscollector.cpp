@@ -434,13 +434,13 @@ void ProductsCollector::Private::handleSubProject(
         return;
     }
 
-    loadedItem = itemReader.wrapInProjectIfNecessary(loadedItem);
+    Item * const loadedProjectItem = itemReader.wrapInProjectIfNecessary(loadedItem);
     const bool inheritProperties = evaluator.boolValue(
         projectItem, StringConstants::inheritPropertiesProperty());
 
     copyProperties(
         projectItem->parent(),
-        loadedItem,
+        loadedProjectItem,
         inheritProperties ? PropertyFilter::All : PropertyFilter::BuiltIns);
     if (propertiesItem) {
         const Item::PropertyMap &overriddenProperties = propertiesItem->properties();
@@ -448,9 +448,12 @@ void ProductsCollector::Private::handleSubProject(
             loadedItem->setProperty(it.key(), it.value());
     }
 
-    Item::addChild(projectItem, loadedItem);
+    Item::addChild(projectItem, loadedProjectItem);
     projectItem->setScope(projectContext.scope);
-    handleProject(loadedItem, &projectContext, Set<QString>(referencedFilePaths) << subProjectFilePath);
+    handleProject(
+        loadedProjectItem,
+        &projectContext,
+        Set<QString>(referencedFilePaths) << subProjectFilePath);
 }
 
 void ProductsCollector::Private::copyProperties(

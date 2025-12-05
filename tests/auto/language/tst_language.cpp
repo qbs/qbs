@@ -2792,6 +2792,22 @@ void TestLanguage::outerInGroup()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::overrideProductPropFromSubProjectItem()
+{
+    bool exceptionCaught = false;
+    try {
+        resolveProject("override-product-prop-from-subproject-item.qbs");
+        QVERIFY(!!project);
+        const auto products = project->allProducts();
+        QCOMPARE(products.size(), size_t(1));
+        QCOMPARE(products.front()->productProperties.value("theProp").toString(), "overridden");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::overriddenPropertiesAndPrototypes()
 {
     bool exceptionCaught = false;

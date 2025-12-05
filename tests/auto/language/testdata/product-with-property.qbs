@@ -1,0 +1,3 @@
+Product {
+    property string theProp
+}

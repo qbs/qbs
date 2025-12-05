@@ -149,6 +149,7 @@ private slots:
     void nonRequiredProducts();
     void nonRequiredProducts_data();
     void outerInGroup();
+    void overrideProductPropFromSubProjectItem();
     void overriddenPropertiesAndPrototypes();
     void overriddenPropertiesAndPrototypes_data();
     void overriddenVariantProperty();

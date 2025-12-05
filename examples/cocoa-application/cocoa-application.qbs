@@ -57,9 +57,7 @@ Project {
     ]
 
     SubProject {
+        condition: Utilities.versionCompare(qbs.version, "1.9") >= 0
         filePath: "dmg.qbs"
-        Properties {
-            condition: Utilities.versionCompare(qbs.version, "1.9") >= 0
-        }
     }
 }
