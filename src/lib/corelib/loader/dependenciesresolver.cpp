@@ -1121,7 +1121,7 @@ QVariantMap safeToVariant(JSContext *ctx, const JSValue &v)
     QVariantMap result;
     handleJsProperties(ctx, v, [&](const JSAtom &prop, const JSPropertyDescriptor &desc) {
         const JSValue u = desc.value;
-        if (JS_IsError(ctx, u))
+        if (JS_IsError(u))
             throw ErrorInfo(getJsString(ctx, u));
         const QString name = getJsString(ctx, prop);
         result[name] = (JS_IsObject(u) && !JS_IsArray(u) && !JS_IsRegExp(u)) ? safeToVariant(ctx, u)

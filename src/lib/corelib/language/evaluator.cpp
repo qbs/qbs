@@ -726,7 +726,7 @@ private:
         quint32 k = 0;
         JSContext * const ctx = m_engine.context();
         for (const JSValue &v : std::as_const(lst)) {
-            QBS_ASSERT(!JS_IsError(ctx, v), continue);
+            QBS_ASSERT(!JS_IsError(v), continue);
             if (JS_IsArray(v)) {
                 const quint32 vlen = getJsIntProperty(ctx, v, StringConstants::lengthProperty());
                 for (quint32 j = 0; j < vlen; ++j)

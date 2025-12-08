@@ -100,7 +100,7 @@ JsException::~JsException()
 
 QString JsException::message() const
 {
-    if (JS_IsError(m_ctx, m_exception))
+    if (JS_IsError(m_exception))
         return getJsStringProperty(m_ctx, m_exception, QStringLiteral("message"));
     const QVariant v = getJsVariant(m_ctx, m_exception);
     switch (static_cast<QMetaType::Type>(v.userType())) {
