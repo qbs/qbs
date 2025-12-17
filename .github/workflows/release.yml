@@ -84,7 +84,7 @@ jobs:
           }
         - {
             name: 'Build on macOS (x86_64)',
-            runner: 'macos-13',
+            runner: 'macos-14',
             profile: 'xcode_15_1-macosx-x86_64',
             toolchain: 'clang_64',
             options: 'qbs.installPrefix:""
