@@ -867,7 +867,7 @@
     If the list contains more than one value, the highest version is chosen.
 
     Possible values include: \c{"c++98"}, \c{"c++11"}, \c{"c++14"}, \c{"c++17"}, \c{"c++20"},
-                             \c{"c++23"}.
+                             \c{"c++23"}, \c{"c++26"}.
 
     \nodefaultvalue
 */

@@ -121,7 +121,7 @@ function supportsExternalIncludesOption(input) {
 
 function addCxxLanguageVersionFlag(input, args) {
     var cxxVersion = Cpp.languageVersion(input.cpp.cxxLanguageVersion,
-            ["c++23", "c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
+            ["c++26", "c++23", "c++20", "c++17", "c++14", "c++11", "c++98"], "C++");
     if (!cxxVersion)
         return;
 

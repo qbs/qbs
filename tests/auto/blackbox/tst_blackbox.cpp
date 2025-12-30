@@ -9353,8 +9353,10 @@ void TestBlackbox::maximumCxxLanguageVersion()
     QCOMPARE(runQbs(QbsRunParameters("resolve",
                                      QStringList("products.app.enableNewestModule:true"))), 0);
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
-    QVERIFY2(m_qbsStdout.contains("c++23") || m_qbsStdout.contains("c++2b")
-             || m_qbsStdout.contains("c++latest"), m_qbsStdout.constData());
+    QVERIFY2(
+        m_qbsStdout.contains("c++26") || m_qbsStdout.contains("c++2c")
+            || m_qbsStdout.contains("c++latest"),
+        m_qbsStdout.constData());
     QCOMPARE(runQbs(QbsRunParameters("resolve",
                                      QStringList("products.app.enableNewestModule:false"))), 0);
     QCOMPARE(runQbs(QStringList({"--command-echo-mode", "command-line", "-n"})), 0);
