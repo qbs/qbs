@@ -147,7 +147,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Update PATH
-      run: echo "$(brew --prefix llvm@15)/bin" >> ${GITHUB_PATH}
+      run: echo "$(brew --prefix llvm@18)/bin" >> ${GITHUB_PATH}
     - name: Run clang-format
       run: |
         git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@18)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
