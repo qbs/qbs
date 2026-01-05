@@ -140,17 +140,17 @@ jobs:
 
   clang-format:
     name: Check Style
-    runs-on: macos-13
+    runs-on: macos-15
     timeout-minutes: 60
     strategy:
         fail-fast: false
     steps:
     - uses: actions/checkout@v1
     - name: Update PATH
-      run: echo "$(brew --prefix llvm@15)/bin" >> ${GITHUB_PATH}
+      run: echo "$(brew --prefix llvm@18)/bin" >> ${GITHUB_PATH}
     - name: Run clang-format
       run: |
-        git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@15)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
+        git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@18)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
     - name: Check diff
       run: git diff --exit-code
 
@@ -179,7 +179,7 @@ jobs:
             }
         - {
             name: 'Build on macOS (Qbs, x64)',
-            runner: 'macos-13',
+            runner: 'macos-14',
             profile: 'xcode_15_1-macosx-x86_64',
             toolchain: 'clang_64',
             script: './scripts/build-qbs-with-qbs.sh',
@@ -194,8 +194,8 @@ jobs:
           }
         - {
             name: 'Build on macOS (CMake, x64)',
-            runner: 'macos-13',
-            profile: 'xcode_15_1-macosx-x86_64',
+            runner: 'macos-15-intel',
+            profile: 'xcode_16_4-macosx-x86_64',
             toolchain: 'clang_64',
             script: './scripts/build-qbs-with-cmake.sh',
             options: '',
@@ -594,23 +594,23 @@ jobs:
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Test macOS (Xcode 15.1, x64)',
-            runner: 'macos-13',
+            name: 'Test macOS (Xcode 16.4, x64)',
+            runner: 'macos-15-intel',
             target: 'desktop',
             toolchain: 'clang_64',
-            xcodeVersion: '15.1',
-            testProfile: 'xcode_15_1-macosx-x86_64',
+            xcodeVersion: '16.4',
+            testProfile: 'xcode_16_4-macosx-x86_64',
             qtVersion: '6.8.3',
             suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
-            name: 'Test macOS (Xcode 15.1, Qt 5.15, x64)',
-            runner: 'macos-13',
+            name: 'Test macOS (Xcode 16.4, Qt 5.15, x64)',
+            runner: 'macos-15-intel',
             target: 'desktop',
             toolchain: 'clang_64',
-            xcodeVersion: '15.1',
-            testProfile: 'xcode_15_1-macosx-x86_64',
+            xcodeVersion: '16.4',
+            testProfile: 'xcode_16_4-macosx-x86_64',
             qtVersion: '5.15.2',
             suffix: 'macos',
             script: './scripts/test-qt.sh',
@@ -624,17 +624,6 @@ jobs:
             testProfile: 'xcode_15_4-macosx-arm64',
             qtVersion: '6.8.3',
             suffix: 'macos-arm64',
-            script: './scripts/test-qbs.sh',
-          }
-        - {
-            name: 'Test macOS (Xcode 14.3.1, x64)',
-            runner: 'macos-13',
-            target: 'desktop',
-            toolchain: 'clang_64',
-            xcodeVersion: '14.3.1',
-            testProfile: 'xcode_14_3_1-macosx-x86_64',
-            qtVersion: '6.8.3',
-            suffix: 'macos',
             script: './scripts/test-qbs.sh',
           }
         - {
