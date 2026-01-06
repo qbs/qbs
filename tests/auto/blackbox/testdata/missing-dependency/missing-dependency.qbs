@@ -26,7 +26,7 @@ Project {
         name: "theApp"
         cpp.includePaths: [project.buildDirectory]
         files: ["main.cpp"]
+        Depends { name: "bundle" }
+        bundle.isBundle: false
     }
 }
-
-

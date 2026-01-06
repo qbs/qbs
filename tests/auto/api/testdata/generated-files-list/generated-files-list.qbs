@@ -11,5 +11,6 @@ CppApplication {
         "mainwindow.h",
         "mainwindow.ui"
     ]
+    Depends { name: "bundle" }
+    bundle.isBundle: false
 }
-
