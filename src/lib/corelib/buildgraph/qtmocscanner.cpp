@@ -148,10 +148,12 @@ static RawScanResult runScannerForArtifact(const Artifact *artifact)
 
 void QtMocScanner::findIncludedMocCppFiles()
 {
-    if (!m_includedMocCppFiles.empty())
+    if (m_includedMocCppFiles.has_value())
         return;
 
-    qCDebug(lcMocScan) << "looking for included moc_XXX.cpp files";
+    m_includedMocCppFiles = QHash<QString, QString>();
+
+    qCDebug(lcMocScan) << "looking for included moc_XXX.cpp files in" << m_product->name;
 
     static const FileTags mocCppTags = {m_tags.cpp, m_tags.objcpp};
     for (Artifact *artifact : m_product->lookupArtifactsByFileTags(mocCppTags)) {
@@ -163,7 +165,7 @@ void QtMocScanner::findIncludedMocCppFiles()
                 qCDebug(lcMocScan) << artifact->fileName() << "includes" << includedFileName;
                 includedFileName.remove(0, 4);
                 includedFileName.chop(4);
-                m_includedMocCppFiles.insert(includedFileName, artifact->fileName());
+                m_includedMocCppFiles->insert(includedFileName, artifact->fileName());
             }
         }
     }
@@ -207,7 +209,7 @@ JSValue QtMocScanner::apply(ScriptEngine *engine, const Artifact *artifact)
                 hasPluginMetaDataMacro = true;
             }
             findIncludedMocCppFiles();
-            if (!m_includedMocCppFiles.contains(FileInfo::completeBaseName(artifact->fileName())))
+            if (!m_includedMocCppFiles->contains(FileInfo::completeBaseName(artifact->fileName())))
                 mustCompile = true;
         } else {
             if (scanResult.additionalFileTags.contains(m_tags.moc_cpp))

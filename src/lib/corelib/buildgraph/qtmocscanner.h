@@ -75,7 +75,7 @@ private:
     const CommonFileTags &m_tags;
     const ResolvedProductPtr &m_product;
     JSValue m_targetScriptValue;
-    QHash<QString, QString> m_includedMocCppFiles;
+    std::optional<QHash<QString, QString>> m_includedMocCppFiles;
 };
 
 } // namespace Internal
