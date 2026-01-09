@@ -88,7 +88,6 @@ public:
     static const QString &explicitlyDependsOnFromDependenciesProperty() {
         return explicitlyDependsOnFromDependencies();
     }
-    QBS_STRING_CONSTANT(enableFallbackProperty, "enableFallback")
     static const QString &fileNameProperty() { return fileName(); }
     static const QString &filePathProperty() { return filePath(); }
     static const QString &filePathVar() { return filePath(); }
