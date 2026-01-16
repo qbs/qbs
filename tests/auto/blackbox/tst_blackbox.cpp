@@ -6009,6 +6009,16 @@ void TestBlackbox::linkerVariant()
         QVERIFY2(!m_qbsStdout.contains("-fuse-ld"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::linkerTypeRecursive()
+{
+    QDir::setCurrent(testDataDir + "/linker-type-recursive");
+    QCOMPARE(runQbs(), 0);
+    if (m_qbsStdout.contains("no host target"))
+        QSKIP("The rest of the test only applies to host targets");
+    QCOMPARE(runQbs(QbsRunParameters("run")), 0);
+    QVERIFY2(m_qbsStdout.contains("Hi!"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::lexyacc()
 {
     if (!lexYaccExist())

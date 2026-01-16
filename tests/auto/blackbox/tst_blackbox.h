@@ -202,6 +202,7 @@ private slots:
     void linkerMode();
     void linkerVariant_data();
     void linkerVariant();
+    void linkerTypeRecursive();
     void lexyacc();
     void lexyaccOutputs();
     void lexyaccOutputs_data();

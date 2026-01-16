@@ -42,6 +42,27 @@ var UnixUtils = require("qbs.UnixUtils");
 var Utilities = require("qbs.Utilities");
 var WindowsUtils = require("qbs.WindowsUtils");
 
+function getLinkerTypeRecursively(product, isDep)
+{
+    if (isDep) {
+        if (!product.type || !product.artifacts || !product.type.includes("staticlibrary"))
+            return undefined;
+        if (product.artifacts.cpp_staticlibrary)
+            return "cpp";
+    }
+    var linkerType = undefined;
+    for (var i = 0; i < (product.dependencies || []).length; ++i) {
+        var depType = getLinkerTypeRecursively(product.dependencies[i], true);
+        if (depType === "cpp")
+            return "cpp";
+        if (depType === "c")
+            linkerType = "c";
+    }
+    if (!linkerType && product.artifacts.c_staticlibrary)
+        return "c";
+    return linkerType;
+}
+
 function effectiveLinkerPath(product, inputs) {
     if (product.cpp.linkerMode === "automatic") {
         var compilers = product.cpp.compilerPathByLanguage;
@@ -51,6 +72,10 @@ function effectiveLinkerPath(product, inputs) {
                             + product.name);
                 return compilers["cpp"];
             }
+
+            var linkerTypeFromDeps = getLinkerTypeRecursively(product, false);
+            if (linkerTypeFromDeps)
+                return compilers[linkerTypeFromDeps];
 
             if (inputs.c_obj || inputs.c_staticlibrary) {
                 console.log("Found C or Objective-C objects, choosing C linker for "
