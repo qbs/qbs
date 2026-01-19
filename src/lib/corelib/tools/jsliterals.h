@@ -49,6 +49,8 @@
 namespace qbs {
 
 QBS_EXPORT QString toJSLiteral(const bool b);
+QBS_EXPORT QString toJSLiteral(unsigned long long l);
+QBS_EXPORT QString toJSLiteral(long long l);
 QBS_EXPORT QString toJSLiteral(const QString &str);
 QBS_EXPORT QString toJSLiteral(const QStringList &strs);
 QBS_EXPORT QString toJSLiteral(const QVariant &val);

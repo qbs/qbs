@@ -71,6 +71,27 @@ static QVariant variantFromString(const QString &str, bool &ok)
 
 QVariant representationToSettingsValue(const QString &representation)
 {
+    const QVariant v = representationToVariant(representation);
+    switch (static_cast<QMetaType::Type>(v.userType())) {
+    // Work around QSettings losing type information when storing integer types.
+    case QMetaType::Bool:
+    case QMetaType::Char:
+    case QMetaType::Int:
+    case QMetaType::Long:
+    case QMetaType::LongLong:
+    case QMetaType::UChar:
+    case QMetaType::UInt:
+    case QMetaType::ULong:
+    case QMetaType::ULongLong:
+        return QVariantHash({std::make_pair(QString(), v)});
+    default:
+        break;
+    }
+    return v;
+}
+
+QVariant representationToVariant(const QString &representation)
+{
     bool ok;
     QVariant variant = variantFromString(representation, ok);
 

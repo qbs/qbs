@@ -507,7 +507,7 @@ void CommandLineParser::CommandLineParserPrivate::setupBuildConfigurations()
             currentProperties.clear();
             continue;
         }
-        currentProperties.insert(propertyName(key), representationToSettingsValue(rawValue));
+        currentProperties.insert(propertyName(key), representationToVariant(rawValue));
     }
     propertiesPerConfiguration.push_back(std::make_pair(currentConfigurationName,
                                                         currentProperties));

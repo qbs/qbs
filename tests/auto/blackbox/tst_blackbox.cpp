@@ -7085,6 +7085,12 @@ void TestBlackbox::qbsConfig()
     QCOMPARE(runQbs(params), 0);
     params.arguments = settingsDirArgs + QStringList{"--user", "key.subkey.scalar", "u"};
     QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--user", "key.subkey.bool", "true"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--user", "key.subkey.uint", "42"};
+    QCOMPARE(runQbs(params), 0);
+    params.arguments = settingsDirArgs + QStringList{"--user", "key.subkey.sint", "-42"};
+    QCOMPARE(runQbs(params), 0);
     params.arguments = settingsDirArgs + QStringList{"key.subkey.list", "[\"u1\",\"u2\"]"};
     QCOMPARE(runQbs(params), 0);
 
@@ -7099,6 +7105,15 @@ void TestBlackbox::qbsConfig()
     params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.scalar"};
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(valueExtractor(), QByteArray("\"u\""));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.bool"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("true"));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.uint"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("42"));
+    params.arguments = settingsDirArgs + QStringList{"--list", "--user", "key.subkey.sint"};
+    QCOMPARE(runQbs(params), 0);
+    QCOMPARE(valueExtractor(), QByteArray("-42"));
     params.arguments = settingsDirArgs + QStringList{"--list", "--system", "key.subkey.scalar"};
     QCOMPARE(runQbs(params), 0);
     QCOMPARE(valueExtractor(), QByteArray("\"s\""));

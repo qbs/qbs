@@ -51,6 +51,16 @@ QString toJSLiteral(const bool b)
     return b ? Internal::StringConstants::trueValue() : Internal::StringConstants::falseValue();
 }
 
+QString toJSLiteral(long long l)
+{
+    return QString::number(l);
+}
+
+QString toJSLiteral(unsigned long long l)
+{
+    return QString::number(l);
+}
+
 QString toJSLiteral(const QString &str)
 {
     QString js = str;
@@ -76,7 +86,9 @@ QString toJSLiteral(const QVariant &val)
 {
     if (!val.isValid())
         return Internal::StringConstants::undefinedValue();
-    if (val.userType() == QMetaType::QVariantList || val.userType() == QMetaType::QStringList) {
+    switch (val.userType()) {
+    case QMetaType::QVariantList:
+    case QMetaType::QStringList: {
         QString res;
         const auto list = val.toList();
         for (const QVariant &child : list) {
@@ -87,7 +99,7 @@ QString toJSLiteral(const QVariant &val)
         res.append(QLatin1Char(']'));
         return res;
     }
-    if (val.userType() == QMetaType::QVariantMap) {
+    case QMetaType::QVariantMap: {
         const QVariantMap &vm = val.toMap();
         QString str = QStringLiteral("{");
         for (QVariantMap::const_iterator it = vm.begin(); it != vm.end(); ++it) {
@@ -98,8 +110,28 @@ QString toJSLiteral(const QVariant &val)
         str += QLatin1Char('}');
         return str;
     }
-    if (val.userType() == QMetaType::Bool)
+    case QMetaType::Bool:
         return toJSLiteral(val.toBool());
+    case QMetaType::Char:
+    case QMetaType::Int:
+    case QMetaType::Long:
+    case QMetaType::LongLong:
+        return toJSLiteral(val.toLongLong());
+    case QMetaType::UChar:
+    case QMetaType::UInt:
+    case QMetaType::ULong:
+    case QMetaType::ULongLong:
+        return toJSLiteral(val.toULongLong());
+    case QMetaType::QVariantHash: {
+        const QVariantHash h = val.toHash();
+        if (h.size() == 1 && h.constBegin().key().isEmpty())
+            return toJSLiteral(*h.constBegin());
+        break;
+    }
+    default:
+        break;
+    }
+
     if (qVariantCanConvert(val, QMetaType::QString))
         return toJSLiteral(val.toString());
     return QStringLiteral("Unconvertible type %1").arg(QLatin1String(val.typeName()));

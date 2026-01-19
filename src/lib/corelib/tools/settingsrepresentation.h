@@ -48,6 +48,7 @@
 namespace qbs {
 
 QBS_EXPORT QString settingsValueToRepresentation(const QVariant &value);
+QBS_EXPORT QVariant representationToVariant(const QString &representation);
 QBS_EXPORT QVariant representationToSettingsValue(const QString &representation);
 
 } // namespace qbs
