@@ -171,7 +171,7 @@
     \row
         \li \c responseFileThreshold
         \li int
-        \li 32000 on Windows, -1 elsewhere
+        \li platform-dependent
         \li If this value is greater than zero and less than the length of the full command line,
             and if \c responseFileUsagePrefix is not empty, the contents of the command line are
             moved to a temporary file, whose path becomes the entire contents of the

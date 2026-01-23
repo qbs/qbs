@@ -50,6 +50,10 @@
 
 #include <QtCore/qfile.h>
 
+#ifdef Q_OS_UNIX
+#include <unistd.h>
+#endif
+
 namespace qbs {
 namespace Internal {
 
@@ -251,10 +255,18 @@ ProcessCommand::ProcessCommand()
 
 int ProcessCommand::defaultResponseFileThreshold() const
 {
-    // TODO: Non-Windows platforms likely have their own limits. Investigate.
-    return HostOsInfo::isWindowsHost()
-            ? 31000 // 32000 minus "safety offset"
-            : -1;
+    if (HostOsInfo::isWindowsHost())
+        return 31000; // 32000 minus "safety offset"
+
+#ifdef Q_OS_UNIX
+    const long argMax = sysconf(_SC_ARG_MAX);
+    if (argMax == -1)
+        return 4096;
+    if (argMax > INT_MAX)
+        return INT_MAX;
+    return argMax / 2;
+#endif
+    return -1;
 }
 
 void ProcessCommand::getEnvironmentFromList(const QStringList &envList)
