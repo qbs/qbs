@@ -143,7 +143,8 @@ JSValue ScriptImporter::importSourceCode(const QString &sourceCode, const QStrin
     }
 
     ScopedJsValue result(
-        m_engine->context(), m_engine->evaluate(JsValueOwner::Caller, code, filePath, 1));
+        m_engine->context(),
+        m_engine->evaluate(JsValueOwner::Caller, code, CodeLocation(filePath, 0, 0)));
     throwOnEvaluationError(m_engine, [&filePath] () { return CodeLocation(filePath, 0); });
     copyProperties(m_engine->context(), result, targetObject);
     return result.release();

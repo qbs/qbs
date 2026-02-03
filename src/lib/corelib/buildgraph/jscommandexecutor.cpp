@@ -149,8 +149,8 @@ private:
         JSValueList scopeChain;
         if (JS_IsObject(importScopeForSourceCode))
             scopeChain << importScopeForSourceCode;
-        const ScopedJsValue res(ctx, scriptEngine->evaluate(JsValueOwner::Caller, cmd->sourceCode(),
-                                                            {}, 1, scopeChain));
+        const ScopedJsValue res(
+            ctx, scriptEngine->evaluate(JsValueOwner::Caller, cmd->sourceCode(), {}, scopeChain));
         scriptEngine->mergeAndClearTrackedScriptAccesses(transformer->trackedAccessesFromCommands);
         if (scriptEngine->checkForJsError(cmd->codeLocation())) {
             // ### We don't know the line number of the command's sourceCode property assignment.

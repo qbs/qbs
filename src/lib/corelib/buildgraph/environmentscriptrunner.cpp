@@ -185,9 +185,10 @@ void EnvironmentScriptRunner::setupEnvironment()
         setupScriptEngineForFile(engine(), setupScript.fileContext(), m_evalContext->scope(),
                                  ObserveMode::Disabled);
         // TODO: Cache evaluate result
-        ScopedJsValue fun(ctx, engine()->evaluate(JsValueOwner::Caller, setupScript.sourceCode(),
-                                                  setupScript.location().filePath(),
-                                                  setupScript.location().line()));
+        ScopedJsValue fun(
+            ctx,
+            engine()->evaluate(
+                JsValueOwner::Caller, setupScript.sourceCode(), setupScript.location()));
         QBS_CHECK(JS_IsFunction(ctx, fun));
         const ScopedJsValueList svArgs = engine()->argumentList(scriptFunctionArgs,
                                                                 m_evalContext->scope());

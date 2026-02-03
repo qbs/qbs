@@ -205,8 +205,7 @@ public:
     JSValue evaluate(
         JsValueOwner resultOwner,
         const QString &code,
-        const QString &filePath = QString(),
-        int line = 1,
+        const CodeLocation &location = {},
         qbs::Internal::span<const JSValue> scopeChain = {});
     void setLastLookupStatus(bool success) { m_lastLookupWasSuccess = success; }
     JSContext *context() const { return m_context; }
@@ -333,6 +332,9 @@ private:
     JSValue mergeExtensionObjects(const JSValueList &lst);
     JSValue loadInternalExtension(const QString &uri);
 
+    int getFileId(const QString &filePath);
+    JSValue compileByteCode(const QString &code, const CodeLocation &location);
+
     static void handleUndefinedFound(JSContext *ctx);
     static void handleFunctionEntered(JSContext *ctx, JSValue this_obj);
     static void handleFunctionExited(JSContext *ctx);
@@ -404,6 +406,9 @@ private:
     QHash<QString, JSClassID> m_classes;
     QHash<QString, JSValue> m_internalExtensions;
     QHash<QString, JSValue> m_stringCache;
+    QHash<QString, int> m_fileIdMap;
+    using ByteCodeCacheKey = std::tuple<int, int, int>; // (fileId, line, column)
+    std::unordered_map<ByteCodeCacheKey, JSValue> m_byteCodeCache;
     QHash<quintptr, JSValue> m_jsValueCache;
     QHash<JSValue, int> m_evalResults;
     std::vector<JSValue *> m_externallyCachedValues;

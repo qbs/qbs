@@ -168,7 +168,7 @@ void ProbesResolver::resolveProbe(ProductContext &productContext, Item *parent,
         ScopedJsValue sv(
             ctx,
             engine->evaluate(
-                JsValueOwner::Caller, configureScript->sourceCodeForEvaluation(), {}, 1, scopes));
+                JsValueOwner::Caller, configureScript->sourceCodeForEvaluation(), {}, scopes));
         engine->throwOnJsError(configureScript->location());
         importedFilesUsedInConfigure = engine->importedFilesUsedInScript();
     } else {

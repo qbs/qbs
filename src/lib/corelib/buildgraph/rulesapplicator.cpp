@@ -267,10 +267,9 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
 
             QVariantMap artifactModulesCfg = outputArtifact->properties->value();
             for (const auto &binding : ra->bindings) {
-                const ScopedJsValue scriptValue(jsContext(), engine()->evaluate(
-                                                    JsValueOwner::Caller, binding.code,
-                                                    binding.location.filePath(),
-                                                    binding.location.line()));
+                const ScopedJsValue scriptValue(
+                    jsContext(),
+                    engine()->evaluate(JsValueOwner::Caller, binding.code, binding.location));
                 if (engine()->checkForJsError(binding.location)) {
                     ErrorInfo err = engine()->getAndClearJsError();
                     err.prepend(QStringLiteral("evaluating rule binding '%1'")
@@ -389,10 +388,9 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRul
     bool alwaysUpdated;
     if (ruleArtifact) {
         const ScopedJsValue scriptValue(
-                    jsContext(),
-                    engine()->evaluate(JsValueOwner::Caller, ruleArtifact->filePath,
-                                       ruleArtifact->filePathLocation.filePath(),
-                                       ruleArtifact->filePathLocation.line()));
+            jsContext(),
+            engine()->evaluate(
+                JsValueOwner::Caller, ruleArtifact->filePath, ruleArtifact->filePathLocation));
         engine()->throwOnJsError(ruleArtifact->filePathLocation);
         outputPath = getJsString(jsContext(), scriptValue);
         fileTags = ruleArtifact->fileTags;
@@ -520,18 +518,19 @@ QList<Artifact *> RulesApplicator::runOutputArtifactsScript(
     const ArtifactSet &inputArtifacts, const JSValueList &args, TransformerContext &context)
 {
     QList<Artifact *> lst;
-    const ScopedJsValue fun(jsContext(),
-                            engine()->evaluate(JsValueOwner::Caller,
-                                               m_rule->outputArtifactsScript.sourceCode(),
-                                               m_rule->outputArtifactsScript.location().filePath(),
-                                               m_rule->outputArtifactsScript.location().line()));
+    const ScopedJsValue fun(
+        jsContext(),
+        engine()->evaluate(
+            JsValueOwner::Caller,
+            m_rule->outputArtifactsScript.sourceCode(),
+            m_rule->outputArtifactsScript.location()));
     if (!JS_IsFunction(jsContext(), fun))
         throw ErrorInfo(QStringLiteral("Function expected."),
                         m_rule->outputArtifactsScript.location());
     JSValueList argv(args.begin(), args.end());
     const ScopedJsValue res(
-                jsContext(),
-                JS_Call(jsContext(), fun, engine()->globalObject(), int(args.size()), argv.data()));
+        jsContext(),
+        JS_Call(jsContext(), fun, engine()->globalObject(), int(args.size()), argv.data()));
     engine()->throwOnJsError(m_rule->outputArtifactsScript.location());
     if (!JS_IsArray(res))
         throw ErrorInfo(Tr::tr("Rule.outputArtifacts must return an array of objects."),

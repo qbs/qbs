@@ -1905,7 +1905,7 @@ void TestLanguage::itemScopeOverridesGlobalObjectProperty()
 
     // An own property of the JS global object, which is what the fast paths in
     // JS_GetGlobalVar/JS_SetGlobalVar consult first.
-    const QString fileName = QStringLiteral("test.js");
+    const CodeLocation fileName(QStringLiteral("test.js"), 1, 1);
     m_engine->evaluate(
         JsValueOwner::ScriptEngine, QStringLiteral("globalThis.x = 1000;"), fileName);
 
@@ -1926,7 +1926,7 @@ void TestLanguage::jsExtensions()
     QTextStream ts(&file);
     QString code = ts.readAll();
     QVERIFY(!code.isEmpty());
-    m_engine->evaluate(JsValueOwner::Caller, code, file.fileName(), 1);
+    m_engine->evaluate(JsValueOwner::Caller, code, CodeLocation(file.fileName(), 1, 1));
     if (m_engine->checkForJsError({})) {
         const ErrorInfo ex = m_engine->getAndClearJsError();
         QFAIL(qPrintable(ex.toString()));

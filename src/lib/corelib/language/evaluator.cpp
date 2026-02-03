@@ -878,7 +878,6 @@ private:
                                                        JsValueOwner::Caller,
                                                        alternative->condition.value,
                                                        {},
-                                                       1,
                                                        scopeChain.chain()));
             if (m_engine.checkForJsError(alternative->condition.location)) {
                 // This handles cases like the following:
@@ -909,7 +908,6 @@ private:
                 JsValueOwner::Caller,
                 alternative->overrideListProperties.value,
                 {},
-                1,
                 scopeChain.chain()));
             if (m_engine.checkForJsError(alternative->overrideListProperties.location)) {
                 return JS_UNINITIALIZED;
@@ -920,8 +918,7 @@ private:
         return m_engine.evaluate(
             JsValueOwner::ScriptEngine,
             value->sourceCodeForEvaluation(),
-            value->file()->filePath(),
-            value->line(),
+            CodeLocation(value->file()->filePath(), value->line(), value->column()),
             scopeChain.chain());
     }
 

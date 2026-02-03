@@ -209,6 +209,11 @@ void ScriptEngine::reset()
         JS_FreeValue(m_context, s);
     m_jsValueCache.clear();
 
+    for (const auto &item : std::as_const(m_byteCodeCache))
+        JS_FreeValue(m_context, item.second);
+    m_byteCodeCache.clear();
+    m_fileIdMap.clear();
+
     for (auto it = m_evalResults.cbegin(); it != m_evalResults.cend(); ++it) {
         for (int i = 0; i < it.value(); ++i)
             JS_FreeValue(m_context, it.key());
@@ -825,21 +830,54 @@ JSValue ScriptEngine::newArray(int length, JsValueOwner owner)
     return arr;
 }
 
+int ScriptEngine::getFileId(const QString &filePath)
+{
+    int &fileId = m_fileIdMap[filePath];
+    if (fileId == 0)
+        fileId = int(m_fileIdMap.size());
+    return fileId;
+}
+
+JSValue ScriptEngine::compileByteCode(const QString &code, const CodeLocation &location)
+{
+    // line == 0 is used when importing a JS file; those are evaluated once and the result
+    // is already cached in m_jsFileCache, so keeping the bytecode would only waste memory.
+    // line < 0 is either a builtin value or a custom call.
+    const bool validLocation = location.isValid() && location.line() > 0;
+    const int fileId = validLocation ? getFileId(location.filePath()) : 0;
+
+    const ByteCodeCacheKey cacheKey(fileId, location.line(), location.column());
+    const auto it = validLocation ? m_byteCodeCache.find(cacheKey) : m_byteCodeCache.cend();
+    if (it != m_byteCodeCache.end())
+        return JS_DupValue(m_context, it->second);
+
+    const QByteArray &codeStr = code.toUtf8();
+    const QByteArray &filePathStr = location.filePath().toUtf8();
+    JSEvalOptions evalOptions{
+        1,
+        JS_EVAL_TYPE_GLOBAL | JS_EVAL_FLAG_COMPILE_ONLY,
+        filePathStr.constData(),
+        location.line()};
+    JSValue funObj = JS_EvalThis2(
+        m_context, globalObject(), codeStr.constData(), codeStr.length(), &evalOptions);
+    if (validLocation)
+        m_byteCodeCache.insert({cacheKey, JS_DupValue(m_context, funObj)});
+    return funObj;
+}
+
 JSValue ScriptEngine::evaluate(
     JsValueOwner resultOwner,
     const QString &code,
-    const QString &filePath,
-    int line,
+    const CodeLocation &location,
     qbs::Internal::span<const JSValue> scopeChain)
 {
-    m_scopeChains.emplace_back(scopeChain);
-    const QByteArray &codeStr = code.toUtf8();
-    const QByteArray &filePathStr = filePath.toUtf8();
+    const JSValue funObj = compileByteCode(code, location);
 
-    m_evalPositions.emplace(filePath, line);
-    JSEvalOptions evalOptions{1, JS_EVAL_TYPE_GLOBAL, filePathStr.constData(), line};
-    const JSValue v = JS_EvalThis2(
-        m_context, globalObject(), codeStr.constData(), codeStr.length(), &evalOptions);
+    m_scopeChains.emplace_back(scopeChain);
+    m_evalPositions.emplace(location.filePath(), location.line());
+
+    const JSValue v = JS_EvalFunction(m_context, funObj);
+
     m_evalPositions.pop();
     m_scopeChains.pop_back();
     if (resultOwner == JsValueOwner::ScriptEngine && JS_VALUE_HAS_REF_COUNT(v))
