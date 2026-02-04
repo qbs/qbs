@@ -336,7 +336,7 @@ for COMPONENT in ${COMPONENTS}; do
         TOOLCHAIN_DIR="${TOOLCHAIN/win32_/}"
     elif [[ "${TOOLCHAIN}" =~ "any" ]] && [[ "${TARGET_PLATFORM}" == "android" ]]; then
         TOOLCHAIN_DIR="android"
-    elif [[ "${HOST_OS}" == "mac_x64" ]] && [[ ! "${VERSION}" < "6.1.2" ]] && [[ "${TARGET_PLATFORM}" == "desktop" ]]; then
+    elif [[ "${HOST_OS}" == "mac_x64" ]] && [[ ! "$(version "${VERSION}")" < "$(version "6.1.2")" ]] && [[ "${TARGET_PLATFORM}" == "desktop" ]]; then
         TOOLCHAIN_DIR="macos"
     else
         TOOLCHAIN_DIR="${TOOLCHAIN}"
@@ -346,7 +346,7 @@ for COMPONENT in ${COMPONENTS}; do
         UNPACK_DIR="${INSTALL_DIR}/Tools/QtCreator"
         ARCHIVER_DIR="${UNPACK_DIR}"
         mkdir -p ${UNPACK_DIR}
-    elif [[ ! "${COMPONENT}" =~ "qtcreator" ]] && [[ "${VERSION}" > "6.8.0" ]]; then
+    elif [[ ! "${COMPONENT}" =~ "qtcreator" ]] && [[ "$(version "${VERSION}")" > "$(version "6.8.0")" ]]; then
         UNPACK_DIR="${INSTALL_DIR}"
         ARCHIVER_DIR="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}"
         if [[ "${COMPONENT}" =~ "icu" ]]; then
@@ -385,10 +385,10 @@ for COMPONENT in ${COMPONENTS}; do
     # conf file is needed for qmake
     #
     if [[ "${COMPONENT}" == "qtbase" ]]; then
-        if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
+        if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "$(version "${VERSION}")" < "$(version "6.0.0")" ]; then
             CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
             ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
-            if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "${VERSION}" \< "6.4.2" ]; then
+            if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "$(version "${VERSION}")" < "$(version "6.4.2")" ]; then
                 sed -i "s/\r//" "${CONF_FILE}"
                 sed -i "s|HostLibraryExecutables=.\/bin|HostLibraryExecutables=.\/libexec|g" "${CONF_FILE}"
                 chmod +x "${ANDROID_QMAKE_FILE}"
