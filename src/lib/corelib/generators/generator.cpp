@@ -40,6 +40,7 @@
 #include "generator.h"
 #include <logging/logger.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/hostosinfo.h>
 #include <tools/installoptions.h>
 #include <tools/qbsassert.h>
@@ -214,9 +215,8 @@ QFileInfo ProjectGenerator::qbsExecutableFilePath() const
 {
     const QString qbsInstallDir = QString::fromLocal8Bit(qgetenv("QBS_INSTALL_DIR"));
     auto file = QFileInfo(Internal::HostOsInfo::appendExecutableSuffix(
-        !qbsInstallDir.isEmpty()
-            ? QString(qbsInstallDir + QStringLiteral("/bin/qbs"))
-            : QString(QCoreApplication::applicationDirPath() + QStringLiteral("/qbs"))));
+        !qbsInstallDir.isEmpty() ? QString(qbsInstallDir + QStringLiteral("/bin/qbs"))
+                                 : QString(qbsApplicationDirPath() + QStringLiteral("/qbs"))));
     QBS_CHECK(file.isAbsolute() && file.exists());
     return file;
 }

@@ -329,12 +329,6 @@ static QString resolveSymlinks(const QString &fileName)
     return fi.absoluteFilePath();
 }
 
-QString applicationDirPath()
-{
-    static const QString appDirPath = FileInfo::path(resolveSymlinks(QCoreApplication::applicationFilePath()));
-    return appDirPath;
-}
-
 #elif defined(Q_OS_UNIX)
 
 namespace GetFileTimes {
@@ -426,7 +420,7 @@ bool FileInfo::isDir() const
     return S_ISDIR(m_stat.st_mode);
 }
 
-#endif
+#endif // Q_OS_UNIX
 
 // adapted from qtc/plugins/vcsbase/cleandialog.cpp
 bool removeFileRecursion(const QFileInfo &f, QString *errorMessage)
@@ -626,4 +620,22 @@ bool copyFileRecursion(
 }
 
 } // namespace Internal
+
+#ifdef Q_OS_WIN
+QString qbsApplicationDirPath()
+{
+    // not sure why we need to resolve symlinks on Windows, it that even a case?
+    static const QString appDirPath = Internal::FileInfo::path(
+        Internal::resolveSymlinks(QCoreApplication::applicationFilePath()));
+    return appDirPath;
+}
+#else
+QString qbsApplicationDirPath()
+{
+    static const QString appDirPath
+        = QFileInfo(QCoreApplication::applicationFilePath()).canonicalPath();
+    return appDirPath;
+}
+#endif
+
 } // namespace qbs

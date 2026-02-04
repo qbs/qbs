@@ -1,5 +1,6 @@
 # General
 * Fixed restoring integer configuration values (QBS-1739).
+* Fixed resoures location detection when Qbs is called via symlink on macOS (QBS-1873).
 * Updated QuickJS to version 0.11.0.
 
 # Language

@@ -109,6 +109,9 @@ bool QBS_AUTOTEST_EXPORT copyFileRecursion(
     bool *skipped = nullptr);
 
 } // namespace Internal
+
+QString QBS_EXPORT qbsApplicationDirPath();
+
 } // namespace qbs
 
 #endif

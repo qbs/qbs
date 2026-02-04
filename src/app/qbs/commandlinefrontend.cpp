@@ -45,13 +45,14 @@
 #include "parser/commandlineoption.h"
 #include "../shared/logging/consolelogger.h"
 
-#include <qbs.h>
 #include <api/runenvironment.h>
 #include <logging/translator.h>
-#include <tools/qbsassert.h>
+#include <tools/fileinfo.h>
 #include <tools/projectgeneratormanager.h>
+#include <tools/qbsassert.h>
 #include <tools/qttools.h>
 #include <tools/shellutils.h>
+#include <qbs.h>
 
 #include <QtCore/qdir.h>
 #include <QtCore/qfile.h>
@@ -173,12 +174,12 @@ void CommandLineFrontend::start()
             const QString configurationName = userConfig.take(configurationKey).toString();
             const QString profileName = userConfig.take(profileKey).toString();
             const Preferences prefs(m_settings);
-            params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
-                    + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
-            params.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(QCoreApplication::applicationDirPath()
-                    + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
-            params.setLibexecPath(QDir::cleanPath(QCoreApplication::applicationDirPath()
-                    + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
+            params.setSearchPaths(prefs.searchPaths(QDir::cleanPath(
+                qbsApplicationDirPath() + QLatin1String("/" QBS_RELATIVE_SEARCH_PATH))));
+            params.setPluginPaths(prefs.pluginPaths(QDir::cleanPath(
+                qbsApplicationDirPath() + QLatin1String("/" QBS_RELATIVE_PLUGINS_PATH))));
+            params.setLibexecPath(QDir::cleanPath(
+                qbsApplicationDirPath() + QLatin1String("/" QBS_RELATIVE_LIBEXEC_PATH)));
             params.setTopLevelProfile(profileName);
             params.setConfigurationName(configurationName);
             params.setBuildRoot(buildDirectory(profileName));
