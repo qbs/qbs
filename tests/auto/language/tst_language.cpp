@@ -1467,7 +1467,7 @@ void TestLanguage::groupConditions()
     for (size_t i = 0; i < groupCount; ++i) {
         if (product->groups.at(i)->enabled != groupEnabled.at(i)) {
             QFAIL(qPrintable(
-                      QString("groups.at(%1)->enabled != %2").arg(i).arg(groupEnabled.at(i))));
+                QString("groups.at(%1)->enabled != %2").arg(i).arg(bool(groupEnabled.at(i)))));
         }
     }
 }
