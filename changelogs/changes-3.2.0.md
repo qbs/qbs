@@ -15,6 +15,9 @@
 * Added a `cpp.rpathLinkDirs` property (QBS-1501).
 * With MSVC, manifest files are now also generated for DLLs (QBS-1857).
 
+# Apple
+* Added support for IconComposer icons (QBS-1871).
+
 # Contributors
 * Björn Schäpers
 * Christian Kandeler

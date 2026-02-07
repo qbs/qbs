@@ -66,6 +66,7 @@ private slots:
     void dmg();
     void embedInfoPlist();
     void frameworkStructure();
+    void iconcomposer();
     void iconset();
     void iconsetApp();
     void infoPlist();

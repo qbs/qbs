@@ -59,6 +59,17 @@
             a bundle, the files will be included in the bundle's resources
             directory.
     \row
+        \li \c{"iconcomposer"}
+        \li \c{*.icon}
+        \li 3.2
+        \li Tagged directories are Icon Composer icon bundles created with the
+            Icon Composer tool in Xcode 26 or later. These layered, adaptive
+            icon files are compiled using \c actool alongside asset catalogs.
+            The resulting files will be automatically tagged \l{filetags-bundle}
+            {bundle.input}. If the current product is a bundle, the files will
+            be included in the bundle's resources directory. Icon Composer icons
+            can coexist with traditional asset catalog icons in the same project.
+    \row
         \li \c{"iconset"}
         \li \c{*.iconset}
         \li 1.3
