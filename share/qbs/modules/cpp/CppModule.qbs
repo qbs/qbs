@@ -440,6 +440,14 @@ Module {
         fileTags: "cppm"
     }
 
+    Scanner {
+        inputs: ["cpp", "cppm", "cpp_pch_src", "c", "c_pch_src",
+                 "objcpp", "objcpp_pch_src", "objc", "objc_pch_src", "rc"]
+        pluginName: "cpp_include_scanner"
+        recursive: true
+        cacheIsPerFile: false
+    }
+
     // TODO: The following four rules could use a convenience base item if rule properties
     //       were available in Artifact items and prepare scripts.
     Rule {

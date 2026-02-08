@@ -602,6 +602,11 @@ void BuiltinDeclarations::addScannerItem()
     item << PropertyDeclaration(StringConstants::inputsProperty(), PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::recursiveProperty(), PropertyDeclaration::Boolean,
                                 StringConstants::falseValue());
+    item << PropertyDeclaration(StringConstants::pluginNameProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(
+        StringConstants::cacheIsPerFileProperty(),
+        PropertyDeclaration::Boolean,
+        StringConstants::trueValue());
     PropertyDeclaration searchPaths(StringConstants::searchPathsProperty(),
                                     PropertyDeclaration::StringList);
     searchPaths.setFunctionArgumentNames(

@@ -42,6 +42,8 @@
 
 #include "qbs_export.h"
 
+#include <QtCore/qstring.h>
+
 #include <memory>
 #include <vector>
 
@@ -58,7 +60,7 @@ class QBS_EXPORT ScannerPluginManager
 public:
     ~ScannerPluginManager();
     static ScannerPluginManager *instance();
-    static std::vector<ScannerPlugin *> scannersForFileTag(const FileTag &fileTag);
+    static ScannerPlugin *scannerByName(const QString &name);
     void registerPlugins(ScannerPlugin **plugins);
 
 private:

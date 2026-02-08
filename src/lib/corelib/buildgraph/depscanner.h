@@ -40,8 +40,8 @@
 #ifndef QBS_DEPENDENCY_SCANNER_H
 #define QBS_DEPENDENCY_SCANNER_H
 
-#include <language/forward_decls.h>
 #include <language/filetags.h>
+#include <language/forward_decls.h>
 #include <language/preparescriptobserver.h>
 #include <tools/scripttools.h>
 
@@ -62,64 +62,33 @@ class ScriptEngine;
 class DependencyScanner
 {
 public:
-    virtual ~DependencyScanner() = default;
+    DependencyScanner(
+        ResolvedScannerConstPtr scanner, ScriptEngine *engine, ScannerPlugin *plugin = nullptr);
 
     QString id() const;
 
-    virtual QStringList collectSearchPaths(Artifact *artifact) = 0;
-    virtual QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
-                                            const char *fileTags) = 0;
-    virtual bool recursive() const = 0;
-    virtual bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                               const PropertyMapConstPtr &m2) const = 0;
-    virtual bool cacheIsPerFile() const = 0;
-
-private:
-    virtual QString createId() const = 0;
-
-    mutable QString m_id;
-};
-
-class PluginDependencyScanner : public DependencyScanner
-{
-public:
-    PluginDependencyScanner(ScannerPlugin *plugin);
+    QStringList collectSearchPaths(Artifact *artifact);
+    QStringList collectDependencies(
+        Artifact *artifact, FileResourceBase *file, const char *fileTags);
+    bool recursive() const;
+    bool areModulePropertiesCompatible(
+        const PropertyMapConstPtr &m1, const PropertyMapConstPtr &m2) const;
+    bool cacheIsPerFile() const;
 
 private:
     QStringList collectModulesPaths(const ResolvedProduct *product);
-    QStringList collectSearchPaths(Artifact *artifact) override;
-    QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
-                                    const char *fileTags) override;
-    bool recursive() const override;
-    QString createId() const override;
-    bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                       const PropertyMapConstPtr &m2) const override;
-    bool cacheIsPerFile() const override { return false; }
-
-    ScannerPlugin* m_plugin;
-};
-
-class UserDependencyScanner : public DependencyScanner
-{
-public:
-    UserDependencyScanner(ResolvedScannerConstPtr scanner, ScriptEngine *engine);
-
-private:
-    QStringList collectSearchPaths(Artifact *artifact) override;
-    QStringList collectDependencies(Artifact *artifact, FileResourceBase *file,
-                                    const char *fileTags) override;
-    bool recursive() const override;
-    QString createId() const override;
-    bool areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                       const PropertyMapConstPtr &m2) const override;
-    bool cacheIsPerFile() const override { return true; }
-
-    QStringList evaluate(Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script);
+    QString createId() const;
+    QStringList evaluate(
+        Artifact *artifact,
+        const FileResourceBase *fileToScan,
+        const PrivateScriptFunction &script);
 
     ResolvedScannerConstPtr m_scanner;
     ScriptEngine *m_engine;
     ScopedJsValue m_global;
     ResolvedProduct *m_product;
+    ScannerPlugin *m_plugin;
+    mutable QString m_id;
 };
 
 } // namespace Internal

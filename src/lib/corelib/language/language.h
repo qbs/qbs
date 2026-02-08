@@ -493,19 +493,28 @@ public:
 
     ResolvedModuleConstPtr module;
     FileTags inputs;
-    bool recursive;
+    bool recursive = false;
+    bool cacheIsPerFile = true;
+    QString pluginName;
+    CodeLocation location;
     PrivateScriptFunction searchPathsScript;
     PrivateScriptFunction scanScript;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
-        pool.serializationOp<opType>(module, inputs, recursive, searchPathsScript, scanScript);
+        pool.serializationOp<opType>(
+            module,
+            inputs,
+            recursive,
+            cacheIsPerFile,
+            pluginName,
+            location,
+            searchPathsScript,
+            scanScript);
     }
 
 private:
-    ResolvedScanner() :
-        recursive(false)
-    {}
+    ResolvedScanner() = default;
 };
 
 class ExportedProperty

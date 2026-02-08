@@ -39,18 +39,18 @@
 
 #include "depscanner.h"
 #include "artifact.h"
-#include "projectbuilddata.h"
 #include "buildgraph.h"
+#include "projectbuilddata.h"
 #include "transformer.h"
 
-#include <tools/error.h>
-#include <logging/translator.h>
+#include <jsextensions/moduleproperties.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/resolvedfilecontext.h>
 #include <language/scriptengine.h>
-#include <jsextensions/moduleproperties.h>
+#include <logging/translator.h>
 #include <plugins/scanner/scanner.h>
+#include <tools/error.h>
 #include <tools/fileinfo.h>
 #include <tools/stringconstants.h>
 
@@ -60,13 +60,6 @@
 
 namespace qbs {
 namespace Internal {
-
-QString DependencyScanner::id() const
-{
-    if (m_id.isEmpty())
-        m_id = createId();
-    return m_id;
-}
 
 static QStringList collectCppIncludePaths(const QVariantMap &modules)
 {
@@ -105,12 +98,31 @@ static QString getCompiledModuleSuffix(const QVariantMap &modules)
     return cpp.value(QStringLiteral("compiledModuleSuffix")).toString();
 }
 
-PluginDependencyScanner::PluginDependencyScanner(ScannerPlugin *plugin)
-    : m_plugin(plugin)
+DependencyScanner::DependencyScanner(
+    ResolvedScannerConstPtr scanner, ScriptEngine *engine, ScannerPlugin *plugin)
+    : m_scanner(std::move(scanner))
+    , m_engine(engine)
+    , m_global(engine->context(), JS_NewObjectProto(engine->context(), m_engine->globalObject()))
+    , m_product(nullptr)
+    , m_plugin(plugin)
 {
+    if (!m_plugin) {
+        setupScriptEngineForFile(
+            m_engine,
+            m_scanner->scanScript.fileContext(),
+            m_global,
+            ObserveMode::Disabled); // TODO: QBS-1092
+    }
 }
 
-QStringList PluginDependencyScanner::collectModulesPaths(const ResolvedProduct *product)
+QString DependencyScanner::id() const
+{
+    if (m_id.isEmpty())
+        m_id = createId();
+    return m_id;
+}
+
+QStringList DependencyScanner::collectModulesPaths(const ResolvedProduct *product)
 {
     QStringList result;
     if (!product)
@@ -128,8 +140,11 @@ QStringList PluginDependencyScanner::collectModulesPaths(const ResolvedProduct *
     return result;
 }
 
-QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
+QStringList DependencyScanner::collectSearchPaths(Artifact *artifact)
 {
+    if (!m_plugin)
+        return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
+
     if (m_plugin->flags & ScannerUsesCppIncludePaths) {
         auto result = collectCppIncludePaths(artifact->properties->value());
         if (modulesEnabled(artifact->properties->value()) && artifact->product) {
@@ -140,10 +155,13 @@ QStringList PluginDependencyScanner::collectSearchPaths(Artifact *artifact)
     return {};
 }
 
-QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, FileResourceBase *file,
-                                                         const char *fileTags)
+QStringList DependencyScanner::collectDependencies(
+    Artifact *artifact, FileResourceBase *file, const char *fileTags)
 {
-    Q_UNUSED(artifact);
+    if (!m_plugin)
+        return evaluate(artifact, file, m_scanner->scanScript);
+
+    // Plugin mode
     Set<QString> result;
     QString baseDirOfInFilePath = file->dirPath();
     const QString &filepath = file->filePath();
@@ -174,65 +192,35 @@ QStringList PluginDependencyScanner::collectDependencies(Artifact *artifact, Fil
     return rangeTo<QStringList>(result);
 }
 
-bool PluginDependencyScanner::recursive() const
+bool DependencyScanner::recursive() const
 {
-    return m_plugin->flags & ScannerRecursiveDependencies;
-}
-
-QString PluginDependencyScanner::createId() const
-{
-    return QString::fromLatin1(m_plugin->name);
-}
-
-bool PluginDependencyScanner::areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                                            const PropertyMapConstPtr &m2) const
-{
-    // This changes when our C++ scanner starts taking defines into account.
-    Q_UNUSED(m1);
-    Q_UNUSED(m2);
-    return true;
-}
-
-UserDependencyScanner::UserDependencyScanner(ResolvedScannerConstPtr scanner,
-                                             ScriptEngine *engine)
-    : m_scanner(std::move(scanner)),
-      m_engine(engine),
-      m_global(engine->context(), JS_NewObjectProto(engine->context(), m_engine->globalObject())),
-      m_product(nullptr)
-{
-    setupScriptEngineForFile(m_engine, m_scanner->scanScript.fileContext(), m_global,
-                             ObserveMode::Disabled); // TODO: QBS-1092
-}
-
-QStringList UserDependencyScanner::collectSearchPaths(Artifact *artifact)
-{
-    return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
-}
-
-QStringList UserDependencyScanner::collectDependencies(Artifact *artifact, FileResourceBase *file,
-                                                       const char *fileTags)
-{
-    Q_UNUSED(fileTags);
-    return evaluate(artifact, file, m_scanner->scanScript);
-}
-
-bool UserDependencyScanner::recursive() const
-{
+    if (m_plugin)
+        return m_plugin->flags & ScannerRecursiveDependencies;
     return m_scanner->recursive;
 }
 
-QString UserDependencyScanner::createId() const
+QString DependencyScanner::createId() const
 {
+    if (m_plugin)
+        return QString::fromLatin1(m_plugin->name);
     return m_scanner->scanScript.sourceCode();
 }
 
-bool UserDependencyScanner::areModulePropertiesCompatible(const PropertyMapConstPtr &m1,
-                                                          const PropertyMapConstPtr &m2) const
+bool DependencyScanner::areModulePropertiesCompatible(
+    const PropertyMapConstPtr &m1, const PropertyMapConstPtr &m2) const
 {
+    // This changes when our C++ scanner starts taking defines into account.
+    if (m_plugin)
+        return true;
     // TODO: This should probably be made more fine-grained. Perhaps the Scanner item
     //       could declare the relevant properties, or we could figure them out automatically
     //       somehow.
     return m1 == m2 || *m1 == *m2;
+}
+
+bool DependencyScanner::cacheIsPerFile() const
+{
+    return m_scanner->cacheIsPerFile;
 }
 
 class ScriptEngineActiveFlagGuard
@@ -251,15 +239,15 @@ public:
     }
 };
 
-QStringList UserDependencyScanner::evaluate(Artifact *artifact,
-        const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
+QStringList DependencyScanner::evaluate(
+    Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
 
     if (artifact->product.get() != m_product) {
         m_product = artifact->product.get();
-        setupScriptEngineForProduct(m_engine, artifact->product.get(),
-                                    m_scanner->module.get(), m_global, true);
+        setupScriptEngineForProduct(
+            m_engine, artifact->product.get(), m_scanner->module.get(), m_global, true);
     }
 
     JSValueList args;
@@ -274,9 +262,13 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact,
     const TemporaryGlobalObjectSetter gos(m_engine, m_global);
     const JSValue function = script.getFunction(m_engine, Tr::tr("Invalid scan script."));
     const ScopedJsValue result(
-                m_engine->context(),
-                JS_Call(m_engine->context(), function, m_engine->globalObject(),
-                int(args.size()), args.data()));
+        m_engine->context(),
+        JS_Call(
+            m_engine->context(),
+            function,
+            m_engine->globalObject(),
+            int(args.size()),
+            args.data()));
     m_engine->clearRequestedProperties();
     if (m_engine->checkForJsError(script.location())) {
         ErrorInfo err = m_engine->getAndClearJsError();
@@ -285,8 +277,8 @@ QStringList UserDependencyScanner::evaluate(Artifact *artifact,
     }
     QStringList list;
     if (JS_IsArray(result)) {
-        const int count = getJsIntProperty(m_engine->context(), result,
-                                           StringConstants::lengthProperty());
+        const int count = getJsIntProperty(
+            m_engine->context(), result, StringConstants::lengthProperty());
         list.reserve(count);
         for (qint32 i = 0; i < count; ++i) {
             JSValue item = JS_GetPropertyUint32(m_engine->context(), result, i);

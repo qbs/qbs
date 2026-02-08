@@ -83,7 +83,6 @@ class ScannerPlugin
 {
 public:
     const char *name;
-    const char *fileTags; // CSV
     scanOpen_f open;
     scanClose_f close;
     scanNext_f next;

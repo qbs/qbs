@@ -137,6 +137,7 @@ public:
     QBS_STRING_CONSTANT(parametersProperty, "parameters")
     static const QString &pathProperty() { return path(); }
     QBS_STRING_CONSTANT(patternsProperty, "patterns")
+    QBS_STRING_CONSTANT(pluginNameProperty, "pluginName")
     QBS_STRING_CONSTANT(prefixMappingProperty, "prefixMapping")
     QBS_STRING_CONSTANT(prefixProperty, "prefix")
     QBS_STRING_CONSTANT(prepareProperty, "prepare")
@@ -162,6 +163,7 @@ public:
     QBS_STRING_CONSTANT(sourceDirectoryProperty, "sourceDirectory")
     QBS_STRING_CONSTANT(submodulesProperty, "submodules")
     QBS_STRING_CONSTANT(targetNameProperty, "targetName")
+    QBS_STRING_CONSTANT(cacheIsPerFileProperty, "cacheIsPerFile")
     static const QString &typeProperty() { return type(); }
     QBS_STRING_CONSTANT(type, "type")
     QBS_STRING_CONSTANT(validateProperty, "validate")

@@ -93,8 +93,7 @@ static const char *next(void *opaq, int *size, int *flags)
 }
 
 ScannerPlugin includeScanner = {
-    "include_scanner",
-    "cpp,cppm,cpp_pch_src,c,c_pch_src,objcpp,objcpp_pch_src,objc,objc_pch_src,rc",
+    "cpp_include_scanner",
     openScanner,
     closeScanner,
     next,

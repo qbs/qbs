@@ -1141,6 +1141,9 @@ void ProductResolverStage2::resolveScanner(Item *item, ModuleContext *moduleCont
     scanner->module = moduleContext ? moduleContext->module : m_product.project->dummyModule;
     scanner->inputs = evaluator.fileTagsValue(item, StringConstants::inputsProperty());
     scanner->recursive = evaluator.boolValue(item, StringConstants::recursiveProperty());
+    scanner->cacheIsPerFile = evaluator.boolValue(item, StringConstants::cacheIsPerFileProperty());
+    scanner->pluginName = evaluator.stringValue(item, StringConstants::pluginNameProperty());
+    scanner->location = item->location();
     scanner->searchPathsScript.initialize(m_loaderState.topLevelProject().scriptFunctionValue(
                                               item, StringConstants::searchPathsProperty()));
     scanner->scanScript.initialize(m_loaderState.topLevelProject().scriptFunctionValue(

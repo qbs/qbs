@@ -163,7 +163,7 @@ static const char *nextQrc(void *opaq, int *size, int *flags)
 }
 
 ScannerPlugin qrcScanner = {
-    "qt_qrc_scanner", "qrc", openScannerQrc, closeScannerQrc, nextQrc, NoScannerFlags};
+    "qt_qrc_scanner", openScannerQrc, closeScannerQrc, nextQrc, NoScannerFlags};
 
 ScannerPlugin *qtScanners[] = {&qrcScanner, nullptr};
 

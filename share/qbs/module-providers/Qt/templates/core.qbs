@@ -321,6 +321,11 @@ Module {
         fileTags: ["qrc"]
     }
 
+    Scanner {
+        inputs: ["qrc"]
+        pluginName: "qt_qrc_scanner"
+    }
+
     FileTagger {
         patterns: ["*.ts"]
         fileTags: ["ts"]

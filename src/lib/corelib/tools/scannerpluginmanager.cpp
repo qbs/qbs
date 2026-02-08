@@ -48,7 +48,7 @@ namespace Internal {
 
 class ScannerPluginManagerPrivate {
 public:
-    std::map<FileTag, std::vector<ScannerPlugin* >> scannerPlugins;
+    std::map<QString, ScannerPlugin *> scannerPluginsByName;
 };
 
 ScannerPluginManager::~ScannerPluginManager() = default;
@@ -64,21 +64,19 @@ ScannerPluginManager::ScannerPluginManager()
 {
 }
 
-std::vector<ScannerPlugin *> ScannerPluginManager::scannersForFileTag(const FileTag &fileTag)
+ScannerPlugin *ScannerPluginManager::scannerByName(const QString &name)
 {
-    auto it = instance()->d->scannerPlugins.find(fileTag);
-    if (it != instance()->d->scannerPlugins.cend())
+    auto it = instance()->d->scannerPluginsByName.find(name);
+    if (it != instance()->d->scannerPluginsByName.end())
         return it->second;
-    return {};
+    return nullptr;
 }
 
 void ScannerPluginManager::registerPlugins(ScannerPlugin **plugins)
 {
     for (int i = 0; plugins[i] != nullptr; ++i) {
-        const FileTags &fileTags = FileTags::fromStringList(
-                    QString::fromLatin1(plugins[i]->fileTags).split(QLatin1Char(',')));
-        for (const FileTag &tag : fileTags)
-            d->scannerPlugins[tag].push_back(plugins[i]);
+        ScannerPlugin *plugin = plugins[i];
+        d->scannerPluginsByName[QString::fromLatin1(plugin->name)] = plugin;
     }
 }
 
