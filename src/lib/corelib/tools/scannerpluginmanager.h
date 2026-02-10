@@ -61,7 +61,7 @@ public:
     ~ScannerPluginManager();
     static ScannerPluginManager *instance();
     static ScannerPlugin *scannerByName(const QString &name);
-    void registerPlugins(ScannerPlugin **plugins);
+    void registerScanner(std::unique_ptr<ScannerPlugin> scanner);
 
 private:
     ScannerPluginManager();

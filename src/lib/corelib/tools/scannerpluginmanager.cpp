@@ -48,7 +48,7 @@ namespace Internal {
 
 class ScannerPluginManagerPrivate {
 public:
-    std::map<QString, ScannerPlugin *> scannerPluginsByName;
+    std::map<QString, std::unique_ptr<ScannerPlugin>> scannerPlugins;
 };
 
 ScannerPluginManager::~ScannerPluginManager() = default;
@@ -66,18 +66,18 @@ ScannerPluginManager::ScannerPluginManager()
 
 ScannerPlugin *ScannerPluginManager::scannerByName(const QString &name)
 {
-    auto it = instance()->d->scannerPluginsByName.find(name);
-    if (it != instance()->d->scannerPluginsByName.end())
-        return it->second;
+    auto it = instance()->d->scannerPlugins.find(name);
+    if (it != instance()->d->scannerPlugins.end())
+        return it->second.get();
     return nullptr;
 }
 
-void ScannerPluginManager::registerPlugins(ScannerPlugin **plugins)
+void ScannerPluginManager::registerScanner(std::unique_ptr<ScannerPlugin> scanner)
 {
-    for (int i = 0; plugins[i] != nullptr; ++i) {
-        ScannerPlugin *plugin = plugins[i];
-        d->scannerPluginsByName[QString::fromLatin1(plugin->name)] = plugin;
-    }
+    if (!scanner)
+        return;
+    const QString name = scanner->name();
+    d->scannerPlugins[name] = std::move(scanner);
 }
 
 } // namespace Internal

@@ -44,66 +44,118 @@
 #include <tools/qbspluginmanager.h>
 #include <tools/scannerpluginmanager.h>
 
-struct Opaq : public qbs::Internal::CppScannerContext
+#include <QtCore/qfile.h>
+#include <QtCore/qfileinfo.h>
+
+class CppScannerPlugin : public ScannerPlugin
 {
-    int currentIncludeIndex{0};
-    int currentModuleIndex{0};
+public:
+    QString name() const override { return QStringLiteral("cpp_include_scanner"); }
+    QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
+        const override;
+    QStringList collectSearchPaths(
+        const QVariantMap &properties, const QStringList &productBuildDirectories) const override;
+
+private:
+    static QString getCompiledModuleSuffix(const QVariantMap &properties);
+    static QStringList collectCppIncludePaths(const QVariantMap &properties);
+    static bool modulesEnabled(const QVariantMap &properties);
 };
 
-static void *openScanner(const unsigned short *filePath, const char *fileTags, int flags)
+QStringList CppScannerPlugin::scan(
+    const QString &filePath, const char *fileTags, const QVariantMap &properties) const
 {
-    std::unique_ptr<Opaq> opaq(new Opaq);
-    const bool ok = qbs::Internal::scanCppFile(
-        *opaq,
-        QStringView(filePath),
-        std::string_view(fileTags),
-        flags & ScanForFileTagsFlag,
-        flags & ScanForDependenciesFlag);
+    qbs::Internal::CppScannerContext context;
+    const bool ok = qbs::Internal::scanCppFile(context, filePath, fileTags, false, true);
     if (!ok)
-        return nullptr;
-    return opaq.release();
-}
+        return {};
 
-static void closeScanner(void *ptr)
-{
-    const auto opaque = static_cast<Opaq *>(ptr);
-    delete opaque;
-}
+    const QString baseDir = QFileInfo(filePath).path();
+    const QString compiledModuleSuffix = getCompiledModuleSuffix(properties);
 
-static const char *next(void *opaq, int *size, int *flags)
-{
-    const auto opaque = static_cast<Opaq *>(opaq);
-    if (opaque->currentIncludeIndex < opaque->includedFiles.size()) {
-        const auto &result = opaque->includedFiles.at(opaque->currentIncludeIndex);
-        ++opaque->currentIncludeIndex;
-        *size = static_cast<int>(result.fileName.size());
-        *flags = result.flags;
-        return result.fileName.data();
+    QStringList results;
+    results.reserve(context.includedFiles.size() + context.requiresModules.size());
+
+    for (const auto &include : context.includedFiles) {
+        QString includePath = QString::fromUtf8(include.fileName.data(), include.fileName.size());
+        if (includePath.isEmpty())
+            continue;
+
+        // Resolve local includes relative to file directory
+        if (include.flags & SC_LOCAL_INCLUDE_FLAG) {
+            const QString localPath = baseDir + QLatin1Char('/') + includePath;
+            if (QFile::exists(localPath))
+                includePath = localPath;
+        }
+
+        results.append(includePath);
     }
-    if (opaque->currentModuleIndex < opaque->requiresModules.size()) {
-        const auto &result = opaque->requiresModules.at(opaque->currentModuleIndex);
-        ++opaque->currentModuleIndex;
-        *size = result.size();
-        *flags = SC_MODULE_FLAG;
-        return result.data();
+
+    for (const auto &module : context.requiresModules) {
+        QString modulePath = QString::fromUtf8(module.data(), module.size());
+        if (!modulePath.isEmpty()) {
+            // Convert module name to file path
+            modulePath = modulePath.replace(QLatin1Char(':'), QLatin1Char('-'))
+                         + compiledModuleSuffix;
+            results.append(modulePath);
+        }
     }
-    *size = 0;
-    *flags = 0;
-    return nullptr;
+
+    return results;
 }
 
-ScannerPlugin includeScanner = {
-    "cpp_include_scanner",
-    openScanner,
-    closeScanner,
-    next,
-    ScannerUsesCppIncludePaths | ScannerRecursiveDependencies};
+QStringList CppScannerPlugin::collectSearchPaths(
+    const QVariantMap &properties, const QStringList &productBuildDirectories) const
+{
+    QStringList result = collectCppIncludePaths(properties);
+    if (modulesEnabled(properties)) {
+        // Add cxx-modules subdirectory for each product build directory
+        for (const QString &buildDir : productBuildDirectories) {
+            result << buildDir + QStringLiteral("/cxx-modules");
+        }
+    }
+    return result;
+}
 
-ScannerPlugin *cppScanners[] = {&includeScanner, nullptr};
+QStringList CppScannerPlugin::collectCppIncludePaths(const QVariantMap &properties)
+{
+    QStringList result;
+    const QVariantMap cpp = properties.value(QStringLiteral("cpp")).toMap();
+    if (cpp.empty())
+        return result;
+
+    result << cpp.value(QStringLiteral("includePaths")).toStringList();
+    const bool useSystemHeaders
+        = cpp.value(QStringLiteral("treatSystemHeadersAsDependencies")).toBool();
+    if (useSystemHeaders) {
+        result << cpp.value(QStringLiteral("systemIncludePaths")).toStringList()
+               << cpp.value(QStringLiteral("distributionIncludePaths")).toStringList()
+               << cpp.value(QStringLiteral("compilerIncludePaths")).toStringList();
+    }
+    result.removeDuplicates();
+    return result;
+}
+
+bool CppScannerPlugin::modulesEnabled(const QVariantMap &properties)
+{
+    const QVariantMap cpp = properties.value(QStringLiteral("cpp")).toMap();
+    if (cpp.empty())
+        return false;
+    return cpp.value(QStringLiteral("forceUseCxxModules")).toBool();
+}
+
+QString CppScannerPlugin::getCompiledModuleSuffix(const QVariantMap &properties)
+{
+    const QVariantMap cpp = properties.value(QStringLiteral("cpp")).toMap();
+    if (cpp.empty())
+        return {};
+    return cpp.value(QStringLiteral("compiledModuleSuffix")).toString();
+}
 
 static void QbsCppScannerPluginLoad()
 {
-    qbs::Internal::ScannerPluginManager::instance()->registerPlugins(cppScanners);
+    qbs::Internal::ScannerPluginManager::instance()->registerScanner(
+        std::make_unique<CppScannerPlugin>());
 }
 
 static void QbsCppScannerPluginUnload() {}

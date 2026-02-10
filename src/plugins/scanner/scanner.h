@@ -39,57 +39,25 @@
 #ifndef SCANNER_H
 #define SCANNER_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
+#include <QtCore/qvariant.h>
 
 #define SC_LOCAL_INCLUDE_FLAG 0x1
 #define SC_GLOBAL_INCLUDE_FLAG 0x2
-#define SC_MODULE_FLAG 0x4
-
-enum OpenScannerFlags
-{
-    ScanForDependenciesFlag = 0x01,
-    ScanForFileTagsFlag = 0x02
-};
-
-/**
-  * Open a file that's going to be scanned.
-  * The file path encoding is UTF-16 on all platforms.
-  * The file tags are in CSV format.
-  *
-  * Returns a scanner handle.
-  */
-typedef void *(*scanOpen_f) (const unsigned short *filePath, const char *fileTags, int flags);
-
-/**
-  * Closes the given scanner handle.
-  */
-typedef void  (*scanClose_f)                (void *opaq);
-
-/**
-  * Return the next result (filename) of the scan.
-  */
-typedef const char *(*scanNext_f)           (void *opaq, int *size, int *flags);
-
-enum ScannerFlags
-{
-    NoScannerFlags = 0x00,
-    ScannerUsesCppIncludePaths = 0x01,
-    ScannerRecursiveDependencies = 0x02
-};
 
 class ScannerPlugin
 {
 public:
-    const char *name;
-    scanOpen_f open;
-    scanClose_f close;
-    scanNext_f next;
-    int flags;
+    virtual ~ScannerPlugin() = default;
+
+    virtual QString name() const = 0;
+    virtual QStringList scan(
+        const QString &filePath, const char *fileTags, const QVariantMap &properties) const
+        = 0;
+    virtual QStringList collectSearchPaths(
+        const QVariantMap &properties, const QStringList &productBuildDirectories) const
+        = 0;
 };
 
-#ifdef __cplusplus
-}
-#endif
 #endif // SCANNER_H

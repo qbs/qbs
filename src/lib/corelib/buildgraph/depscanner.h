@@ -76,7 +76,6 @@ public:
     bool cacheIsPerFile() const;
 
 private:
-    QStringList collectModulesPaths(const ResolvedProduct *product);
     QString createId() const;
     QStringList evaluate(
         Artifact *artifact,
@@ -84,10 +83,10 @@ private:
         const PrivateScriptFunction &script);
 
     ResolvedScannerConstPtr m_scanner;
-    ScriptEngine *m_engine;
+    ScriptEngine *m_engine = nullptr;
     ScopedJsValue m_global;
-    ResolvedProduct *m_product;
-    ScannerPlugin *m_plugin;
+    ResolvedProduct *m_product = nullptr;
+    ScannerPlugin *m_plugin = nullptr;
     mutable QString m_id;
 };
 

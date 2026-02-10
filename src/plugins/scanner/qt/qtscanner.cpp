@@ -51,130 +51,159 @@
 #include <QtCore/qglobal.h>
 
 #ifdef Q_OS_UNIX
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 #include <unistd.h>
 #else
 #include <QtCore/qfile.h>
 #endif
 
+#include <QtCore/qfileinfo.h>
 #include <QtCore/qstring.h>
 #include <QtCore/qxmlstream.h>
 
 #include <memory>
 
-struct OpaqQrc
+struct QrcScannerFile
 {
 #ifdef Q_OS_UNIX
     int fd = 0;
-    int mapl = 0;
+    size_t mapLength = 0;
 #else
     std::unique_ptr<QFile> file;
 #endif
 
-    char *map = nullptr;
-    std::unique_ptr<QXmlStreamReader> xml;
-    QByteArray current;
-    OpaqQrc() = default;
+    char *mapData = nullptr;
+    int fileSize = 0;
 
-    ~OpaqQrc()
-    {
-#ifdef Q_OS_UNIX
-        if (map)
-            munmap (map, mapl);
-        if (fd)
-            close (fd);
-#endif
-    }
+    QrcScannerFile() = default;
+    QrcScannerFile(const QrcScannerFile &) = delete;
+    QrcScannerFile &operator=(const QrcScannerFile &) = delete;
+    ~QrcScannerFile() { close(); }
+
+    bool open(const QString &filePath);
+    void close();
+
+    const char *data() const { return mapData; }
+    int size() const { return fileSize; }
 };
 
-static void *openScannerQrc(const unsigned short *filePath, const char *fileTags, int flags)
+bool QrcScannerFile::open(const QString &filePath)
 {
-    Q_UNUSED(flags);
-    Q_UNUSED(fileTags);
-    std::unique_ptr<OpaqQrc> opaque(new OpaqQrc);
+    close();
 
 #ifdef Q_OS_UNIX
-    QString filePathS = QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath));
-    opaque->fd = open(qPrintable(filePathS), O_RDONLY);
-    if (opaque->fd == -1) {
-        opaque->fd = 0;
-        return nullptr;
+    fd = ::open(qPrintable(filePath), O_RDONLY);
+    if (fd == -1) {
+        fd = 0;
+        return false;
     }
 
-    struct stat s{};
-    int r = fstat(opaque->fd, &s);
-    if (r != 0)
-        return nullptr;
-    const int fileSize = static_cast<int>(s.st_size);
-    opaque->mapl = fileSize;
+    struct stat s
+    {};
+    if (fstat(fd, &s) != 0)
+        return false;
 
-    void *map = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, opaque->fd, 0);
-    if (map == nullptr)
-        return nullptr;
+    fileSize = static_cast<int>(s.st_size);
+    mapLength = s.st_size;
+
+    void *map = mmap(nullptr, s.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (map == nullptr || map == MAP_FAILED)
+        return false;
+
+    mapData = static_cast<char *>(map);
 #else
-    opaque->file = std::make_unique<QFile>(
-                QString::fromUtf16(reinterpret_cast<const char16_t *>(filePath)));
-    if (!opaque->file->open(QFile::ReadOnly))
-        return nullptr;
+    file = std::make_unique<QFile>(filePath);
+    if (!file->open(QFile::ReadOnly))
+        return false;
 
-    const int fileSize = opaque->file->size();
-    uchar *map = opaque->file->map(0, fileSize);
+    fileSize = file->size();
+    uchar *map = file->map(0, fileSize);
     if (!map)
-        return nullptr;
+        return false;
+
+    mapData = reinterpret_cast<char *>(map);
 #endif
-
-    opaque->map = reinterpret_cast<char *>(map);
-    opaque->xml = std::make_unique<QXmlStreamReader>(
-                QByteArray::fromRawData(opaque->map, fileSize));
-
-    return static_cast<void *>(opaque.release());
+    return true;
 }
 
-static void closeScannerQrc(void *ptr)
+void QrcScannerFile::close()
 {
-    const auto opaque = static_cast<OpaqQrc *>(ptr);
-    delete opaque;
+#ifdef Q_OS_UNIX
+    if (mapData) {
+        munmap(mapData, mapLength);
+        mapData = nullptr;
+    }
+    if (fd) {
+        ::close(fd);
+        fd = 0;
+    }
+#else
+    file.reset();
+#endif
+    fileSize = 0;
 }
 
-static const char *nextQrc(void *opaq, int *size, int *flags)
+class QrcScannerPlugin : public ScannerPlugin
 {
-    const auto o = static_cast<OpaqQrc *>(opaq);
-    while (!o->xml->atEnd()) {
-        o->xml->readNext();
-        switch (o->xml->tokenType()) {
-            case QXmlStreamReader::StartElement:
-                if (o->xml->name() == QLatin1String("file")) {
-                    o->current = o->xml->readElementText(QXmlStreamReader::ErrorOnUnexpectedElement).toUtf8();
-                    *flags = SC_LOCAL_INCLUDE_FLAG;
-                    *size = o->current.size();
-                    return o->current.data();
-                }
-                break;
-            case QXmlStreamReader::EndDocument:
-                return nullptr;
-            default:
-                break;
+public:
+    QString name() const override { return QStringLiteral("qt_qrc_scanner"); }
+    QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
+        const override;
+    QStringList collectSearchPaths(
+        const QVariantMap &properties, const QStringList &productBuildDirectories) const override;
+};
+
+QStringList QrcScannerPlugin::scan(
+    const QString &filePath, const char *fileTags, const QVariantMap &properties) const
+{
+    Q_UNUSED(fileTags);
+    Q_UNUSED(properties);
+
+    QStringList results;
+
+    QrcScannerFile context;
+    if (!context.open(filePath))
+        return results;
+
+    const QString baseDir = QFileInfo(filePath).path();
+    QXmlStreamReader xml(QByteArray::fromRawData(context.data(), context.size()));
+
+    while (!xml.atEnd()) {
+        xml.readNext();
+        if (xml.tokenType() == QXmlStreamReader::StartElement
+            && xml.name() == QLatin1String("file")) {
+            QString fileRef = xml.readElementText(QXmlStreamReader::ErrorOnUnexpectedElement);
+            if (!fileRef.isEmpty()) {
+                // QRC file references are always relative to the QRC file location
+                const QString resolvedPath = baseDir + QLatin1Char('/') + fileRef;
+                if (QFile::exists(resolvedPath))
+                    fileRef = resolvedPath;
+                results.append(fileRef);
+            }
         }
     }
-    return nullptr;
+
+    return results;
 }
 
-ScannerPlugin qrcScanner = {
-    "qt_qrc_scanner", openScannerQrc, closeScannerQrc, nextQrc, NoScannerFlags};
-
-ScannerPlugin *qtScanners[] = {&qrcScanner, nullptr};
+QStringList QrcScannerPlugin::collectSearchPaths(
+    const QVariantMap &properties, const QStringList &productBuildDirectories) const
+{
+    Q_UNUSED(properties);
+    Q_UNUSED(productBuildDirectories);
+    return {};
+}
 
 static void QbsQtScannerPluginLoad()
 {
-    qbs::Internal::ScannerPluginManager::instance()->registerPlugins(qtScanners);
+    qbs::Internal::ScannerPluginManager::instance()->registerScanner(
+        std::make_unique<QrcScannerPlugin>());
 }
 
-static void QbsQtScannerPluginUnload()
-{
-}
+static void QbsQtScannerPluginUnload() {}
 
-QBS_REGISTER_STATIC_PLUGIN(extern "C" SCANNER_EXPORT, qbs_qt_scanner,
-                           QbsQtScannerPluginLoad, QbsQtScannerPluginUnload)
+QBS_REGISTER_STATIC_PLUGIN(
+    extern "C" SCANNER_EXPORT, qbs_qt_scanner, QbsQtScannerPluginLoad, QbsQtScannerPluginUnload)

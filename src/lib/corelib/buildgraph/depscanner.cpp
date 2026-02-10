@@ -61,41 +61,19 @@
 namespace qbs {
 namespace Internal {
 
-static QStringList collectCppIncludePaths(const QVariantMap &modules)
+static QStringList collectProductBuildDirectories(const ResolvedProduct *product)
 {
-    QStringList result;
-    const QVariantMap cpp = modules.value(StringConstants::cppModule()).toMap();
-    if (cpp.empty())
-        return result;
+    QStringList buildDirectories;
+    if (!product)
+        return buildDirectories;
 
-    result << cpp.value(QStringLiteral("includePaths")).toStringList();
-    const bool useSystemHeaders
-            = cpp.value(QStringLiteral("treatSystemHeadersAsDependencies")).toBool();
-    if (useSystemHeaders) {
-        result
-            << cpp.value(QStringLiteral("systemIncludePaths")).toStringList()
-            << cpp.value(QStringLiteral("distributionIncludePaths")).toStringList()
-            << cpp.value(QStringLiteral("compilerIncludePaths")).toStringList();
+    buildDirectories << product->buildDirectory();
+    // Add build directories of dependent products
+    for (const auto &dep : product->dependencies) {
+        if (dep.product)
+            buildDirectories << dep.product->buildDirectory();
     }
-    result.removeDuplicates();
-    return result;
-}
-
-static bool modulesEnabled(const QVariantMap &properties)
-{
-    const QVariantMap cpp = properties.value(StringConstants::cppModule()).toMap();
-    if (cpp.empty())
-        return false;
-    return cpp.value(QStringLiteral("forceUseCxxModules")).toBool();
-}
-
-static QString getCompiledModuleSuffix(const QVariantMap &modules)
-{
-    const QVariantMap cpp = modules.value(StringConstants::cppModule()).toMap();
-    if (cpp.empty())
-        return {};
-
-    return cpp.value(QStringLiteral("compiledModuleSuffix")).toString();
+    return buildDirectories;
 }
 
 DependencyScanner::DependencyScanner(
@@ -103,7 +81,6 @@ DependencyScanner::DependencyScanner(
     : m_scanner(std::move(scanner))
     , m_engine(engine)
     , m_global(engine->context(), JS_NewObjectProto(engine->context(), m_engine->globalObject()))
-    , m_product(nullptr)
     , m_plugin(plugin)
 {
     if (!m_plugin) {
@@ -122,87 +99,36 @@ QString DependencyScanner::id() const
     return m_id;
 }
 
-QStringList DependencyScanner::collectModulesPaths(const ResolvedProduct *product)
-{
-    QStringList result;
-    if (!product)
-        return result;
-    const auto getModulesPath = [](const ResolvedProduct *product) -> QString {
-        return product->buildDirectory() + QStringLiteral("/cxx-modules");
-    };
-    result << getModulesPath(product);
-    // a module can also be in the dependent product
-    for (const auto &dep : product->dependencies) {
-        const auto depProduct = dep.product.get();
-        if (depProduct)
-            result << getModulesPath(depProduct);
-    }
-    return result;
-}
-
 QStringList DependencyScanner::collectSearchPaths(Artifact *artifact)
 {
     if (!m_plugin)
         return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
 
-    if (m_plugin->flags & ScannerUsesCppIncludePaths) {
-        auto result = collectCppIncludePaths(artifact->properties->value());
-        if (modulesEnabled(artifact->properties->value()) && artifact->product) {
-            result << collectModulesPaths(artifact->product.get());
-        }
-        return result;
-    }
-    return {};
+    const QStringList buildDirectories = collectProductBuildDirectories(artifact->product.get());
+    return m_plugin->collectSearchPaths(artifact->properties->value(), buildDirectories);
 }
 
 QStringList DependencyScanner::collectDependencies(
     Artifact *artifact, FileResourceBase *file, const char *fileTags)
 {
-    if (!m_plugin)
-        return evaluate(artifact, file, m_scanner->scanScript);
-
-    // Plugin mode
-    Set<QString> result;
-    QString baseDirOfInFilePath = file->dirPath();
-    const QString &filepath = file->filePath();
-    void *scannerHandle = m_plugin->open(filepath.utf16(), fileTags, ScanForDependenciesFlag);
-    if (!scannerHandle)
-        return {};
-    for (;;) {
-        int flags = 0;
-        int length = 0;
-        const char *szOutFilePath = m_plugin->next(scannerHandle, &length, &flags);
-        if (szOutFilePath == nullptr)
-            break;
-        QString outFilePath = QString::fromLocal8Bit(szOutFilePath, length);
-        if (outFilePath.isEmpty())
-            continue;
-        if (flags & SC_LOCAL_INCLUDE_FLAG) {
-            QString localFilePath = FileInfo::resolvePath(baseDirOfInFilePath, outFilePath);
-            if (FileInfo::exists(localFilePath))
-                outFilePath = localFilePath;
-        }
-        if (flags & SC_MODULE_FLAG) {
-            outFilePath = outFilePath.replace(QLatin1Char(':'), QLatin1Char('-'))
-                          + getCompiledModuleSuffix(artifact->properties->value());
-        }
-        result += outFilePath;
-    }
-    m_plugin->close(scannerHandle);
-    return rangeTo<QStringList>(result);
+    QStringList result;
+    if (m_plugin)
+        result = m_plugin->scan(file->filePath(), fileTags, artifact->properties->value());
+    else
+        result = evaluate(artifact, file, m_scanner->scanScript);
+    result.removeDuplicates();
+    return result;
 }
 
 bool DependencyScanner::recursive() const
 {
-    if (m_plugin)
-        return m_plugin->flags & ScannerRecursiveDependencies;
     return m_scanner->recursive;
 }
 
 QString DependencyScanner::createId() const
 {
     if (m_plugin)
-        return QString::fromLatin1(m_plugin->name);
+        return m_plugin->name();
     return m_scanner->scanScript.sourceCode();
 }
 
