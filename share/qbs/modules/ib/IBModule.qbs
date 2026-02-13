@@ -138,6 +138,11 @@ Module {
         fileTags: ["assetcatalog"]
     }
 
+    FileTagger {
+        patterns: ["*.icon"] // bundle
+        fileTags: ["iconcomposer"]
+    }
+
     Rule {
         multiplex: true
         inputs: ["png"]
@@ -184,7 +189,7 @@ Module {
     }
 
     Rule {
-        inputs: ["assetcatalog"]
+        inputs: ["assetcatalog", "iconcomposer"]
         multiplex: true
         outputArtifacts: Ib.actoolOutputArtifacts(product, inputs)
         outputFileTags: ["bundle.input", "compiled_assetcatalog", "partial_infoplist"]

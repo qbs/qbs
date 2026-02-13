@@ -372,6 +372,48 @@ void TestBlackboxApple::appiconset()
     }
 }
 
+void TestBlackboxApple::iconcomposer()
+{
+    const auto xcodeVersion = findXcodeVersion();
+    if (!xcodeVersion || *xcodeVersion < qbs::Version(26))
+        QSKIP("Icon Composer .icon format requires Xcode 26 or newer");
+
+    QDir::setCurrent(testDataDir + QLatin1String("/ib/iconcomposer"));
+
+    const QString iconPath = QDir::currentPath() + "/AppIcon.icon";
+    QDir iconDir(iconPath);
+    if (!iconDir.exists() || iconDir.entryList(QDir::Files | QDir::NoDotAndDotDot).isEmpty()
+        || (iconDir.entryList(QDir::Files | QDir::NoDotAndDotDot).size() == 1
+            && iconDir.exists("README.txt"))) {
+        QSKIP("This test requires a valid AppIcon.icon file created with Icon Composer. "
+              "Replace the placeholder with a real .icon bundle to run this test.");
+    }
+
+    QbsRunParameters params;
+    params.arguments = QStringList() << "-f" << "iconcomposer.qbs";
+    QCOMPARE(runQbs(params), 0);
+
+    const auto infoPlistPath = getInfoPlistPath(
+        relativeProductBuildDir("iconcomposer") + "/iconcomposer.app");
+    QVERIFY(QFile::exists(infoPlistPath));
+    const auto content = readInfoPlistFile(infoPlistPath);
+    QVERIFY(!content.isEmpty());
+
+    const bool isShallow = m_qbsStdout.contains("bundle.isShallow: true");
+    const bool isDeep = m_qbsStdout.contains("bundle.isShallow: false");
+    QVERIFY2(isShallow || isDeep, "Cannot determine bundle type");
+    if (isDeep) {
+        QCOMPARE(content.value(QStringLiteral("CFBundleIconFile")), QStringLiteral("AppIcon"));
+        QCOMPARE(content.value(QStringLiteral("CFBundleIconName")), QStringLiteral("AppIcon"));
+    } else if (isShallow) {
+        const auto icons = content.value(QStringLiteral("CFBundleIcons")).toMap();
+        QVERIFY2(!icons.isEmpty(), "Info.plist doesn't contain CFBundleIcons key");
+        const auto primaryIcon = icons.value(QStringLiteral("CFBundlePrimaryIcon")).toMap();
+        QVERIFY2(!primaryIcon.isEmpty(), "Info.plist doesn't contain CFBundlePrimaryIcon key");
+        QCOMPARE(primaryIcon.value(QStringLiteral("CFBundleIconName")), QStringLiteral("AppIcon"));
+    }
+}
+
 void TestBlackboxApple::assetCatalog()
 {
     QFETCH(bool, flatten);

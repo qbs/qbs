@@ -44,6 +44,7 @@
 #include "qbsassert.h"
 #include <logging/logger.h>
 #include <logging/translator.h>
+#include <tools/fileinfo.h>
 
 #include <QtCore/qcoreapplication.h>
 #include <QtCore/qdebug.h>
@@ -126,10 +127,10 @@ void LauncherInterface::doStart()
             this, &LauncherInterface::handleProcessFinished);
     connect(m_process, &QProcess::readyReadStandardError,
             this, &LauncherInterface::handleProcessStderr);
-    m_process->start(qApp->applicationDirPath() + QLatin1Char('/')
-                            + QLatin1String(QBS_RELATIVE_LIBEXEC_PATH)
-                            + QLatin1String("/qbs_processlauncher"),
-                           QStringList(m_server->fullServerName()));
+    m_process->start(
+        qbsApplicationDirPath() + QLatin1Char('/') + QLatin1String(QBS_RELATIVE_LIBEXEC_PATH)
+            + QLatin1String("/qbs_processlauncher"),
+        QStringList(m_server->fullServerName()));
 }
 
 void LauncherInterface::doStop()

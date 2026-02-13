@@ -131,7 +131,7 @@ function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
         }
     }
 
-    if (inputs.assetcatalog) {
+    if (inputs.assetcatalog || inputs.iconcomposer) {
         args.push("--platform", DarwinTools.applePlatformName(
                       product.moduleProperty("qbs", "targetOS"),
                       product.moduleProperty("xcode", "platformType")));
@@ -171,7 +171,8 @@ function ibtooldArguments(product, inputs, input, outputs, overrideOutput) {
         args.push("--minimum-deployment-target", minimumDarwinVersion);
 
     // --target-device and -output-partial-info-plist were introduced in Xcode 6.0 for ibtool
-    if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6 || inputs.assetcatalog) {
+    if (ModUtils.moduleProperty(product, "ibtoolVersionMajor") >= 6
+            || inputs.assetcatalog || inputs.iconcomposer) {
         args.push("--output-partial-info-plist", (outputs && outputs.partial_infoplist)
                   ? outputs.partial_infoplist[outputs.partial_infoplist.length - 1].filePath
                   : "/dev/null");
@@ -322,10 +323,12 @@ function actoolOutputArtifacts(product, inputs) {
 
     for (var i = 0; i < artifacts.length; ++i) {
         if (artifacts[i].fileTags.includes("compiled_assetcatalog")) {
+            var referenceInput = inputs.assetcatalog ? inputs.assetcatalog[0]
+                                : inputs.iconcomposer[0];
             artifacts[i].bundle = {
                 _bundleFilePath: artifacts[i].filePath.replace(
                     product.buildDirectory + "/actool.dir",
-                    BundleTools.destinationDirectoryForResource(product, inputs.assetcatalog[0]))
+                    BundleTools.destinationDirectoryForResource(product, referenceInput))
             };
         }
     }
@@ -402,7 +405,9 @@ function compileAssetCatalogCommands(project, product, inputs, outputs, input, o
 
     var cmd = new Command(ModUtils.moduleProperty(product, "actoolPath"),
                           ibtooldArguments(product, inputs, input, outputs));
-    cmd.description = inputs["assetcatalog"].map(function (input) {
+
+    const inputFiles = [].concat(inputs["assetcatalog"] || [], inputs["iconcomposer"] || []);
+    cmd.description = inputFiles.map(function (input) {
         return "compiling " + input.fileName;
     }).join('\n');
     cmd.highlight = "compiler";

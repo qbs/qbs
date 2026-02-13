@@ -51,6 +51,7 @@
 #include <tools/buildoptions.h>
 #include <tools/cleanoptions.h>
 #include <tools/error.h>
+#include <tools/fileinfo.h>
 #include <tools/installoptions.h>
 #include <tools/jsonhelper.h>
 #include <tools/preferences.h>
@@ -293,7 +294,7 @@ void Session::setupProject(const QJsonObject &request)
     const ProjectDataMode dataMode = dataModeFromRequest(request);
     m_settings = std::make_unique<Settings>(params.settingsDirectory());
     const Preferences prefs(m_settings.get());
-    const QString appDir = QDir::cleanPath(QCoreApplication::applicationDirPath());
+    const QString appDir = QDir::cleanPath(qbsApplicationDirPath());
     params.setSearchPaths(prefs.searchPaths(appDir + QLatin1String(
                                                 "/" QBS_RELATIVE_SEARCH_PATH)));
     params.setPluginPaths(prefs.pluginPaths(appDir + QLatin1String(
