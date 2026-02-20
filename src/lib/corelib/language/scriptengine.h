@@ -48,6 +48,7 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 #include <tools/filetime.h>
+#include <tools/mutexdata.h>
 #include <tools/porting.h>
 #include <tools/scripttools.h>
 #include <tools/set.h>
@@ -419,9 +420,9 @@ private:
     QHash<quintptr, JSValue> m_jsValueCache;
     QHash<JSValue, int> m_evalResults;
     std::vector<JSValue *> m_externallyCachedValues;
-    QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;
+    MutexData<QHash<QPair<Artifact *, QString>, JSValue>, std::recursive_mutex>
+        m_artifactsScriptValues;
     QVariantMap m_properties;
-    std::recursive_mutex m_artifactsMutex;
     std::optional<SetupProjectParameters> m_setupParams;
     ErrorInfo m_jsError;
     bool m_lastLookupWasSuccess = false;

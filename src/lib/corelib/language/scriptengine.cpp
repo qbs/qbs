@@ -229,11 +229,15 @@ void ScriptEngine::reset()
     for (const auto &e : std::as_const(m_baseModuleScriptValues))
         JS_FreeValue(m_context, e.second);
     m_baseModuleScriptValues.clear();
-    for (auto it = m_artifactsScriptValues.cbegin(); it != m_artifactsScriptValues.cend(); ++it) {
-        it.key().first->setDeregister({});
-        JS_FreeValue(m_context, it.value());
+    {
+        auto guard = m_artifactsScriptValues.lock();
+        auto &artifactsScriptValues = guard.get();
+        for (auto it = artifactsScriptValues.cbegin(); it != artifactsScriptValues.cend(); ++it) {
+            it.key().first->setDeregister({});
+            JS_FreeValue(m_context, it.value());
+        }
+        artifactsScriptValues.clear();
     }
-    m_artifactsScriptValues.clear();
     m_logger.clearWarnings();
 }
 
@@ -761,7 +765,7 @@ void ScriptEngine::setArtifactsMapScriptValue(const ResolvedModule *module, JSVa
 JSValue ScriptEngine::getArtifactProperty(JSValue obj,
                                           const std::function<JSValue (const Artifact *)> &propGetter)
 {
-    std::lock_guard lock(m_artifactsMutex);
+    auto guard = m_artifactsScriptValues.lock();
     const Artifact * const a = attachedPointer<Artifact>(obj, dataWithPtrClass());
     return a ? propGetter(a) : JS_EXCEPTION;
 }
@@ -958,17 +962,19 @@ void ScriptEngine::setMaxStackSize()
 JSValue ScriptEngine::getArtifactScriptValue(Artifact *a, const QString &moduleName,
                                              const std::function<void(JSValue obj)> &setup)
 {
-    std::lock_guard lock(m_artifactsMutex);
-    const auto it = m_artifactsScriptValues.constFind(qMakePair(a, moduleName));
-    if (it != m_artifactsScriptValues.constEnd())
+    auto guard = m_artifactsScriptValues.lock();
+    auto &scriptValues = guard.get();
+    const auto it = scriptValues.constFind(qMakePair(a, moduleName));
+    if (it != scriptValues.constEnd())
         return JS_DupValue(m_context, *it);
     a->setDeregister([this](const Artifact *a) {
-        const std::lock_guard lock(m_artifactsMutex);
-        for (auto it = m_artifactsScriptValues.begin(); it != m_artifactsScriptValues.end(); ) {
+        auto guard = m_artifactsScriptValues.lock();
+        auto &scriptValues = guard.get();
+        for (auto it = scriptValues.begin(); it != scriptValues.end();) {
             if (it.key().first == a) {
                 JS_SetOpaque(it.value(), nullptr);
                 JS_FreeValue(m_context, it.value());
-                it = m_artifactsScriptValues.erase(it);
+                it = scriptValues.erase(it);
             } else {
                 ++it;
             }
@@ -977,18 +983,20 @@ JSValue ScriptEngine::getArtifactScriptValue(Artifact *a, const QString &moduleN
     JSValue obj = JS_NewObjectClass(context(), dataWithPtrClass());
     attachPointerTo(obj, a);
     setup(obj);
-    m_artifactsScriptValues.insert(qMakePair(a, moduleName), JS_DupValue(m_context, obj));
+    scriptValues.insert(qMakePair(a, moduleName), JS_DupValue(m_context, obj));
     return obj;
 }
 
 void ScriptEngine::releaseInputArtifactScriptValues(const RuleNode *ruleNode)
 {
-    for (auto it = m_artifactsScriptValues.begin(); it != m_artifactsScriptValues.end();) {
+    auto guard = m_artifactsScriptValues.lock();
+    auto &scriptValues = guard.get();
+    for (auto it = scriptValues.begin(); it != scriptValues.end();) {
         Artifact * const a = it.key().first;
         if (ruleNode->children.contains(a)) {
             a->setDeregister({});
             JS_FreeValue(m_context, it.value());
-            it = m_artifactsScriptValues.erase(it);
+            it = scriptValues.erase(it);
         } else {
             ++it;
         }
