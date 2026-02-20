@@ -759,7 +759,8 @@ void TestBlackbox::artifactScanning()
     QCOMPARE(m_qbsStderr.count("scanning \"external1.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external2.h\""), 0);
     QCOMPARE(m_qbsStderr.count("scanning \"external-indirect.h\""), 0);
-    QCOMPARE(m_qbsStderr.count("scanning \"iostream\""), 1);
+    // on macOS, there are 2 iostream files, <iostream> and <__cxx03/iostream>
+    QVERIFY(m_qbsStderr.count("scanning \"iostream\"") >= 1);
 }
 
 void TestBlackbox::buildDirectories()
