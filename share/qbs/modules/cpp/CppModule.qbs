@@ -325,6 +325,14 @@ Module {
         description: "generate assembler listing files"
     }
 
+    property bool enableTimeTrace: false
+    PropertyOptions {
+        name: "enableTimeTrace"
+        description: "enable Clang time trace profiling (generates .time_trace.json files)"
+    }
+
+    property bool _supportsTimeTrace: false
+
     property bool positionIndependentCode: true
     PropertyOptions {
         name: "positionIndependentCode"

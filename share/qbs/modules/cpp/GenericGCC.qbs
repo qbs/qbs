@@ -151,6 +151,7 @@ CppModule {
                                            && Utilities.versionCompare(compilerVersion, "3.1") >= 0
     property bool assemblerHasTargetOption: qbs.toolchain.includes("xcode")
                                             && Utilities.versionCompare(compilerVersion, "7") >= 0
+    _supportsTimeTrace: qbs.toolchain.includes("clang")
     property string target: targetArch
                             ? [targetArch, targetVendor, targetSystem, targetAbi].join("-")
                             : undefined

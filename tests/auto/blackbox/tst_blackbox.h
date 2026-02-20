@@ -121,6 +121,7 @@ private slots:
     void enableExceptions();
     void enableExceptions_data();
     void enableRtti();
+    void enableTimeTrace();
     void envMerging();
     void envNormalization();
     void erroneousFiles_data();

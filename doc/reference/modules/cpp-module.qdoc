@@ -243,6 +243,11 @@
             fine-grained control over the symbols present in a shared library.
             This file tag only has an effect with GCC-like toolchains. The linker needs to be
             \c{ld}-compatible.
+    \row
+        \li \c{"time_trace"}
+        \li n/a
+        \li 3.3.0
+        \li This tag is attached to \c{.time_trace.json} files produced by the compiler.
     \endtable
 
     \section2 Relevant Job Pools
@@ -1135,6 +1140,27 @@
     Some compilers (notably GCC) use random numbers for generating symbol names
     that have to be different in every compilation unit. This is avoided by
     setting this property to \c{true}.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
+    \qmlproperty bool cpp::enableTimeTrace
+    \since Qbs 3.3
+
+    Whether the compiler should generate time trace profiling information.
+
+    When enabled and supported by the compiler, compilation of C and C++
+    source files will additionally produce \c{.time_trace.json} files
+    alongside the regular object files. These files can be inspected with
+    trace viewers such as Chromium's \c{about:tracing} page.
+
+    If the toolchain does not support time trace generation, this property
+    has no effect.
+
+    The generated files are assigned the \c{"time_trace"} file tag.
+
+    This option is currently supported only for the \c clang toolchain.
 
     \defaultvalue \c{false}
 */

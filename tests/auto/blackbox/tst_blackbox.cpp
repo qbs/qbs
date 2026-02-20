@@ -8951,6 +8951,24 @@ void TestBlackbox::enableRtti()
     }
 }
 
+void TestBlackbox::enableTimeTrace()
+{
+    QDir::setCurrent(testDataDir + "/enable-time-trace");
+    rmDirR(relativeBuildDir());
+    QbsRunParameters params("resolve");
+    params.arguments << "modules.cpp.enableTimeTrace:true";
+    QCOMPARE(runQbs(params), 0);
+    const bool supportsTimeTrace = m_qbsStdout.contains("supports time trace: true");
+    const bool notSupported = m_qbsStdout.contains("supports time trace: false");
+    QVERIFY(supportsTimeTrace != notSupported);
+    if (notSupported)
+        QSKIP("Time trace only supported for Clang toolchain");
+    QCOMPARE(runQbs(), 0);
+    const QString filePath = defaultInstallRoot + "/share/enable-time-trace/"
+                             + "/main.cpp.time_trace.json";
+    QVERIFY2(regularFileExists(filePath), qPrintable(filePath));
+}
+
 void TestBlackbox::envMerging()
 {
     QDir::setCurrent(testDataDir + "/env-merging");

@@ -980,6 +980,12 @@ function compilerFlags(project, product, outputs, input, output, explicitlyDepen
         }
     }
 
+    if (input.cpp.enableTimeTrace && product.cpp._supportsTimeTrace) {
+        var timeTraceFileName = FileInfo.joinPaths(FileInfo.path(output.filePath),
+                                                   input.fileName + ".time_trace.json");
+        args.push("-ftime-trace=" + timeTraceFileName);
+    }
+
     args.push("-o", output.filePath);
     args.push("-c", input.filePath);
 

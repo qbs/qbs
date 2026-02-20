@@ -86,7 +86,7 @@ function assemblerOutputTags(needsListingFiles) {
 }
 
 function compilerOutputTags(withListingFiles, withCxxModules) {
-    var tags = ["obj", "intermediate_obj"];
+    var tags = ["obj", "intermediate_obj", "time_trace"];
     if (withListingFiles)
         tags.push("lst");
     if (withCxxModules)
@@ -206,6 +206,13 @@ function compilerOutputArtifacts(input, inputs, withCxxModules) {
             fileTags: ["lst"],
             filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                          input.fileName + input.cpp.compilerListingSuffix)
+        });
+    }
+    if (input.cpp.enableTimeTrace && input.cpp._supportsTimeTrace) {
+        artifacts.push({
+            fileTags: ["time_trace"],
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.fileName + ".time_trace.json")
         });
     }
     if (withCxxModules)
