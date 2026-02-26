@@ -58,32 +58,39 @@
     about the value of the property in such cases.
 
     If the same property is set both inside and outside of a \c Properties
-    item, the outside binding is only considered if none of the \c Properties conditions
-    match, that is, it acts as an "else" case.
+    item, the behavior depends on the type of property:
+    \list
+    \li For scalar values, the outside binding is only considered if none of the \c Properties
+        conditions match, that is, it acts as an "else" case.
+    \li For list values, the outside value is always considered.
+    \endlist
     \code
     Product {
         Properties {
             condition: qbs.targetOS.includes("windows")
             cpp.defines: ["ON_WINDOWS"]
             cpp.includePaths: ["myWindowsIncludes"]
+            cpp.treatWarningsAsErrors: false
         }
         Properties {
             condition: qbs.targetOS.includes("linux")
             cpp.defines: ["ON_LINUX"]
             cpp.includePaths: ["myLinuxIncludes"]
         }
-        cpp.defines: ["ON_UNKNOWN_PLATFORM"]
+        cpp.defines: ["ALL_PLATFORMS"]
+        cpp.treatWarningsAsErrors: true
     }
     \endcode
     is roughly equivalent to
     \code
     Product {
         cpp.defines: {
+            var defines = ["ALL_PLATFORMS"];
             if (qbs.targetOS.includes("windows"))
-                return ["ON_WINDOWS"];
+                defines.push("ON_WINDOWS");
             if (qbs.targetOS.includes("linux"))
-                return ["ON_LINUX"];
-            return ["ON_UNKNOWN_PLATFORM"];
+                defines.push("ON_LINUX");
+            return defines;
         }
         cpp.includePaths: {
             if (qbs.targetOS.includes("windows"))
@@ -92,6 +99,7 @@
                 return ["myLinuxIncludes"];
             return base ? base : original;
         }
+        cpp.treatWarningsAsErrors: !qbs.targetOS.includes("windows")
     }
     \endcode
 
@@ -99,15 +107,16 @@
     property.
     \code
     Product {
+        property string theFeature: "basic"
         Properties {
             condition: qbs.targetOS.includes("windows")
-            cpp.defines: outer.concat("ON_WINDOWS")     // === ["FOO", "ON_WINDOWS"]
+            theFeature: outer + "_plus_windows" // === "basic_plus_windows"
         }
         Properties {
             condition: qbs.targetOS.includes("linux")
-            cpp.defines: ["ON_LINUX"]                   // === ["ON_LINUX"]
+            theFeature: outer + "_plus_linux"   // === "basic_plus_linux"
         }
-        cpp.defines: ["FOO"]
+        cpp.defines: 'THE_FEATURE="' + theFeature + '"'
     }
     \endcode
 
