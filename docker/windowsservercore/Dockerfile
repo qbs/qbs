@@ -26,17 +26,10 @@ RUN choco install -y python --version 3.13.6 && \
     choco install -y git --version 2.50.1 --params "/GitAndUnixToolsOnPath" && \
     choco install -y vswhere
 
-RUN pip install -U pip
+RUN python.exe -m pip install --upgrade pip
 
 # for building the documentation
-RUN pip install beautifulsoup4 lxml
-
-# clcache for speeding up MSVC builds
-ENV CLCACHE_DIR="C:/.ccache"
-RUN powershell -NoProfile -ExecutionPolicy Bypass -Command \
-    Invoke-WebRequest "https://github.com/frerich/clcache/releases/download/v4.2.0/clcache.4.2.0.nupkg" \
-    -OutFile "%TEMP%\clcache.4.2.0.nupkg" -UseBasicParsing
-RUN choco install clcache --source="%TEMP%"
+RUN python.exe -m pip install beautifulsoup4 lxml
 
 ########### Install Qt #############
 ARG QT_VERSION

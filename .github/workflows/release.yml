@@ -154,40 +154,24 @@ jobs:
     env:
       WITH_TESTS: 0
       QT_ASSUME_STDERR_HAS_CONSOLE: 1
-      CLCACHE_DIR: C:\.ccache
     steps:
     - uses: actions/checkout@v1
     - name: Create .ccache dir
       run: mkdir -p ~/.ccache
       shell: bash
-    - name: prepare timestamp
-      id: get-timestamp
-      run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
-      shell: bash
-    - name: clcache cache files
-      uses: actions/cache@v4
-      with:
-        path: ~/clcache
-        key: ${{ runner.os }}-release-msvc-docker-clcache-${{ steps.get-timestamp.outputs.timestamp }}
-        restore-keys: ${{ runner.os }}-release-msvc-docker-clcache
     - name: Pull the Windows Image
       run: docker compose pull windows
-    - name: Print clcache stats
-      run: docker compose run --rm windows clcache -s
     - name: Build Qbs
       run: >
         docker compose run --rm windows qbs build
         -p dist
         qbs.buildVariant:release
-        modules.cpp.compilerWrapper:clcache
         project.withTests:false
         modules.qbsbuildconfig.enableBundledQt:true
         modules.qbsbuildconfig.enableUnitTests:false
         modules.cpp.treatWarningsAsErrors:true
         project.withDocumentation:true
         config:release profile:qt64
-    - name: Print clcache stats
-      run: docker compose run --rm windows clcache -s
     - name: Get archive name
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT

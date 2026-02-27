@@ -9,7 +9,6 @@ x-default-service: &linux
     - QBS_TEST_SOURCE_ROOT
     - WITH_ARCHIVE
     - WITH_TESTS
-    - CLCACHE_DIR
   volumes:
     - .:/qbs
     - ~/.ccache:/home/devel/.ccache
@@ -122,7 +121,7 @@ services:
         QTCREATOR_VERSION: 5.0.3
 
   windows:
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.8.3_3.0.1-0
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:windowsservercore-6.8.3_3.0.1-1
     build:
       dockerfile: docker/windowsservercore/Dockerfile
       context: .
