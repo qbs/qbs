@@ -35,7 +35,7 @@
     The \c ib module contains properties and rules for building Interface Builder documents,
     storyboards, asset catalogs, and icon sets.
 
-    This module is only available on Apple platforms.
+    This module is available on all platforms but is only usable on Apple platforms.
 
     \section2 Relevant File Tags
     \target filetags-ib

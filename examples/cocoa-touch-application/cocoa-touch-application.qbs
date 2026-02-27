@@ -51,7 +51,7 @@
 
 CppApplication {
     Depends { name: "xcode"; required: false }
-    Depends { condition: product.condition; name: "ib" }
+    Depends { name: "ib" }
     condition: qbs.hostOS.contains("macos") && xcode.present && qbs.targetPlatform.contains("ios")
     name: "Cocoa Touch Application"
     install: true

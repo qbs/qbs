@@ -31,13 +31,14 @@
 import qbs.BundleTools
 import qbs.DarwinTools
 import qbs.File
+import "IBModuleBase.qbs" as IBModuleBase
 import qbs.Host
 import qbs.FileInfo
 import qbs.ModUtils
 import qbs.Process
 import 'ib.js' as Ib
 
-Module {
+IBModuleBase {
     Depends { name: "xcode"; required: false }
 
     Probe {
@@ -50,55 +51,56 @@ Module {
         }
     }
 
+    priority: 0
     condition: Host.os().includes("darwin") && qbs.targetOS.includes("darwin")
 
-    property bool warnings: true
-    property bool errors: true
-    property bool notices: true
+    warnings: true
+    errors: true
+    notices: true
 
-    property stringList flags
+    flags: []
 
     // tiffutil specific
-    property string tiffutilName: "tiffutil"
-    property string tiffutilPath: FileInfo.joinPaths("/usr/bin", tiffutilName)
-    property bool combineHidpiImages: true
+    tiffutilName: "tiffutil"
+    tiffutilPath: FileInfo.joinPaths("/usr/bin", tiffutilName)
+    combineHidpiImages: true
 
     // iconutil specific
-    property string iconutilName: "iconutil"
-    property string iconutilPath: FileInfo.joinPaths("/usr/bin", iconutilName)
+    iconutilName: "iconutil"
+    iconutilPath: FileInfo.joinPaths("/usr/bin", iconutilName)
 
     // XIB/NIB specific
-    property string ibtoolName: "ibtool"
-    property string ibtoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", ibtoolName)
-    property bool flatten: true
-    property string module
-    property bool autoActivateCustomFonts: true
+    ibtoolName: "ibtool"
+    ibtoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", ibtoolName)
+    flatten: true
+    module: ""
+    autoActivateCustomFonts: true
 
     // Asset catalog specific
-    property string actoolName: xcode.present ? "actool" : "ictool"
-    property string actoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", actoolName)
-    property string appIconName
-    property string launchImageName
-    property bool compressPngs: true
+    actoolName: xcode.present ? "actool" : "ictool"
+    actoolPath: FileInfo.joinPaths(xcode.developerPath, "/usr/bin", actoolName)
+    appIconName: ""
+    launchImageName: ""
+    compressPngs: true
 
     // private properties
-    property string outputFormat: "human-readable-text"
-    property string tiffSuffix: ".tiff"
-    property string appleIconSuffix: ".icns"
-    property string compiledAssetCatalogSuffix: ".car"
-    property string compiledNibSuffix: ".nib"
-    property string compiledStoryboardSuffix: ".storyboardc"
+    outputFormat: "human-readable-text"
+    tiffSuffix: ".tiff"
+    appleIconSuffix: ".icns"
+    compiledAssetCatalogSuffix: ".car"
+    compiledNibSuffix: ".nib"
+    compiledStoryboardSuffix: ".storyboardc"
 
     version: ibtoolVersion
-    property string ibtoolVersion: ibProbe.toolVersion
-    property var ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
-    property int ibtoolVersionMajor: ibtoolVersionParts[0]
-    property int ibtoolVersionMinor: ibtoolVersionParts[1]
-    property int ibtoolVersionPatch: ibtoolVersionParts[2]
+    ibtoolVersion: ibProbe.toolVersion
+    ibtoolVersionParts: ibtoolVersion ? ibtoolVersion.split('.').map(function(item) { return parseInt(item, 10); }) : []
+    ibtoolVersionMajor: ibtoolVersionParts[0]
+    ibtoolVersionMinor: ibtoolVersionParts[1]
+    ibtoolVersionPatch: ibtoolVersionParts[2]
 
-    property stringList targetDevices: xcode.present
-                                       ? xcode.targetDevices
-                                       : DarwinTools.targetDevices(qbs.targetOS)
+    targetDevices: xcode.present
+                   ? xcode.targetDevices
+                   : DarwinTools.targetDevices(qbs.targetOS)
 
     validate: {
         var validator = new ModUtils.PropertyValidator("ib");
