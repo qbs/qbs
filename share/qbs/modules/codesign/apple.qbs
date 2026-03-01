@@ -112,7 +112,11 @@ CodeSignModule {
                      "typically left blank unless signed into multiple development teams"
     }
 
-    property path provisioningProfilesPath: "~/Library/MobileDevice/Provisioning Profiles"
+    property path provisioningProfilesPath: {
+        if (xcode.present && Utilities.versionCompare(xcode.version, "26.0.0") < 0)
+            return "~/Library/MobileDevice/Provisioning Profiles";
+        return "~/Library/Developer/Xcode/UserData/Provisioning Profiles"
+    }
 
     readonly property var _actualSigningIdentity: {
         if (signingIdentity === "-") {
