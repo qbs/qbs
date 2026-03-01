@@ -135,7 +135,9 @@ Product {
         files: [
             "platforms/qwindows" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix,
             "styles/" + styleName + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
-        ]
+        ].concat(Utilities.versionCompare(Qt.core.version, "6.2.0") >= 0 ? [
+            "tls/qschannelbackend" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
+        ] : [])
         qbs.install: true
         qbs.installDir: "plugins"
         qbs.installSourceBase: prefix
@@ -148,7 +150,9 @@ Product {
         files: [
             "platforms/libqcocoa" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix,
             "styles/libqmacstyle" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
-        ]
+        ].concat(Utilities.versionCompare(Qt.core.version, "6.2.0") >= 0 ? [
+            "tls/libqsecuretransportbackend" + qtDebugLibrarySuffix + cpp.dynamicLibrarySuffix
+        ] : [])
         qbs.install: true
         qbs.installDir: "plugins"
         qbs.installSourceBase: prefix
@@ -161,7 +165,10 @@ Product {
         files: [
             "platforms/libqxcb" + cpp.dynamicLibrarySuffix,
             "platformthemes/libqgtk3" + cpp.dynamicLibrarySuffix
-        ]
+        ].concat(Utilities.versionCompare(Qt.core.version, "6.2.0") >= 0 ? [
+            "tls/libqopensslbackend" + cpp.dynamicLibrarySuffix
+        ] : [])
+
         qbs.install: true
         qbs.installDir: "plugins"
         qbs.installSourceBase: prefix
