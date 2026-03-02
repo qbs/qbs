@@ -252,7 +252,7 @@ Module {
                 "-sEXPORT_NAME=createQtAppInstance",
                 "-sALLOW_MEMORY_GROWTH",
                 '-sASYNCIFY_IMPORTS=["qt_asyncify_suspend_js", "qt_asyncify_resume_js"]',
-                '-sEXPORTED_RUNTIME_METHODS=["UTF16ToString", "stringToUTF16", "JSEvents", "specialHTMLTargets", "FS"]',
+                '-sEXPORTED_RUNTIME_METHODS=["UTF16ToString", "stringToUTF16", "JSEvents", "specialHTMLTargets", "FS", "callMain"]',
                 "-lembind"
             ];
             if (multiThreading)
