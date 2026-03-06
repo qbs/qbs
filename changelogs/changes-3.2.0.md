@@ -18,6 +18,7 @@
 # Apple
 * Added support for IconComposer icons (QBS-1871).
 * Updated dmgbuild to fix an issue with backround images on macOS Tahoe 26.2 (QBS-1872).
+* Fixed provisioning profiles location with XCode 26 (QBS-1875).
 
 # Contributors
 * Björn Schäpers
