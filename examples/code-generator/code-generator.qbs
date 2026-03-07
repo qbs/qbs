@@ -67,7 +67,9 @@ Project {
                 && (qbs.architecture === qbs.hostArchitecture
                     || (qbs.architecture === "x86" && qbs.hostArchitecture === "x86_64"));
             if (!result)
-                console.info("target platform/arch differ from host platform/arch");
+                console.info("target platform/arch differ from host platform/arch ("
+                             + qbs.targetPlatform + "/" + qbs.architecture + " vs "
+                             + qbs.hostPlatform + "/" + qbs.hostArchitecture + ")");
             return result;
         }
         name: "hello-world"

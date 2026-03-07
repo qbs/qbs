@@ -17,7 +17,9 @@ CppApplication {
         configure: {
             var result = targetPlatform === Host.platform() && targetArchitecture === Host.architecture();
             if (!result)
-                console.info("target platform/arch differ from host platform/arch");
+                console.info("target platform/arch differ from host platform/arch ("
+                             + targetPlatform + "/" + targetArchitecture + " vs "
+                             + Host.platform() + "/" + Host.architecture() + ")");
         }
     }
 }
