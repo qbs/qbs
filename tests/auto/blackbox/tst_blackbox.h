@@ -214,6 +214,7 @@ private slots:
     void linkerLibraryDuplicates_data();
     void linkerScripts();
     void linkerModuleDefinition();
+    void linkerModuleDefinition_data();
     void listProducts();
     void listPropertiesWithOuter();
     void listPropertyOrder();

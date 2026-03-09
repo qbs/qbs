@@ -6545,12 +6545,32 @@ void TestBlackbox::linkerScripts()
                            "TEST_SYMBOL_FROM_RECURSIVE_MODIFIED"}));
 }
 
+void TestBlackbox::linkerModuleDefinition_data()
+{
+    QTest::addColumn<bool>("withDefinitionFile");
+    QTest::newRow("with definition file") << true;
+    QTest::newRow("without definition file") << false;
+}
+
 void TestBlackbox::linkerModuleDefinition()
 {
+    QFETCH(bool, withDefinitionFile);
+
     QDir::setCurrent(testDataDir + "/linker-module-definition");
-    QCOMPARE(runQbs({"build"}), 0);
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters params(
+        "build",
+        {QStringLiteral("project.withDefinitionFile:%1")
+             .arg(withDefinitionFile ? "true" : "false")});
+    params.expectFailure = !withDefinitionFile;
+    const int status = runQbs(params);
     if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(status == 0, withDefinitionFile);
+    if (!withDefinitionFile)
+        return;
+
     QCOMPARE(runQbs({"run"}), 0);
     const auto verifyOutput = [this](const QByteArrayList &symbols) {
         for (const QByteArray &symbol : symbols) {

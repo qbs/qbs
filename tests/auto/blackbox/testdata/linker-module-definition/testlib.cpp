@@ -30,6 +30,8 @@
 
 #include <cstdio>
 
+extern "C" {
+
 void foo()
 {
     std::printf("foo\n");
@@ -39,3 +41,5 @@ void bar()
 {
     std::printf("bar\n");
 }
+
+} // extern "C"

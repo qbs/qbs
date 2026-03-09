@@ -28,8 +28,10 @@
 **
 ****************************************************************************/
 
-extern void foo();
-extern void bar();
+extern "C" {
+void foo();
+void bar();
+} // extern "C"
 
 int main()
 {

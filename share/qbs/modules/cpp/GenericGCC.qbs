@@ -436,7 +436,7 @@ CppModule {
             name: "dynamicLibraryLinker"
             multiplex: true
             inputs: {
-                var tags = ["obj", "res", "linkerscript", "versionscript"];
+                var tags = ["obj", "res", "linkerscript", "versionscript", "def"];
                 if (product.bundle && product.bundle.embedInfoPlist
                         && product.qbs.targetOS.includes("darwin")) {
                     tags.push("aggregate_infoplist");
@@ -603,6 +603,11 @@ CppModule {
     FileTagger {
         patterns: "*.sx"
         fileTags: ["asm_cpp"]
+    }
+
+    FileTagger {
+        patterns: "*.def"
+        fileTags: ["def"]
     }
 
     Scanner {

@@ -545,6 +545,9 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
     if (importLibs)
         escapableLinkerFlags.push("--out-implib", importLibs[0].filePath);
 
+    if (product.qbs.toolchain.includes("mingw") && inputs.def)
+        args = args.concat(inputs.def.map(function(def) { return def.filePath; }));
+
     if (outputs.application && product.cpp.generateLinkerMapFile) {
         if (isDarwin)
             escapableLinkerFlags.push("-map", outputs.mem_map[0].filePath);

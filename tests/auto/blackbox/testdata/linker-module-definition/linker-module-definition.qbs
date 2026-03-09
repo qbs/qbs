@@ -1,6 +1,8 @@
 import qbs.Host
 
 Project {
+    property bool withDefinitionFile: true
+
     CppApplication {
         condition: {
             var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();
@@ -17,6 +19,17 @@ Project {
     DynamicLibrary {
         name: "testlib"
         Depends { name: "cpp"}
-        files: ["testlib.cpp", "testlib.def"]
+        files: {
+            var list = ["testlib.cpp"];
+            if (project.withDefinitionFile)
+                list.push("testlib.def");
+            return list;
+        }
+        Group {
+            condition: !project.withDefinitionFile
+            product.cpp.visibility: "hidden" // for Unix GGC
+            product.cpp.linkerFlags: qbs.toolchain.includes("mingw") // for MinGW
+                         ? ["--exclude-all-symbols"] : []
+        }
     }
 }
