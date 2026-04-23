@@ -6,8 +6,9 @@ Project {
         consoleApplication: true
         files: "main.cpp"
 
-        property bool skip: {
-            var result = qbs.targetPlatform === Host.platform() && qbs.architecture === Host.architecture();
+        property bool dummy: {
+            const result = qbs.targetPlatform === Host.platform()
+                && (qbs.architecture === undefined || qbs.architecture === Host.architecture());
             if (!result)
                 console.info("target platform/arch differ from host platform/arch ("
                              + qbs.targetPlatform + "/" + qbs.architecture + " vs "
