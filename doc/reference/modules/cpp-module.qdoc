@@ -501,13 +501,14 @@
 
     \nodefaultvalue
 
-    \sa dynamicLibraries, {How do I create a module for a third-party library?}
+    \sa libraries, dynamicLibraries, staticLibraries,
+        {How do I create a module for a third-party library?}
 */
 
 /*!
-    \qmlproperty stringList cpp::dynamicLibraries
+    \qmlproperty stringList cpp::libraries
 
-    A List of dynamic libraries to be linked.
+    A List of libraries to be linked.
 
     If the library is part of your project, consider using a \l{Depends} item
     instead.
@@ -523,6 +524,9 @@
     \endlist
 
     Relative paths (\c "foo/bar.lib") are not allowed.
+    When giving an absolute path, the more specific properties
+    \l staticLibraries or \l dynamicLibraries should be preferred,
+    depending on the type of the library.
 
     \nodefaultvalue
 
@@ -530,12 +534,25 @@
 */
 
 /*!
+    \qmlproperty stringList cpp::dynamicLibraries
+
+    Like \l libraries, but expressing the intention to link dynamic libraries
+    specifically.
+
+    \note \QBS does currently not enforce that only dynamic libraries will
+          be linked.
+
+    \nodefaultvalue
+*/
+
+/*!
     \qmlproperty stringList cpp::staticLibraries
 
-    A list of static libraries to be linked.
+    Like \l libraries, but expressing the intention to link static libraries
+    specifically.
 
-    If the library is part of your project, consider using a \l{Depends} item
-    instead.
+    \note \QBS does currently not enforce that only static libraries will
+          be linked.
 
     \nodefaultvalue
 */

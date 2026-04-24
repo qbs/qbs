@@ -330,6 +330,8 @@ function collectLibraryDependencies(product) {
                                 obj.moduleProperty("cpp", "objectSuffix"));
         handleExternalLibraries("dynamicLibraries",
                                 obj.moduleProperty("cpp", "dynamicLibraryImportSuffix"));
+        handleExternalLibraries("libraries",
+                                obj.moduleProperty("cpp", "dynamicLibraryImportSuffix"));
     }
 
     function traverse(dep) {

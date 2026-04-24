@@ -5712,11 +5712,14 @@ void TestBlackbox::invalidLibraryNames_data()
     QTest::newRow("undefined") << "1" << false << QStringList("is undefined");
     QTest::newRow("number") << "2" << false << QStringList("does not have string type");
     QTest::newRow("array") << "3" << false << QStringList("does not have string type");
-    QTest::newRow("empty string") << "4" << true << (QStringList()
-                                  << "WARNING: Removing empty string from value of property "
-                                     "'cpp.dynamicLibraries' in product 'invalid-library-names'."
-                                  << "WARNING: Removing empty string from value of property "
-                                     "'cpp.staticLibraries' in product 'invalid-library-names'.");
+    QTest::newRow("empty string")
+        << "4" << true
+        << (QStringList() << "WARNING: Removing empty string from value of property "
+                             "'cpp.dynamicLibraries' in product 'invalid-library-names'."
+                          << "WARNING: Removing empty string from value of property "
+                             "'cpp.staticLibraries' in product 'invalid-library-names'."
+                          << "WARNING: Removing empty string from value of property "
+                             "'cpp.libraries' in product 'invalid-library-names'.");
 }
 
 void TestBlackbox::invalidExtensionInstantiation()

@@ -32,7 +32,7 @@ Project {
         files: ["main.cpp"]
 
         cpp.cxxLanguageVersion: "c++11"
-        cpp.dynamicLibraries: [qbs.targetOS.includes("windows") ? "kernel32" : "dl"]
+        cpp.libraries: [qbs.targetOS.includes("windows") ? "kernel32" : "dl"]
 
         Properties {
             condition: qbs.targetOS.includes("unix") && !qbs.targetOS.includes("darwin")

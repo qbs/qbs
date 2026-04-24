@@ -147,10 +147,12 @@ function getCppLibsAndFrameworks(cpp)
     var libs = {"frameworks": {}, "libraries": {}};
     for (var i = 0; i < cpp.frameworks.length; ++i)
         libs.frameworks[cpp.frameworks[i]] = true;
-    for (var i = 0; i < cpp.staticLibraries.length; ++i)
+    for (i = 0; i < cpp.staticLibraries.length; ++i)
         libs.libraries[cpp.staticLibraries[i]] = true;
-    for (var i = 0; i < cpp.dynamicLibraries.length; ++i)
+    for (i = 0; i < cpp.dynamicLibraries.length; ++i)
         libs.libraries[cpp.dynamicLibraries[i]] = true;
+    for (i = 0; i < cpp.libraries.length; ++i)
+        libs.libraries[cpp.libraries[i]] = true;
     return libs;
 }
 

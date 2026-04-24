@@ -5,6 +5,7 @@ Project {
     CppApplication {
         cpp.dynamicLibraries: [project.values[project.valueIndex]]
         cpp.staticLibraries: [project.values[project.valueIndex]]
+        cpp.libraries: [project.values[project.valueIndex]]
         files: ["main.cpp"]
     }
 }

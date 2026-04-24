@@ -166,6 +166,7 @@ function collectLibraryDependencies(product, isDarwin) {
             return ensureArray(ModUtils.sanitizedModuleProperty(obj, moduleName, propertyName));
         }
         var externalLibs = [].concat(
+                    ensureArray(sanitizedModuleListProperty(obj, "cpp", "libraries")),
                     ensureArray(sanitizedModuleListProperty(obj, "cpp", "staticLibraries")),
                     ensureArray(sanitizedModuleListProperty(obj, "cpp", "dynamicLibraries")));
         for (var i = 0, len = externalLibs.length; i < len; ++i)

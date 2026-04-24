@@ -25,7 +25,7 @@ Project {
         name: "LinkedProduct-Objective-C"
         files: ["main.m"]
         installDir: ""
-        cpp.dynamicLibraries: ["ObjC"]
+        cpp.libraries: ["ObjC"]
     }
 
     CppApplication {
@@ -43,7 +43,7 @@ Project {
         files: ["main.mm"]
         installDir: ""
 
-        cpp.dynamicLibraries: ["ObjC"]
+        cpp.libraries: ["ObjC"]
     }
 
     CppApplication {

@@ -127,6 +127,7 @@ function collectAutodetectedData(project, topLevelProduct, outputs)
         data.linkLibraries = [];
         data.linkLibraries = data.linkLibraries.concat(cpp.dynamicLibraries || []);
         data.linkLibraries = data.linkLibraries.concat(cpp.staticLibraries || []);
+        data.linkLibraries = data.linkLibraries.concat(cpp.libraries || []);
         data.linkLibraries = data.linkLibraries.map(quoteAndPrefixify("cpp.dynamicLibraries"));
 
         data.linkOptions = [];

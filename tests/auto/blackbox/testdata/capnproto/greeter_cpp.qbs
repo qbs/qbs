@@ -17,7 +17,7 @@ Project {
         consoleApplication: true
         cpp.minimumMacosVersion: "10.8"
         // workaround for broken capnproto
-        cpp.staticLibraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
+        cpp.libraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
         capnproto.cpp.useRpc: true
         files: [
             "greeter.capnp",
@@ -31,7 +31,7 @@ Project {
         consoleApplication: true
         capnproto.cpp.useRpc: true
         cpp.minimumMacosVersion: "10.8"
-        cpp.staticLibraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
+        cpp.libraries: qbs.targetOS.contains("windows") ? "Advapi32" : []
         files: [
             "greeter.capnp",
             "greeter-client.cpp"

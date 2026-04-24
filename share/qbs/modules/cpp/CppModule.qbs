@@ -205,8 +205,9 @@ Module {
     property string moduleInfoSuffix: ".moduleinfo.json"
     property string precompiledHeaderSuffix
     property bool createSymlinks: true
-    property stringList dynamicLibraries // list of names, will be linked with -lname
-    property stringList staticLibraries // list of static library files
+    property stringList dynamicLibraries
+    property stringList staticLibraries
+    property stringList libraries
     property stringList frameworks // list of frameworks, will be linked with '-framework <name>'
     property stringList weakFrameworks // list of weakly-linked frameworks, will be linked with '-weak_framework <name>'
     property string rpathOrigin
