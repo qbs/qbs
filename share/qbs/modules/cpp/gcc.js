@@ -1489,8 +1489,10 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     }
 
     if (product.cpp.shouldSignArtifacts) {
-        Array.prototype.push.apply(
-                commands, Codesign.prepareSign(project, product, inputs, outputs, input, output));
+        var signCommands = product.qbs.targetOS.includes("windows")
+                ? Codesign.prepareSigntool(project, product, inputs, outputs, input, output)
+                : Codesign.prepareSign(project, product, inputs, outputs, input, output);
+        Array.prototype.push.apply(commands, signCommands);
     }
 
     return commands;

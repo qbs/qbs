@@ -37,7 +37,6 @@ import "codesign.js" as CODESIGN
 CodeSignModule {
     condition: qbs.targetOS.includes("windows")
                && Host.os().includes("windows")
-               && qbs.toolchain.includes("msvc")
 
     _canSignArtifacts: true
 
