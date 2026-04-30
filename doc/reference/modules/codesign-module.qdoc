@@ -33,8 +33,8 @@
 
     \brief Provides code signing support.
 
-    The \c codesign module contains properties and rules for code signing on Apple and Android
-    platforms.
+    The \c codesign module contains properties and rules for code signing on Apple, Android,
+    and Windows platforms.
 
     \section2 Relevant File Tags
 
