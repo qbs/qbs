@@ -141,6 +141,77 @@ void TestBlackboxWindows::innoSetup()
     QVERIFY(regularFileExists(relativeProductBuildDir("Example1") + "/Example1.exe"));
 }
 
+void TestBlackboxWindows::innoSetupCodesign()
+{
+    QFETCH(SigntoolInfo::CodeSignResult, result);
+    QFETCH(QString, hashAlgorithm);
+    QFETCH(QString, subjectName);
+    QFETCH(QString, signingTimestamp);
+
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    QDir::setCurrent(testDataDir + "/innosetup");
+
+    const QStringList arguments{
+        "--force-probe-execution",
+        QStringLiteral("project.enableSigning:%1")
+            .arg((result == SigntoolInfo::CodeSignResult::Signed) ? "true" : "false"),
+        QStringLiteral("project.hashAlgorithm:%1").arg(hashAlgorithm),
+        QStringLiteral("project.subjectName:%1").arg(subjectName),
+        QStringLiteral("project.signingTimestamp:%1").arg(signingTimestamp)};
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs({"resolve", arguments}), 0);
+    const bool withInnosetup = m_qbsStdout.contains("has innosetup: true");
+    const bool withoutInnosetup = m_qbsStdout.contains("has innosetup: false");
+    QVERIFY2(withInnosetup || withoutInnosetup, m_qbsStdout.constData());
+    if (withoutInnosetup)
+        QSKIP("innosetup module not present");
+
+    QCOMPARE(runQbs({arguments}), 0);
+
+    if (!m_qbsStdout.contains("signtool path:"))
+        QSKIP("No current signtool path pattern exists");
+
+    const auto signtoolPath = extractSigntoolPath(m_qbsStdout);
+    QVERIFY(QFileInfo::exists(signtoolPath));
+
+    QVERIFY(m_qbsStdout.contains("compiling test.iss"));
+    QVERIFY(m_qbsStdout.contains("compiling Example1.iss"));
+
+    const QStringList outputBinaryPaths = {
+        relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe",
+        relativeProductBuildDir("Example1") + "/Example1.exe"};
+
+    for (const auto &outputBinaryPath : outputBinaryPaths) {
+        QVERIFY(regularFileExists(outputBinaryPath));
+
+        const SigntoolInfo signtoolInfo = extractSigntoolInfo(signtoolPath, outputBinaryPath);
+        QVERIFY(signtoolInfo.result != SigntoolInfo::CodeSignResult::Failed);
+        QCOMPARE(signtoolInfo.result, result);
+        QCOMPARE(signtoolInfo.hashAlgorithm, hashAlgorithm);
+        QCOMPARE(signtoolInfo.subjectName, subjectName);
+        QCOMPARE(signtoolInfo.timestamped, !signingTimestamp.isEmpty());
+    }
+}
+
+void TestBlackboxWindows::innoSetupCodesign_data()
+{
+    QTest::addColumn<SigntoolInfo::CodeSignResult>("result");
+    QTest::addColumn<QString>("hashAlgorithm");
+    QTest::addColumn<QString>("subjectName");
+    QTest::addColumn<QString>("signingTimestamp");
+
+    QTest::newRow("innosetup, unsigned")
+        << SigntoolInfo::CodeSignResult::Unsigned << "" << "" << "";
+    QTest::newRow("innosetup, signed, sha1, qbs@community.test, no timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha1" << "qbs@community.test" << "";
+    QTest::newRow("innosetup, signed, sha256, qbs@community.test, RFC3161 timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha256" << "qbs@community.test"
+        << "http://timestamp.digicert.com";
+}
+
 void TestBlackboxWindows::innoSetupDependencies()
 {
     const SettingsPtr s = settings();

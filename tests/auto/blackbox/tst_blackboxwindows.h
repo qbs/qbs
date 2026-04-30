@@ -45,6 +45,8 @@ public slots:
 
 private slots:
     void innoSetup();
+    void innoSetupCodesign();
+    void innoSetupCodesign_data();
     void innoSetupDependencies();
     void standaloneCodesign();
     void standaloneCodesign_data();
