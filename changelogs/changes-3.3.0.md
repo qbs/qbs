@@ -5,6 +5,7 @@
 * Introduced new property `cpp.libraries` (QBS-1157).
 * Added support for clang's `-ftime-trace` flag.
 * Static linking on Unix systems will now use response files if necessary (QBS-751).
+* Added support for the `LoongArch` architecture.
 
 # Contributors
 * Christian Kandeler
