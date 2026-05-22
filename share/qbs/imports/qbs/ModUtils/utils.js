@@ -602,6 +602,10 @@ function guessArchitecture(m) {
             architecture = "hppa";
         } else if (hasAnyOf(m, ["__alpha__"])) {
             architecture = "alpha";
+        } else if (hasAnyOf(m, ["__loongarch__"])) {
+            architecture = "loongarch";
+            if (hasAnyOf(m, ["__loongarch_lp64"]))
+                architecture += "64";
         }
     }
 
