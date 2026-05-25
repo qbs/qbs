@@ -64,7 +64,7 @@ case "$OSTYPE" in
         HOST_OS=linux-x86_64
         INSTALL_DIR=/opt/qbs
         ;;
-    msys)
+    msys|cygwin)
         HOST_OS=windows-x86_64
         INSTALL_DIR=/c/qbs
         ;;

@@ -53,7 +53,7 @@ BUILD_OPTIONS="\
 "
 
 EXE_SUFFIX=""
-if [[ "$OSTYPE" == "msys" ]]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     EXE_SUFFIX=".exe"
 else
     BUILD_OPTIONS="\

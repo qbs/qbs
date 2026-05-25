@@ -54,7 +54,7 @@ case "$OSTYPE" in
         HOST_OS=mac_$ARCH
         TOOLCHAIN=clang_64
         ;;
-    msys)
+    msys|cygwin)
         HOST_OS=win_x64
         TOOLCHAIN=msvc_64
         ;;
