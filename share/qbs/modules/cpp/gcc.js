@@ -1846,7 +1846,9 @@ function wasmArtifacts(product)
     if (suffix !== ".wasm") {
         if (suffix === ".html")
             artifacts.push(createAppArtifact(product.targetName + ".js"));
-        if (pthread)
+        // Emscripten 3.1.68+ no longer generates a separate worker.js file
+        // (pthread worker bootstrap is now embedded in the main .js file)
+        if (pthread && Utilities.versionCompare(product.cpp.compilerVersion, "3.1.68") < 0)
             artifacts.push(createAppArtifact(product.targetName + ".worker.js"));
     }
 
