@@ -9397,6 +9397,48 @@ void TestBlackbox::includeLookup()
     QVERIFY2(m_qbsStdout.contains("definition.."), m_qbsStdout.constData());
 }
 
+void TestBlackbox::includePathChangeTracking()
+{
+    QDir::setCurrent(testDataDir + "/include-path-change-tracking");
+
+    // Initial build: cpp.includePaths points at subdir1, so the scanner
+    // registers subdir1/theheader.h as a dependency of main.cpp.
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    // Touching the registered header must trigger a rebuild.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir1/theheader.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    // Re-resolve, switching cpp.includePaths to subdir2 via the headerSubdir property.
+    // This must:
+    //   1. cause main.cpp to be re-compiled (commands changed), and
+    //   2. re-scan main.cpp so subdir2/theheader.h becomes the new registered
+    //      dependency and subdir1/theheader.h is no longer one.
+    QbsRunParameters resolveParams("resolve");
+    resolveParams.arguments << "products.app.headerSubdir:subdir2";
+    QCOMPARE(runQbs(resolveParams), 0);
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    // Touching subdir2/theheader.h must trigger a rebuild now.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir2/theheader.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+
+    // Touching the previously-registered subdir1/theheader.h must NOT trigger a rebuild,
+    // because it is no longer on the scanner's search path.
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("subdir1/theheader.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::inputTagsChangeTracking_data()
 {
     QTest::addColumn<QString>("generateInput");

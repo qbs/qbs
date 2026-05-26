@@ -162,6 +162,7 @@ private slots:
     void importingProduct();
     void importsConflict();
     void includeLookup();
+    void includePathChangeTracking();
     void inputTagsChangeTracking_data();
     void inputTagsChangeTracking();
     void inputsFromDependencies();
