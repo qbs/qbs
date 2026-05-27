@@ -50,10 +50,10 @@ Examples
 Options
   -d, --directory <directory>
         Root directory where to install the components.
-        Maps to C:/qbs on Windows, /opt/qbs on Linux by default.
+        Maps to C:/qbs on Windows, /opt/qbs on Linux and macOS by default.
   --host <host-os>
         The host operating system. Can be one of linux-x86_64,
-        windows-x86_64. Auto-detected by default.
+        macos-x86_64, macos-arm64, windows-x86_64. Auto-detected by default.
   --version <version>
         The desired Qbs version.
 EOF
@@ -64,7 +64,21 @@ case "$OSTYPE" in
         HOST_OS=linux-x86_64
         INSTALL_DIR=/opt/qbs
         ;;
-    msys)
+    darwin*)
+        case "$(uname -m)" in
+            arm64)
+                HOST_OS=macos-arm64
+                ;;
+            x86_64)
+                HOST_OS=macos-x86_64
+                ;;
+            *)
+                HOST_OS=
+                ;;
+        esac
+        INSTALL_DIR=/opt/qbs
+        ;;
+    msys|cygwin)
         HOST_OS=windows-x86_64
         INSTALL_DIR=/c/qbs
         ;;
@@ -141,7 +155,7 @@ mkdir -p ${INSTALL_DIR}
 
 echo "Downloading Qbs ${VERSION}..." >&2
 cd ${DOWNLOAD_DIR}
-if [[ ${HOST_OS} == "linux-x86_64" ]]; then
+if [[ ${HOST_OS} == "linux-x86_64" ]] || [[ ${HOST_OS} == macos-x86_64 ]] || [[ ${HOST_OS} == macos-arm64 ]]; then
     FILENAME="${BASE_FILENAME}.tar.gz"
     curl -L "${MIRROR}/official_releases/qbs/${VERSION}/${FILENAME}" > ${FILENAME}
     tar -xzf ${FILENAME}
@@ -149,6 +163,9 @@ elif [[ ${HOST_OS} == "windows-x86_64" ]]; then
     FILENAME="${BASE_FILENAME}.zip"
     curl -L "${MIRROR}/official_releases/qbs/${VERSION}/${FILENAME}" > ${FILENAME}
     7z x -y -o${BASE_FILENAME} ${FILENAME} >/dev/null 2>&1
+else
+    echo "Unsupported host OS: ${HOST_OS}" >&2
+    exit 1
 fi
 mv ${BASE_FILENAME} ${INSTALL_DIR}
 rm ${FILENAME}

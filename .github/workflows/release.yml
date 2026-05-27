@@ -126,8 +126,8 @@ jobs:
       uses: ./.github/actions/download-qt
       with:
         toolchain: ${{ matrix.config.toolchain }}
-    - name: Install Qt Creator
-      uses: ./.github/actions/download-qtc
+    - name: Install Qbs
+      uses: ./.github/actions/download-qbs
     - name: Setup Qbs
       run: |
         qbs setup-toolchains --detect
