@@ -71,7 +71,7 @@ if [[ "$OSTYPE" =~ "linux" ]]; then
     elif [[ "$HOSTTYPE" == "x86" ]]; then
         BIN_DIR="binl"
     fi
-elif [[ "$OSTYPE" == "msys" ]]; then
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
     INSTALL_DIR="/c/watcom"
     if [[ "$HOSTTYPE" == "x86_64" ]]; then
         BIN_DIR="binnt64"

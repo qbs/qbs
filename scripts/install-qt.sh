@@ -124,7 +124,7 @@ case "$OSTYPE" in
         TOOLCHAIN=clang_64
         MD5_TOOL="md5 -r"
         ;;
-    msys)
+    msys|cygwin)
         HOST_OS=windows_x86
         INSTALL_DIR=/c/Qt
         TOOLCHAIN=win64_msvc2015_64
