@@ -86,6 +86,7 @@ static void doScanCppFile(
     const QLatin1String qobjectLiteral("Q_OBJECT");
     const QLatin1String qgadgetLiteral("Q_GADGET");
     const QLatin1String qnamespaceLiteral("Q_NAMESPACE");
+    const QLatin1String qnamespaceExportLiteral("Q_NAMESPACE_EXPORT");
     const QLatin1String pluginMetaDataLiteral("Q_PLUGIN_METADATA");
 
     const TokenComparator tc(context.fileContent.data());
@@ -221,7 +222,8 @@ static void doScanCppFile(
                     // Example: iplugin.h in Qt Creator.
                 } else {
                     if (tc.equals(tk, qobjectLiteral) || tc.equals(tk, qgadgetLiteral)
-                        || tc.equals(tk, qnamespaceLiteral)) {
+                        || tc.equals(tk, qnamespaceLiteral)
+                        || tc.equals(tk, qnamespaceExportLiteral)) {
                         context.hasQObjectMacro = true;
                     } else if (tc.equals(tk, pluginMetaDataLiteral)) {
                         context.hasPluginMetaDataMacro = true;

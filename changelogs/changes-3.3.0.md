@@ -7,6 +7,9 @@
 * Static linking on Unix systems will now use response files if necessary (QBS-751).
 * Added support for the `LoongArch` architecture.
 
+# Qt support
+* Moc scanner now supports the Q_NAMESPACE_EXPORT macro.
+
 # Contributors
 * Christian Kandeler
 * Ivan Komissarov
