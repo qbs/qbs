@@ -63,6 +63,7 @@ class RawScanResult
 public:
     std::vector<RawScannedDependency> deps;
     FileTags additionalFileTags;
+    QVariantMap scannerProperties;
     // TODO: does this belong here?
     QString providesModule;
     QString partOfModule;
@@ -75,6 +76,7 @@ public:
         pool.serializationOp<opType>(
             deps,
             additionalFileTags,
+            scannerProperties,
             providesModule,
             partOfModule,
             isInterfaceModule,
@@ -112,6 +114,12 @@ public:
         const PropertyMapConstPtr &moduleProperties);
 
     void invalidateResults(const QString &scannerId);
+
+    const ScanData *existingScanData(
+        const FileResourceBase *file,
+        const QString &scannerId,
+        const PropertyMapConstPtr &moduleProperties,
+        const FilterFunction &filter) const;
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {

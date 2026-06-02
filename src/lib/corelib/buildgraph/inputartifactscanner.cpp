@@ -53,6 +53,8 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/scannerpluginmanager.h>
+#include <tools/scripttools.h>
+#include <tools/stringconstants.h>
 
 #include <QtCore/QDir>
 
@@ -336,8 +338,8 @@ void InputArtifactScanner::resolveScanResultDependencies(
     auto getResolvedDependency =
         [inputArtifact, &cache](const RawScannedDependency &dependency) -> ResolvedDependency * {
         const QString &dependencyFilePath = dependency.filePath();
-        InputArtifactScannerContext::ResolvedDependencyCacheItem &cachedResolvedDependencyItem
-                = cache.resolvedDependenciesCache[dependency.dirPath()][dependency.fileName()];
+        auto &dirCache = cache.resolvedDependenciesCache[dependency.dirPath()];
+        auto &cachedResolvedDependencyItem = dirCache[dependency.fileName()];
         if (cachedResolvedDependencyItem) {
             ResolvedDependency &resolvedDependency = *cachedResolvedDependencyItem;
             if (resolvedDependency.filePath.isEmpty())
@@ -455,11 +457,18 @@ void InputArtifactScanner::scanWithScannerPlugin(
     RawScanResult *scanResult)
 {
     scanResult->deps.clear();
+    scanResult->scannerProperties.clear();
     const auto fileTagsForScanner
         = inputArtifact->fileTags().toStringList().join(QLatin1Char(',')).toLatin1();
-    const QStringList &dependencies = scanner->collectDependencies(
+    // It would be nice to return searchPaths from the scan() too, but due to different caching
+    // rules we cannot use it here, at least for now. The problem is that for the cpp scanner,
+    // we cache searchPaths per properties, but the scan() is run when the artifact is changed,
+    // so searchPaths won't be requested if file is not changed. Maybe simply running scan script
+    // on properties change (!cacheHit in the method above) will fix that.
+    const auto scannerResult = scanner->collectScanResult(
         inputArtifact, fileToBeScanned, fileTagsForScanner.constData());
-    for (const QString &s : dependencies)
+    scanResult->scannerProperties = scannerResult.scannerProperties;
+    for (const QString &s : scannerResult.dependencies)
         scanResult->deps.emplace_back(s);
 }
 

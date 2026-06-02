@@ -79,6 +79,25 @@ RawScanResults::ScanData &RawScanResults::findScanData(
     return findScanData(file, scanner->id(), moduleProperties, predicate);
 }
 
+const RawScanResults::ScanData *RawScanResults::existingScanData(
+    const FileResourceBase *file,
+    const QString &scannerId,
+    const PropertyMapConstPtr &moduleProperties,
+    const FilterFunction &filter) const
+{
+    const auto it = m_rawScanData.find(file->filePath());
+    if (it == m_rawScanData.end())
+        return nullptr;
+    for (const ScanData &scanData : it->second) {
+        if (scannerId != scanData.scannerId)
+            continue;
+        if (!filter(moduleProperties, scanData.moduleProperties))
+            continue;
+        return &scanData;
+    }
+    return nullptr;
+}
+
 void RawScanResults::invalidateResults(const QString &scannerId)
 {
     for (auto it = m_rawScanData.begin(); it != m_rawScanData.end(); ++it) {

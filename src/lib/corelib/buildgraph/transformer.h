@@ -86,8 +86,11 @@ public:
     bool commandsNeedChangeTracking = false;
     bool markedForRerun = false;
 
-    static JSValue translateFileConfig(ScriptEngine *engine, Artifact *artifact,
-                                       const QString &defaultModuleName);
+    static JSValue translateFileConfig(
+        ScriptEngine *engine,
+        Artifact *artifact,
+        const QString &defaultModuleName,
+        bool exposeQbsScanners = false);
     ResolvedProductPtr product() const;
     void setupInputs(ScriptEngine *engine, const JSValue &targetScriptValue);
     void setupOutputs(ScriptEngine *engine, JSValue targetScriptValue);

@@ -122,10 +122,13 @@ static void setArtifactProperty(JSContext *ctx, JSValue &obj, const QString &nam
     JS_DefinePropertyGetSet(ctx, obj, nameAtom, jsFunc, JS_UNDEFINED, JS_PROP_HAS_GET);
 }
 
-JSValue Transformer::translateFileConfig(ScriptEngine *engine, Artifact *artifact,
-                                         const QString &defaultModuleName)
+JSValue Transformer::translateFileConfig(
+    ScriptEngine *engine,
+    Artifact *artifact,
+    const QString &defaultModuleName,
+    bool exposeQbsScanners)
 {
-    return engine->getArtifactScriptValue(artifact, defaultModuleName, [&](JSValue obj) {
+    JSValue base = engine->getArtifactScriptValue(artifact, defaultModuleName, [&](JSValue obj) {
         ModuleProperties::init(engine, obj, artifact);
         JSContext * const ctx = engine->context();
         setJsProperty(ctx, obj, StringConstants::fileNameProperty(), artifact->fileName());
@@ -141,6 +144,18 @@ JSValue Transformer::translateFileConfig(ScriptEngine *engine, Artifact *artifac
         if (!defaultModuleName.isEmpty())
             setJsProperty(ctx, obj, StringConstants::moduleNameProperty(), defaultModuleName);
     });
+    if (!exposeQbsScanners)
+        return base;
+
+    // Thin wrapper so qbsScanners does not mutate the cached base object. The wrapper carries the
+    // same Artifact* opaque so getters (baseName, children, …) keep working when this is the
+    // receiver.
+    JSContext * const ctx = engine->context();
+    JSValue wrapper = JS_NewObjectProtoClass(ctx, base, engine->dataWithPtrClass());
+    JS_FreeValue(ctx, base);
+    attachPointerTo(wrapper, artifact);
+    ModuleProperties::setArtifactQbsScanners(engine, wrapper, artifact);
+    return wrapper;
 }
 
 static bool compareByFilePath(const Artifact *a1, const Artifact *a2)
@@ -165,8 +180,11 @@ JSValue Transformer::translateInOutputs(ScriptEngine *engine, const ArtifactSet 
         JSValue jsFileConfig = JS_NewArray(engine->context());
         int i = 0;
         for (Artifact * const artifact : artifacts) {
-            JS_SetPropertyUint32(engine->context(), jsFileConfig, i++,
-                                 translateFileConfig(engine, artifact, defaultModuleName));
+            JS_SetPropertyUint32(
+                engine->context(),
+                jsFileConfig,
+                i++,
+                translateFileConfig(engine, artifact, defaultModuleName, true));
         }
         setJsProperty(engine->context(), jsTagFiles, tag.key(), jsFileConfig);
     }

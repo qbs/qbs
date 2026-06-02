@@ -246,6 +246,8 @@ public:
     QBS_STRING_CONSTANT(x86_64Arch, "x86_64")
 
     QBS_STRING_CONSTANT(profilesSettingsPrefix, "profiles.")
+    QBS_STRING_CONSTANT(qbsScannersModule, "qbsScanners")
+    QBS_STRING_CONSTANT(scannerPropertiesProperty, "scannerProperties")
 
 private:
     QBS_STRING_CONSTANT(cpp, "cpp")

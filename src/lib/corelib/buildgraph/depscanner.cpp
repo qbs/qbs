@@ -52,6 +52,7 @@
 #include <plugins/scanner/scanner.h>
 #include <tools/error.h>
 #include <tools/fileinfo.h>
+#include <tools/scripttools.h>
 #include <tools/stringconstants.h>
 
 #include <QtCore/qvariant.h>
@@ -98,23 +99,34 @@ QString DependencyScanner::id() const
 
 QStringList DependencyScanner::collectSearchPaths(Artifact *artifact)
 {
-    if (!m_plugin)
-        return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
+    if (!m_plugin) {
+        if (!m_scanner->searchPathsScript.isValid())
+            return {};
+        return evaluateStringListScript(
+            artifact,
+            nullptr,
+            m_scanner->searchPathsScript,
+            Tr::tr("Search paths script must return an array of paths."));
+    }
 
     const QStringList buildDirectories = collectProductBuildDirectories(artifact->product.get());
     return m_plugin->collectSearchPaths(
         artifact->properties->value(), buildDirectories, artifact->fileTags().toStringList());
 }
 
-QStringList DependencyScanner::collectDependencies(
+DependencyScanner::ScanResult DependencyScanner::collectScanResult(
     Artifact *artifact, FileResourceBase *file, const char *fileTags)
 {
-    QStringList result;
-    if (m_plugin)
-        result = m_plugin->scan(file->filePath(), fileTags, artifact->properties->value());
-    else
-        result = evaluate(artifact, file, m_scanner->scanScript);
-    result.removeDuplicates();
+    ScanResult result;
+    if (m_plugin) {
+        const ScannerScanResult scanResult = m_plugin->scan(
+            file->filePath(), fileTags, artifact->properties->value());
+        result.dependencies = scanResult.dependencies;
+        result.scannerProperties = scanResult.scannerProperties;
+    } else {
+        result = evaluateScanScript(artifact, file, m_scanner->scanScript);
+    }
+    result.dependencies.removeDuplicates();
     return result;
 }
 
@@ -161,8 +173,27 @@ public:
     }
 };
 
-QStringList DependencyScanner::evaluate(
-    Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
+static QStringList jsValueToStringList(JSContext *ctx, JSValue value)
+{
+    QStringList list;
+    if (!JS_IsArray(value))
+        return list;
+    const int count = getJsIntProperty(ctx, value, StringConstants::lengthProperty());
+    list.reserve(count);
+    for (qint32 i = 0; i < count; ++i) {
+        JSValue item = JS_GetPropertyUint32(ctx, value, i);
+        if (!JS_IsUninitialized(item) && !JS_IsUndefined(item))
+            list.push_back(getJsString(ctx, item));
+        JS_FreeValue(ctx, item);
+    }
+    return list;
+}
+
+JSValue DependencyScanner::callScannerScript(
+    Artifact *artifact,
+    const FileResourceBase *fileToScan,
+    const PrivateScriptFunction &script,
+    const QString &errorMessagePrefix)
 {
     ScriptEngineActiveFlagGuard guard(m_engine);
 
@@ -182,37 +213,76 @@ QStringList DependencyScanner::evaluate(
     const ScopedJsValueList argsMgr(m_engine->context(), args);
 
     const TemporaryGlobalObjectSetter gos(m_engine, m_global);
-    const JSValue function = script.getFunction(m_engine, Tr::tr("Invalid scan script."));
-    const ScopedJsValue result(
-        m_engine->context(),
-        JS_Call(
-            m_engine->context(),
-            function,
-            m_engine->globalObject(),
-            int(args.size()),
-            args.data()));
+    const JSValue function = script.getFunction(m_engine, Tr::tr("Invalid scanner script."));
+    const JSValue result = JS_Call(
+        m_engine->context(), function, m_engine->globalObject(), int(args.size()), args.data());
 
     m_engine->mergeAndClearTrackedScriptAccesses(*m_scanner->scriptAccesses);
 
     if (m_engine->checkForJsError(script.location())) {
         ErrorInfo err = m_engine->getAndClearJsError();
-        err.prepend(Tr::tr("Error evaluating scan script"));
+        err.prepend(errorMessagePrefix);
         throw err;
     }
 
-    QStringList list;
+    return result;
+}
+
+QStringList DependencyScanner::evaluateStringListScript(
+    Artifact *artifact,
+    const FileResourceBase *fileToScan,
+    const PrivateScriptFunction &script,
+    const QString &invalidReturnMessage)
+{
+    const ScopedJsValue result(
+        m_engine->context(),
+        callScannerScript(
+            artifact, fileToScan, script, Tr::tr("Error evaluating search paths script")));
+    if (!JS_IsArray(result))
+        throw ErrorInfo(invalidReturnMessage, script.location());
+    return jsValueToStringList(m_engine->context(), result);
+}
+
+DependencyScanner::ScanResult DependencyScanner::evaluateScanScript(
+    Artifact *artifact, const FileResourceBase *fileToScan, const PrivateScriptFunction &script)
+{
+    const ScopedJsValue result(
+        m_engine->context(),
+        callScannerScript(artifact, fileToScan, script, Tr::tr("Error evaluating scan script")));
+
+    ScanResult scanResult;
+    JSContext * const ctx = m_engine->context();
     if (JS_IsArray(result)) {
-        const int count = getJsIntProperty(
-            m_engine->context(), result, StringConstants::lengthProperty());
-        list.reserve(count);
-        for (qint32 i = 0; i < count; ++i) {
-            JSValue item = JS_GetPropertyUint32(m_engine->context(), result, i);
-            if (!JS_IsUninitialized(item) && !JS_IsUndefined(item))
-                list.push_back(getJsString(m_engine->context(), item));
-            JS_FreeValue(m_engine->context(), item);
-        }
+        scanResult.dependencies = jsValueToStringList(ctx, result);
+        return scanResult;
     }
-    return list;
+
+    if (!JS_IsObject(result) || JS_IsArray(result) || JS_IsError(result) || JS_IsRegExp(result)) {
+        throw ErrorInfo(
+            Tr::tr("Scan script must return an array of dependency paths or an object"),
+            script.location());
+    }
+
+    const ScopedJsValue searchPathsValue(
+        ctx, getJsProperty(ctx, result, StringConstants::searchPathsProperty()));
+    if (!JS_IsUndefined(searchPathsValue)) {
+        throw ErrorInfo(
+            Tr::tr("Scan script must not return searchPaths; use the Scanner.searchPaths "
+                   "script instead."),
+            script.location());
+    }
+
+    const ScopedJsValue dependenciesValue(
+        ctx, getJsProperty(ctx, result, StringConstants::dependenciesProperty()));
+    if (!JS_IsUndefined(dependenciesValue))
+        scanResult.dependencies = jsValueToStringList(ctx, dependenciesValue);
+
+    const ScopedJsValue scannerPropertiesValue(
+        ctx, getJsProperty(ctx, result, StringConstants::scannerPropertiesProperty()));
+    if (!JS_IsUndefined(scannerPropertiesValue))
+        scanResult.scannerProperties = getJsVariant(ctx, scannerPropertiesValue).toMap();
+
+    return scanResult;
 }
 
 } // namespace Internal

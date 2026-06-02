@@ -1,0 +1,1 @@
+out-from-b.txt

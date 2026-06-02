@@ -90,6 +90,12 @@
     That global id must be unique within the product, including scanners coming
     from modules.
 
+    In prepare and \c outputArtifacts scripts, scanner properties are exposed via
+    \c{input.qbsScanners.<scannerId>.<propertyName>} (use bracket notation when the
+    id contains dots, for example \c{input.qbsScanners["Qt.core.moc"]}). They are
+    not available on \c input in scan scripts; values come from the last scan
+    stored in the build graph.
+
     If not set explicitly, the \l pluginName is used for plugin-based scanners.
     Otherwise, a stable identifier (SHA1-hash) is derived from the \l scan script.
 
@@ -110,8 +116,18 @@
 /*!
     \qmlproperty script Scanner::scan
 
-    A script that reads the input artifact and returns a string list with
-    dependencies.
+    A script that reads the input artifact and returns either a string list with
+    dependencies or an object.
+
+    If the return value is an array, it is interpreted as a list of dependency paths.
+
+    If the return value is an object, it may be empty or provide \c dependencies
+    and/or \c scannerProperties.
+    The \c dependencies property provides the dependency paths.
+    The \c scannerProperties property is a map of custom values stored in the
+    build graph and exposed as \c{input.qbsScanners.<scannerId>.<propertyName>}
+    in prepare and \c outputArtifacts scripts (not in scan scripts).
+    Use the separate \l searchPaths script to supply search paths.
 
     The code in this script is treated as a function with the signature
     \c{function(project, product, input, filePath)}, where \c input is

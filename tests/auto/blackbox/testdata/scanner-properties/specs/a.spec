@@ -1,0 +1,1 @@
+out-from-a.txt

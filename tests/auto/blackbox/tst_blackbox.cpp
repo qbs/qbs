@@ -3347,6 +3347,28 @@ void TestBlackbox::scannerItem()
     QCOMPARE(m_qbsStdout.contains("handling file2.in"), successExpected);
 }
 
+void TestBlackbox::scannerProperties()
+{
+    QDir::setCurrent(testDataDir + "/scanner-properties");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(), 0);
+
+    const QString buildDir = relativeProductBuildDir("scanner-properties");
+    QVERIFY(regularFileExists(buildDir + "/out-from-a.txt"));
+    QVERIFY(regularFileExists(buildDir + "/out-from-b.txt"));
+    QVERIFY(!QFile::exists(buildDir + "/a.spec"));
+    QVERIFY(!QFile::exists(buildDir + "/b.spec"));
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    QFile specFile("specs/a.spec");
+    QVERIFY(specFile.open(QIODevice::WriteOnly | QIODevice::Truncate));
+    QVERIFY(specFile.write("renamed-a.txt"));
+    specFile.close();
+    QCOMPARE(runQbs(), 0);
+    QVERIFY(regularFileExists(buildDir + "/renamed-a.txt"));
+    QVERIFY(!QFile::exists(buildDir + "/out-from-a.txt"));
+}
+
 void TestBlackbox::scannerChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/scanner-change-tracking");

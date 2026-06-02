@@ -43,6 +43,8 @@
 #include <buildgraph/artifactsscriptvalue.h>
 #include <buildgraph/buildgraph.h>
 #include <buildgraph/dependencyparametersscriptvalue.h>
+#include <buildgraph/projectbuilddata.h>
+#include <buildgraph/rawscanresults.h>
 #include <language/language.h>
 #include <language/propertymapinternal.h>
 #include <language/qualifiedid.h>
@@ -270,6 +272,55 @@ void ModuleProperties::init(ScriptEngine *engine, JSValue productObject,
 {
     initModuleProperties<ResolvedProduct>(engine, productObject);
     setupModules(engine, productObject, product, nullptr);
+}
+
+QVariantMap ModuleProperties::buildQbsScannersMap(const Artifact *artifact)
+{
+    const ResolvedProduct * const product = artifact->product.get();
+    ProjectBuildData * const buildData = product->topLevelProject()->buildData.get();
+    if (!buildData)
+        return {};
+
+    const RawScanResults &rawScanResults = buildData->rawScanResults;
+    const auto modulePropertiesPredicate = [](const PropertyMapConstPtr &lhs,
+                                              const PropertyMapConstPtr &rhs) {
+        return lhs == rhs || *lhs == *rhs;
+    };
+
+    QVariantMap scannersCfg;
+    for (const ResolvedScannerPtr &scanner : product->scanners) {
+        bool matchesInput = false;
+        for (const FileTag &fileTag : artifact->fileTags()) {
+            if (scanner->inputs.contains(fileTag)) {
+                matchesInput = true;
+                break;
+            }
+        }
+        if (!matchesInput)
+            continue;
+
+        const RawScanResults::ScanData * const scanData = rawScanResults.existingScanData(
+            artifact, scanner->scannerId, artifact->properties, modulePropertiesPredicate);
+        if (!scanData || scanData->rawScanResult.scannerProperties.isEmpty())
+            continue;
+
+        scannersCfg.insert(scanner->scannerId, scanData->rawScanResult.scannerProperties);
+    }
+    return scannersCfg;
+}
+
+void ModuleProperties::setArtifactQbsScanners(
+    ScriptEngine *engine, JSValue artifactObject, const Artifact *artifact)
+{
+    const QVariantMap scannersCfg = buildQbsScannersMap(artifact);
+    ScopedJsValue jsScanners(
+        engine->context(),
+        scannersCfg.isEmpty() ? engine->newObject() : engine->toScriptValue(scannersCfg));
+    setJsProperty(
+        engine->context(),
+        artifactObject,
+        StringConstants::qbsScannersModule(),
+        jsScanners.release());
 }
 
 void ModuleProperties::init(ScriptEngine *engine, JSValue artifactObject, const Artifact *artifact)

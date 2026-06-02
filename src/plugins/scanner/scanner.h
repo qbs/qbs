@@ -46,13 +46,19 @@
 #define SC_LOCAL_INCLUDE_FLAG 0x1
 #define SC_GLOBAL_INCLUDE_FLAG 0x2
 
+struct ScannerScanResult
+{
+    QStringList dependencies;
+    QVariantMap scannerProperties;
+};
+
 class ScannerPlugin
 {
 public:
     virtual ~ScannerPlugin() = default;
 
     virtual QString name() const = 0;
-    virtual QStringList scan(
+    virtual ScannerScanResult scan(
         const QString &filePath, const char *fileTags, const QVariantMap &properties) const
         = 0;
     virtual QStringList collectSearchPaths(

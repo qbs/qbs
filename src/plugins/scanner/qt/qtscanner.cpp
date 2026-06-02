@@ -150,25 +150,28 @@ class QrcScannerPlugin : public ScannerPlugin
 {
 public:
     QString name() const override { return QStringLiteral("qt_qrc_scanner"); }
-    QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
-        const override;
+    ScannerScanResult scan(
+        const QString &filePath,
+        const char *fileTags,
+        const QVariantMap &properties) const override;
     QStringList collectSearchPaths(
         const QVariantMap &properties,
         const QStringList &productBuildDirectories,
         const QStringList &fileTags) const override;
 };
 
-QStringList QrcScannerPlugin::scan(
+ScannerScanResult QrcScannerPlugin::scan(
     const QString &filePath, const char *fileTags, const QVariantMap &properties) const
 {
     Q_UNUSED(fileTags);
     Q_UNUSED(properties);
 
-    QStringList results;
+    ScannerScanResult scanResult;
+    QStringList &results = scanResult.dependencies;
 
     QrcScannerFile context;
     if (!context.open(filePath))
-        return results;
+        return scanResult;
 
     const QString baseDir = QFileInfo(filePath).path();
     QXmlStreamReader xml(QByteArray::fromRawData(context.data(), context.size()));
@@ -188,7 +191,7 @@ QStringList QrcScannerPlugin::scan(
         }
     }
 
-    return results;
+    return scanResult;
 }
 
 QStringList QrcScannerPlugin::collectSearchPaths(

@@ -51,8 +51,10 @@ class CppScannerPlugin : public ScannerPlugin
 {
 public:
     QString name() const override { return QStringLiteral("cpp_include_scanner"); }
-    QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
-        const override;
+    ScannerScanResult scan(
+        const QString &filePath,
+        const char *fileTags,
+        const QVariantMap &properties) const override;
     QStringList collectSearchPaths(
         const QVariantMap &properties,
         const QStringList &productBuildDirectories,
@@ -65,19 +67,19 @@ private:
     static bool modulesEnabled(const QVariantMap &properties);
 };
 
-QStringList CppScannerPlugin::scan(
+ScannerScanResult CppScannerPlugin::scan(
     const QString &filePath, const char *fileTags, const QVariantMap &properties) const
 {
+    ScannerScanResult scanResult;
     qbs::Internal::CppScannerContext context;
     const bool ok = qbs::Internal::scanCppFile(context, filePath, fileTags, false, true);
     if (!ok)
-        return {};
+        return scanResult;
 
     const QString baseDir = QFileInfo(filePath).path();
     const QString compiledModuleSuffix = getCompiledModuleSuffix(properties);
 
-    QStringList results;
-    results.reserve(context.includedFiles.size() + context.requiresModules.size());
+    scanResult.dependencies.reserve(context.includedFiles.size() + context.requiresModules.size());
 
     for (const auto &include : context.includedFiles) {
         QString includePath = QString::fromUtf8(include.fileName.data(), include.fileName.size());
@@ -91,7 +93,7 @@ QStringList CppScannerPlugin::scan(
                 includePath = localPath;
         }
 
-        results.append(includePath);
+        scanResult.dependencies.append(includePath);
     }
 
     for (const auto &module : context.requiresModules) {
@@ -100,11 +102,11 @@ QStringList CppScannerPlugin::scan(
             // Convert module name to file path
             modulePath = modulePath.replace(QLatin1Char(':'), QLatin1Char('-'))
                          + compiledModuleSuffix;
-            results.append(modulePath);
+            scanResult.dependencies.append(modulePath);
         }
     }
 
-    return results;
+    return scanResult;
 }
 
 QStringList CppScannerPlugin::collectSearchPaths(

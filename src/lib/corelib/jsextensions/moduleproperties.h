@@ -63,6 +63,9 @@ class ModuleProperties
 public:
     static void init(ScriptEngine *engine, JSValue productObject, const ResolvedProduct *product);
     static void init(ScriptEngine *engine, JSValue artifactObject, const Artifact *artifact);
+    static void setArtifactQbsScanners(
+        ScriptEngine *engine, JSValue artifactObject, const Artifact *artifact);
+    static QVariantMap buildQbsScannersMap(const Artifact *artifact);
     static void setModuleScriptValue(ScriptEngine *engine, JSValue targetObject,
                                      const JSValue &moduleObject, const QString &moduleName);
 
