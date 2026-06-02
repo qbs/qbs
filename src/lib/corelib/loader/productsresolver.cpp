@@ -478,6 +478,8 @@ void ProductsResolver::handleFinishedThreads()
             checkForMissedBulkDependencies(product);
             topLevelProject.registerBulkDependencies(product);
             unblockProductsWaitingForDependency(product);
+
+            releaseProductDependencyContext(product);
         }
     }
 
@@ -535,6 +537,7 @@ void ProductsResolver::postProcess()
         // to be ready, and contrary to what one might assume, there is no proper ordering
         // between them regarding dependency resolving.
         setupExports(*product, m_loaderState);
+        releaseProductDependencyContext(*product);
     }
 
     for (const auto &engine : m_enginePool)

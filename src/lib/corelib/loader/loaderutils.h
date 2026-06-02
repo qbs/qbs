@@ -460,5 +460,7 @@ void resolveFileTagger(LoaderState &state, Item *item, ProjectContext *projectCo
                        ProductContext *productContext);
 const FileTag unknownFileTag();
 
+void releaseProductDependencyContext(ProductContext &product);
+
 } // namespace Internal
 } // namespace qbs

@@ -52,6 +52,7 @@
 #include <logging/translator.h>
 #include <tools/fileinfo.h>
 #include <tools/progressobserver.h>
+#include <tools/set.h>
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
@@ -814,6 +815,12 @@ const FileTag unknownFileTag()
 {
     static const FileTag tag("unknown-file-tag");
     return tag;
+}
+
+void releaseProductDependencyContext(ProductContext &product)
+{
+    if (product.dependenciesContext && product.dependenciesContext->dependenciesResolved)
+        product.dependenciesContext.reset();
 }
 
 bool ProductContext::dependenciesResolvingPending() const
