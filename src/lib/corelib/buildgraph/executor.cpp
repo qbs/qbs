@@ -1170,9 +1170,7 @@ void Executor::prepareProducts()
         for (const ResolvedScannerPtr &scanner : product->scanners) {
             if (scannerNeedsInvalidation(
                     scanner.get(), product.get(), m_productsByName, m_projectsByName)) {
-                scannersToInvalidate.insert(
-                    !scanner->pluginName.isEmpty() ? scanner->pluginName
-                                                   : scanner->scanScript.sourceCode());
+                scannersToInvalidate.insert(scanner->scannerId);
                 scanner->scriptAccesses->clear();
                 scannersInvalidated = true;
             }

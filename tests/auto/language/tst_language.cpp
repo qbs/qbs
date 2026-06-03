@@ -1212,6 +1212,12 @@ void TestLanguage::erroneousFiles_data()
     QTest::newRow("recursive-property-direct") << "refers to itself";
     QTest::newRow("recursive-property-indirect") << "refers to itself.*via 'b'.*via 'c'";
     QTest::newRow("recursive-property-indirect-via-module") << "refers to itself.*via 'a'";
+    QTest::newRow("duplicate-scanner-in-product")
+        << "duplicate-scanner-in-product.qbs:8:5 Duplicate scanner id 's'"
+           ".*duplicate-scanner-in-product.qbs:3:5 Previous scanner with the same id is here";
+    QTest::newRow("duplicate-scanner-in-module")
+        << "duplicate-scanner.qbs:7:5 Duplicate scanner id 'duplicate-scanner.s'"
+           ".*duplicate-scanner.qbs:2:5 Previous scanner with the same id is here";
 }
 
 void TestLanguage::erroneousFiles()

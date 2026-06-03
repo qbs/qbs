@@ -64,6 +64,8 @@
 #include <tools/setupprojectparameters.h>
 #include <tools/stringconstants.h>
 
+#include <QtCore/qcryptographichash.h>
+
 #include <algorithm>
 
 namespace qbs::Internal {
@@ -167,6 +169,7 @@ private:
         Item * const item;
     };
     std::vector<FileTagsFilterGroupInfo> m_fileTagsFilterGroups;
+    std::unordered_map<QString, CodeLocation> m_scannerLocationsById;
 };
 
 class ExportsResolver
@@ -1151,6 +1154,28 @@ QVariantMap ProductResolverStage2::evaluateModuleValues(Item *item, bool lookupP
     return moduleValues;
 }
 
+static QString makeScannerId(
+    const ResolvedScannerPtr &scanner,
+    const QString &explicitId,
+    const ModuleContext *moduleContext)
+{
+    QString localId = explicitId;
+    if (localId.isEmpty()) {
+        if (!scanner->pluginName.isEmpty())
+            localId = scanner->pluginName;
+        else
+            localId = QString::fromLatin1(
+                QCryptographicHash::hash(
+                    scanner->scanScript.sourceCode().toUtf8(), QCryptographicHash::Sha256)
+                    .toHex()
+                    .left(16));
+    }
+    // Module scanners are scoped by module name; product scanners use the local id alone.
+    if (!moduleContext)
+        return localId;
+    return moduleContext->module->name + QLatin1Char('.') + localId;
+}
+
 void ProductResolverStage2::resolveScanner(Item *item, ModuleContext *moduleContext)
 {
     Evaluator &evaluator = m_loaderState.evaluator();
@@ -1170,6 +1195,18 @@ void ProductResolverStage2::resolveScanner(Item *item, ModuleContext *moduleCont
                                               item, StringConstants::searchPathsProperty()));
     scanner->scanScript.initialize(m_loaderState.topLevelProject().scriptFunctionValue(
                                        item, StringConstants::scanProperty()));
+
+    scanner->scannerId = makeScannerId(
+        scanner, evaluator.stringValue(item, StringConstants::scannerIdProperty()), moduleContext);
+    const auto it = m_scannerLocationsById.find(scanner->scannerId);
+    if (it != m_scannerLocationsById.end()) {
+        ErrorInfo error(
+            Tr::tr("Duplicate scanner id '%1'").arg(scanner->scannerId), item->location());
+        error.append(Tr::tr("Previous scanner with the same id is here."), it->second);
+        throw error;
+    }
+    m_scannerLocationsById.emplace(scanner->scannerId, item->location());
+
     m_product.product->scanners.push_back(scanner);
 }
 

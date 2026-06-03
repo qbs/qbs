@@ -155,6 +155,7 @@ public:
     QBS_STRING_CONSTANT(requiresInputsProperty, "requiresInputs")
     QBS_STRING_CONSTANT(removalVersionProperty, "removalVersion")
     QBS_STRING_CONSTANT(scanProperty, "scan")
+    QBS_STRING_CONSTANT(scannerIdProperty, "scannerId")
     QBS_STRING_CONSTANT(searchPathsProperty, "searchPaths")
     QBS_STRING_CONSTANT(setupBuildEnvironmentProperty, "setupBuildEnvironment")
     QBS_STRING_CONSTANT(setupRunEnvironmentProperty, "setupRunEnvironment")

@@ -125,9 +125,7 @@ bool DependencyScanner::recursive() const
 
 QString DependencyScanner::createId() const
 {
-    if (m_plugin)
-        return m_plugin->name();
-    return m_scanner->scanScript.sourceCode();
+    return m_scanner->scannerId;
 }
 
 bool DependencyScanner::areModulePropertiesCompatible(

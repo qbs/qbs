@@ -603,6 +603,7 @@ void BuiltinDeclarations::addScannerItem()
     item << PropertyDeclaration(StringConstants::recursiveProperty(), PropertyDeclaration::Boolean,
                                 StringConstants::falseValue());
     item << PropertyDeclaration(StringConstants::pluginNameProperty(), PropertyDeclaration::String);
+    item << PropertyDeclaration(StringConstants::scannerIdProperty(), PropertyDeclaration::String);
     item << PropertyDeclaration(
         StringConstants::cacheIsPerFileProperty(),
         PropertyDeclaration::Boolean,

@@ -497,6 +497,7 @@ public:
     bool recursive = false;
     bool cacheIsPerFile = true;
     QString pluginName;
+    QString scannerId;
     CodeLocation location;
     PrivateScriptFunction searchPathsScript;
     PrivateScriptFunction scanScript;
@@ -510,6 +511,7 @@ public:
             recursive,
             cacheIsPerFile,
             pluginName,
+            scannerId,
             location,
             searchPathsScript,
             scanScript,

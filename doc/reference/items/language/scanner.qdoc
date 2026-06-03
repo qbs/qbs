@@ -80,6 +80,23 @@
 */
 
 /*!
+    \qmlproperty string Scanner::scannerId
+
+    An identifier for this scanner. For scanners declared in a module, the
+    module name is prepended to this property to form a global scanner id used
+    for caching scan results (for example, \c{cpp.myScanner}). For scanners
+    declared directly in a product, the value is used as-is.
+
+    That global id must be unique within the product, including scanners coming
+    from modules.
+
+    If not set explicitly, the \l pluginName is used for plugin-based scanners.
+    Otherwise, a stable identifier (SHA1-hash) is derived from the \l scan script.
+
+    \nodefaultvalue
+*/
+
+/*!
     \qmlproperty script Scanner::searchPaths
 
     A script that returns the paths where to look for dependencies.

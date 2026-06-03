@@ -924,7 +924,8 @@ bool operator==(const ResolvedScanner &s1, const ResolvedScanner &s2)
 {
     return s1.inputs == s2.inputs && s1.recursive == s2.recursive
            && s1.cacheIsPerFile == s2.cacheIsPerFile && s1.pluginName == s2.pluginName
-           && s1.searchPathsScript == s2.searchPathsScript && s1.scanScript == s2.scanScript;
+           && s1.scannerId == s2.scannerId && s1.searchPathsScript == s2.searchPathsScript
+           && s1.scanScript == s2.scanScript;
 }
 
 bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)

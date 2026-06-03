@@ -845,9 +845,7 @@ bool BuildGraphLoader::checkForScannerChanges(
             }
         }
         if (!found) {
-            m_scannersToInvalidate.insert(
-                !oldScanner->pluginName.isEmpty() ? oldScanner->pluginName
-                                                  : oldScanner->scanScript.sourceCode());
+            m_scannersToInvalidate.insert(oldScanner->scannerId);
             changed = true;
         }
     }
