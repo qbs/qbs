@@ -11,8 +11,12 @@
 # Qt support
 * Moc scanner now supports the Q_NAMESPACE_EXPORT macro.
 
+# Apple
+* Fixed installation of code-signed static frameworks on macOS 26.
+
 # Contributors
 * Christian Kandeler
 * Ivan Komissarov
 * Maximilian Hrabowski
 * Pino Toscano
+* Thorbjørn Lindeijer

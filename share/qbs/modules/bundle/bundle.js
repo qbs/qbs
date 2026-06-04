@@ -557,9 +557,13 @@ function generateBundleOutputs(product, inputs)
                 signatureFiles = signatureFiles.concat([
                     "CodeDirectory",
                     "CodeRequirements",
-                    "CodeRequirements-1",
                     "CodeSignature",
                 ]);
+                // Up to macOS 15, codesign additionally writes the internal
+                // requirement to a separate CodeRequirements-1 file. macOS 26
+                // no longer produces it, so only expect it on older hosts.
+                if (Utilities.versionCompare(product.qbs.hostOSVersion, "26") < 0)
+                    signatureFiles.push("CodeRequirements-1");
             }
             Array.prototype.push.apply(artifacts, signatureFiles.map(function(file) {
                 return {
