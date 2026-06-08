@@ -451,6 +451,7 @@ Module {
     }
 
     Scanner {
+        scannerId: "cpp"
         inputs: ["cpp", "cppm", "cpp_pch_src", "c", "c_pch_src",
                  "objcpp", "objcpp_pch_src", "objc", "objc_pch_src", "rc"]
         pluginName: "cpp_include_scanner"

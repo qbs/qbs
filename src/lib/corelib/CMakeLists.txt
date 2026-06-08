@@ -59,8 +59,6 @@ set(BUILD_GRAPH_SOURCES
     buildgraphloader.cpp
     buildgraphloader.h
     buildgraphvisitor.h
-    cppmodulesscanner.cpp
-    cppmodulesscanner.h
     cycledetector.cpp
     cycledetector.h
     dependencyparametersscriptvalue.cpp

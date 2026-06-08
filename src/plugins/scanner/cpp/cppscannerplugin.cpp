@@ -96,15 +96,29 @@ ScannerScanResult CppScannerPlugin::scan(
         scanResult.dependencies.append(includePath);
     }
 
+    QStringList requiresModules;
     for (const auto &module : context.requiresModules) {
         QString modulePath = QString::fromUtf8(module.data(), module.size());
-        if (!modulePath.isEmpty()) {
-            // Convert module name to file path
-            modulePath = modulePath.replace(QLatin1Char(':'), QLatin1Char('-'))
-                         + compiledModuleSuffix;
-            scanResult.dependencies.append(modulePath);
-        }
+        if (modulePath.isEmpty())
+            continue;
+        requiresModules.append(modulePath);
+        // Convert module name to file path
+        modulePath = modulePath.replace(QLatin1Char(':'), QLatin1Char('-')) + compiledModuleSuffix;
+        scanResult.dependencies.append(modulePath);
     }
+
+    if (!context.providesModule.isEmpty()) {
+        scanResult.scannerProperties.insert(
+            QStringLiteral("providesModule"), QString::fromUtf8(context.providesModule));
+    }
+    if (!context.partOfModule.isEmpty()) {
+        scanResult.scannerProperties.insert(
+            QStringLiteral("partOfModule"), QString::fromUtf8(context.partOfModule));
+    }
+    if (context.isInterface)
+        scanResult.scannerProperties.insert(QStringLiteral("isInterfaceModule"), true);
+    if (!requiresModules.isEmpty())
+        scanResult.scannerProperties.insert(QStringLiteral("requiresModules"), requiresModules);
 
     return scanResult;
 }

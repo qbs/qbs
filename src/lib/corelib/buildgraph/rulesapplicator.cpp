@@ -39,7 +39,6 @@
 #include "rulesapplicator.h"
 
 #include "buildgraph.h"
-#include "cppmodulesscanner.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "qtmocscanner.h"
@@ -89,7 +88,6 @@ RulesApplicator::RulesApplicator(
 RulesApplicator::~RulesApplicator()
 {
     delete m_mocScanner;
-    delete m_cxxModulesScanner;
 }
 
 void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
@@ -110,10 +108,6 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     if (m_rule->name.startsWith(QLatin1String("QtCoreMocRule"))) {
         delete m_mocScanner;
         m_mocScanner = new QtMocScanner(m_product, engine(), scope());
-    }
-    if (m_rule->name.startsWith(QLatin1String("cpp_compiler"))) {
-        delete m_cxxModulesScanner;
-        m_cxxModulesScanner = new CppModulesScanner(engine(), scope());
     }
     ScopedJsValue prepareScriptContext(jsContext(), engine()->newObject());
     JS_SetPrototype(jsContext(), prepareScriptContext, engine()->globalObject());
