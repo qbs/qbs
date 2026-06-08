@@ -56,7 +56,6 @@
 namespace qbs {
 namespace Internal {
 class BuildGraphNode;
-class QtMocScanner;
 class ScriptEngine;
 
 class RulesApplicator
@@ -135,7 +134,6 @@ private:
     RuleNode *m_ruleNode = nullptr;
     RuleConstPtr m_rule;
     ArtifactSet m_completeInputSet;
-    QtMocScanner *m_mocScanner = nullptr;
     Logger m_logger;
     bool m_ruleUsesIo = false;
 };

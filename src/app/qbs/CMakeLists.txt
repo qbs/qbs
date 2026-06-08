@@ -53,4 +53,4 @@ add_qbs_app(qbs
     SOURCES ${SOURCES} ${PARSER_SOURCES}
     )
 
-add_dependencies(qbs qbs_cpp_scanner qbs_qt_scanner)
+add_dependencies(qbs qbs_cpp_scanner qbs_qt_moc_scanner qbs_qt_scanner)

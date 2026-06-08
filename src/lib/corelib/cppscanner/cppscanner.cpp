@@ -315,27 +315,4 @@ bool scanCppFile(
     return true;
 }
 
-span<const std::string_view> additionalFileTags(const CppScannerContext &context)
-{
-    static const std::string_view thMocCpp[] = {"moc_cpp"};
-    static const std::string_view thMocHpp[] = {"moc_hpp"};
-    static const std::string_view thMocPluginHpp[] = {"moc_hpp_plugin"};
-    static const std::string_view thMocPluginCpp[] = {"moc_cpp_plugin"};
-
-    if (context.hasQObjectMacro) {
-        switch (context.fileType) {
-        case CppScannerContext::FT_CPP:
-        case CppScannerContext::FT_CPPM:
-        case CppScannerContext::FT_OBJCPP:
-            return {context.hasPluginMetaDataMacro ? thMocPluginCpp : thMocCpp, 1};
-        case CppScannerContext::FT_HPP:
-            return {context.hasPluginMetaDataMacro ? thMocPluginHpp : thMocHpp, 1};
-
-        default:
-            break;
-        }
-    }
-    return {};
-}
-
 } // namespace qbs::Internal

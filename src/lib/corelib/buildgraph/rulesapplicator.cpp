@@ -41,7 +41,6 @@
 #include "buildgraph.h"
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
-#include "qtmocscanner.h"
 #include "rulecommands.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"
@@ -85,10 +84,7 @@ RulesApplicator::RulesApplicator(
     , m_logger(std::move(logger))
 {}
 
-RulesApplicator::~RulesApplicator()
-{
-    delete m_mocScanner;
-}
+RulesApplicator::~RulesApplicator() = default;
 
 void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArtifacts,
                                 const ArtifactSet &explicitlyDependsOn)
@@ -105,10 +101,6 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     RulesEvaluationContext::Scope s(evalContext().get());
 
     m_completeInputSet = inputArtifacts;
-    if (m_rule->name.startsWith(QLatin1String("QtCoreMocRule"))) {
-        delete m_mocScanner;
-        m_mocScanner = new QtMocScanner(m_product, engine(), scope());
-    }
     ScopedJsValue prepareScriptContext(jsContext(), engine()->newObject());
     JS_SetPrototype(jsContext(), prepareScriptContext, engine()->globalObject());
     setupScriptEngineForFile(engine(), m_rule->prepareScript.fileContext(), scope(),

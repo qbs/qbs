@@ -326,6 +326,14 @@ Module {
         pluginName: "qt_qrc_scanner"
     }
 
+    Scanner {
+        scannerId: "moc"
+        inputs: ["hpp", "cpp", "cpp.combine", "cppm", "objcpp", "objcpp.combine", "mocable"]
+        pluginName: "qt_moc_scanner"
+        recursive: false
+        cacheIsPerFile: false
+    }
+
     FileTagger {
         patterns: ["*.ts"]
         fileTags: ["ts"]

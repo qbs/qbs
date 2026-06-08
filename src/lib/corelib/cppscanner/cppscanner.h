@@ -110,6 +110,4 @@ QBS_EXPORT bool scanCppFile(
     bool scanForFileTags,
     bool scanForDependencies);
 
-span<const std::string_view> additionalFileTags(const CppScannerContext &context);
-
 } // namespace qbs::Internal

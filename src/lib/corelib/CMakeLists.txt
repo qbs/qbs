@@ -85,14 +85,14 @@ set(BUILD_GRAPH_SOURCES
     nodetreedumper.h
     processcommandexecutor.cpp
     processcommandexecutor.h
+    mocutils.cpp
+    mocutils.h
     productbuilddata.cpp
     productbuilddata.h
     productinstaller.cpp
     productinstaller.h
     projectbuilddata.cpp
     projectbuilddata.h
-    qtmocscanner.cpp
-    qtmocscanner.h
     rawscanneddependency.cpp
     rawscanneddependency.h
     rawscanresults.cpp

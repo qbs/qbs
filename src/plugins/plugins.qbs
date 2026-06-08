@@ -8,6 +8,7 @@ Project {
         "generator/iarew/iarew.qbs",
         "generator/keiluv/keiluv.qbs",
         "scanner/cpp/cpp.qbs",
+        "scanner/qt-moc/qt-moc.qbs",
         "scanner/qt/qt.qbs"
     ]
 }

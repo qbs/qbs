@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2026 Ivan Komissarov (abbapoh@gmail.com).
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of Qbs.
@@ -37,48 +37,19 @@
 **
 ****************************************************************************/
 
-#ifndef QBS_QTMOCSCANNER_H
-#define QBS_QTMOCSCANNER_H
+#ifndef QBS_MOCUTILS_H
+#define QBS_MOCUTILS_H
 
-#include <language/language.h>
-#include <quickjs.h>
+#include <language/forward_decls.h>
 
-#include <QtCore/qhash.h>
-#include <QtCore/qstring.h>
-
-QT_BEGIN_NAMESPACE
-class QScriptContext;
-QT_END_NAMESPACE
-
-class ScannerPlugin;
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 namespace Internal {
-class ScriptEngine;
 
-class Artifact;
-struct CommonFileTags;
-
-class QtMocScanner
-{
-public:
-    explicit QtMocScanner(const ResolvedProductPtr &product, ScriptEngine *engine,
-                          JSValue targetScriptValue);
-    ~QtMocScanner();
-
-private:
-    void findIncludedMocCppFiles();
-    static JSValue js_apply(JSContext *ctx, JSValue this_val, int argc, JSValue *argv);
-    JSValue apply(ScriptEngine *engine, const Artifact *artifact);
-
-    ScriptEngine * const m_engine;
-    const CommonFileTags &m_tags;
-    const ResolvedProductPtr &m_product;
-    JSValue m_targetScriptValue;
-    std::optional<QHash<QString, QString>> m_includedMocCppFiles;
-};
+QStringList gatherIncludedMocCppBaseNames(const ResolvedProduct *product);
 
 } // namespace Internal
 } // namespace qbs
 
-#endif // QBS_QTMOCSCANNER_H
+#endif // QBS_MOCUTILS_H

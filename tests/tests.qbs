@@ -13,6 +13,7 @@ Project {
         Depends { name: "Qt.core" }
         Depends { name: "qbs resources" }
         Depends { name: "qbs_cpp_scanner" }
+        Depends { name: "qbs_qt_moc_scanner" }
         Depends { name: "qbs_qt_scanner" }
         arguments: project.autotestArguments
         wrapper: project.autotestWrapper

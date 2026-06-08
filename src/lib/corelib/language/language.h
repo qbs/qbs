@@ -526,6 +526,8 @@ inline bool operator!=(const ResolvedScanner &s1, const ResolvedScanner &s2)
 {
     return !(s1 == s2);
 }
+bool areResolvedScannerModulePropertiesCompatible(
+    const ResolvedScanner &scanner, const PropertyMapConstPtr &m1, const PropertyMapConstPtr &m2);
 
 class ExportedProperty
 {

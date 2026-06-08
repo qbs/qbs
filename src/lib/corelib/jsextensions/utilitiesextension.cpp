@@ -41,10 +41,14 @@
 #include "jsextensions.h"
 
 #include <api/languageinfo.h>
+#include <buildgraph/artifact.h>
+#include <buildgraph/mocutils.h>
+#include <language/language.h>
 #include <language/scriptengine.h>
 #include <logging/translator.h>
 #include <tools/architectures.h>
 #include <tools/hostosinfo.h>
+#include <tools/scripttools.h>
 #include <tools/stlutils.h>
 #include <tools/stringconstants.h>
 #include <tools/toolchains.h>
@@ -125,6 +129,7 @@ public:
     static JSValue js_isSharedLibrary(JSContext *ctx, JSValueConst, int argc, JSValueConst *argv);
 
     static JSValue js_getArchitecturesFromBinary(JSContext *ctx, JSValueConst, int, JSValueConst *);
+    static JSValue js_includedMocCppBaseNames(JSContext *ctx, JSValueConst, int, JSValueConst *);
 };
 
 JSValue UtilitiesExtension::js_canonicalPlatform(JSContext *ctx, JSValueConst,
@@ -202,6 +207,12 @@ void UtilitiesExtension::setupStaticMethods(JSContext *ctx, JSValue classObj)
     setupMethod(ctx, classObj, "isSharedLibrary", &UtilitiesExtension::js_isSharedLibrary, 1);
     setupMethod(ctx, classObj, "getArchitecturesFromBinary",
                       &UtilitiesExtension::js_getArchitecturesFromBinary, 1);
+    setupMethod(
+        ctx,
+        classObj,
+        "includedMocCppBaseNames",
+        &UtilitiesExtension::js_includedMocCppBaseNames,
+        2);
 }
 
 JSValue UtilitiesExtension::js_canonicalArchitecture(JSContext *ctx, JSValueConst,
@@ -927,6 +938,23 @@ JSValue UtilitiesExtension::js_getArchitecturesFromBinary(JSContext *ctx, JSValu
 #endif // __APPLE__
         return makeJsStringList(ctx, archs);
     } catch (const QString &error) { return throwError(ctx, error); }
+}
+
+JSValue UtilitiesExtension::js_includedMocCppBaseNames(
+    JSContext *ctx, JSValueConst, int argc, JSValueConst *argv)
+{
+    try {
+        if (argc < 2) {
+            throw Tr::tr("Utilities.includedMocCppBaseNames requires 2 arguments.");
+        }
+        ScriptEngine * const engine = ScriptEngine::engineForContext(ctx);
+        Q_UNUSED(attachedPointer<Artifact>(argv[0], engine->dataWithPtrClass()));
+        const auto * const product = attachedPointer<ResolvedProduct>(
+            argv[1], engine->productPropertyScriptClass());
+        return makeJsStringList(ctx, gatherIncludedMocCppBaseNames(product));
+    } catch (const QString &error) {
+        return throwError(ctx, error);
+    }
 }
 
 } // namespace Internal

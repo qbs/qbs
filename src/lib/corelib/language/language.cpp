@@ -928,6 +928,15 @@ bool operator==(const ResolvedScanner &s1, const ResolvedScanner &s2)
            && s1.scanScript == s2.scanScript;
 }
 
+bool areResolvedScannerModulePropertiesCompatible(
+    const ResolvedScanner &scanner, const PropertyMapConstPtr &m1, const PropertyMapConstPtr &m2)
+{
+    // Keep in sync with DependencyScanner::areModulePropertiesCompatible().
+    if (!scanner.pluginName.isEmpty())
+        return true;
+    return m1 == m2 || *m1 == *m2;
+}
+
 bool operator==(const RuleArtifact &a1, const RuleArtifact &a2)
 {
     return a1.filePath == a2.filePath
