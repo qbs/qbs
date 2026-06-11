@@ -56,6 +56,10 @@ Options
         macos-x86_64, macos-arm64, windows-x86_64. Auto-detected by default.
   --version <version>
         The desired Qbs version.
+  --no-default-mirror
+        Skip https://download.qt.io (its MirrorBrain redirector) and use the
+        explicit fallback mirrors directly. Useful where download.qt.io is
+        blocked or unreachable.
 EOF
 }
 
@@ -88,6 +92,8 @@ case "$OSTYPE" in
         ;;
 esac
 
+USE_DEFAULT_MIRROR=1
+
 while [ $# -gt 0 ]; do
     case "$1" in
         --directory|-d)
@@ -101,6 +107,9 @@ while [ $# -gt 0 ]; do
         --version)
             VERSION="$2"
             shift
+            ;;
+        --no-default-mirror)
+            USE_DEFAULT_MIRROR=
             ;;
         --help|-h)
             help
@@ -130,44 +139,96 @@ if [ -z "${VERSION}" ]; then
     exit 1
 fi
 
-MIRRORS="\
-    http://ftp.acc.umu.se/mirror/qt.io/qtproject \
-    http://ftp.fau.de/qtproject \
-    http://download.qt.io \
+# Lead with download.qt.io: its MirrorBrain frontend redirects (302) to a healthy,
+# geographically-close mirror automatically. The rest are explicit fallbacks taken from
+# https://download.qt.io/static/mirrorlist/ in case the redirect target is itself unhealthy.
+# A few geographically-spread fallbacks (EU, US, Asia, Oceania) are enough: they only fire if
+# download.qt.io itself is unreachable. Keep the list short — every dead/stale entry costs retry
+# time before failover, and hardcoded mirrors rot. Verify with:
+#   curl -sIL "$M/official_releases/qbs/<ver>/qbs-linux-x86_64-<ver>.tar.gz" -o /dev/null -w '%{http_code}\n'
+# Where download.qt.io is blocked/unreachable, --no-default-mirror
+# drops it and goes straight to the explicit fallbacks.
+FALLBACK_MIRRORS="\
+    https://ftp.fau.de/qtproject \
+    https://www.mirrorservice.org/sites/download.qt-project.org \
+    https://mirrors.ocf.berkeley.edu/qt \
+    https://mirrors.ustc.edu.cn/qtproject \
+    https://mirror.aarnet.edu.au/pub/qtproject \
 "
+if [ -n "${USE_DEFAULT_MIRROR}" ]; then
+    MIRRORS="https://download.qt.io ${FALLBACK_MIRRORS}"
+else
+    MIRRORS="${FALLBACK_MIRRORS}"
+fi
 
-for MIRROR in ${MIRRORS}; do
-    if curl "${MIRROR}/official_releases/qbs/${VERSION}/" -s -f -o /dev/null; then
-        echo "Selected mirror: ${MIRROR}" >&2
-        break;
-    else
-        echo "Server ${MIRROR} not availabe. Trying next alternative..." >&2
-        MIRROR=""
-    fi
-done
+# Hardened curl invocation reused for every download attempt:
+#   --connect-timeout 5        : connections establish fast; keep it short so a blocked/unreachable
+#                                mirror fails over quickly instead of hanging
+#   --speed-limit/--speed-time : abort a stalled transfer (<1 KB/s for 30s) instead of hanging
+#   --retry/--retry-all-errors : auto-retry transient failures (timeouts, connection resets);
+#                                with no --retry-delay, curl uses exponential backoff (1s,2s,4s,…)
+#   --fail                     : treat HTTP errors as failures so we fall through to next mirror
+#   --location                 : follow MirrorBrain's 302 redirect from download.qt.io
+CURL=(curl --fail --location --connect-timeout 5 \
+      --retry 2 --retry-all-errors \
+      --speed-limit 1024 --speed-time 30 --show-error --silent)
 
 BASE_FILENAME="qbs-${HOST_OS}-${VERSION}"
 
+case "${HOST_OS}" in
+    linux-x86_64|macos-x86_64|macos-arm64)
+        FILENAME="${BASE_FILENAME}.tar.gz"
+        ;;
+    windows-x86_64)
+        FILENAME="${BASE_FILENAME}.zip"
+        ;;
+    *)
+        echo "Unsupported host OS: ${HOST_OS}" >&2
+        exit 1
+        ;;
+esac
+
 DOWNLOAD_DIR=`mktemp -d 2>/dev/null || mktemp -d -t 'install-qbs'`
 
-rm -rf ${INSTALL_DIR}/${BASE_FILENAME}
-mkdir -p ${INSTALL_DIR}
+rm -rf "${INSTALL_DIR}/${BASE_FILENAME}"
+mkdir -p "${INSTALL_DIR}"
+
+# Download FILENAME from $1 (full URL), verify the archive is intact, then extract it.
+# Returns non-zero on any failure so the caller can try the next mirror.
+download_one() {
+    echo "Trying ${1} ..." >&2
+    "${CURL[@]}" "${1}" -o "${FILENAME}" || return 1
+    case "${FILENAME}" in
+        *.tar.gz)
+            tar -tzf "${FILENAME}" >/dev/null 2>&1 || return 1
+            tar -xzf "${FILENAME}"
+            ;;
+        *.zip)
+            7z t "${FILENAME}" >/dev/null 2>&1 || return 1
+            7z x -y -o"${BASE_FILENAME}" "${FILENAME}" >/dev/null 2>&1
+            ;;
+    esac
+}
 
 echo "Downloading Qbs ${VERSION}..." >&2
-cd ${DOWNLOAD_DIR}
-if [[ ${HOST_OS} == "linux-x86_64" ]] || [[ ${HOST_OS} == macos-x86_64 ]] || [[ ${HOST_OS} == macos-arm64 ]]; then
-    FILENAME="${BASE_FILENAME}.tar.gz"
-    curl -L "${MIRROR}/official_releases/qbs/${VERSION}/${FILENAME}" > ${FILENAME}
-    tar -xzf ${FILENAME}
-elif [[ ${HOST_OS} == "windows-x86_64" ]]; then
-    FILENAME="${BASE_FILENAME}.zip"
-    curl -L "${MIRROR}/official_releases/qbs/${VERSION}/${FILENAME}" > ${FILENAME}
-    7z x -y -o${BASE_FILENAME} ${FILENAME} >/dev/null 2>&1
-else
-    echo "Unsupported host OS: ${HOST_OS}" >&2
+cd "${DOWNLOAD_DIR}"
+
+DOWNLOADED=
+for MIRROR in ${MIRRORS}; do
+    if download_one "${MIRROR}/official_releases/qbs/${VERSION}/${FILENAME}"; then
+        DOWNLOADED=1
+        break
+    fi
+    echo "  failed, trying next mirror..." >&2
+    rm -f "${FILENAME}"
+done
+
+if [ -z "${DOWNLOADED}" ]; then
+    echo "All mirrors failed for Qbs ${VERSION}." >&2
     exit 1
 fi
-mv ${BASE_FILENAME} ${INSTALL_DIR}
-rm ${FILENAME}
+
+mv "${BASE_FILENAME}" "${INSTALL_DIR}"
+rm "${FILENAME}"
 echo "${INSTALL_DIR}/${BASE_FILENAME}/bin"
 
