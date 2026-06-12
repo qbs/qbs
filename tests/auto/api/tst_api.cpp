@@ -1334,6 +1334,12 @@ void TestApi::generatedFilesList()
     const bool isEmscripten = m_logSink->output.contains("is emscripten: true");
     const bool isNotEmscripten = m_logSink->output.contains("is emscripten: false");
     QCOMPARE(isEmscripten, !isNotEmscripten);
+    const bool generatesWorkerJs = m_logSink->output.contains("generates worker.js: true");
+    const bool doesNotGenerateWorkerJs = m_logSink->output.contains("generates worker.js: false");
+    if (isEmscripten)
+        QCOMPARE(doesNotGenerateWorkerJs, !generatesWorkerJs);
+    else
+        QVERIFY(!generatesWorkerJs && !doesNotGenerateWorkerJs);
     qbs::Project project = setupJob->project();
     qbs::BuildOptions options;
     options.setExecuteRulesOnly(true);
@@ -1391,7 +1397,7 @@ void TestApi::generatedFilesList()
     QVERIFY(!uiHeaderFileInfo.exists());
     const QStringList allParents = project.generatedFiles(product, uiFilePath, true);
     if (isEmscripten)
-        QCOMPARE(allParents.size(), 5); //built with "-pthread" support
+        QCOMPARE(allParents.size(), generatesWorkerJs ? 5 : 4); //built with "-pthread" support
     else
         QCOMPARE(allParents.size(), 3);
 }

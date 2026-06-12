@@ -183,6 +183,16 @@ static std::pair<CodeSignResult, CodeSignData> getCodeSignInfo(const QString &pa
     return parseCodeSignOutput(output);
 }
 
+// Up to macOS 15, codesign writes the internal requirement of a static
+// framework to a separate _CodeSignature/CodeRequirements-1 file; macOS 26 no
+// longer produces it, so the expected bundle structure must drop it there.
+static bool isExpectedBundleFile(const QString &relativeFilePath)
+{
+    if (relativeFilePath.endsWith("_CodeSignature/CodeRequirements-1"))
+        return HostOsInfo::hostOsVersion() < qbs::Version(26);
+    return true;
+}
+
 TestBlackboxApple::TestBlackboxApple()
     : TestBlackboxBase (SRCDIR "/testdata-apple", "blackbox-apple")
 {
@@ -593,7 +603,10 @@ void TestBlackboxApple::bundleStructure()
     // Check files
     const auto files = productStructure.value("files").toArray();
     for (const auto &file : files) {
-        const QString filePath = bundlePath + "/" + file.toString();
+        const QString relativeFilePath = file.toString();
+        if (!isExpectedBundleFile(relativeFilePath))
+            continue;
+        const QString filePath = bundlePath + "/" + relativeFilePath;
         expectedPaths.insert(filePath);
         QVERIFY2(
             QFileInfo2(filePath).isRegularFile(),
@@ -700,7 +713,10 @@ void TestBlackboxApple::mainBundle()
     // Check files
     const auto files = structure.value("files").toArray();
     for (const auto &file : files) {
-        const QString filePath = appPath + "/" + file.toString();
+        const QString relativeFilePath = file.toString();
+        if (!isExpectedBundleFile(relativeFilePath))
+            continue;
+        const QString filePath = appPath + "/" + relativeFilePath;
         expectedPaths.insert(filePath);
         QVERIFY2(
             QFileInfo2(filePath).isRegularFile(),
