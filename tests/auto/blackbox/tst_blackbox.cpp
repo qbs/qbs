@@ -885,7 +885,7 @@ void TestBlackbox::buildGraphVersions()
 
 void TestBlackbox::buildVariantDefaults_data()
 {
-    QTest::addColumn<QString>("buildVariant");
+    QTest::addColumn<QString>("configName");
     QTest::newRow("default") << QString();
     QTest::newRow("debug") << QStringLiteral("debug");
     QTest::newRow("release") << QStringLiteral("release");
@@ -894,11 +894,11 @@ void TestBlackbox::buildVariantDefaults_data()
 
 void TestBlackbox::buildVariantDefaults()
 {
-    QFETCH(QString, buildVariant);
+    QFETCH(QString, configName);
     QDir::setCurrent(testDataDir + "/build-variant-defaults");
     QbsRunParameters params{QStringLiteral("resolve")};
-    if (!buildVariant.isEmpty())
-        params.arguments << ("modules.qbs.buildVariant:" + buildVariant);
+    if (!configName.isEmpty())
+        params.arguments << QLatin1String("config:") + configName;
     QCOMPARE(runQbs(params), 0);
 }
 
