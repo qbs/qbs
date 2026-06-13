@@ -168,6 +168,8 @@ private slots:
     void inputTagsChangeTracking_data();
     void inputTagsChangeTracking();
     void inputsFromDependencies();
+    void initApplication();
+    void initApplication_data();
     void installable();
     void installableAsAuxiliaryInput();
     void installedApp();

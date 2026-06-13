@@ -10723,4 +10723,69 @@ void TestBlackbox::probesInNestedModules()
     QVERIFY(m_qbsStdout.contains("product a, outer.something = hahaha"));
 }
 
+void TestBlackbox::initApplication_data()
+{
+    QTest::addColumn<QStringList>("initArgs");
+    QTest::addColumn<QString>("expectedDir");
+    QTest::addColumn<QStringList>("expectedFiles");
+
+    QTest::newRow("default") << QStringList() << QStringLiteral("init-application/default")
+                             << (QStringList()
+                                 << QStringLiteral("foo.qbs") << QStringLiteral("foo.cpp"));
+    QTest::newRow("c++")
+        << (QStringList() << QStringLiteral("--language") << QStringLiteral("c++")
+                          << QStringLiteral("--version") << QStringLiteral("2.1.0"))
+        << QStringLiteral("init-application/cpp")
+        << (QStringList() << QStringLiteral("foo.qbs") << QStringLiteral("foo.cpp"));
+    QTest::newRow("c")
+        << (QStringList() << QStringLiteral("-l") << QStringLiteral("c")
+                          << QStringLiteral("--version") << QStringLiteral("3.0.1"))
+        << QStringLiteral("init-application/c")
+        << (QStringList() << QStringLiteral("foo.qbs") << QStringLiteral("foo.c"));
+    QTest::newRow("java")
+        << (QStringList() << QStringLiteral("-l") << QStringLiteral("java")
+                          << QStringLiteral("--version") << QStringLiteral("4.5.6"))
+        << QStringLiteral("init-application/java")
+        << (QStringList() << QStringLiteral("foo.qbs") << QStringLiteral("Main.java"));
+    QTest::newRow("objective-c")
+        << (QStringList() << QStringLiteral("-l") << QStringLiteral("objective-c")
+                          << QStringLiteral("--version") << QStringLiteral("5.0.0"))
+        << QStringLiteral("init-application/objc")
+        << (QStringList() << QStringLiteral("foo.qbs") << QStringLiteral("foo.m"));
+}
+
+void TestBlackbox::initApplication()
+{
+    QFETCH(QStringList, initArgs);
+    QFETCH(QString, expectedDir);
+    QFETCH(QStringList, expectedFiles);
+
+    const QString projectName = QStringLiteral("foo");
+
+    QTemporaryDir tempDir;
+    QVERIFY2(tempDir.isValid(), qPrintable(tempDir.errorString()));
+
+    QbsRunParameters initParams(QStringLiteral("init"));
+    initParams.arguments = initArgs;
+    initParams.arguments << QStringLiteral("application") << projectName;
+    initParams.workingDir = tempDir.path();
+    initParams.profile.clear();
+    QCOMPARE(runQbs(initParams), 0);
+
+    const QString projectDir = tempDir.path() + QLatin1Char('/') + projectName;
+    const QString expectedDirPath = testDataDir + QLatin1Char('/') + expectedDir;
+    QStringList sortedExpectedFiles = expectedFiles;
+    sortedExpectedFiles.sort();
+    QCOMPARE(
+        QDir(projectDir).entryList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::Name),
+        sortedExpectedFiles);
+    for (const QString &fileName : expectedFiles) {
+        const QString actualFilePath = projectDir + QLatin1Char('/') + fileName;
+        const QString expectedFilePath = expectedDirPath + QLatin1Char('/') + fileName;
+        READ_TEXT_FILE(actualFilePath, actualContents);
+        READ_TEXT_FILE(expectedFilePath, expectedContents);
+        QCOMPARE(unifiedLineEndings(actualContents), unifiedLineEndings(expectedContents));
+    }
+}
+
 QTEST_MAIN(TestBlackbox)

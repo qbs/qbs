@@ -408,7 +408,7 @@ QList<Command *> CommandLineParser::CommandLineParserPrivate::allCommands() cons
 
 static QString extractToolDescription(const QString &tool, const QString &output)
 {
-    if (tool == QLatin1String("create-project")) {
+    if (tool == QLatin1String("create-project") || tool == QLatin1String("init")) {
         // This command uses QCommandLineParser, where the description is not in the first line.
         const int eol1Pos = output.indexOf(QLatin1Char('\n'));
         const int eol2Pos = output.indexOf(QLatin1Char('\n'), eol1Pos + 1);

@@ -53,13 +53,14 @@ static QString initQbsExecutableFilePath()
 }
 
 static bool supportsBuildDirectoryOption(const QString &command) {
-    return !(QStringList() << "help" << "config" << "config-ui"
-             << "setup-android" << "setup-qt" << "setup-toolchains" << "create-project")
-            .contains(command);
+    return !(QStringList() << "help" << "config" << "config-ui" << "init"
+                           << "setup-android" << "setup-qt" << "setup-toolchains"
+                           << "create-project")
+                .contains(command);
 }
 
 static bool supportsSettingsDirOption(const QString &command) {
-    return !(QStringList() << "help" << "create-project").contains(command);
+    return !(QStringList() << "help" << "create-project" << "init").contains(command);
 }
 
 TestBlackboxBase::TestBlackboxBase(const QString &testDataSrcDir, const QString &testName)

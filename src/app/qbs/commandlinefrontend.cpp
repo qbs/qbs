@@ -38,12 +38,12 @@
 ****************************************************************************/
 #include "commandlinefrontend.h"
 
+#include "../shared/logging/consolelogger.h"
 #include "application.h"
 #include "consoleprogressobserver.h"
+#include "parser/commandlineoption.h"
 #include "session.h"
 #include "status.h"
-#include "parser/commandlineoption.h"
-#include "../shared/logging/consolelogger.h"
 
 #include <api/runenvironment.h>
 #include <logging/translator.h>

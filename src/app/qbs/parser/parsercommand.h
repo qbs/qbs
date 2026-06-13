@@ -71,8 +71,9 @@ protected:
     virtual void parseNext(QStringList &input);
 
 private:
-    QList<CommandLineOption::Type> actualSupportedOptions() const;
     void parseOption(QStringList &input);
+
+    QList<CommandLineOption::Type> actualSupportedOptions() const;
     void parsePropertyAssignment(const QString &argument);
 
     virtual QList<CommandLineOption::Type> supportedOptions() const = 0;

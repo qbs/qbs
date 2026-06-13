@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/init-templates">
+        <file>application/c/@PRODUCT_NAME@.qbs</file>
+        <file>application/c/@PRODUCT_NAME@.c</file>
+        <file>application/cpp/@PRODUCT_NAME@.qbs</file>
+        <file>application/cpp/@PRODUCT_NAME@.cpp</file>
+        <file>application/java/@PRODUCT_NAME@.qbs</file>
+        <file>application/java/Main.java</file>
+        <file>application/objc/@PRODUCT_NAME@.qbs</file>
+        <file>application/objc/@PRODUCT_NAME@.m</file>
+    </qresource>
+</RCC>
