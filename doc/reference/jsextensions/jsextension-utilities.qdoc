@@ -36,46 +36,227 @@
 
     \section1 Available Operations
 
-    \section2 cStringQuote
+    \section2 builtinExtensionNames
+    \code
+    Utilities.builtinExtensionNames(): string[]
+    \endcode
+    Returns the names of all builtin JavaScript extensions (services), such as
+    \c "File", \c "TextFile", or \c "Utilities".
+    \funsince 1.9.1
 
-    \badcode
+    \section2 canonicalArchitecture
+    \code
+    Utilities.canonicalArchitecture(architecture: string): string
+    \endcode
+    Returns the canonical name for the given architecture, mapping the various
+    aliases an architecture may be known by to a single value. For example, both
+    \c "x86_64" and \c "amd64" map to \c "x86_64". An empty input yields an empty
+    string.
+
+    See \l{qbs::architecture}{qbs.architecture}.
+    \funsince 1.2
+
+    \section2 canonicalPlatform
+    \code
+    Utilities.canonicalPlatform(platform: string): string[]
+    \endcode
+    Returns the list of canonical operating system identifiers for the given
+    platform name. For example, \c{canonicalPlatform("macos")} returns
+    \c{["macos", "darwin", "bsd", "unix"]}. These are the same values the
+    \l{qbs::targetOS}{qbs.targetOS} property is populated with; see
+    \l{Relation between targetPlatform and targetOS} for the full mapping.
+    \funsince 1.11
+
+    \section2 canonicalTargetArchitecture
+    \code
+    Utilities.canonicalTargetArchitecture(architecture: string,
+                                          endianness?: string,
+                                          vendor?: string,
+                                          system?: string,
+                                          abi?: string): string
+    \endcode
+    Returns the canonical target architecture string built from the given
+    components. Only \c architecture is required; the remaining arguments
+    (\c endianness, \c vendor, \c system, and \c abi) are optional and default to
+    an empty string.
+    \funsince 1.7.1
+
+    \section2 canonicalToolchain
+    \code
+    Utilities.canonicalToolchain(...toolchain: string): string[]
+    \endcode
+    Expands the given toolchain name (or names) into the full, canonically
+    ordered toolchain list. For example, \c{canonicalToolchain("clang")} returns
+    \c{["clang", "llvm", "gcc"]}.
+
+    See \l{qbs::toolchain}{qbs.toolchain}.
+    \funsince 1.6
+
+    \section2 certificateInfo
+    \code
+    Utilities.certificateInfo(certificateData): object
+    \endcode
+    Returns the properties of the given DER-encoded certificate as an object.
+
+    \note This operation is available on macOS only.
+    \funsince 1.5
+
+    \section2 clangClCompilerInfo
+    \code
+    Utilities.clangClCompilerInfo(compilerFilePath: string,
+                                  architecture: string,
+                                  vcvarsallPath: string,
+                                  compilerLanguage: string,
+                                  sdkVersion: string): object
+    \endcode
+    Returns information about the given clang-cl compiler as an object with the
+    properties \c buildEnvironment and \c macros. The \c compilerLanguage argument
+    must be either \c "c" or \c "cpp".
+
+    \note This operation is available on Windows only.
+    \funsince 1.14
+
+    \section2 cStringQuote
+    \code
     Utilities.cStringQuote(str: string): string
     \endcode
-
     Takes a string and escapes special characters in a way that the result is
     suitable for use as a C/C++ string literal. This function is typically used
     to specify values for \l{cpp::defines}{cpp.defines}.
+    \funsince 1.8
+
+    \section2 getArchitecturesFromBinary
+    \code
+    Utilities.getArchitecturesFromBinary(path: string): string[]
+    \endcode
+    Returns the list of architectures contained in the given Mach-O file, fat
+    binary, or static archive.
+
+    \note This operation is available on macOS only.
+    \funsince 1.13
 
     \section2 getHash
-
-    \badcode
+    \code
     Utilities.getHash(key: string): string
     \endcode
-
     Calculates a 16-byte hash of the input and returns it.
     Rules in modules should use this function to find unique locations for output
     artifacts in the build directory without duplicating the whole directory structure of
     the respective input file (to deal with the case of two files with the same name in different
     subdirectories of the same product).
+    \funsince 1.4
+
+    \section2 getNativeSetting
+    \code
+    Utilities.getNativeSetting(filePath: string, key?: string, defaultValue?: var): var
+    \endcode
+    Reads a value from a native settings store: the Windows registry, a macOS
+    property list, or an INI file, depending on \c filePath. If \c key is omitted,
+    the default value of the store is read. Returns \c defaultValue (or
+    \c undefined) if the requested entry does not exist.
+    \funsince 1.2
+
+    \section2 installedClangCls
+    \code
+    Utilities.installedClangCls(path: string): object[]
+    \endcode
+    Returns a list of the clang-cl compilers found under the given \c path.
+
+    \note This operation is available on Windows only.
+    \funsince 1.16
+
+    \section2 installedMSVCs
+    \code
+    Utilities.installedMSVCs(preferredArchitecture?: string): object[]
+    \endcode
+    Returns a list of the installed MSVC toolchains. If \c preferredArchitecture
+    is given, the result is restricted to toolchains targeting that architecture;
+    otherwise the host architecture is used.
+
+    \note This operation is available on Windows only.
+    \funsince 1.16
+
+    \section2 isSharedLibrary
+    \code
+    Utilities.isSharedLibrary(fileName: string): boolean
+    \endcode
+    Returns \c true if the given file name denotes a shared library according to
+    the platform's naming conventions, and \c false otherwise.
+    \funsince 1.13
+
+    \section2 kernelVersion
+    \code
+    Utilities.kernelVersion(): string
+    \endcode
+    Returns the version of the host operating system's kernel.
+    \funsince 1.8
+
+    \section2 msvcCompilerInfo
+    \code
+    Utilities.msvcCompilerInfo(compilerFilePath: string,
+                               compilerLanguage: string,
+                               sdkVersion: string): object
+    \endcode
+    Returns information about the given MSVC compiler as an object with the
+    properties \c buildEnvironment and \c macros. The \c compilerLanguage argument
+    must be either \c "c" or \c "cpp".
+
+    \note This operation is available on Windows only.
+    \funsince 1.6
+
+    \section2 nativeSettingGroups
+    \code
+    Utilities.nativeSettingGroups(filePath: string): string[]
+    \endcode
+    Returns the top-level groups of the native settings store identified by
+    \c filePath. See also \l{getNativeSetting}.
+    \funsince 1.5
+
+    \section2 qmlTypeInfo
+    \code
+    Utilities.qmlTypeInfo(): string
+    \endcode
+    Returns QML type information about the qbs language items. This is primarily
+    intended for use by tooling, such as IDEs.
+    \funsince 1.9.1
 
     \section2 rfc1034Identifier
-
-    \badcode
+    \code
     Utilities.rfc1034Identifier(str: string): string
     \endcode
-
     Returns an RFC-1034 compliant identifier based on the given string by replacing each character
     that is not Latin alphanumeric or \c{.} with \c{-}.
+    \funsince 1.0
+
+    \section2 signingIdentities
+    \code
+    Utilities.signingIdentities(): object
+    \endcode
+    Returns a map of the code-signing identities available on the host.
+
+    \note This operation is available on macOS only.
+    \funsince 1.5
+
+    \section2 smimeMessageContent
+    \code
+    Utilities.smimeMessageContent(filePath: string): string
+    \endcode
+    Returns the decoded content of the S/MIME message located at \c filePath, or
+    \c undefined if the file cannot be read. A provisioning profile is an S/MIME
+    message whose content is an XML property list, so this operation can be used
+    to read such files.
+
+    \note This operation is available on macOS only.
+    \funsince 1.5
 
     \section2 versionCompare
-
-    \badcode
+    \code
     Utilities.versionCompare(version1: string, version2: string): number
     \endcode
-
     Interprets the two arguments as version numbers and returns a number that
     is smaller than, equal to, or greater than zero if \c version1 is smaller
     than, equal to, or greater than \c version2, respectively.
 
     The version strings consist of up to three numbers separated by dots.
+    \funsince 1.6
 */
