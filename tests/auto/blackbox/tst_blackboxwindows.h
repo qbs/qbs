@@ -48,6 +48,8 @@ private slots:
     void innoSetupCodesign();
     void innoSetupCodesign_data();
     void innoSetupDependencies();
+    void nsisCodesign();
+    void nsisCodesign_data();
     void standaloneCodesign();
     void standaloneCodesign_data();
     void wix();

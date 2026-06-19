@@ -42,6 +42,14 @@
     \c OutFile commands found in the script, and therefore, you must use the
     \l{Product::targetName}{product.targetName} property to set the filename.
 
+    The generated installer executable can be code-signed by enabling the
+    \l{codesign} module. Set \l{codesign::enableCodeSigning}
+    {codesign.enableCodeSigning} to \c true and configure the related codesign
+    properties (such as \l{codesign::certificatePath}{codesign.certificatePath}
+    or \l{codesign::subjectName}{codesign.subjectName}). Signing currently
+    requires the \c signtool utility and is therefore performed only when
+    building on Windows.
+
     \section2 Relevant File Tags
     \target filetags-nsis
 

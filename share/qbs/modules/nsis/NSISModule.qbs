@@ -33,9 +33,15 @@ import qbs.FileInfo
 import qbs.Host
 import qbs.ModUtils
 import qbs.Utilities
+import "../codesign/codesign.js" as Codesign
 
 Module {
     condition: qbs.targetOS.includes("windows")
+
+    Depends { name: "codesign" }
+
+    readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
+                                                && codesign.enableCodeSigning
 
     property path toolchainInstallPath: Utilities.getNativeSetting(registryKey)
 
@@ -149,7 +155,8 @@ Module {
         auxiliaryInputsFromDependencies: ["installable"]
 
         Artifact {
-            fileTags: ["nsissetup", "application"]
+            fileTags: ["nsissetup", "application"].concat(
+                          product.nsis.shouldSignArtifacts ? ["codesign.signed_artifact"] : [])
             filePath: FileInfo.joinPaths(product.destinationDirectory,
                                          product.targetName + ModUtils.moduleProperty(
                                              product, "executableSuffix"))
@@ -240,7 +247,14 @@ Module {
             cmd.description = "compiling " + inputFileNames.join(", ");
             cmd.highlight = "compiler";
             cmd.workingDirectory = FileInfo.path(output.filePath);
-            return cmd;
+            var cmds = [cmd];
+
+            if (ModUtils.moduleProperty(product, "shouldSignArtifacts")) {
+                cmds = cmds.concat(Codesign.prepareSigntool(
+                    project, product, inputs, outputs, input, output));
+            }
+
+            return cmds;
         }
     }
 }

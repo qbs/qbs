@@ -212,6 +212,70 @@ void TestBlackboxWindows::innoSetupCodesign_data()
         << "http://timestamp.digicert.com";
 }
 
+void TestBlackboxWindows::nsisCodesign()
+{
+    QFETCH(SigntoolInfo::CodeSignResult, result);
+    QFETCH(QString, hashAlgorithm);
+    QFETCH(QString, subjectName);
+    QFETCH(QString, signingTimestamp);
+
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    QDir::setCurrent(testDataDir + "/nsis");
+
+    const QStringList arguments{
+        "--force-probe-execution",
+        QStringLiteral("project.enableSigning:%1")
+            .arg((result == SigntoolInfo::CodeSignResult::Signed) ? "true" : "false"),
+        QStringLiteral("project.hashAlgorithm:%1").arg(hashAlgorithm),
+        QStringLiteral("project.subjectName:%1").arg(subjectName),
+        QStringLiteral("project.signingTimestamp:%1").arg(signingTimestamp)};
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs({"resolve", arguments}), 0);
+    const bool withNsis = m_qbsStdout.contains("has nsis: true");
+    const bool withoutNsis = m_qbsStdout.contains("has nsis: false");
+    QVERIFY2(withNsis || withoutNsis, m_qbsStdout.constData());
+    if (withoutNsis)
+        QSKIP("nsis module not present");
+
+    QCOMPARE(runQbs({arguments}), 0);
+
+    if (!m_qbsStdout.contains("signtool path:"))
+        QSKIP("No current signtool path pattern exists");
+
+    const auto signtoolPath = extractSigntoolPath(m_qbsStdout);
+    QVERIFY(QFileInfo::exists(signtoolPath));
+
+    QVERIFY(m_qbsStdout.contains("compiling hello.nsi"));
+
+    const QString outputBinaryPath = relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe";
+    QVERIFY(regularFileExists(outputBinaryPath));
+
+    const SigntoolInfo signtoolInfo = extractSigntoolInfo(signtoolPath, outputBinaryPath);
+    QVERIFY(signtoolInfo.result != SigntoolInfo::CodeSignResult::Failed);
+    QCOMPARE(signtoolInfo.result, result);
+    QCOMPARE(signtoolInfo.hashAlgorithm, hashAlgorithm);
+    QCOMPARE(signtoolInfo.subjectName, subjectName);
+    QCOMPARE(signtoolInfo.timestamped, !signingTimestamp.isEmpty());
+}
+
+void TestBlackboxWindows::nsisCodesign_data()
+{
+    QTest::addColumn<SigntoolInfo::CodeSignResult>("result");
+    QTest::addColumn<QString>("hashAlgorithm");
+    QTest::addColumn<QString>("subjectName");
+    QTest::addColumn<QString>("signingTimestamp");
+
+    QTest::newRow("nsis, unsigned") << SigntoolInfo::CodeSignResult::Unsigned << "" << "" << "";
+    QTest::newRow("nsis, signed, sha1, qbs@community.test, no timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha1" << "qbs@community.test" << "";
+    QTest::newRow("nsis, signed, sha256, qbs@community.test, RFC3161 timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha256" << "qbs@community.test"
+        << "http://timestamp.digicert.com";
+}
+
 void TestBlackboxWindows::innoSetupDependencies()
 {
     const SettingsPtr s = settings();
