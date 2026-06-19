@@ -121,8 +121,9 @@
     with optimizations enabled.
 
     \defaultvalue \c{"release"} if
-    \l{qbs::configurationName}{qbs.configurationName} is \c{"release"}. Otherwise
-    \c{"debug"}
+    \l{qbs::configurationName}{qbs.configurationName} is \c{"release"},
+    \c{"profiling"} if \l{qbs::configurationName}{qbs.configurationName} is
+    \c{"profiling"}. Otherwise \c{"debug"}
 */
 
 /*!

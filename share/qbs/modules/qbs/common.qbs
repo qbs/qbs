@@ -40,6 +40,8 @@ Module {
         switch (configurationName.toLowerCase()) {
         case "release":
             return "release";
+        case "profiling":
+            return "profiling";
         default:
             return "debug";
         }
