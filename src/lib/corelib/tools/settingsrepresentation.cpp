@@ -48,7 +48,7 @@ namespace qbs {
 
 QString settingsValueToRepresentation(const QVariant &value)
 {
-    return toJSLiteral(value);
+    return toJSLiteral(settingsValueToVariant(value));
 }
 
 static QVariant variantFromString(const QString &str, bool &ok)
@@ -106,6 +106,16 @@ QVariant representationToVariant(const QString &representation)
 
     // If it's not valid JavaScript, interpret the value as a string.
     return representation;
+}
+
+QVariant settingsValueToVariant(const QVariant &settingsValue)
+{
+    if (settingsValue.userType() == QMetaType::QVariantHash) {
+        const QVariantHash h = settingsValue.toHash();
+        if (h.size() == 1 && h.constBegin().key().isEmpty())
+            return *h.constBegin();
+    }
+    return settingsValue;
 }
 
 } // namespace qbs

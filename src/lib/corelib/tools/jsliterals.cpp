@@ -122,12 +122,6 @@ QString toJSLiteral(const QVariant &val)
     case QMetaType::ULong:
     case QMetaType::ULongLong:
         return toJSLiteral(val.toULongLong());
-    case QMetaType::QVariantHash: {
-        const QVariantHash h = val.toHash();
-        if (h.size() == 1 && h.constBegin().key().isEmpty())
-            return toJSLiteral(*h.constBegin());
-        break;
-    }
     default:
         break;
     }

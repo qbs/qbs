@@ -43,6 +43,7 @@
 
 #include <logging/translator.h>
 #include <tools/error.h>
+#include <tools/settingsrepresentation.h>
 
 namespace qbs {
 
@@ -199,8 +200,10 @@ void Profile::checkBaseProfileExistence(const Profile &baseProfile) const
 QVariant Profile::localValue(const QString &key) const
 {
     QVariant val = m_values.value(key);
-    if (!val.isValid())
-        val = m_settings->value(fullyQualifiedKey(key), Settings::allScopes());
+    if (!val.isValid()) {
+        val = settingsValueToVariant(
+            m_settings->value(fullyQualifiedKey(key), Settings::allScopes()));
+    }
     return val;
 }
 

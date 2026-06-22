@@ -9903,6 +9903,19 @@ void TestBlackbox::bomSources()
     QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::boolValueInProfile()
+{
+    QbsRunParameters params("config");
+    params.arguments << "profiles.boolReadTest.qbs.debugInformation" << "true";
+    QCOMPARE(runQbs(params), 0);
+
+    QDir::setCurrent(testDataDir + "/bool-value-in-profile");
+    params.command = "build";
+    params.arguments.clear();
+    params.profile = "boolReadTest";
+    QCOMPARE(runQbs(params), 0);
+}
+
 void TestBlackbox::buildDataOfDisabledProduct()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/build-data-of-disabled-product"));
