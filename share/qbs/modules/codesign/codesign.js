@@ -440,6 +440,22 @@ function createDebugKeyStoreCommandString(keytoolFilePath, keystoreFilePath, key
     return Process.shellQuote(keytoolFilePath, args);
 }
 
+// Single entry point for signing a linked binary or an installer artifact. It selects the backend
+// for the active codesign variant: signtool on a Windows host, osslsigncode when cross-building for
+// Windows on a non-Windows host, and Apple's codesign on darwin. Bundle content is signed via
+// prepareSign() directly from the bundle/darwin paths, which carry extra bundle-specific handling.
+function prepareCodesign(project, product, inputs, outputs, input, output) {
+    switch (product.codesign.codesignName) {
+    case "signtool":
+        return prepareSigntool(project, product, inputs, outputs, input, output);
+    case "osslsigncode":
+        return prepareOsslsigncode(project, product, inputs, outputs, input, output);
+    case "codesign":
+        return prepareSign(project, product, inputs, outputs, input, output);
+    }
+    return [];
+}
+
 function prepareSigntool(project, product, inputs, outputs, input, output) {
     var cmd, cmds = [];
 
@@ -489,6 +505,58 @@ function prepareSigntool(project, product, inputs, outputs, input, output) {
     cmd.description = "signing " + outputArtifact.fileName;
     cmd.highlight = "linker";
     cmds.push(cmd);
+    return cmds;
+}
+
+// Signs a Windows artifact with osslsigncode, the cross-platform Authenticode signer used when
+// building Windows targets on a non-Windows host (where signtool is unavailable). Unlike signtool,
+// osslsigncode cannot sign in place, so we sign to a temporary file and move it back over the
+// original artifact.
+function prepareOsslsigncode(project, product, inputs, outputs, input, output) {
+    var cmds = [];
+
+    if (!product.codesign.enableCodeSigning)
+        return cmds;
+
+    var outputArtifact = outputs["codesign.signed_artifact"][0];
+    var signedFilePath = outputArtifact.filePath + ".signed";
+
+    var args = ["sign"];
+
+    var certificatePath = product.codesign.certificatePath;
+    if (certificatePath)
+        args.push("-pkcs12", certificatePath);
+
+    var certificatePassword = product.codesign.certificatePassword;
+    if (certificatePassword)
+        args.push("-pass", certificatePassword);
+
+    var hashAlgorithm = product.codesign.hashAlgorithm;
+    if (hashAlgorithm)
+        args.push("-h", hashAlgorithm);
+
+    var signingTimestamp = product.codesign.signingTimestamp;
+    if (signingTimestamp)
+        args.push("-ts", signingTimestamp);
+
+    args = args.concat(product.codesign.codesignFlags || []);
+
+    args.push("-in", outputArtifact.filePath, "-out", signedFilePath);
+
+    var signCmd = new Command(product.codesign.codesignPath, args);
+    signCmd.description = "signing " + outputArtifact.fileName;
+    signCmd.highlight = "linker";
+    cmds.push(signCmd);
+
+    var moveCmd = new JavaScriptCommand();
+    moveCmd.silent = true;
+    moveCmd.sourceFilePath = signedFilePath;
+    moveCmd.targetFilePath = outputArtifact.filePath;
+    moveCmd.sourceCode = function() {
+        File.move(sourceFilePath, targetFilePath);
+    };
+    cmds.push(moveCmd);
+
     return cmds;
 }
 

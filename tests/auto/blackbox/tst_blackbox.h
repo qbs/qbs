@@ -247,6 +247,8 @@ private slots:
     void notAlwaysUpdated();
     void nsis();
     void nsisDependencies();
+    void nsisCodesignOsslsigncode();
+    void nsisCodesignOsslsigncode_data();
     void outOfDateMarking();
     void outputArtifactAutoTagging();
     void outputRedirection();

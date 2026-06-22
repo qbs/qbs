@@ -9068,6 +9068,152 @@ void TestBlackbox::nsisDependencies()
     QCOMPARE(m_qbsStdout.contains("compiling hello.nsi"), targetIsWindows);
 }
 
+struct OsslsigncodeInfo
+{
+    enum class CodeSignResult { Failed = 0, Signed, Unsigned };
+    CodeSignResult result = CodeSignResult::Failed;
+    bool timestamped = false;
+    QString hashAlgorithm;
+};
+
+Q_DECLARE_METATYPE(OsslsigncodeInfo::CodeSignResult)
+
+static OsslsigncodeInfo extractOsslsigncodeInfo(
+    const QString &osslsigncodePath, const QString &caFilePath, const QString &filePath)
+{
+    QProcess osslsigncode;
+    osslsigncode.start(
+        osslsigncodePath,
+        {QStringLiteral("verify"), QStringLiteral("-CAfile"), caFilePath, filePath});
+    if (!osslsigncode.waitForStarted() || !osslsigncode.waitForFinished())
+        return {};
+    // The self-signed test certificate acts as its own trusted CA (passed via -CAfile), so a
+    // signed file reports "Signature verification: ok" while an unsigned one reports
+    // "No signature found".
+    const QString output = QString::fromLocal8Bit(
+        osslsigncode.readAllStandardOutput() + osslsigncode.readAllStandardError());
+    OsslsigncodeInfo info;
+    if (output.contains("No signature found")) {
+        info.result = OsslsigncodeInfo::CodeSignResult::Unsigned;
+    } else if (output.contains("Signature verification: ok")) {
+        info.result = OsslsigncodeInfo::CodeSignResult::Signed;
+        const QRegularExpression re("Message digest algorithm\\s*:\\s*(\\S+)");
+        const QRegularExpressionMatch match = re.match(output);
+        if (match.hasMatch())
+            info.hashAlgorithm = match.captured(1).toLower();
+        // The wording for a present timestamp differs between osslsigncode versions (for example,
+        // 2.2 prints "The signature is timestamped:" while 2.13 prints a "Countersignatures:"
+        // block), but the phrase reported for a missing timestamp is stable, so key off its
+        // absence.
+        info.timestamped = !output.contains(QStringLiteral("Timestamp is not available"));
+    }
+    return info;
+}
+
+void TestBlackbox::nsisCodesignOsslsigncode()
+{
+    QFETCH(OsslsigncodeInfo::CodeSignResult, result);
+    QFETCH(QString, hashAlgorithm);
+    QFETCH(QString, signingTimestamp);
+
+    const bool enableSigning = result == OsslsigncodeInfo::CodeSignResult::Signed;
+
+    if (!haveMakeNsis())
+        QSKIP("makensis is not installed");
+    const QString osslsigncode = findExecutable(QStringList{"osslsigncode"});
+    if (osslsigncode.isEmpty())
+        QSKIP("osslsigncode is not installed");
+    const QString openssl = findExecutable(QStringList{"openssl"});
+    if (openssl.isEmpty())
+        QSKIP("openssl is not installed");
+
+    QDir::setCurrent(testDataDir + "/nsisCodesign");
+
+    // Generate a throwaway self-signed PKCS#12 certificate to sign with.
+    QTemporaryDir certDir;
+    QVERIFY(certDir.isValid());
+    const QString keyPath = certDir.filePath("key.pem");
+    const QString certPath = certDir.filePath("cert.pem");
+    const QString pfxPath = certDir.filePath("test.pfx");
+    const QString password = QStringLiteral("password");
+
+    QProcess genCert;
+    genCert.start(
+        openssl,
+        {"req",
+         "-x509",
+         "-newkey",
+         "rsa:2048",
+         "-nodes",
+         "-days",
+         "1",
+         "-subj",
+         "/CN=qbs osslsigncode test",
+         "-keyout",
+         keyPath,
+         "-out",
+         certPath});
+    QVERIFY(genCert.waitForFinished());
+    QVERIFY2(genCert.exitCode() == 0, genCert.readAllStandardError().constData());
+
+    QProcess genPfx;
+    genPfx.start(
+        openssl,
+        {"pkcs12",
+         "-export",
+         "-inkey",
+         keyPath,
+         "-in",
+         certPath,
+         "-out",
+         pfxPath,
+         "-passout",
+         "pass:" + password});
+    QVERIFY(genPfx.waitForFinished());
+    QVERIFY2(genPfx.exitCode() == 0, genPfx.readAllStandardError().constData());
+
+    QbsRunParameters params;
+    params.arguments = QStringList{
+        "modules.qbs.targetPlatform:windows",
+        QStringLiteral("project.enableSigning:%1").arg(enableSigning ? "true" : "false"),
+        QStringLiteral("project.certificatePath:%1").arg(pfxPath),
+        QStringLiteral("project.certificatePassword:%1").arg(password),
+        QStringLiteral("project.hashAlgorithm:%1").arg(hashAlgorithm),
+        QStringLiteral("project.signingTimestamp:%1").arg(signingTimestamp)};
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+
+    QVERIFY2(m_qbsStdout.contains("has nsis: true"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("osslsigncode path:"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling hello.nsi"), m_qbsStdout.constData());
+
+    const QString installer = relativeProductBuildDir("QbsSetup") + "/qbs.setup.test.exe";
+    QVERIFY(regularFileExists(installer));
+
+    const OsslsigncodeInfo info = extractOsslsigncodeInfo(osslsigncode, certPath, installer);
+    QVERIFY(info.result != OsslsigncodeInfo::CodeSignResult::Failed);
+    QCOMPARE(info.result, result);
+    QCOMPARE(info.hashAlgorithm, hashAlgorithm);
+    QCOMPARE(info.timestamped, !signingTimestamp.isEmpty());
+}
+
+void TestBlackbox::nsisCodesignOsslsigncode_data()
+{
+    QTest::addColumn<OsslsigncodeInfo::CodeSignResult>("result");
+    QTest::addColumn<QString>("hashAlgorithm");
+    QTest::addColumn<QString>("signingTimestamp");
+
+    QTest::newRow("nsis, unsigned") << OsslsigncodeInfo::CodeSignResult::Unsigned << ""
+                                    << "";
+    QTest::newRow("nsis, signed, sha1, no timestamp")
+        << OsslsigncodeInfo::CodeSignResult::Signed << "sha1"
+        << "";
+    QTest::newRow("nsis, signed, sha256, RFC3161 timestamp")
+        << OsslsigncodeInfo::CodeSignResult::Signed << "sha256"
+        << "http://timestamp.digicert.com";
+}
+
 void TestBlackbox::outOfDateMarking()
 {
     QDir::setCurrent(testDataDir + "/out-of-date-marking");

@@ -32,6 +32,7 @@ import qbs.File
 import qbs.FileInfo
 import qbs.Host
 import qbs.ModUtils
+import qbs.Process
 import qbs.Utilities
 import "../codesign/codesign.js" as Codesign
 
@@ -43,14 +44,50 @@ Module {
     readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
                                                 && codesign.enableCodeSigning
 
+    // On non-Windows hosts there is no registry to read the version from, so query makensis
+    // directly. The output looks like "v3.08" or "v3.08-2" (the trailing -N is a distribution
+    // packaging revision, not part of the NSIS version).
+    Probe {
+        id: nsisVersionProbe
+        condition: !Host.os().includes("windows")
+        property string compilerFilePath: compilerPath
+        property string foundVersion
+        property int major
+        property int minor
+        property int patch
+        configure: {
+            var p = new Process();
+            try {
+                if (p.exec(compilerFilePath, ["-VERSION"], false) === 0) {
+                    var match = p.readStdOut().trim().match(/^v?([0-9]+)\.([0-9]+)(?:\.([0-9]+))?/);
+                    if (match) {
+                        major = parseInt(match[1], 10);
+                        minor = parseInt(match[2], 10);
+                        patch = (match[3] !== undefined) ? parseInt(match[3], 10) : 0;
+                        foundVersion = major + "." + minor + "." + patch;
+                        found = true;
+                    }
+                }
+            } finally {
+                p.close();
+            }
+        }
+    }
+
     property path toolchainInstallPath: Utilities.getNativeSetting(registryKey)
 
-    version: (versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined
+    version: Host.os().includes("windows")
+        ? ((versionMajor !== undefined && versionMinor !== undefined) ? (versionMajor + "." + versionMinor) : undefined)
+        : nsisVersionProbe.foundVersion
     property var versionParts: [ versionMajor, versionMinor, versionPatch, versionBuild ]
-    property int versionMajor: Utilities.getNativeSetting(registryKey, "VersionMajor")
-    property int versionMinor: Utilities.getNativeSetting(registryKey, "VersionMinor")
-    property int versionPatch: Utilities.getNativeSetting(registryKey, "VersionBuild")
-    property int versionBuild: Utilities.getNativeSetting(registryKey, "VersionRevision")
+    property int versionMajor: Host.os().includes("windows")
+        ? Utilities.getNativeSetting(registryKey, "VersionMajor") : nsisVersionProbe.major
+    property int versionMinor: Host.os().includes("windows")
+        ? Utilities.getNativeSetting(registryKey, "VersionMinor") : nsisVersionProbe.minor
+    property int versionPatch: Host.os().includes("windows")
+        ? Utilities.getNativeSetting(registryKey, "VersionBuild") : nsisVersionProbe.patch
+    property int versionBuild: Host.os().includes("windows")
+        ? Utilities.getNativeSetting(registryKey, "VersionRevision") : 0
 
     property string compilerName: "makensis"
     property string compilerPath: compilerName
@@ -109,9 +146,9 @@ Module {
     validate: {
         var validator = new ModUtils.PropertyValidator("nsis");
 
-        // Only *require* the toolchain install path on Windows
-        // On other (Unix-like) operating systems it'll probably be in the PATH
-        if (qbs.targetOS.includes("windows"))
+        // Only *require* the toolchain install path on a Windows host, where it is read from the
+        // registry. On other (Unix-like) hosts makensis is expected to be in the PATH.
+        if (Host.os().includes("windows"))
             validator.setRequiredProperty("toolchainInstallPath", toolchainInstallPath);
 
         validator.setRequiredProperty("versionMajor", versionMajor);
@@ -250,7 +287,7 @@ Module {
             var cmds = [cmd];
 
             if (ModUtils.moduleProperty(product, "shouldSignArtifacts")) {
-                cmds = cmds.concat(Codesign.prepareSigntool(
+                cmds = cmds.concat(Codesign.prepareCodesign(
                     project, product, inputs, outputs, input, output));
             }
 

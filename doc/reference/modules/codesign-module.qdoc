@@ -36,6 +36,32 @@
     The \c codesign module contains properties and rules for code signing on Apple, Android,
     and Windows platforms.
 
+    The tool used to sign Windows artifacts (applications, libraries, and installers) depends on
+    the host operating system:
+
+    \list
+        \li On Windows hosts, signing is performed with the \c signtool utility from the
+            Windows SDK. The signing certificate may be selected from the Windows certificate
+            store (via \l{codesign::subjectName}{subjectName}) or supplied as a PKCS#12 (PFX) file.
+        \li On non-Windows hosts, signing is performed with
+            \l{https://github.com/mtrojnar/osslsigncode}{osslsigncode} version 2.0 or later. By
+            default it is located in the \c PATH, but its location can be set explicitly via
+            \l{codesign::codesignPath}{codesignPath}. This makes it possible to sign a
+            cross-compiled binary or an NSIS or Inno Setup installer that was built on Linux or
+            \macos. The certificate must be supplied as a PKCS#12 (PFX) file. Available since
+            Qbs 3.4.
+    \endlist
+
+    Because the two backends are different tools, they do not accept the same set of properties.
+    \l{codesign::certificatePath}{certificatePath}, \l{codesign::certificatePassword}
+    {certificatePassword}, \l{codesign::hashAlgorithm}{hashAlgorithm}, and
+    \l{codesign::signingTimestamp}{signingTimestamp} are honored by both \c signtool and
+    \c osslsigncode. The \l{codesign::subjectName}{subjectName}, \l{codesign::rootSubjectName}
+    {rootSubjectName}, \l{codesign::timestampAlgorithm}{timestampAlgorithm}, and
+    \l{codesign::crossCertificatePath}{crossCertificatePath} properties apply to \c signtool only
+    and are ignored by \c osslsigncode. To pass an option that has no dedicated property to the
+    underlying tool, use \l{codesign::codesignFlags}{codesignFlags}.
+
     \section2 Relevant File Tags
 
     \table
@@ -77,7 +103,9 @@
 /*!
     \qmlproperty stringList codesign::codesignFlags
 
-    Additional flags passed to the \c{codesign} tool.
+    Additional command-line flags passed to the underlying code signing tool (for example,
+    \c codesign on Apple, or \c signtool and \c osslsigncode for Windows artifacts). Use this to
+    set options that do not have a dedicated property.
 
     \since Qbs 1.19
 
@@ -363,6 +391,9 @@
 
     Specifies the full path to the signing certificate file (*.pfx).
 
+    This property is also used when signing with osslsigncode on non-Windows hosts, where a
+    PKCS#12 (PFX) certificate is required.
+
     \since Qbs 1.19
 
     \defaultvalue \c undefined
@@ -374,6 +405,8 @@
     \qmlproperty string codesign::certificatePassword
 
     Specifies the password to use when opening a signing certificate file (*.pfx).
+
+    This property is also used when signing with osslsigncode on non-Windows hosts.
 
     \since Qbs 1.19
 

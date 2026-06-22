@@ -149,7 +149,7 @@ Module {
             var cmds = [cmd];
 
             if (ModUtils.moduleProperty(product, "shouldSignArtifacts"))
-                cmds = cmds.concat(Codesign.prepareSigntool(project, product, inputs, outputs, input, output));
+                cmds = cmds.concat(Codesign.prepareCodesign(project, product, inputs, outputs, input, output));
             return cmds;
         }
     }

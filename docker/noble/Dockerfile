@@ -65,6 +65,8 @@ RUN apt-get update -qq && \
         nanopb \
         ninja-build \
         nsis \
+        openssl \
+        osslsigncode \
         pkg-config \
         protobuf-compiler \
         protobuf-compiler-grpc \

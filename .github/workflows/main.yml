@@ -653,7 +653,7 @@ jobs:
     - name: Update PATH
       run: echo "./release/install-root/usr/local/bin" >> $GITHUB_PATH
     - name: Install required packages
-      run: brew install capnp ccache grpc icoutils makensis protobuf
+      run: brew install capnp ccache grpc icoutils makensis osslsigncode protobuf
     - name: Set up Python
       uses: actions/setup-python@v5
       if: matrix.config.toolchain == 'clang_64'

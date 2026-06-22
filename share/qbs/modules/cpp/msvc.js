@@ -641,7 +641,7 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
 
     if (product.cpp.shouldSignArtifacts) {
         Array.prototype.push.apply(
-                    commands, Codesign.prepareSigntool(
+                    commands, Codesign.prepareCodesign(
                         project, product, inputs, outputs, input, output));
     }
 
