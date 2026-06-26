@@ -37,6 +37,13 @@
 
     \section1 Available Operations
 
+    \section2 canonicalFilePath
+    \code
+    File.canonicalFilePath(filePath: string): string
+    \endcode
+    Returns the canonical path of \c filePath, that is, an absolute path without symbolic links
+    or redundant "." or ".." elements. If the file does not exist, an empty string is returned.
+
     \section2 copy
     \code
     File.copy(sourceFilePath: string, targetFilePath: string): boolean
@@ -83,10 +90,10 @@
     \code
     File.move(oldPath: string, newPath: string, overwrite: boolean = true): boolean
     \endcode
-    Renames the file \c oldPath to \c newPath.
-    Returns \c true if successful; otherwise returns \c false.
-    If a file with the name \c newPath already exists, and \c overwrite is \c false,
-    \c move() returns \c false (that is, the file will not be overwritten).
+    Renames the file \c oldPath to \c newPath. Returns \c true on success and throws
+    an error on failure.
+    If a file with the name \c newPath already exists and \c overwrite is \c false, the
+    file is not overwritten and an error is thrown.
 
     \section2 remove
     \code

@@ -133,7 +133,7 @@
 
     \section2 setEnv
     \code
-    setEnv(varName: string, varValue: string): string
+    setEnv(varName: string, varValue: string): void
     \endcode
     Sets the value of variable \c varName to \c varValue in the process environment.
     This only has an effect if called before the process is started.

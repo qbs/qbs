@@ -48,9 +48,11 @@
 
     \section2 Constructor
     \code
-    TextFile(filePath: string, openMode: OpenMode = TextFile.ReadOnly)
+    TextFile(filePath: string, openMode: OpenMode = TextFile.ReadOnly, codec: string = "UTF-8")
     \endcode
     Opens the file at \c filePath in the given mode and returns the object representing the file.
+    The \c codec is used for reading and writing the file. The supported codecs are the same as
+    for \c QTextCodec, for example: "UTF-8", "UTF-16", and "ISO 8859-1".
     \note The mode influences which of the operations listed below can actually be used on the file.
 
     \section2 atEof

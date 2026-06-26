@@ -46,6 +46,34 @@
     one \e parent node, while it can have any number of \e children. Nodes with
     the same parent are called \e siblings.
 
+    \section1 Example
+
+    Tree-manipulation operations such as \c appendChild operate on node
+    \e objects. Create the nodes with the document's factory methods
+    (\c createElement, \c createTextNode, and so on), then insert those objects
+    into the tree:
+
+    \code
+    var doc = new Xml.DomDocument();
+
+    var root = doc.createElement("root");
+    doc.appendChild(root);
+
+    var greeting = doc.createElement("Greeting");
+    root.appendChild(greeting);
+    greeting.appendChild(doc.createTextNode("text node"));
+
+    doc.save("out.xml", 4);
+    \endcode
+
+    The code above produces:
+
+    \badcode
+    <root>
+        <Greeting>text node</Greeting>
+    </root>
+    \endcode
+
     \section1 XML DOM Document Node Operations
 
     A document node represents an entire document. That is, the root of the DOM
@@ -148,7 +176,7 @@
     \section2 appendChild
 
     \badcode
-    Xml.DomNode.appendChild(tagName: string)
+    Xml.DomNode.appendChild(newChild: DomNode)
     \endcode
 
     Appends a new child node to the end of the list of children of a node.
@@ -181,7 +209,7 @@
     \section2 firstChild
 
     \badcode
-    Xml.DomNode.firstChild(tagName: string)
+    Xml.DomNode.firstChild(tagName: string = "")
     \endcode
 
     Returns the first child of a node.
@@ -213,7 +241,7 @@
     \section2 insertAfter
 
     \badcode
-    Xml.DomNode.insertAfter(newChild: tagName, refChild: tagName)
+    Xml.DomNode.insertAfter(newChild: DomNode, refChild: DomNode)
     \endcode
 
     Inserts a new child node after the child node specified by \c refChild.
@@ -221,7 +249,7 @@
     \section2 insertBefore
 
     \badcode
-    Xml.DomNode.insertBefore(newChild: tagName, refChild: tagName)
+    Xml.DomNode.insertBefore(newChild: DomNode, refChild: DomNode)
     \endcode
 
     Inserts a new child node before the child node specified by \c refChild.
@@ -253,7 +281,7 @@
     \section2 lastChild
 
     \badcode
-    Xml.DomNode.lastChild(tagName: string)
+    Xml.DomNode.lastChild(tagName: string = "")
     \endcode
 
     Returns the last child of a node.
@@ -261,7 +289,7 @@
     \section2 nextSibling
 
     \badcode
-    Xml.DomNode.nextSibling(tagName: string)
+    Xml.DomNode.nextSibling(tagName: string = "")
     \endcode
 
     Returns the node immediately following a node.
@@ -277,7 +305,7 @@
     \section2 previousSibling
 
     \badcode
-    Xml.DomNode.previousSibling(tagName: string)
+    Xml.DomNode.previousSibling(tagName: string = "")
     \endcode
 
     Returns the node before a node.
@@ -285,7 +313,7 @@
     \section2 removeChild
 
     \badcode
-    Xml.DomNode.removeChild(tagName: string)
+    Xml.DomNode.removeChild(oldChild: DomNode)
     \endcode
 
     Removes the child node.
@@ -293,7 +321,7 @@
     \section2 replaceChild
 
     \badcode
-    Xml.DomNode.replaceChild(newChild: tagName, oldChild: tagName)
+    Xml.DomNode.replaceChild(newChild: DomNode, oldChild: DomNode)
     \endcode
 
     Replaces a child node with another one.

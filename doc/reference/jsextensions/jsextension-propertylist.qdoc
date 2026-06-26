@@ -67,6 +67,15 @@
     If the property list object is empty or the input format could not be determined,
     returns \c undefined.
 
+    \section2 readFromData
+    \code
+    readFromData(data: string): void
+    \endcode
+    Parses the raw property list \c data, in any of the supported formats, and stores the
+    result in the property list. \c readFromString and \c readFromFile are implemented in
+    terms of this operation.
+    Throws an exception if the input is in an invalid format.
+
     \section2 readFromFile
     \code
     readFromFile(filePath: string): void

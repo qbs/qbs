@@ -130,6 +130,13 @@
     The function assumes \c dirPath and \c filePath to be absolute paths and \c dirPath to
     be a directory.
 
+    \section2 resolvePath
+    \code
+    FileInfo.resolvePath(base: string, rel: string): string
+    \endcode
+    Resolves the path \c rel against the base directory \c base and returns the result.
+    If \c rel is already an absolute path, it is returned unchanged.
+
     \section2 suffix
     \code
     FileInfo.suffix(filePath: string): string

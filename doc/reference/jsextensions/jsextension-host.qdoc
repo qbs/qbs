@@ -132,7 +132,7 @@
 
     \section2 nullDevice
     \code
-    Host.nullDevice(): string[]
+    Host.nullDevice(): string
     \endcode
     Returns the platform-specific file path corresponding to the null device.
     \funsince 1.22
