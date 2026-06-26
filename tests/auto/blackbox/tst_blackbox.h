@@ -59,6 +59,7 @@ private slots:
     void auxiliaryInputsFromDependencies();
     void badInterpreter();
     void bomSources();
+    void boolValueInProfile();
     void buildDataOfDisabledProduct();
     void buildDirectories();
     void buildDirPlaceholders_data();
