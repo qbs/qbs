@@ -5233,6 +5233,8 @@ void TestBlackbox::fileTagsFilterMerging()
 {
     QDir::setCurrent(testDataDir + "/filetagsfilter-merging");
     QCOMPARE(runQbs(QStringList{"-f", "filetagsfilter-merging.qbs"}), 0);
+    QVERIFY2(m_qbsStdout.contains("installPrefix: fromFilterGroup"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("installDir: fromArtifact"), m_qbsStdout.constData());
     const QString installedApp
         = defaultInstallRoot + "/myapp/binDir/"
           + QFileInfo(relativeExecutableFilePath("myapp", m_qbsStdout)).fileName();

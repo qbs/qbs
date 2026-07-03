@@ -240,6 +240,36 @@ void TestLanguage::additionalProductTypes()
     QCOMPARE(exceptionCaught, false);
 }
 
+void TestLanguage::additiveFileTagsFilter()
+{
+    bool exceptionCaught = false;
+    try {
+        resolveProject("additive-file-tags-filter.qbs");
+        QVERIFY(!!project);
+        const QHash<QString, ResolvedProductPtr> products = productsFromProject(project);
+        QCOMPARE(products.size(), 1);
+        GroupConstPtr theGroup;
+        for (const GroupPtr &g : (*products.begin())->groups) {
+            if (g->name == "the group") {
+                theGroup = g;
+                break;
+            }
+        }
+        QVERIFY(theGroup);
+        QCOMPARE(theGroup->files->size(), 1);
+        const SourceArtifactConstPtr file = theGroup->files->front();
+        const FileTags expectedTags{"text", "tagFromFilter"};
+        QCOMPARE(file->fileTags.toStringList(), expectedTags.toStringList());
+        QCOMPARE(
+            file->properties->moduleProperty("dummy", "someString").toString(), "valueFromFilter");
+        QCOMPARE(file->properties->moduleProperty("dummy", "zort").toString(), "valueFromGroup");
+    } catch (const ErrorInfo &e) {
+        exceptionCaught = true;
+        qDebug() << e.toString();
+    }
+    QCOMPARE(exceptionCaught, false);
+}
+
 void TestLanguage::baseProperty()
 {
     bool exceptionCaught = false;

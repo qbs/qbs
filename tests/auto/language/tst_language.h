@@ -62,6 +62,7 @@ private slots:
     void initTestCase();
 
     void additionalProductTypes();
+    void additiveFileTagsFilter();
     void baseProperty();
     void baseValidation();
     void brokenDependencyCycle();

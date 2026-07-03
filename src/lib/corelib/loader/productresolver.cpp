@@ -127,8 +127,8 @@ private:
     void createProductConfig();
     void resolveGroup(Item *item, ModuleContext *moduleContext);
     void resolveGroupFully(Item *item, bool isEnabled, ModuleContext *moduleContext);
-    QVariantMap resolveAdditionalModuleProperties(const Item *group,
-                                                  const QVariantMap &currentValues);
+    QVariantMap resolveAdditionalModuleProperties(
+        const Item *group, const QVariantMap &currentValues, bool considerParentGroups);
     SourceArtifactPtr createSourceArtifact(const QString &fileName, const GroupPtr &group,
             bool wildcard, const CodeLocation &filesLocation,
             ErrorInfo *errorInfo);
@@ -155,6 +155,18 @@ private:
 
     using ArtifactPropertiesInfo = std::pair<ArtifactPropertiesPtr, std::vector<CodeLocation>>;
     QHash<QStringList, ArtifactPropertiesInfo> m_artifactPropertiesPerFilter;
+    struct FileTagsFilterGroupInfo
+    {
+        FileTagsFilterGroupInfo(const FileTags &filter, const FileTags &extraTags, Item *item)
+            : filter(filter)
+            , extraTags(extraTags)
+            , item(item)
+        {}
+        const FileTags filter;
+        const FileTags extraTags;
+        Item * const item;
+    };
+    std::vector<FileTagsFilterGroupInfo> m_fileTagsFilterGroups;
 };
 
 class ExportsResolver
@@ -728,7 +740,7 @@ void ProductResolverStage2::resolveGroupFully(
                     : m_product.product->moduleProperties;
         }
         const QVariantMap newModuleProperties = resolveAdditionalModuleProperties(
-                    item, moduleProperties->value());
+            item, moduleProperties->value(), false);
         if (!newModuleProperties.empty()) {
             if (newPropertyMapRequired)
                 moduleProperties = PropertyMapInternal::create();
@@ -745,6 +757,7 @@ void ProductResolverStage2::resolveGroupFully(
     const QStringList fileTagsFilter
         = evaluator.stringListValue(item, StringConstants::fileTagsFilterProperty());
     if (!fileTagsFilter.empty()) {
+        const FileTags filterTags = FileTags::fromStringList(fileTagsFilter);
         if (Q_UNLIKELY(!files.empty()))
             throw ErrorInfo(Tr::tr("Group.files and Group.fileTagsFilters are exclusive."),
                         item->location());
@@ -766,12 +779,13 @@ void ProductResolverStage2::resolveGroupFully(
             }
         } else {
             apinfo.first = ArtifactProperties::create();
-            apinfo.first->setFileTagsFilter(FileTags::fromStringList(fileTagsFilter));
+            apinfo.first->setFileTagsFilter(filterTags);
             m_product.product->artifactProperties.push_back(apinfo.first);
         }
         apinfo.second.push_back(item->location());
         apinfo.first->setPropertyMapInternal(getGroupPropertyMap(apinfo.first.get()));
         apinfo.first->addExtraFileTags(fileTags);
+        m_fileTagsFilterGroups.emplace_back(filterTags, fileTags, item);
         return;
     }
     QStringList patterns;
@@ -928,14 +942,22 @@ static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
 }
 
 QVariantMap ProductResolverStage2::resolveAdditionalModuleProperties(
-        const Item *group, const QVariantMap &currentValues)
+    const Item *group, const QVariantMap &currentValues, bool considerParentGroups)
 {
     // Step 1: Retrieve the properties directly set in the group
     const ModulePropertiesPerGroup &mp = m_product.modulePropertiesSetInGroups;
     const auto it = mp.find(group);
     if (it == mp.end())
         return {};
-    const QualifiedIdSet &propsSetInGroup = it->second;
+    QualifiedIdSet propsSetInGroup = it->second;
+    if (considerParentGroups) {
+        for (Item *parentGroup = group->parent();
+             parentGroup && parentGroup->type() == ItemType::Group;
+             parentGroup = parentGroup->parent()) {
+            if (const auto parentIt = mp.find(parentGroup); parentIt != mp.end())
+                propsSetInGroup.unite(parentIt->second);
+        }
+    }
 
     // Step 2: Gather all properties that depend on these properties.
     const QualifiedIdSet &propsToEval = propertiesToEvaluate(
@@ -1245,11 +1267,17 @@ void ProductResolverStage2::applyFileTaggers()
 void ProductResolverStage2::finalizeArtifactProperties()
 {
     for (const SourceArtifactPtr &artifact : m_product.product->allEnabledFiles()) {
-        for (const auto &artifactProperties : m_product.product->artifactProperties) {
-            if (!artifact->isTargetOfModule()
-                    && artifact->fileTags.intersects(artifactProperties->fileTagsFilter())) {
-                // FIXME: Should be merged, not overwritten.
-                artifact->properties = artifactProperties->propertyMap();
+        if (!artifact->isTargetOfModule()) {
+            for (const FileTagsFilterGroupInfo &filterGroup : m_fileTagsFilterGroups) {
+                if (artifact->fileTags.intersects(filterGroup.filter)) {
+                    const QVariantMap newProps = resolveAdditionalModuleProperties(
+                        filterGroup.item, artifact->properties->value(), true);
+                    if (newProps != artifact->properties->value()) {
+                        artifact->properties = PropertyMapInternal::create();
+                        artifact->properties->setValue(newProps);
+                    }
+                    artifact->fileTags.unite(filterGroup.extraTags);
+                }
             }
         }
 
