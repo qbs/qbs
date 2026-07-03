@@ -186,3 +186,54 @@
 
     \nodefaultvalue
 */
+
+/*!
+    \qmlproperty string Qt.qml::pluginClassName
+
+    The C++ class name of the \c QQmlExtensionPlugin subclass.
+
+    When \l loadedAtRuntime is \c true and this property is set, a
+    \c classname line is written into the generated \c qmldir. The QML engine
+    uses this name to instantiate the plugin object after loading the plugin
+    library at runtime.
+
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 3.4
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty string Qt.qml::qmldirInstallDir
+
+    The directory where the generated \c qmldir file is installed. If empty or
+    undefined, the file will not be installed.
+
+    This property has no effect if \l importName is not set.
+
+    \since Qbs 3.4
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool Qt.qml::loadedAtRuntime
+
+    Controls whether the generated \c qmldir contains a \c plugin line (and,
+    if \l pluginClassName is set, a \c classname line).
+
+    The default value already matches the expected behaviour in most cases:
+    \c true for dynamic and loadable-module products so the QML engine can
+    discover and load the plugin at runtime, and \c false for static libraries
+    where no dynamic loading takes place.
+
+    The one case that requires an explicit override is a dynamic library that is
+    linked directly into the application at build time. In that case set this
+    property to \c false so that the QML engine can adapt its run-time
+    behavior accordingly.
+
+    This property has no effect if \l importName is not set.
+
+    \defaultvalue \c true for dynamic and loadable-module products,
+    \c false for static libraries.
+    \since Qbs 3.4
+*/

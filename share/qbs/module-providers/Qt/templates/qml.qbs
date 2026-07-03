@@ -73,11 +73,15 @@ QtModule {
     }
     property string typesInstallDir
     property stringList extraMetaTypesFiles
-
+    property string pluginClassName
+    property string qmldirInstallDir
+    property bool loadedAtRuntime: product.type && (product.type.contains("dynamiclibrary")
+                                                    || product.type.contains("loadablemodule"))
 
     Group {
         condition: importName
         product.Qt.core.generateMetaTypesFile: true
+        product.additionalProductTypes: "qt.qml.qmldir"
         Rule {
             inputs: "qt.core.metatypes"
             multiplex: true
@@ -93,6 +97,18 @@ QtModule {
                 qbs.installDir: product.Qt.qml.typesInstallDir
             }
             prepare: Qml.typeRegistrarCommands.apply(Qml, arguments)
+        }
+        Rule {
+            multiplex: true
+            requiresInputs: false
+            inputs: ["qt.qml.qml", "qt.qml.singleton"]
+            Artifact {
+                filePath: "qmldir"
+                fileTags: "qt.qml.qmldir"
+                qbs.install: product.Qt.qml.qmldirInstallDir
+                qbs.installDir: product.Qt.qml.qmldirInstallDir
+            }
+            prepare: Qml.qmldirCommands.apply(Qml, arguments)
         }
     }
 

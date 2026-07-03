@@ -25,7 +25,7 @@
 **
 ****************************************************************************/
 /*!
-    \previouspage ObjectLibrary
+    \previouspage QmlModule
     \nextpage QtGuiApplication
     \qmltype QtApplication
     \inherits CppApplication

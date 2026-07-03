@@ -2,6 +2,7 @@ var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var Process = require("qbs.Process");
 var TextFile = require("qbs.TextFile");
+var Utilities = require("qbs.Utilities");
 
 function scannerData(scannerFilePath, qmlFiles, qmlPath, hostOS)
 {
@@ -125,6 +126,50 @@ function typeRegistrarCommands(project, product, inputs, outputs, input, output,
     var cmd = new Command(product.Qt.core.qmlLibExecPath + "/qmltyperegistrar", args);
     cmd.description = "running qmltyperegistrar";
     cmd.highlight = "codegen";
+    return cmd;
+}
+
+function qmldirCommands(project, product, inputs, outputs, input, output, explicitlyDependsOn)
+{
+    var cmd = new JavaScriptCommand();
+    cmd.description = "creating qmldir";
+    cmd.highlight = "codegen";
+    cmd.sourceCode = function() {
+        var f = new TextFile(output.filePath, TextFile.WriteOnly);
+        var qml = product.Qt.qml;
+        var versionParts = qml._importVersionParts;
+        var moduleVersion = versionParts[0] + "."
+                + (versionParts.length > 1 ? versionParts[1] : "0");
+
+        f.writeLine("module " + qml.importName);
+
+        if (qml.loadedAtRuntime) {
+            f.writeLine("plugin " + product.targetName);
+            if (qml.pluginClassName)
+                f.writeLine("classname " + qml.pluginClassName);
+        }
+
+        if (qml.typesInstallDir)
+            f.writeLine("typeinfo " + qml.typesFileName);
+
+        if (Utilities.versionCompare(product.Qt.core.version, "6.2") >= 0)
+            f.writeLine("prefer :/qt/qml/" + qml.importName.replace(/\./g, "/") + "/");
+
+        var singletonFiles = inputs["qt.qml.singleton"] || [];
+        var singletonPaths = {};
+        for (var i = 0; i < singletonFiles.length; ++i)
+            singletonPaths[singletonFiles[i].filePath] = true;
+
+        var qmlFiles = inputs["qt.qml.qml"] || [];
+        for (var i = 0; i < qmlFiles.length; ++i) {
+            var fileName = FileInfo.fileName(qmlFiles[i].filePath);
+            var typeName = fileName.replace(/\.qml$/, "");
+            var prefix = singletonPaths[qmlFiles[i].filePath] ? "singleton " : "";
+            f.writeLine(prefix + typeName + " " + moduleVersion + " " + fileName);
+        }
+
+        f.close();
+    };
     return cmd;
 }
 

@@ -77,6 +77,8 @@ private slots:
     void pluginSupport();
     void qdoc();
     void qmlDebugging();
+    void qmlModule_data();
+    void qmlModule();
     void qobjectInObjectiveCpp();
     void qmlTypeRegistrar_data();
     void qmlTypeRegistrar();

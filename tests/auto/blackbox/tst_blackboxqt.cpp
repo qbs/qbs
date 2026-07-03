@@ -760,6 +760,77 @@ void TestBlackboxQt::qmlDebugging()
     QVERIFY2(output.toLower().contains("debugginghelper"), output.constData());
 }
 
+void TestBlackboxQt::qmlModule_data()
+{
+    QTest::addColumn<QString>("mode");
+    QTest::newRow("linked") << QStringLiteral("linked");
+    QTest::newRow("unlinked") << QStringLiteral("unlinked");
+    QTest::newRow("static") << QStringLiteral("static");
+}
+
+void TestBlackboxQt::qmlModule()
+{
+    QFETCH(QString, mode);
+    QDir::setCurrent(testDataDir + "/qml-module");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters resolveParams("resolve");
+    resolveParams.arguments << (QStringLiteral("project.mode:") + mode);
+    if (runQbs(resolveParams) != 0) {
+        if (m_qbsStderr.contains("Dependency 'Qt.qml' not found"))
+            QSKIP("Qt.qml not available");
+        QFAIL(m_qbsStderr.constData());
+    }
+    if (m_qbsStdout.contains("typeRegistrar not available"))
+        QSKIP("Qt version too old");
+    const bool preferSupported = m_qbsStdout.contains("prefer supported");
+    if (!preferSupported && mode == "linked")
+        QSKIP("Qt version too old");
+    if (m_qbsStdout.contains("static Qt"))
+        mode = "static";
+    const bool canRun = !m_qbsStdout.contains(
+        "target platform/arch differ from host platform/arch");
+
+    QCOMPARE(runQbs(), 0);
+
+    const QString buildDir = relativeProductBuildDir("myqmlplugin");
+    QVERIFY(regularFileExists(buildDir + "/qmldir"));
+
+    QFile qmldirFile(buildDir + "/qmldir");
+    QVERIFY(qmldirFile.open(QIODevice::ReadOnly | QIODevice::Text));
+    const QByteArray content = qmldirFile.readAll();
+    QVERIFY2(content.contains("module io.qt.QbsTest\n"), content.constData());
+    if (mode == "unlinked") {
+        QVERIFY2(content.contains("plugin myqmlplugin\n"), content.constData());
+        QVERIFY2(content.contains("classname QbsTestPlugin\n"), content.constData());
+    } else {
+        QVERIFY2(!content.contains("plugin "), content.constData());
+    }
+    QVERIFY2(content.contains("typeinfo plugins.qmltypes\n"), content.constData());
+    QVERIFY2(
+        content.contains("prefer :/qt/qml/io/qt/QbsTest/\n") == preferSupported,
+        content.constData());
+    QVERIFY2(content.contains("MyQmlItem 1.0 MyQmlItem.qml\n"), content.constData());
+
+    const QString moduleInstallDir = relativeBuildDir() + "/install-root/qml/io/qt/QbsTest/";
+    QVERIFY(regularFileExists(moduleInstallDir + "qmldir"));
+    QVERIFY(regularFileExists(moduleInstallDir + "MyQmlItem.qml"));
+    QVERIFY(regularFileExists(moduleInstallDir + "plugins.qmltypes"));
+
+    if (!canRun)
+        return;
+
+    QbsRunParameters runParams("run", {"-p", "app"});
+    if (mode == "unlinked") {
+        const QString importPath = QDir::currentPath() + "/" + relativeBuildDir()
+                                   + "/install-root/qml";
+        runParams.environment.insert(QStringLiteral("QML2_IMPORT_PATH"), importPath);
+        runParams.environment.insert(QStringLiteral("QML_IMPORT_PATH"), importPath);
+    }
+    QCOMPARE(runQbs(runParams), 0);
+    QVERIFY2(m_qbsStdout.contains("MyItem created"), m_qbsStdout.constData());
+}
+
 void TestBlackboxQt::qobjectInObjectiveCpp()
 {
     if (!HostOsInfo::isMacosHost())
