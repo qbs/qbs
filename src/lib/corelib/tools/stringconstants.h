@@ -84,6 +84,7 @@ public:
     QBS_STRING_CONSTANT(excludeFilesProperty, "excludeFiles")
     QBS_STRING_CONSTANT(excludedAuxiliaryInputsProperty, "excludedAuxiliaryInputs")
     QBS_STRING_CONSTANT(excludedInputsProperty, "excludedInputs")
+    QBS_STRING_CONSTANT(excludedScannersProperty, "excludedScanners")
     static const QString &explicitlyDependsOnProperty() { return explicitlyDependsOn(); }
     static const QString &explicitlyDependsOnFromDependenciesProperty() {
         return explicitlyDependsOnFromDependencies();

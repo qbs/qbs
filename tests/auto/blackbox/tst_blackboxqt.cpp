@@ -500,6 +500,15 @@ void TestBlackboxQt::mocSameFileName()
     QCOMPARE(m_qbsStdout.count("compiling moc_someclass.cpp"), 2);
 }
 
+void TestBlackboxQt::mocableModuleImporter()
+{
+    QDir::setCurrent(testDataDir + "/mocable-module-importer");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("Unsupported toolchainType"))
+        QSKIP("Modules are not supported for this toolchain");
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackboxQt::noMocRunAfterTouchingOtherCppFile()
 {
     QDir::setCurrent(testDataDir + "/no-moc-run-after-touching-other-cpp-file");

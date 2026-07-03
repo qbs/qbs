@@ -369,6 +369,7 @@ Module {
             inputs: [objcppInput, cppInput, "cppm"]
             auxiliaryInputs: "qt_plugin_metadata"
             excludedInputs: "unmocable"
+            excludedScanners: ["cpp.cpp"]
             outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in", "qt.untranslatable"]
             outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
             prepare: Moc.commands.apply(Moc, arguments)
@@ -378,6 +379,7 @@ Module {
             inputs: "hpp"
             auxiliaryInputs: ["qt_plugin_metadata", "cpp", "objcpp"]
             excludedInputs: "unmocable"
+            excludedScanners: ["cpp.cpp"]
             outputFileTags: ["hpp", "cpp", "moc_cpp", "unmocable", "qt.core.metatypes.in",
                              "qt.untranslatable"]
             outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)

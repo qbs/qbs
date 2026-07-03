@@ -99,7 +99,8 @@ class InputArtifactScannerContext
 class InputArtifactScanner
 {
 public:
-    explicit InputArtifactScanner(Logger logger, InputArtifactScannerContext *ctx);
+    InputArtifactScanner(
+        Logger logger, InputArtifactScannerContext *ctx, Set<QString> excludedScanners = {});
 
     bool scan(const ArtifactSet &inputArtifacts);
     bool updateDependencies(Artifact *artifact);
@@ -129,6 +130,7 @@ private:
 private:
     Logger m_logger;
     InputArtifactScannerContext *m_context;
+    const Set<QString> m_excludedScanners;
 };
 
 } // namespace Internal

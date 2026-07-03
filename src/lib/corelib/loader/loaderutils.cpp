@@ -728,6 +728,8 @@ void resolveRule(LoaderState &state, Item *item, ProjectContext *projectContext,
         rule->excludedInputs = evaluator.fileTagsValue(
                     item, StringConstants::excludedAuxiliaryInputsProperty());
     }
+    rule->excludedScanners = evaluator.stringListValue(
+        item, StringConstants::excludedScannersProperty());
     rule->explicitlyDependsOn
         = evaluator.fileTagsValue(item, StringConstants::explicitlyDependsOnProperty());
     rule->explicitlyDependsOnFromDependencies = evaluator.fileTagsValue(

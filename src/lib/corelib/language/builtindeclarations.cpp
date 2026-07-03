@@ -557,6 +557,8 @@ void BuiltinDeclarations::addRuleItem()
     item << excludedAuxInputs;
     item << PropertyDeclaration(StringConstants::excludedInputsProperty(),
                                 PropertyDeclaration::StringList);
+    item << PropertyDeclaration(
+        StringConstants::excludedScannersProperty(), PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::explicitlyDependsOnProperty(),
                                       PropertyDeclaration::StringList);
     item << PropertyDeclaration(StringConstants::explicitlyDependsOnFromDependenciesProperty(),

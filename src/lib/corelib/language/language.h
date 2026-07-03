@@ -439,6 +439,7 @@ public:
     FileTags auxiliaryInputs;
     FileTags auxiliaryInputsFromDependencies;
     FileTags excludedInputs;
+    QStringList excludedScanners;
     FileTags inputsFromDependencies;
     FileTags explicitlyDependsOn;
     FileTags explicitlyDependsOnFromDependencies;
@@ -471,6 +472,7 @@ public:
             auxiliaryInputs,
             auxiliaryInputsFromDependencies,
             excludedInputs,
+            excludedScanners,
             inputsFromDependencies,
             explicitlyDependsOn,
             explicitlyDependsOnFromDependencies,

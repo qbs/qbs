@@ -161,7 +161,10 @@ RuleNode::ApplicationResult RuleNode::apply(
 
     const bool mustScan = mustApplyRule || !inputsToScan.empty();
 
-    InputArtifactScanner inputScanner(logger, inputArtifactScanContext);
+    Set<QString> excludedScanners;
+    for (const QString &scannerId : std::as_const(m_rule->excludedScanners))
+        excludedScanners.insert(scannerId);
+    InputArtifactScanner inputScanner(logger, inputArtifactScanContext, excludedScanners);
     const bool wasScanned = mustScan && inputScanner.scan(inputsToScan);
 
     if (upToDate) {

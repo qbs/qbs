@@ -134,9 +134,11 @@ static void resolveDepencency(
         result->filePath = absFilePath;
 }
 
-InputArtifactScanner::InputArtifactScanner(Logger logger, InputArtifactScannerContext *ctx)
+InputArtifactScanner::InputArtifactScanner(
+    Logger logger, InputArtifactScannerContext *ctx, Set<QString> excludedScanners)
     : m_logger(logger)
     , m_context(ctx)
+    , m_excludedScanners(std::move(excludedScanners))
 {}
 
 /*
@@ -292,8 +294,10 @@ Set<DependencyScanner *> InputArtifactScanner::scannersForArtifact(const Artifac
             }
             cache = std::move(cacheScanners);
         }
-        for (const DependencyScannerPtr &scanner : std::as_const(*cache))
-            scanners += scanner.get();
+        for (const DependencyScannerPtr &scanner : std::as_const(*cache)) {
+            if (!m_excludedScanners.contains(scanner->id()))
+                scanners += scanner.get();
+        }
     }
     return scanners;
 }

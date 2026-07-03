@@ -907,7 +907,7 @@ bool operator==(const Rule &r1, const Rule &r2)
            && r1.outputArtifactsScript == r2.outputArtifactsScript && r1.inputs == r2.inputs
            && r1.outputFileTags == r2.outputFileTags && r1.auxiliaryInputs == r2.auxiliaryInputs
            && r1.auxiliaryInputsFromDependencies == r2.auxiliaryInputsFromDependencies
-           && r1.excludedInputs == r2.excludedInputs
+           && r1.excludedInputs == r2.excludedInputs && r1.excludedScanners == r2.excludedScanners
            && r1.inputsFromDependencies == r2.inputsFromDependencies
            && r1.explicitlyDependsOn == r2.explicitlyDependsOn
            && r1.explicitlyDependsOnFromDependencies == r2.explicitlyDependsOnFromDependencies
