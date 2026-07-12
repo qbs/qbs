@@ -329,6 +329,7 @@ private slots:
     void scannerItem_data();
     void scannerItem();
     void scannerProperties();
+    void scanAuxiliaryInputs();
     void scannerChangeTracking();
     void scanResultInOtherProduct();
     void scanResultInNonDependency();

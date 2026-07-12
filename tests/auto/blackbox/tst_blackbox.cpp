@@ -3387,6 +3387,23 @@ void TestBlackbox::scannerProperties()
     QVERIFY(!QFile::exists(buildDir + "/out-from-a.txt"));
 }
 
+/*
+    For the moc rule, we need to check whether cpp files include moc files generated
+    from headers. We run scanners on artifacts matching the rule's auxiliaryInputs
+    for this purpose; this test verifies that behavior.
+*/
+void TestBlackbox::scanAuxiliaryInputs()
+{
+    QDir::setCurrent(testDataDir + "/scan-auxiliary-inputs");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("embedded gen for widget.hdr"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("standalone gen for widget.hdr"), m_qbsStdout.constData());
+
+    const QString buildDir = relativeProductBuildDir("scan-auxiliary-inputs");
+    QVERIFY(regularFileExists(buildDir + "/gen_widget.out"));
+}
+
 void TestBlackbox::scannerChangeTracking()
 {
     QDir::setCurrent(testDataDir + "/scanner-change-tracking");

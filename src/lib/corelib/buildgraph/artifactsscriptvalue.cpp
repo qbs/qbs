@@ -179,8 +179,11 @@ static int getArtifactsProperty(JSContext *ctx, JSPropertyDescriptor *desc,
         desc->value = JS_NewArray(ctx); // TODO: Also cache this list?
         int k = 0;
         for (Artifact * const artifact : artifacts) {
-            JS_SetPropertyUint32(ctx, desc->value, k++,
-                                 Transformer::translateFileConfig(engine, artifact, QString()));
+            JS_SetPropertyUint32(
+                ctx,
+                desc->value,
+                k++,
+                Transformer::translateFileConfig(engine, artifact, QString(), true));
         }
     }
     return 1;

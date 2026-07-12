@@ -81,6 +81,7 @@ public:
         QStringList &removedArtifacts,
         const Logger &logger);
     static ArtifactSet collectExplicitlyDependsOn(const Rule *rule, const ResolvedProduct *product);
+    static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);
 
 private:
     enum InputsSources { CurrentProduct, Dependencies };

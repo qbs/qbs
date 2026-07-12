@@ -151,6 +151,13 @@ RuleNode::ApplicationResult RuleNode::apply(
     // If so, we need to scan even if the rule appears up-to-date.
     ArtifactSet inputsToScan = inputs;
     inputsToScan += collectInputsForOutOfDateOutputs(allCompatibleInputs);
+    // Auxiliary inputs are scanned so their scanner properties are available to
+    // outputArtifacts/prepare. Only do that when the rule will actually apply —
+    // otherwise Null Builds re-walk every auxiliary artifact (e.g. all cpp files
+    // for QtCoreMocRuleHpp) on every run.
+    if (!upToDate && mustApplyRule && !m_rule->auxiliaryInputs.empty()) {
+        inputsToScan.unite(RulesApplicator::collectAuxiliaryInputs(m_rule.get(), product.get()));
+    }
 
     const bool mustScan = mustApplyRule || !inputsToScan.empty();
 

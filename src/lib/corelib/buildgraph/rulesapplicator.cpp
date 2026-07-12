@@ -375,6 +375,12 @@ ArtifactSet RulesApplicator::collectExplicitlyDependsOn(const Rule *rule,
    return first.unite(second);
 }
 
+ArtifactSet RulesApplicator::collectAuxiliaryInputs(
+    const Rule *rule, const ResolvedProduct *product)
+{
+    return collectAdditionalInputs(rule->auxiliaryInputs, rule, product, CurrentProduct);
+}
+
 RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifactFromRuleArtifact(
     const RuleArtifactConstPtr &ruleArtifact,
     const ArtifactSet &inputArtifacts,
