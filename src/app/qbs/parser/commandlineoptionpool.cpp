@@ -86,6 +86,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::ProductsOptionType:
             option = new ProductsOption;
             break;
+        case CommandLineOption::TagsOptionType:
+            option = new TagsOption;
+            break;
         case CommandLineOption::NoInstallOptionType:
             option = new NoInstallOption;
             break;
@@ -199,6 +202,11 @@ JobsOption *CommandLineOptionPool::jobsOption() const
 ProductsOption *CommandLineOptionPool::productsOption() const
 {
     return static_cast<ProductsOption *>(getOption(CommandLineOption::ProductsOptionType));
+}
+
+TagsOption *CommandLineOptionPool::tagsOption() const
+{
+    return static_cast<TagsOption *>(getOption(CommandLineOption::TagsOptionType));
 }
 
 NoInstallOption *CommandLineOptionPool::noInstallOption() const

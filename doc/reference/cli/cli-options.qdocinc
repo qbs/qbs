@@ -427,6 +427,15 @@
 
 //! [products-specified]
 
+//! [tags-specified]
+
+    \section2 \c {--tags <tag>[,<tag>...]}
+
+    Takes only products whose \l{Product::type}{type} matches one of the
+    specified tags into account.
+
+//! [tags-specified]
+
 //! [qt-dir]
 
     \section2 \c {--qt-dir <directory>}

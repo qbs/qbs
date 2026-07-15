@@ -529,8 +529,10 @@ QString ListProductsCommand::representation() const
 
 QList<CommandLineOption::Type> ListProductsCommand::supportedOptions() const
 {
-    return {CommandLineOption::FileOptionType,
-            CommandLineOption::BuildDirectoryOptionType};
+    return {
+        CommandLineOption::FileOptionType,
+        CommandLineOption::BuildDirectoryOptionType,
+        CommandLineOption::TagsOptionType};
 }
 
 QString HelpCommand::shortDescription() const

@@ -65,6 +65,7 @@ public:
         ShowProgressOptionType,
         ChangedFilesOptionType,
         ProductsOptionType,
+        TagsOptionType,
         NoInstallOptionType,
         InstallRootOptionType,
         RemoveFirstOptionType,
@@ -292,6 +293,13 @@ public:
 };
 
 class RunEnvConfigOption : public StringListOption
+{
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return {}; }
+    QString longRepresentation() const override;
+};
+
+class TagsOption : public StringListOption
 {
     QString description(CommandType command) const override;
     QString shortRepresentation() const override { return {}; }

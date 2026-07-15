@@ -257,6 +257,11 @@ QStringList CommandLineParser::products() const
     return d->optionPool.productsOption()->arguments();
 }
 
+QStringList CommandLineParser::tags() const
+{
+    return d->optionPool.tagsOption()->arguments();
+}
+
 QStringList CommandLineParser::runEnvConfig() const
 {
     return d->optionPool.runEnvConfigOption()->arguments();

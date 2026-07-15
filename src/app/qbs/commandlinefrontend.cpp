@@ -59,8 +59,9 @@
 #include <QtCore/qprocess.h>
 #include <QtCore/qtimer.h>
 
-#include <cstdlib>
+#include <algorithm>
 #include <cstdio>
+#include <cstdlib>
 
 namespace qbs {
 using namespace Internal;
@@ -610,8 +611,14 @@ void CommandLineFrontend::dumpNodesTree()
 void CommandLineFrontend::listProducts()
 {
     const QList<ProductData> products = productsToUse().constBegin().value();
+    const QStringList tags = m_parser.tags();
     QStringList output;
     for (const ProductData &p : products) {
+        if (!tags.empty() && std::none_of(tags.cbegin(), tags.cend(), [&p](const QString &tag) {
+                return p.type().contains(tag);
+            })) {
+            continue;
+        }
         QString productInfo = p.fullDisplayName();
         if (!p.isEnabled())
             productInfo.append(QLatin1Char(' ')).append(Tr::tr("[disabled]"));

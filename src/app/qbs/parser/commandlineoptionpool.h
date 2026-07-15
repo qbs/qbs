@@ -63,6 +63,7 @@ public:
     KeepGoingOption *keepGoingOption() const;
     JobsOption *jobsOption() const;
     ProductsOption *productsOption() const;
+    TagsOption *tagsOption() const;
     NoInstallOption *noInstallOption() const;
     InstallRootOption *installRootOption() const;
     RemoveFirstOption *removeFirstoption() const;

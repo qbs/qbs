@@ -379,6 +379,20 @@ QString ProductsOption::longRepresentation() const
     return QStringLiteral("--products");
 }
 
+QString TagsOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr("%1 <tag>[,<tag>...]\n"
+                  "\tTake only products matching at least one of the given tags into "
+                  "account.\n")
+        .arg(longRepresentation());
+}
+
+QString TagsOption::longRepresentation() const
+{
+    return QStringLiteral("--tags");
+}
+
 static QStringList allLogLevelStrings()
 {
     QStringList result;

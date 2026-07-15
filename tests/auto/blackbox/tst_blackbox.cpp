@@ -6536,6 +6536,25 @@ void TestBlackbox::listProducts()
                  "b {\"architecture\":\"vax\",\"buildVariant\":\"debug\"}\n"
                  "b {\"architecture\":\"vax\",\"buildVariant\":\"release\"}\n"
                  "c\n"), m_qbsStdout.constData());
+
+    QCOMPARE(runQbs(QbsRunParameters("list-products", {"--tags", "tag1"})), 0);
+    m_qbsStdout.replace("\r\n", "\n");
+    QVERIFY2(
+        m_qbsStdout.contains("a\n") && m_qbsStdout.contains("c\n") && !m_qbsStdout.contains("b "),
+        m_qbsStdout.constData());
+
+    QCOMPARE(runQbs(QbsRunParameters("list-products", {"--tags", "tag2,tag3"})), 0);
+    m_qbsStdout.replace("\r\n", "\n");
+    QVERIFY2(
+        !m_qbsStdout.contains("a\n") && m_qbsStdout.count("b {") == 4
+            && m_qbsStdout.contains("c\n"),
+        m_qbsStdout.constData());
+
+    QCOMPARE(runQbs(QbsRunParameters("list-products", {"--tags", "no-such-tag"})), 0);
+    m_qbsStdout.replace("\r\n", "\n");
+    QVERIFY2(
+        !m_qbsStdout.contains("a\n") && !m_qbsStdout.contains("b ") && !m_qbsStdout.contains("c\n"),
+        m_qbsStdout.constData());
 }
 
 void TestBlackbox::listPropertiesWithOuter()

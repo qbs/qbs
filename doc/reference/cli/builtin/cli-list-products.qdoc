@@ -47,6 +47,7 @@
     \include cli-options.qdocinc project-file
     \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc tags-specified
 
     \section1 Parameters
 
@@ -58,5 +59,12 @@
 
     \code
     qbs list-products
+    \endcode
+
+    To list only the products whose \l{Product::type}{type} contains the
+    tag \c{staticlibrary}:
+
+    \code
+    qbs list-products --tags staticlibrary
     \endcode
 */
