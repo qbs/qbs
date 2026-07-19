@@ -137,7 +137,6 @@ private:
     void setupProgressObserver();
     void doSanityChecks();
     void handleError(const ErrorInfo &error);
-    bool rescueOldBuildData(Artifact *artifact);
     bool checkForUnbuiltDependencies(Artifact *artifact);
     void potentiallyRunTransformer(const TransformerPtr &transformer);
     void runTransformer(const TransformerPtr &transformer);

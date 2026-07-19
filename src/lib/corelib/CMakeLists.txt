@@ -46,6 +46,8 @@ set(BUILD_GRAPH_SOURCES
     artifact.h
     artifactcleaner.cpp
     artifactcleaner.h
+    artifactrescuer.cpp
+    artifactrescuer.h
     artifactsscriptvalue.cpp
     artifactsscriptvalue.h
     artifactvisitor.cpp

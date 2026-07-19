@@ -38,16 +38,16 @@
 ****************************************************************************/
 #include "executor.h"
 
+#include "artifactrescuer.h"
 #include "buildgraph.h"
+#include "cycledetector.h"
 #include "emptydirectoriesremover.h"
 #include "environmentscriptrunner.h"
-#include "productbuilddata.h"
-#include "projectbuilddata.h"
-#include "cycledetector.h"
 #include "executorjob.h"
 #include "inputartifactscanner.h"
+#include "productbuilddata.h"
 #include "productinstaller.h"
-#include "rescuableartifactdata.h"
+#include "projectbuilddata.h"
 #include "rulecommands.h"
 #include "rulenode.h"
 #include "rulesevaluationcontext.h"
@@ -825,112 +825,6 @@ void Executor::addExecutorJobs()
     }
 }
 
-/*
-    Returns true if children were added to the artifact, delaying the execution.
-*/
-bool Executor::rescueOldBuildData(Artifact *artifact)
-{
-    bool childrenAdded = false;
-    if (!artifact->oldDataPossiblyPresent)
-        return childrenAdded;
-    artifact->oldDataPossiblyPresent = false;
-    if (artifact->artifactType != Artifact::Generated)
-        return childrenAdded;
-
-    ResolvedProduct * const product = artifact->product.get();
-    RescuableArtifactData rad = product->buildData->removeFromRescuableArtifactData(
-        artifact->filePath());
-    if (!rad.isValid())
-        return childrenAdded;
-    qCDebug(lcBuildGraph) << "Attempting to rescue data of artifact" << artifact->fileName();
-
-    std::vector<Artifact *> childrenToConnect;
-    bool canRescue = artifact->transformer->commands == rad.commands;
-    if (canRescue) {
-        ResolvedProductPtr pseudoProduct = ResolvedProduct::create();
-        for (const RescuableArtifactData::ChildData &cd : rad.children) {
-            pseudoProduct->name = cd.productName;
-            pseudoProduct->multiplexConfigurationId = cd.productMultiplexId;
-            Artifact * const child = lookupArtifact(pseudoProduct, m_project->buildData.get(),
-                                                    cd.childFilePath, true);
-            if (artifact->children.contains(child))
-                continue;
-            if (!child)  {
-                // If a child has disappeared, we must re-build even if the commands
-                // are the same. Example: Header file included in cpp file does not exist anymore.
-                canRescue = false;
-                qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath
-                                      << "does not exist anymore.";
-                const RescuableArtifactData childRad
-                        = product->buildData->removeFromRescuableArtifactData(cd.childFilePath);
-                if (childRad.isValid()) {
-                    m_artifactsRemovedFromDisk << artifact->filePath();
-                    removeGeneratedArtifactFromDisk(cd.childFilePath, m_logger);
-                }
-            }
-            if (!cd.addedByScanner) {
-                // If an artifact has disappeared from the list of children, the commands
-                // might need to run again.
-                canRescue = false;
-                qCDebug(lcBuildGraph) << "Former child artifact" << cd.childFilePath <<
-                                         "is no longer in the list of children";
-            }
-            if (canRescue)
-                childrenToConnect.push_back(child);
-        }
-        for (const QString &depPath : rad.fileDependencies) {
-            const auto &depList = m_project->buildData->lookupFiles(depPath);
-            if (depList.empty()) {
-                canRescue = false;
-                qCDebug(lcBuildGraph) << "File dependency" << depPath
-                                      << "not in the project's list of dependencies anymore.";
-                break;
-            }
-            const auto depFinder = [](const FileResourceBase *f) {
-                return f->fileType() == FileResourceBase::FileTypeDependency;
-            };
-            const auto depIt = std::find_if(depList.cbegin(), depList.cend(), depFinder);
-            if (depIt == depList.cend()) {
-                canRescue = false;
-                qCDebug(lcBuildGraph) << "File dependency" << depPath
-                                      << "not in the project's list of dependencies anymore.";
-                break;
-            }
-            artifact->fileDependencies.insert(static_cast<FileDependency *>(*depIt));
-        }
-
-        if (canRescue) {
-            const TypeFilter<Artifact> childArtifacts(artifact->children);
-            const size_t newChildCount = childrenToConnect.size()
-                    + std::distance(childArtifacts.begin(), childArtifacts.end());
-            QBS_CHECK(newChildCount >= rad.children.size());
-            if (newChildCount > rad.children.size()) {
-                canRescue = false;
-                qCDebug(lcBuildGraph) << "Artifact has children not present in rescue data.";
-            }
-        }
-    } else {
-        qCDebug(lcBuildGraph) << "Transformer commands changed.";
-    }
-
-    if (canRescue) {
-        artifact->setTimestamp(rad.timeStamp);
-        artifact->transformer->rescueFromArtifactData(std::move(rad));
-
-        childrenAdded = !childrenToConnect.empty();
-        for (Artifact * const child : childrenToConnect) {
-            if (safeConnect(artifact, child))
-                artifact->childrenAddedByScanner << child;
-        }
-        qCDebug(lcBuildGraph) << "Data was rescued.";
-    } else {
-        removeGeneratedArtifactFromDisk(artifact, m_logger);
-        m_artifactsRemovedFromDisk << artifact->filePath();
-        qCDebug(lcBuildGraph) << "Data not rescued.";
-    }
-    return childrenAdded;
-}
-
 bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 {
     bool buildingDependenciesFound = false;
@@ -966,10 +860,11 @@ bool Executor::checkForUnbuiltDependencies(Artifact *artifact)
 
 void Executor::potentiallyRunTransformer(const TransformerPtr &transformer)
 {
+    ArtifactRescuer rescuer(m_project, m_logger, m_artifactsRemovedFromDisk);
     for (Artifact * const output : std::as_const(transformer->outputs)) {
         // Rescuing build data can introduce new dependencies, potentially delaying execution of
         // this transformer.
-        const bool childrenAddedDueToRescue = rescueOldBuildData(output);
+        const bool childrenAddedDueToRescue = rescuer.rescueOldBuildData(output);
         if (childrenAddedDueToRescue && checkForUnbuiltDependencies(output))
             return;
     }
