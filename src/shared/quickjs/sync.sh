@@ -10,7 +10,8 @@ TARGET_DIR=$(dirname "$0")
 
 FILES="
 builtin-array-fromasync.h
-cutils.c
+builtin-iterator-zip.h
+builtin-iterator-zip-keyed.h
 cutils.h
 dtoa.c
 dtoa.h
