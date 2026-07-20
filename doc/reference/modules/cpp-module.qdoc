@@ -1197,6 +1197,33 @@
 */
 
 /*!
+    \qmlproperty bool cpp::pchDependsOnSystemHeaders
+    \since Qbs 3.4
+
+    If \c true, the system headers included (directly or indirectly) by a
+    precompiled header -- those found via \l{cpp::}{systemIncludePaths},
+    \l{cpp::}{distributionIncludePaths}, or \l{cpp::}{compilerIncludePaths} --
+    are tracked as dependencies of the precompiled header. Modifying such a
+    header (for instance, a system update that changes its timestamp) then
+    causes the precompiled header to be regenerated.
+
+    This prevents build failures in which the compiler rejects a precompiled
+    header because a system header it was built from has changed, while \QBS
+    still considers the precompiled header up to date.
+
+    Unlike \l{cpp::}{treatSystemHeadersAsDependencies}, this tracking is
+    limited to precompiled headers, so ordinary source files are not
+    recompiled when an unrelated system header changes.
+
+    \note This is disabled by default because tracking the system headers
+    requires scanning the precompiled header's entire transitive system-header
+    closure, which can be large and slows down dependency scanning. Enable it
+    only if stale precompiled headers are an actual problem for you.
+
+    \defaultvalue \c{false}
+*/
+
+/*!
     \qmlproperty stringList cpp::dsymutilFlags
     \since Qbs 1.4.1
 

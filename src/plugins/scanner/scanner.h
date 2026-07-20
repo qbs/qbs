@@ -56,7 +56,9 @@ public:
         const QString &filePath, const char *fileTags, const QVariantMap &properties) const
         = 0;
     virtual QStringList collectSearchPaths(
-        const QVariantMap &properties, const QStringList &productBuildDirectories) const
+        const QVariantMap &properties,
+        const QStringList &productBuildDirectories,
+        const QStringList &fileTags) const
         = 0;
 };
 

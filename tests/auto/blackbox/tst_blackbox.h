@@ -260,6 +260,8 @@ private slots:
     void pathProbe();
     void pathListInProbe();
     void pchChangeTracking();
+    void pchDependsOnSystemHeaders();
+    void pchDependsOnSystemHeaders_data();
     void perGroupDefineInExportItem();
     void pkgConfigProbe();
     void pkgConfigProbe_data();

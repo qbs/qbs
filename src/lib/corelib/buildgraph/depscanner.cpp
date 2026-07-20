@@ -102,7 +102,8 @@ QStringList DependencyScanner::collectSearchPaths(Artifact *artifact)
         return evaluate(artifact, nullptr, m_scanner->searchPathsScript);
 
     const QStringList buildDirectories = collectProductBuildDirectories(artifact->product.get());
-    return m_plugin->collectSearchPaths(artifact->properties->value(), buildDirectories);
+    return m_plugin->collectSearchPaths(
+        artifact->properties->value(), buildDirectories, artifact->fileTags().toStringList());
 }
 
 QStringList DependencyScanner::collectDependencies(

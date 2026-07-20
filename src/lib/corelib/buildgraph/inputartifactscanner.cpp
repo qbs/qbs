@@ -197,6 +197,9 @@ bool InputArtifactScanner::scanInputArtifact(Artifact *inputArtifact)
     if (scanners.empty())
         return false;
 
+    const QStringList fileTags = inputArtifact->fileTags().toStringList();
+    const InputArtifactScannerContext::PropertiesCacheKey propsKey{
+        inputArtifact->properties, fileTags};
     InputArtifactScannerContext::ScannerKeyCache *lastPerFileCacheItem = nullptr;
     InputArtifactScannerContext::ScannerKeyCache *lastPerPropsCacheItem = nullptr;
 
@@ -207,9 +210,8 @@ bool InputArtifactScanner::scanInputArtifact(Artifact *inputArtifact)
                 lastPerFileCacheItem = &m_context->cachePerFile[inputArtifact];
             cacheItem = lastPerFileCacheItem;
         } else {
-            if (!lastPerPropsCacheItem) {
-                lastPerPropsCacheItem = &m_context->cachePerProperties[inputArtifact->properties];
-            }
+            if (!lastPerPropsCacheItem)
+                lastPerPropsCacheItem = &m_context->cachePerProperties[propsKey];
             cacheItem = lastPerPropsCacheItem;
         }
         scanForScannerFileDependencies(
@@ -224,13 +226,16 @@ void InputArtifactScanner::updateInputArtifactDependencies(
     QBS_ASSERT(artifact, return);
     QBS_ASSERT(inputArtifact, return);
 
+    const QStringList fileTags = inputArtifact->fileTags().toStringList();
+    const InputArtifactScannerContext::PropertiesCacheKey propsKey{
+        inputArtifact->properties, fileTags};
     const auto scanners = scannersForArtifact(inputArtifact);
     for (const auto &scanner : scanners) {
         InputArtifactScannerContext::ScannerKeyCache *cacheItem;
         if (scanner->cacheIsPerFile()) {
             cacheItem = &m_context->cachePerFile[inputArtifact];
         } else {
-            cacheItem = &m_context->cachePerProperties[inputArtifact->properties];
+            cacheItem = &m_context->cachePerProperties[propsKey];
         }
         Set<QString> visitedFilePaths;
         std::deque<FileResourceBase *> filesToScan;

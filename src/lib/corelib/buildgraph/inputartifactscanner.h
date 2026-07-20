@@ -44,9 +44,11 @@
 #include <buildgraph/forward_decls.h>
 #include <buildgraph/rawscanresults.h>
 #include <logging/logger.h>
+#include <tools/qttools.h>
 #include <tools/set.h>
 
 #include <deque>
+#include <utility>
 
 namespace qbs {
 namespace Internal {
@@ -80,8 +82,12 @@ class InputArtifactScannerContext
     using ScannerKeyCacheItem = std::optional<ScannerKeyCacheData>;
     using ScannerKeyCache = QHash<QString /*id*/, ScannerKeyCacheItem>;
 
-    std::unordered_map<PropertyMapConstPtr, ScannerKeyCache> cachePerProperties;
+    // Search paths can depend on the artifact's file tags: a precompiled-header source may add
+    // system include paths that an ordinary source does not. Artifacts that share a property map
+    // but differ in their tags must therefore not share an entry.
+    using PropertiesCacheKey = std::pair<PropertyMapConstPtr, QStringList /*file tags*/>;
 
+    std::unordered_map<PropertiesCacheKey, ScannerKeyCache> cachePerProperties;
     std::unordered_map<Artifact *, ScannerKeyCache> cachePerFile;
 
     using DependencyScannerCacheItem = std::optional<QList<DependencyScannerPtr>>;

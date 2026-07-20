@@ -4010,6 +4010,43 @@ void TestBlackbox::pchChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("precompiling pch.h (cpp)"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::pchDependsOnSystemHeaders_data()
+{
+    QTest::addColumn<bool>("tracked");
+    QTest::newRow("not tracked (default)") << false;
+    QTest::newRow("tracked") << true;
+}
+
+void TestBlackbox::pchDependsOnSystemHeaders()
+{
+    QFETCH(bool, tracked);
+
+    QDir::setCurrent(testDataDir + "/pch-depends-on-system-headers");
+    rmDirR(relativeBuildDir());
+
+    QbsRunParameters params;
+    if (tracked)
+        params.arguments = QStringList{"modules.cpp.pchDependsOnSystemHeaders:true"};
+
+    // Initial build precompiles the header.
+    bool success = runQbs(params) == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY2(success, m_qbsStderr.constData());
+    QVERIFY2(m_qbsStdout.contains("precompiling pch.h"), m_qbsStdout.constData());
+
+    // A system header that the PCH pulls in changes (same content, new timestamp).
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("sysheaders/extra.h");
+
+    success = runQbs(params) == 0;
+    if (!success && m_qbsStderr.contains("mingw32_gt_pch_use_address"))
+        QSKIP("https://gcc.gnu.org/bugzilla/show_bug.cgi?id=91440");
+    QVERIFY2(success, m_qbsStderr.constData());
+    // The PCH is regenerated only if the header is a tracked dependency of it.
+    QVERIFY2(m_qbsStdout.contains("precompiling pch.h") == tracked, m_qbsStdout.constData());
+}
+
 void TestBlackbox::perGroupDefineInExportItem()
 {
     QDir::setCurrent(testDataDir + "/per-group-define-in-export-item");

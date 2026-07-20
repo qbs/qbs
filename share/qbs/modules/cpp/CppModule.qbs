@@ -71,6 +71,7 @@ Module {
     property string moduleFileFlag // undocumented
 
     property bool treatSystemHeadersAsDependencies: false
+    property bool pchDependsOnSystemHeaders: false
 
     property stringList defines
     property stringList platformDefines: qbs.enableDebugCode ? [] : ["NDEBUG"]

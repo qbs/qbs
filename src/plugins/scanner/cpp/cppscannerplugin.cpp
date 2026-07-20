@@ -54,11 +54,14 @@ public:
     QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
         const override;
     QStringList collectSearchPaths(
-        const QVariantMap &properties, const QStringList &productBuildDirectories) const override;
+        const QVariantMap &properties,
+        const QStringList &productBuildDirectories,
+        const QStringList &fileTags) const override;
 
 private:
     static QString getCompiledModuleSuffix(const QVariantMap &properties);
-    static QStringList collectCppIncludePaths(const QVariantMap &properties);
+    static bool isPrecompiledHeaderSource(const QStringList &fileTags);
+    static QStringList collectCppIncludePaths(const QVariantMap &properties, bool isPchSource);
     static bool modulesEnabled(const QVariantMap &properties);
 };
 
@@ -105,9 +108,11 @@ QStringList CppScannerPlugin::scan(
 }
 
 QStringList CppScannerPlugin::collectSearchPaths(
-    const QVariantMap &properties, const QStringList &productBuildDirectories) const
+    const QVariantMap &properties,
+    const QStringList &productBuildDirectories,
+    const QStringList &fileTags) const
 {
-    QStringList result = collectCppIncludePaths(properties);
+    QStringList result = collectCppIncludePaths(properties, isPrecompiledHeaderSource(fileTags));
     if (modulesEnabled(properties)) {
         // Add cxx-modules subdirectory for each product build directory
         for (const QString &buildDir : productBuildDirectories) {
@@ -117,7 +122,17 @@ QStringList CppScannerPlugin::collectSearchPaths(
     return result;
 }
 
-QStringList CppScannerPlugin::collectCppIncludePaths(const QVariantMap &properties)
+bool CppScannerPlugin::isPrecompiledHeaderSource(const QStringList &fileTags)
+{
+    // Keep in sync with the *_pch_src tags in share/qbs/modules/cpp.
+    return fileTags.contains(QStringLiteral("c_pch_src"))
+           || fileTags.contains(QStringLiteral("cpp_pch_src"))
+           || fileTags.contains(QStringLiteral("objc_pch_src"))
+           || fileTags.contains(QStringLiteral("objcpp_pch_src"));
+}
+
+QStringList CppScannerPlugin::collectCppIncludePaths(
+    const QVariantMap &properties, bool isPchSource)
 {
     QStringList result;
     const QVariantMap cpp = properties.value(QStringLiteral("cpp")).toMap();
@@ -125,8 +140,12 @@ QStringList CppScannerPlugin::collectCppIncludePaths(const QVariantMap &properti
         return result;
 
     result << cpp.value(QStringLiteral("includePaths")).toStringList();
+    // System headers are tracked for every artifact when treatSystemHeadersAsDependencies is
+    // set, and additionally for precompiled-header sources when pchDependsOnSystemHeaders is
+    // set -- a PCH bakes in the system headers it includes, so they are genuine dependencies.
     const bool useSystemHeaders
-        = cpp.value(QStringLiteral("treatSystemHeadersAsDependencies")).toBool();
+        = cpp.value(QStringLiteral("treatSystemHeadersAsDependencies")).toBool()
+          || (isPchSource && cpp.value(QStringLiteral("pchDependsOnSystemHeaders")).toBool());
     if (useSystemHeaders) {
         result << cpp.value(QStringLiteral("systemIncludePaths")).toStringList()
                << cpp.value(QStringLiteral("distributionIncludePaths")).toStringList()

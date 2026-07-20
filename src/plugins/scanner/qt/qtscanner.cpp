@@ -153,7 +153,9 @@ public:
     QStringList scan(const QString &filePath, const char *fileTags, const QVariantMap &properties)
         const override;
     QStringList collectSearchPaths(
-        const QVariantMap &properties, const QStringList &productBuildDirectories) const override;
+        const QVariantMap &properties,
+        const QStringList &productBuildDirectories,
+        const QStringList &fileTags) const override;
 };
 
 QStringList QrcScannerPlugin::scan(
@@ -190,10 +192,13 @@ QStringList QrcScannerPlugin::scan(
 }
 
 QStringList QrcScannerPlugin::collectSearchPaths(
-    const QVariantMap &properties, const QStringList &productBuildDirectories) const
+    const QVariantMap &properties,
+    const QStringList &productBuildDirectories,
+    const QStringList &fileTags) const
 {
     Q_UNUSED(properties);
     Q_UNUSED(productBuildDirectories);
+    Q_UNUSED(fileTags);
     return {};
 }
 
