@@ -80,6 +80,7 @@ private slots:
     void qobjectInObjectiveCpp();
     void qmlTypeRegistrar_data();
     void qmlTypeRegistrar();
+    void qobjectInModule();
     void qtKeywords();
     void quickCompiler();
     void qtScxml();

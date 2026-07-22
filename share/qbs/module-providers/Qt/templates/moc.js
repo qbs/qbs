@@ -90,6 +90,7 @@ function outputArtifacts(project, product, inputs, input)
     if (!mocInfo.hasQObjectMacro)
         return [];
     var artifact = { fileTags: ["unmocable"] };
+    var artifacts = [artifact];
     if (mocInfo.hasPluginMetaDataMacro)
         artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
     if (input.fileTags.contains("hpp")) {
@@ -101,11 +102,80 @@ function outputArtifacts(project, product, inputs, input)
         artifact.filePath = input.Qt.core.generatedHeadersDir + '/'
                 + input.completeBaseName + ".moc";
         artifact.fileTags.push("hpp");
+
+        // If modules might be involved, provide split moc header files for inclusion
+        // before and after the module start, respectively.
+        if (product.cpp.forceUseCxxModules) {
+            var includer = Object.assign({}, artifact);
+            includer.filePath += ".h";
+            var data = Object.assign({}, artifact);
+            data.filePath = artifact.filePath + ".data";
+            artifacts.push(includer, data);
+        }
     }
-    var artifacts = [artifact];
     if (product.Qt.core._generateMetaTypesFile)
         artifacts.push({filePath: artifact.filePath + ".json", fileTags: "qt.core.metatypes.in"});
     return artifacts;
+}
+
+function findOutputArtifact(outputs, suffix)
+{
+    for (var tag in outputs) {
+        var artifacts = outputs[tag];
+        for (var i = 0; i < artifacts.length; ++i) {
+            if (artifacts[i].filePath.endsWith(suffix))
+                return artifacts[i];
+        }
+    }
+    return undefined;
+}
+
+function splitMocFile(outputs)
+{
+    var mocArtifact = findOutputArtifact(outputs, ".moc");
+    var includerArtifact = findOutputArtifact(outputs, ".h");
+    var dataArtifact = findOutputArtifact(outputs, ".data");
+    if (!mocArtifact || !includerArtifact || !dataArtifact)
+        throw "splitMocFile: could not find expected .moc/.h/.data output artifacts";
+
+    var inFile = new TextFile(mocArtifact.filePath, TextFile.ReadOnly);
+    var content = inFile.readAll();
+    inFile.close();
+
+    var lines = content.split('\n');
+    var splitIndex = -1;
+    var depth = 0;
+    var inCompatCheck = false;
+    for (var i = 0; i < lines.length; ++i) {
+        var line = lines[i].trim();
+        if (!inCompatCheck) {
+            if (/^#if\s*!defined\(Q_MOC_OUTPUT_REVISION\)/.test(line)) {
+                inCompatCheck = true;
+                depth = 1;
+            }
+            continue;
+        }
+        if (/^#(if|ifdef|ifndef)\b/.test(line))
+            ++depth;
+        else if (/^#endif\b/.test(line) && --depth === 0) {
+            splitIndex = i;
+            break;
+        }
+    }
+    if (splitIndex === -1)
+        throw "Could not locate the Q_MOC_OUTPUT_REVISION compatibility check in '"
+                + mocArtifact.filePath + "'";
+
+    var firstPart = lines.slice(0, splitIndex + 1).join('\n') + '\n';
+    var secondPart = lines.slice(splitIndex + 1).join('\n');
+
+    var includerFile = new TextFile(includerArtifact.filePath, TextFile.WriteOnly);
+    includerFile.write(firstPart);
+    includerFile.close();
+
+    var dataFile = new TextFile(dataArtifact.filePath, TextFile.WriteOnly);
+    dataFile.write(secondPart);
+    dataFile.close();
 }
 
 function commands(project, product, inputs, outputs, input, output)
@@ -114,6 +184,17 @@ function commands(project, product, inputs, outputs, input, output)
     cmd.description = 'moc ' + input.fileName;
     cmd.highlight = 'codegen';
     cmd.responseFileUsagePrefix = "@";
+
+    if (product.cpp.forceUseCxxModules) {
+        var splitCmd = new JavaScriptCommand();
+        splitCmd.description = "splitting " + input.fileName;
+        splitCmd.highlight = "codegen";
+        splitCmd.sourceCode = function() {
+            splitMocFile(outputs);
+        };
+        return [cmd, splitCmd];
+    }
+
     return cmd;
 }
 

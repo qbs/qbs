@@ -234,6 +234,7 @@ static void doScanCppFile(
                     if (!scanForDependencies && context.hasQObjectMacro
                         && (context.hasPluginMetaDataMacro
                             || context.fileType == CppScannerContext::FT_CPP
+                            || context.fileType == CppScannerContext::FT_CPPM
                             || context.fileType == CppScannerContext::FT_OBJCPP))
                         break;
                 }
@@ -323,6 +324,7 @@ span<const std::string_view> additionalFileTags(const CppScannerContext &context
     if (context.hasQObjectMacro) {
         switch (context.fileType) {
         case CppScannerContext::FT_CPP:
+        case CppScannerContext::FT_CPPM:
         case CppScannerContext::FT_OBJCPP:
             return {context.hasPluginMetaDataMacro ? thMocPluginCpp : thMocCpp, 1};
         case CppScannerContext::FT_HPP:

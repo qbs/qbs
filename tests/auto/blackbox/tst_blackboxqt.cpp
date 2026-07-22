@@ -808,6 +808,24 @@ void TestBlackboxQt::qmlTypeRegistrar()
                                + "/myapp.qmltypes"), enabled && !installDir.isEmpty());
 }
 
+void TestBlackboxQt::qobjectInModule()
+{
+    QDir::setCurrent(testDataDir + "/qobject-in-module");
+
+    QCOMPARE(runQbs(QbsRunParameters{"resolve"}), 0);
+    if (m_qbsStdout.contains("Unsupported toolchain"))
+        QSKIP("Qt modules are not supported for this toolchain");
+    const bool canRun = !m_qbsStdout.contains(
+        "target platform/arch differ from host platform/arch");
+
+    QCOMPARE(runQbs(QbsRunParameters{"build"}), 0);
+
+    if (!canRun)
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(runQbs(QbsRunParameters{"run"}), 0);
+    QVERIFY2(m_qbsStdout.contains("queued hello"), m_qbsStdout.constData());
+}
+
 void TestBlackboxQt::qtKeywords()
 {
     QDir::setCurrent(testDataDir + "/qt-keywords");

@@ -358,7 +358,7 @@ Module {
             name: "QtCoreMocRuleCpp"
             property string cppInput: cpp.combineCxxSources ? "cpp.combine" : "cpp"
             property string objcppInput: cpp.combineObjcxxSources ? "objcpp.combine" : "objcpp"
-            inputs: [objcppInput, cppInput]
+            inputs: [objcppInput, cppInput, "cppm"]
             auxiliaryInputs: "qt_plugin_metadata"
             excludedInputs: "unmocable"
             outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in", "qt.untranslatable"]

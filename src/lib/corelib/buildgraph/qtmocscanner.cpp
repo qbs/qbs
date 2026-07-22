@@ -61,6 +61,7 @@ namespace Internal {
 struct CommonFileTags
 {
     const FileTag cpp = "cpp";
+    const FileTag cppm = "cppm";
     const FileTag cppCombine = "cpp.combine";
     const FileTag hpp = "hpp";
     const FileTag moc_cpp = "moc_cpp";
@@ -193,10 +194,11 @@ JSValue QtMocScanner::apply(ScriptEngine *engine, const Artifact *artifact)
     if (scanResult.additionalFileTags.empty() && artifact->fileTags().contains("mocable")) {
         if (isHeaderFile) {
             scanResult.additionalFileTags.insert(m_tags.moc_hpp);
-        } else if (artifact->fileTags().contains(m_tags.cpp)
-                   || artifact->fileTags().contains(m_tags.cppCombine)
-                   || artifact->fileTags().contains(m_tags.objcpp)
-                   || artifact->fileTags().contains(m_tags.objcppCombine)) {
+        } else if (
+            artifact->fileTags().contains(m_tags.cpp) || artifact->fileTags().contains(m_tags.cppm)
+            || artifact->fileTags().contains(m_tags.cppCombine)
+            || artifact->fileTags().contains(m_tags.objcpp)
+            || artifact->fileTags().contains(m_tags.objcppCombine)) {
             scanResult.additionalFileTags.insert(m_tags.moc_cpp);
         }
     }
