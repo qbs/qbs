@@ -149,8 +149,11 @@ static void doScanCppFile(
             stepLexer();
             isGlobal = true;
         }
-        auto mod = tc.toByteArray(tk);
 
+        if (tk.isNot(T_IDENTIFIER))
+            return;
+
+        auto mod = tc.toByteArray(tk);
         while (tk.isNot(T_EOF_SYMBOL) && tk.isNot(T_SEMICOLON) && tk.isNot(T_GREATER)) {
             stepLexer();
 

@@ -2341,6 +2341,7 @@ void TestBlackbox::cxxModules_data()
     QTest::newRow("partitions-recursive") << "part-rec";
     QTest::newRow("partitions-dependency-on-module") << "part-depmod";
     QTest::newRow("partitions-library") << "part-lib";
+    QTest::newRow("no-modules") << "no-modules";
 }
 
 void TestBlackbox::cxxModules()
@@ -2354,6 +2355,9 @@ void TestBlackbox::cxxModules()
         QSKIP("Modules are not supported for this toolchain");
 
     QCOMPARE(runQbs(QbsRunParameters{"build"}), 0);
+
+    if (QLatin1String(QTest::currentDataTag()) == "no-modules")
+        QVERIFY2(!m_qbsStdout.contains("generating module map"), m_qbsStdout.constData());
 }
 
 void TestBlackbox::cxxModulesChangesTracking()
