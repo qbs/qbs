@@ -463,7 +463,12 @@ function getQtProperties(qmakeFilePath) {
 
     if (qtProps.qtMajorVersion > 5) {
         qtProps.archData = pathQueryValue(queryResult, "QT_INSTALL_ARCHDATA");
-        qtProps.metaTypeFiles = File.directoryEntries(qtProps.archData + "/metatypes", File.Files);
+        // Qt 6.5 moved the metatypes files from the libraries directory to
+        // the arch-specific data directory (qtbase commit 4234ce12dc819).
+        qtProps.metaTypesPath = Utilities.versionCompare(qtProps.qtVersion, "6.5") >= 0
+                ? qtProps.archData + "/metatypes"
+                : qtProps.libraryPath + "/metatypes";
+        qtProps.metaTypeFiles = File.directoryEntries(qtProps.metaTypesPath, File.Files);
     }
 
     return qtProps;

@@ -334,7 +334,7 @@ function replaceSpecialValues(content, module, qtProps, abi) {
             return fileName.startsWith(metaTypesFileNamePrefix)
                     && fileName.endsWith(metatypesFileNameSuffix);
         };
-        metaTypesFile = qtProps.archData + "/metatypes/"
+        metaTypesFile = qtProps.metaTypesPath + "/"
                 + qtProps.metaTypeFiles.find(isMetaTypesFileForModule);
     } else {
         metaTypesFile = qtProps.libraryPath + "/metatypes/" + metaTypesFileNamePrefix
