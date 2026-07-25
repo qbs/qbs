@@ -321,27 +321,27 @@ function version {
   echo "$@" | awk -F. '{ printf("%03d%03d%03d\n", $1,$2,$3); }';
 }
 
-mkdir -p ${INSTALL_DIR}
-rm -f "${HASH_FILEPATH}"
-
-for COMPONENT in ${COMPONENTS}; do
-
+function resolve_toolchain_dir() {
     if [[ "${TOOLCHAIN}" =~ "win64_mingw" ]]; then
-        TOOLCHAIN_DIR="${TOOLCHAIN/win64_/}_64"
+        echo "${TOOLCHAIN/win64_/}_64"
     elif [[ "${TOOLCHAIN}" =~ "win32_mingw" ]]; then
-        TOOLCHAIN_DIR="${TOOLCHAIN/win32_/}_32"
+        echo "${TOOLCHAIN/win32_/}_32"
     elif [[ "${TOOLCHAIN}" =~ "win64_msvc" ]]; then
-        TOOLCHAIN_DIR="${TOOLCHAIN/win64_/}"
+        echo "${TOOLCHAIN/win64_/}"
     elif [[ "${TOOLCHAIN}" =~ "win32_msvc" ]]; then
-        TOOLCHAIN_DIR="${TOOLCHAIN/win32_/}"
+        echo "${TOOLCHAIN/win32_/}"
     elif [[ "${TOOLCHAIN}" =~ "any" ]] && [[ "${TARGET_PLATFORM}" == "android" ]]; then
-        TOOLCHAIN_DIR="android"
+        echo "android"
     elif [[ "${HOST_OS}" == "mac_x64" ]] && [[ ! "$(version "${VERSION}")" < "$(version "6.1.2")" ]] && [[ "${TARGET_PLATFORM}" == "desktop" ]]; then
-        TOOLCHAIN_DIR="macos"
+        echo "macos"
     else
-        TOOLCHAIN_DIR="${TOOLCHAIN}"
+        echo "${TOOLCHAIN}"
     fi
+}
 
+# Sets UNPACK_DIR / ARCHIVER_DIR for COMPONENT based on host, version, and toolchain.
+function setup_unpack_dirs() {
+    local COMPONENT=$1
     if [[ "${COMPONENT}" =~ "qtcreator" ]] && [[ "${HOST_OS}" != "mac_x64" ]]; then
         UNPACK_DIR="${INSTALL_DIR}/Tools/QtCreator"
         ARCHIVER_DIR="${UNPACK_DIR}"
@@ -357,101 +357,138 @@ for COMPONENT in ${COMPONENTS}; do
         UNPACK_DIR="${INSTALL_DIR}"
         ARCHIVER_DIR="${UNPACK_DIR}"
     fi
+}
 
+# Returns 0 if COMPONENT is unavailable for this Qt version/target and should be skipped.
+function skip_unsupported_component() {
+    local COMPONENT=$1
     if [ "$(version "${VERSION}")" -ge "$(version "6.0.0")" ]; then
         if [[ "${COMPONENT}" =~ "qtscript" ]] || [[ "${COMPONENT}" =~ "qtscxml" ]] || [[ "${COMPONENT}" =~ "qtx11extras" ]]; then
             echo "Component ${COMPONENT} was removed in Qt6, skipping" >&2
-            continue
+            return 0
         fi
         if [[ "${COMPONENT}" =~ "icu" ]] && [[ "${TARGET_PLATFORM}" =~ "wasm" ]]; then
             echo "Component ${COMPONENT} is not present in Qt6 (${TARGET_PLATFORM}), skipping" >&2
-            continue
+            return 0
         fi
     else
         if [[ "${COMPONENT}" =~ "qt5compat" ]] || [[ "${COMPONENT}" =~ "shadertools" ]]; then
             echo "Component ${COMPONENT} is not present in Qt ${VERSION}, skipping" >&2
-            continue
+            return 0
         fi
+    fi
+    return 1
+}
+
+# Download URL ($1), verify the archive, extract into ARCHIVER_DIR, and append paths to
+# HASH_FILEPATH. Returns non-zero on any failure so a future mirror loop can retry.
+download_one() {
+    local url=$1
+    local package="${DOWNLOAD_DIR}/package.7z"
+    echo "Trying ${url} ..." >&2
+    curl --progress-bar -L -o "${package}" "${url}" >&2 || return 1
+    7z t "${package}" >/dev/null 2>&1 || return 1
+    7z x -y -o"${ARCHIVER_DIR}" "${package}" >/dev/null 2>&1 || return 1
+    7z l -ba -slt -y "${package}" | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${ARCHIVER_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
+    rm -f "${package}"
+}
+
+# Patch qt.conf / qconfig.pri for qmake and print the bin directory for PATH.
+function process_qtbase() {
+    if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "$(version "${VERSION}")" < "$(version "6.0.0")" ]; then
+        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+        ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
+        if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "$(version "${VERSION}")" < "$(version "6.4.2")" ]; then
+            sed -i "s/\r//" "${CONF_FILE}"
+            sed -i "s|HostLibraryExecutables=.\/bin|HostLibraryExecutables=.\/libexec|g" "${CONF_FILE}"
+            chmod +x "${ANDROID_QMAKE_FILE}"
+            sed -i "s|\\\|\/|g" "${ANDROID_QMAKE_FILE}"
+        fi
+        sed -i "s|target|../$TOOLCHAIN|g" "${CONF_FILE}"
+        sed -i "/HostPrefix/ s|$|gcc_64|g" "${CONF_FILE}"
+        QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
+        sed -i "s|\/home\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
+        sed -i "s|\/Users\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
+    elif [ "${TARGET_PLATFORM}" == "ios" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
+        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+        sed -i.bak "s|HostData=target|HostData=../$TOOLCHAIN|g" "${CONF_FILE}"
+        sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/macos|g" "${CONF_FILE}"
+        IOS_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
+        QMAKE_FILE="${UNPACK_DIR}/${VERSION}/macos/bin/qmake"
+        sed -i.bak "s|\/Users\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${IOS_QMAKE_FILE}"
+    elif [ "${TARGET_PLATFORM}" == "wasm" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
+        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+        sed -i.bak "s|HostData=target|HostData=../$TOOLCHAIN|g" "${CONF_FILE}"
+        sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/gcc_64|g" "${CONF_FILE}"
+        WASM_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
+        QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
+        sed -i.bak "s|\/home\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${WASM_QMAKE_FILE}"
+    elif [ "${TARGET_PLATFORM}" == "desktop" ] && [ "${TOOLCHAIN}" == "win64_msvc2022_arm64_cross_compiled" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
+        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+        sed -i.bak "s|HostData=target|HostData=../msvc2022_arm64_cross_compiled|g" "${CONF_FILE}"
+        sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/msvc2022_64|g" "${CONF_FILE}"
+        ARM64_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake.bat"
+        QMAKE_FILE='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qmake6.exe"'
+        sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qmake6.exe|${QMAKE_FILE}|g" "${ARM64_QMAKE_FILE}"
+    else
+        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qt.conf"
+        echo "[Paths]" > ${CONF_FILE}
+        echo "Prefix = .." >> ${CONF_FILE}
+    fi
+
+    # Adjust the license to be able to run qmake
+    # sed with -i requires intermediate file on Mac OS
+    PRI_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/mkspecs/qconfig.pri"
+    sed -i.bak 's/Enterprise/OpenSource/g' "${PRI_FILE}"
+    sed -i.bak 's/licheck.*//g' "${PRI_FILE}"
+    rm "${PRI_FILE}.bak"
+
+    # Print the directory so that the caller can adjust the PATH variable.
+    echo $(dirname "${CONF_FILE}")
+}
+
+function process_mingw() {
+    local VERSION_DIR="${VERSION//./}"
+    if [[ "${TOOLCHAIN}" =~ "win64_mingw" ]]; then
+        if [[ "${VERSION}" == "9.0.0" ]]; then
+            VERSION_DIR="1120"
+        fi
+        echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_64/bin"
+    elif [[ "${TOOLCHAIN}" =~ "win32_mingw" ]]; then
+        echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_32/bin"
+    fi
+}
+
+function process_qtcreator() {
+    if [ "${HOST_OS}" == "mac_x64" ]; then
+        echo "${UNPACK_DIR}/Qt Creator.app/Contents/MacOS"
+    else
+        echo "${UNPACK_DIR}/bin"
+    fi
+}
+
+mkdir -p ${INSTALL_DIR}
+rm -f "${HASH_FILEPATH}"
+
+TOOLCHAIN_DIR="$(resolve_toolchain_dir)"
+
+for COMPONENT in ${COMPONENTS}; do
+    setup_unpack_dirs "${COMPONENT}"
+
+    if skip_unsupported_component "${COMPONENT}"; then
+        continue
     fi
 
     URL="$(compute_url ${COMPONENT})"
-    echo "Downloading ${COMPONENT} ${URL}..." >&2
-    curl --progress-bar -L -o ${DOWNLOAD_DIR}/package.7z ${URL} >&2
-    7z x -y -o${ARCHIVER_DIR} ${DOWNLOAD_DIR}/package.7z >/dev/null 2>&1
-    7z l -ba -slt -y ${DOWNLOAD_DIR}/package.7z | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${ARCHIVER_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
-    rm -f ${DOWNLOAD_DIR}/package.7z
+    echo "Downloading ${COMPONENT}..." >&2
+    download_one "${URL}"
 
-    #
-    # conf file is needed for qmake
-    #
     if [[ "${COMPONENT}" == "qtbase" ]]; then
-        if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "$(version "${VERSION}")" < "$(version "6.0.0")" ]; then
-            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
-            ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
-            if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "$(version "${VERSION}")" < "$(version "6.4.2")" ]; then
-                sed -i "s/\r//" "${CONF_FILE}"
-                sed -i "s|HostLibraryExecutables=.\/bin|HostLibraryExecutables=.\/libexec|g" "${CONF_FILE}"
-                chmod +x "${ANDROID_QMAKE_FILE}"
-                sed -i "s|\\\|\/|g" "${ANDROID_QMAKE_FILE}"
-            fi
-            sed -i "s|target|../$TOOLCHAIN|g" "${CONF_FILE}"
-            sed -i "/HostPrefix/ s|$|gcc_64|g" "${CONF_FILE}"
-            QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
-            sed -i "s|\/home\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
-            sed -i "s|\/Users\/qt\/work\/install\/bin\/qmake|$QMAKE_FILE|g" "${ANDROID_QMAKE_FILE}"
-        elif [ "${TARGET_PLATFORM}" == "ios" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
-            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
-            sed -i.bak "s|HostData=target|HostData=../$TOOLCHAIN|g" "${CONF_FILE}"
-            sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/macos|g" "${CONF_FILE}"
-            IOS_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
-            QMAKE_FILE="${UNPACK_DIR}/${VERSION}/macos/bin/qmake"
-            sed -i.bak "s|\/Users\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${IOS_QMAKE_FILE}"
-        elif [ "${TARGET_PLATFORM}" == "wasm" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
-            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
-            sed -i.bak "s|HostData=target|HostData=../$TOOLCHAIN|g" "${CONF_FILE}"
-            sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/gcc_64|g" "${CONF_FILE}"
-            WASM_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
-            QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
-            sed -i.bak "s|\/home\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${WASM_QMAKE_FILE}"
-        elif [ "${TARGET_PLATFORM}" == "desktop" ] && [ "${TOOLCHAIN}" == "win64_msvc2022_arm64_cross_compiled" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
-            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
-            sed -i.bak "s|HostData=target|HostData=../msvc2022_arm64_cross_compiled|g" "${CONF_FILE}"
-            sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/msvc2022_64|g" "${CONF_FILE}"
-            ARM64_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake.bat"
-            QMAKE_FILE='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qmake6.exe"'
-            sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qmake6.exe|${QMAKE_FILE}|g" "${ARM64_QMAKE_FILE}"
-        else
-            CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qt.conf"
-            echo "[Paths]" > ${CONF_FILE}
-            echo "Prefix = .." >> ${CONF_FILE}
-        fi
-
-        # Adjust the license to be able to run qmake
-        # sed with -i requires intermediate file on Mac OS
-        PRI_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/mkspecs/qconfig.pri"
-        sed -i.bak 's/Enterprise/OpenSource/g' "${PRI_FILE}"
-        sed -i.bak 's/licheck.*//g' "${PRI_FILE}"
-        rm "${PRI_FILE}.bak"
-
-        # Print the directory so that the caller can
-        # adjust the PATH variable.
-        echo $(dirname "${CONF_FILE}")
+        process_qtbase
     elif [[ "${COMPONENT}" =~ "mingw" ]]; then
-        VERSION_DIR="${VERSION//./}"
-        if [[ "${TOOLCHAIN}" =~ "win64_mingw" ]]; then
-            if [[ "${VERSION}" == "9.0.0" ]]; then
-                VERSION_DIR="1120"
-            fi
-            echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_64/bin"
-        elif [[ "${TOOLCHAIN}" =~ "win32_mingw" ]]; then
-            echo "${UNPACK_DIR}/Tools/mingw${VERSION_DIR}_32/bin"
-        fi
+        process_mingw
     elif [[ "${COMPONENT}" =~ "qtcreator" ]]; then
-        if [ "${HOST_OS}" == "mac_x64" ]; then
-            echo "${UNPACK_DIR}/Qt Creator.app/Contents/MacOS"
-        else
-            echo "${UNPACK_DIR}/bin"
-        fi
+        process_qtcreator
     fi
-
 done
+
