@@ -424,7 +424,38 @@
     \defaultvalue \c{true} for MSVC and with GCC or Clang on Apple platforms,
     otherwise \c{false}.
 
-    \sa debugInformation, {How do I separate and install debugging symbols?}
+    \sa debugInformation, separateDebugInformationVariant,
+        {How do I separate and install debugging symbols?}
+*/
+
+/*!
+    \qmlproperty string cpp::separateDebugInformationVariant
+    \since Qbs 3.4
+
+    Selects how debug information is separated from the binary when
+    \l{cpp::}{separateDebugInformation} is enabled.
+
+    This property is available for GCC/Clang ELF targets (Unix platforms other
+    than Darwin). Possible values are:
+
+    \list
+        \li \c{"objcopy"} (default): After linking, extract debug symbols into a
+            \c{.debug} file with \c{objcopy}, strip them from the binary, and add
+            a \c{.gnu_debuglink} section.
+        \li \c{"fission"}: Pass \c{-gsplit-dwarf} to the compiler so most debug
+            information is written to per-object \c{.dwo} files. The linked
+            binary keeps only skeleton DWARF and is not post-processed with
+            \c{objcopy}. The \c{.dwo} files use the same \c{"debuginfo_app"},
+            \c{"debuginfo_dll"}, or \c{"debuginfo_loadablemodule"} tags as
+            \c{.debug} files, so they are installed the same way.
+    \endlist
+
+    On Darwin, MSVC, MinGW, and Emscripten this property has no effect; those
+    toolchains use their platform-specific separate-debug mechanisms.
+
+    \defaultvalue \c{"objcopy"}
+
+    \sa separateDebugInformation
 */
 
 /*!

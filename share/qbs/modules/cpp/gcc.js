@@ -822,8 +822,16 @@ function compilerFlags(project, product, outputs, input, output, explicitlyDepen
     Array.prototype.push.apply(args, product.cpp.sysrootFlags);
     handleCpuFeatures(input, args);
 
-    if (input.cpp.debugInformation)
+    if (input.cpp.debugInformation) {
         args.push('-g');
+        // Debug fission: split DWARF into .dwo next to the object file.
+        // .dwo files reuse debuginfo_{app,dll,loadablemodule} so they are
+        // installed by the same Groups as .debug sidecars.
+        if (Cpp.usesDebugFission(input)
+                && (outputs.debuginfo_app || outputs.debuginfo_dll
+                    || outputs.debuginfo_loadablemodule))
+            args.push('-gsplit-dwarf');
+    }
     var opt = input.cpp.optimization
     if (opt === 'fast')
         args.push('-O2');
@@ -1344,7 +1352,10 @@ function separateDebugInfoCommands(product, outputs, primaryOutput) {
     var debugInfo = outputs.debuginfo_app || outputs.debuginfo_dll
             || outputs.debuginfo_loadablemodule;
 
-    if (debugInfo && !product.qbs.toolchain.includes("emscripten")) {
+    // Fission keeps skeleton DWARF in the binary and puts the bulk of the
+    // debug info in .dwo files produced at compile time; do not strip/objcopy.
+    if (debugInfo && !product.qbs.toolchain.includes("emscripten")
+            && !Cpp.usesDebugFission(product)) {
         var objcopy = product.cpp.objcopyPath;
 
         var cmd = new Command(objcopy, ["--only-keep-debug", primaryOutput.filePath,
@@ -1520,6 +1531,9 @@ function debugInfoArtifacts(product, variants, debugInfoTagSuffix) {
     var separateDebugInfo = product.cpp.separateDebugInformation;
     if (separateDebugInfo && product.qbs.toolchain.includes("emscripten"))
         separateDebugInfo = fileTag === "application";
+    // With fission, per-object .dwo files replace the post-link .debug sidecar.
+    if (separateDebugInfo && Cpp.usesDebugFission(product))
+        separateDebugInfo = false;
     if (separateDebugInfo) {
         variants.map(function (variant) {
             artifacts.push({

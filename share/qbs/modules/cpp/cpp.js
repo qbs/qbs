@@ -86,12 +86,32 @@ function assemblerOutputTags(needsListingFiles) {
 }
 
 function compilerOutputTags(withListingFiles, withCxxModules) {
-    var tags = ["obj", "intermediate_obj", "time_trace"];
+    var tags = ["obj", "intermediate_obj", "time_trace",
+                "debuginfo_app", "debuginfo_dll", "debuginfo_loadablemodule"];
     if (withListingFiles)
         tags.push("lst");
     if (withCxxModules)
         tags = tags.concat(["compiled-module", "modulemap", "moduleinfo"]);
     return tags;
+}
+
+function debugInfoFileTag(product) {
+    var type = product.type || [];
+    if (type.includes("application"))
+        return "debuginfo_app";
+    if (type.includes("loadablemodule"))
+        return "debuginfo_loadablemodule";
+    if (type.includes("dynamiclibrary"))
+        return "debuginfo_dll";
+    return undefined;
+}
+
+function usesDebugFission(productOrArtifact) {
+    var cpp = productOrArtifact.cpp;
+    return cpp.debugInformation
+            && cpp.separateDebugInformation
+            && cpp.separateDebugInformationVariant === "fission"
+            && cpp.imageFormat === "elf";
 }
 
 function applicationLinkerOutputTags(needsLinkerMapFile) {
@@ -226,6 +246,16 @@ function compilerOutputArtifacts(input, inputs, withCxxModules) {
             filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
                                          input.fileName + ".time_trace.json")
         });
+    }
+    if (usesDebugFission(input)) {
+        var debugInfoTag = debugInfoFileTag(input.product);
+        if (debugInfoTag) {
+            artifacts.push({
+                fileTags: [debugInfoTag],
+                filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                             input.fileName + ".dwo")
+            });
+        }
     }
     if (withCxxModules)
         artifacts = artifacts.concat(cxxModulesArtifacts(input));

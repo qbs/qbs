@@ -157,4 +157,20 @@ Project {
             cpp.dsymutilFlags: ["--flat"]
         }
     }
+
+    CppApplication {
+        name: "app_fission"
+        condition: {
+            var enabled = qbs.toolchain.includes("gcc")
+                    && qbs.targetOS.includes("unix")
+                    && !qbs.targetOS.includes("darwin")
+                    && !qbs.toolchain.includes("emscripten");
+            if (enabled)
+                console.info("has debug fission: yes");
+            return enabled;
+        }
+        files: ["main.cpp"]
+        cpp.separateDebugInformation: true
+        cpp.separateDebugInformationVariant: "fission"
+    }
 }

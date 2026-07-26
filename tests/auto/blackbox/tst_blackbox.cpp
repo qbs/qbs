@@ -2539,9 +2539,9 @@ void TestBlackbox::separateDebugInfo()
                 .entryInfoList(QDir::NoDotAndDotDot | QDir::AllEntries).size(), 1);
         QVERIFY(regularFileExists(relativeProductBuildDir("bar5") + "/bar5.bundle.dwarf"));
     } else if (isGcc && isNotEmscripten) {
-        const QString exeSuffix = isWindows ? ".exe" : "";
-        const QString dllPrefix = isWindows ? "" : "lib";
-        const QString dllSuffix = isWindows ? ".dll" : ".so";
+        const QString exeSuffix = isWindows ? QStringLiteral(".exe") : QString();
+        const QString dllPrefix = isWindows ? QString() : QStringLiteral("lib");
+        const QString dllSuffix = isWindows ? QStringLiteral(".dll") : QStringLiteral(".so");
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1" + exeSuffix + ".debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2" + exeSuffix + ".debug"));
         QVERIFY(QFile::exists(relativeProductBuildDir("foo1")
@@ -2552,6 +2552,24 @@ void TestBlackbox::separateDebugInfo()
                               + '/' + dllPrefix +  "bar1" + dllSuffix + ".debug"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("bar2")
                                + '/' + dllPrefix + "bar2" + dllSuffix + ".debug"));
+        if (m_qbsStdout.contains("has debug fission: yes")) {
+            QVERIFY(!QFile::exists(
+                relativeProductBuildDir("app_fission") + "/app_fission" + exeSuffix + ".debug"));
+            QVERIFY(
+                QFile::exists(relativeProductBuildDir("app_fission") + "/app_fission" + exeSuffix));
+            bool foundDwo = false;
+            const QDir fissionDir(relativeProductBuildDir("app_fission"));
+            const auto entries = fissionDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+            for (const QString &entry : entries) {
+                const QDir hashDir(fissionDir.filePath(entry));
+                if (!hashDir.entryList(QStringList() << QStringLiteral("*.dwo"), QDir::Files)
+                         .isEmpty()) {
+                    foundDwo = true;
+                    break;
+                }
+            }
+            QVERIFY2(foundDwo, "expected at least one .dwo file for app_fission");
+        }
     } else if (isEmscripten) {
         QVERIFY(QFile::exists(relativeProductBuildDir("app1") + "/app1.wasm.debug.wasm"));
         QVERIFY(!QFile::exists(relativeProductBuildDir("app2") + "/app2.wasm.debug.wasm"));

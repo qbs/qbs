@@ -155,6 +155,11 @@
     }
     \endcode
 
+    On ELF platforms with GCC or Clang, you can choose how separation is done via
+    \l{cpp::separateDebugInformationVariant}{cpp.separateDebugInformationVariant}:
+    the default \c{"objcopy"} extracts a \c{.debug} file after linking, while
+    \c{"fission"} passes \c{-gsplit-dwarf} and produces per-object \c{.dwo} files.
+
     Now, you can install your \l{Application}{application}, \l{DynamicLibrary}{dynamic library}
     or \l{LoadableModule}{loadable module} among with its debugging symbols as follows:
     \code

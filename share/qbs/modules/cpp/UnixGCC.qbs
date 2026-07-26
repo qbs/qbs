@@ -44,5 +44,16 @@ GenericGCC {
     rpathOrigin: "$ORIGIN"
     useRPathLink: true
     rpathLinkFlag: "-rpath-link="
+
+    property string separateDebugInformationVariant: "objcopy"
+    PropertyOptions {
+        name: "separateDebugInformationVariant"
+        allowedValues: ["objcopy", "fission"]
+        description: "How to separate debug information from ELF binaries when "
+                     + "separateDebugInformation is enabled. \"objcopy\" extracts "
+                     + "symbols after linking into a .debug file via objcopy. "
+                     + "\"fission\" uses -gsplit-dwarf at compile time to produce "
+                     + ".dwo files. Only effective for ELF targets."
+    }
 }
 
