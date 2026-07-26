@@ -32,7 +32,7 @@ jobs:
     - name: Build Qbs Docs
       run: docker compose run noble ${{ matrix.config.script }}
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-docs-${{ github.run_id }}
         path: documentation/install-root/usr/local/share/doc/qbs/

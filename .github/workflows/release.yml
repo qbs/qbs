@@ -39,7 +39,7 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
@@ -56,7 +56,7 @@ jobs:
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-linux-${{ github.run_id }}.tar.gz
         path: release/qbs-linux-${{ github.run_id }}.tar.gz
@@ -107,7 +107,7 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-release-ccache-${{ steps.get-timestamp.outputs.timestamp }}
@@ -115,7 +115,7 @@ jobs:
     - name: Install required packages
       run: brew install ccache
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.13'
     - name: Install Python dependencies
@@ -142,7 +142,7 @@ jobs:
     - name: Print ccache stats
       run: ccache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
@@ -176,7 +176,7 @@ jobs:
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-windows-${{ github.run_id }}
         path: |
@@ -209,7 +209,7 @@ jobs:
         cd tmp/
         tar czf ../release/qbs-src-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-src-${{ steps.get-version-name.outputs.version-name }}
     - name: Download Linux artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-linux-${{ github.run_id }}.tar.gz
         path: ./tmp
@@ -220,7 +220,7 @@ jobs:
         cd tmp/
         tar czf ../release/qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-linux-x86_64-${{ steps.get-version-name.outputs.version-name }}
     - name: Download Windows artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-windows-${{ github.run_id }}
         path: ./tmp/release
@@ -229,7 +229,7 @@ jobs:
         cp ./tmp/release/qbs.*.nupkg ./release
         cp ./tmp/release/qbs-windows-x86_64-*.zip ./release
     - name: Download macOS arm64 artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-macos-arm64-${{ github.run_id }}.tar.gz
         path: ./tmp/
@@ -240,7 +240,7 @@ jobs:
         cd tmp/
         tar czf ../release/qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}.tar.gz qbs-macos-arm64-${{ steps.get-version-name.outputs.version-name }}
     - name: Download macOS x86_64 artifacts
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-macos-x86_64-${{ github.run_id }}.tar.gz
         path: ./tmp
@@ -261,7 +261,7 @@ jobs:
       id: get-archive-name
       run: echo "archive-name=$(git describe)" >> $GITHUB_OUTPUT
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-release-${{ steps.get-archive-name.outputs.archive-name }}
         path: |

@@ -38,7 +38,7 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
@@ -52,7 +52,7 @@ jobs:
     - name: Print ccache stats
       run: docker compose run ${{ matrix.config.image }} ccache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
@@ -116,7 +116,7 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
@@ -215,7 +215,7 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-ccache-${{ steps.get-timestamp.outputs.timestamp }}
@@ -223,7 +223,7 @@ jobs:
     - name: Install required packages
       run: brew install ccache
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.13'
     - name: Install Python dependencies
@@ -250,7 +250,7 @@ jobs:
     - name: Print ccache stats
       run: ccache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       if: matrix.config.cacheid != 'clang-cmake'
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
@@ -297,13 +297,13 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: clcache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/clcache
         key: ${{ runner.os }}-${{ matrix.config.cacheid }}-clcache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-msvc-clcache
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.8
     - name: Install required packages
@@ -351,7 +351,7 @@ jobs:
     - name: Print clcache stats
       run: clcache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.zip
         path: release/qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.zip
@@ -376,13 +376,13 @@ jobs:
       run: echo "timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")" >> $GITHUB_OUTPUT
       shell: bash
     - name: ccache cache files
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ccache
         key: ${{ runner.os }}-mingw-ccache-${{ steps.get-timestamp.outputs.timestamp }}
         restore-keys: ${{ runner.os }}-mingw-ccache
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: 3.8
     - name: Install required packages
@@ -418,7 +418,7 @@ jobs:
     - name: Print ccache stats
       run: ccache -s
     - name: Upload artifacts
-      uses: 'actions/upload-artifact@v4'
+      uses: 'actions/upload-artifact@v7'
       with:
         name: qbs-windows-mingw-${{ github.run_id }}.zip
         path: release/qbs-windows-mingw-${{ github.run_id }}.zip
@@ -496,7 +496,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: ./
@@ -525,7 +525,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-linux-noble-${{ github.run_id }}.tar.gz
         path: ./
@@ -644,7 +644,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-${{ matrix.config.suffix }}-${{ github.run_id }}.tar.gz
         path: ./
@@ -655,7 +655,7 @@ jobs:
     - name: Install required packages
       run: brew install capnp ccache grpc icoutils makensis osslsigncode protobuf
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       if: matrix.config.toolchain == 'clang_64'
       with:
         python-version: 3.12
@@ -777,7 +777,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-windows-${{ github.run_id }}.zip
         path: ./
@@ -899,7 +899,7 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Download artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: qbs-windows-${{ github.run_id }}.zip
         path: ./
