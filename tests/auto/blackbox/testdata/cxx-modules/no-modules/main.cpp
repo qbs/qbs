@@ -1,5 +1,9 @@
 #include <iostream>
 
+const auto s = R"(
+import NotAModule;
+)";
+
 static void import() {}
 static void module() {}
 static void foo()

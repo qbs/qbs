@@ -1,42 +1,3 @@
-/****************************************************************************
-**
-** Copyright (C) 2016 The Qt Company Ltd.
-** Contact: https://www.qt.io/licensing/
-**
-** This file is part of Qbs.
-**
-** $QT_BEGIN_LICENSE:LGPL$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and The Qt Company. For licensing terms
-** and conditions see https://www.qt.io/terms-conditions. For further
-** information use the contact form at https://www.qt.io/contact-us.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL3 included in the
-** packaging of this file. Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or (at your option) the GNU General
-** Public license version 3 or any later version approved by the KDE Free
-** Qt Foundation. The licenses are as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
-** included in the packaging of this file. Please review the following
-** information to ensure the GNU General Public License requirements will
-** be met: https://www.gnu.org/licenses/gpl-2.0.html and
-** https://www.gnu.org/licenses/gpl-3.0.html.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
 // Copyright (c) 2008 Roberto Raggi <roberto.raggi@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -58,22 +19,55 @@
 // THE SOFTWARE.
 
 #include "Lexer.h"
+
+#include <QScopeGuard>
+
 #include <cctype>
 
-namespace CPlusPlus {
+using namespace CPlusPlus;
+
+/*!
+    \class Lexer
+    \brief The Lexer generates tokens from an UTF-8 encoded source text.
+
+    \sa Token
+*/
+
+/*!
+    \fn static void Lexer::yyinp_utf8(const char *&currentSourceChar, unsigned char &yychar, unsigned &utf16charCounter)
+
+    Process a single unicode code point in an UTF-8 encoded source.
+
+    \a currentSourceChar points to the UTF-8 encoded source.
+    \a yychar must be the byte pointed to by \a currentSourceChar.
+
+    Points \a currentSourceChar to the byte of the next code point
+    and modifies \a yychar to the value pointed by the updated
+    \a currentSourceChar. \a utf16charCounter will be incremented by
+    the number of UTF-16 code units that were needed for that code
+    point.
+*/
 
 Lexer::Lexer(const char *firstChar, const char *lastChar)
-    : _state(State_Default),
+    : _translationUnit(nullptr),
+      _control(nullptr),
+      _state(0),
+      _flags(0),
       _currentLine(1)
 {
+    f._scanKeywords = true;
     setSource(firstChar, lastChar);
 }
+
+Lexer::~Lexer()
+{ }
 
 void Lexer::setSource(const char *firstChar, const char *lastChar)
 {
     _firstChar = firstChar;
     _lastChar = lastChar;
     _currentChar = _firstChar - 1;
+    _currentCharUtf16 = ~0;
     _tokenStart = _currentChar;
     _yychar = '\n';
 }
@@ -92,35 +86,17 @@ int Lexer::state() const
 void Lexer::setState(int state)
 { _state = state; }
 
-bool Lexer::qtMocRunEnabled() const
-{ return f._qtMocRunEnabled; }
-
-void Lexer::setQtMocRunEnabled(bool onoff)
-{ f._qtMocRunEnabled = onoff; }
-
-bool Lexer::cxx0xEnabled() const
-{ return f._cxx0xEnabled; }
-
-void Lexer::setCxxOxEnabled(bool onoff)
-{ f._cxx0xEnabled = onoff; }
-
-bool Lexer::objCEnabled() const
-{ return f._objCEnabled; }
-
-void Lexer::setObjCEnabled(bool onoff)
-{ f._objCEnabled = onoff; }
-
-bool Lexer::isIncremental() const
-{ return f._isIncremental; }
-
-void Lexer::setIncremental(bool isIncremental)
-{ f._isIncremental = isIncremental; }
-
 bool Lexer::scanCommentTokens() const
 { return f._scanCommentTokens; }
 
 void Lexer::setScanCommentTokens(bool onoff)
 { f._scanCommentTokens = onoff; }
+
+bool Lexer::scanKeywords() const
+{ return f._scanKeywords; }
+
+void Lexer::setScanKeywords(bool onoff)
+{ f._scanKeywords = onoff; }
 
 void Lexer::setScanAngleStringLiteralTokens(bool onoff)
 { f._scanAngleStringLiteralTokens = onoff; }
@@ -130,52 +106,66 @@ void Lexer::pushLineStartOffset()
     ++_currentLine;
 }
 
-unsigned Lexer::tokenOffset() const
-{ return _tokenStart - _firstChar; }
-
-unsigned Lexer::tokenLength() const
-{ return _currentChar - _tokenStart; }
-
-const char *Lexer::tokenBegin() const
-{ return _tokenStart; }
-
-const char *Lexer::tokenEnd() const
-{ return _currentChar; }
-
-unsigned Lexer::currentLine() const
-{ return _currentLine; }
-
 void Lexer::scan(Token *tok)
 {
     tok->reset();
     scan_helper(tok);
-    tok->f.length = _currentChar - _tokenStart;
+    tok->f.bytes = _currentChar - _tokenStart;
+    tok->f.utf16chars = _currentCharUtf16 - _tokenStartUtf16;
+}
+
+static bool isRawStringLiteral(unsigned char kind)
+{
+    return kind >= T_FIRST_RAW_STRING_LITERAL
+        && kind <= T_LAST_RAW_STRING_LITERAL;
+}
+
+static bool isMultiLineToken(unsigned char kind)
+{
+    return kind == T_EOF_SYMBOL
+        || kind == T_COMMENT
+        || kind == T_DOXY_COMMENT
+        || isRawStringLiteral(kind);
 }
 
 void Lexer::scan_helper(Token *tok)
 {
-  _Lagain:
+  again:
     while (_yychar && std::isspace(_yychar)) {
         if (_yychar == '\n') {
-            tok->f.joined = false;
-            tok->f.newline = true;
+            tok->f.joined = s._newlineExpected;
+            tok->f.newline = !s._newlineExpected;
+
+            if (s._newlineExpected)
+                s._newlineExpected = false;
+            else if (!isMultiLineToken(s._tokenKind))
+                _state = 0;
         } else {
             tok->f.whitespace = true;
         }
         yyinp();
     }
 
-    tok->lineno = _currentLine;
+    if (! _translationUnit)
+        tok->lineno = _currentLine;
+
     _tokenStart = _currentChar;
-    tok->offset = _currentChar - _firstChar;
+    tok->byteOffset = _currentChar - _firstChar;
 
-    if (_state == State_MultiLineComment || _state == State_MultiLineDoxyComment) {
-        const int originalState = _state;
+    _tokenStartUtf16 = _currentCharUtf16;
+    tok->utf16charOffset = _currentCharUtf16;
 
-        if (! _yychar) {
-            tok->f.kind = T_EOF_SYMBOL;
-            return;
-        }
+    if (_yychar) {
+        s._newlineExpected = false;
+    } else if (s._tokenKind) {
+        tok->f.kind = T_EOF_SYMBOL;
+        return;
+    }
+
+    if (s._tokenKind == T_EOF_SYMBOL) {
+        // skip
+    } else if (s._tokenKind == T_COMMENT || s._tokenKind == T_DOXY_COMMENT) {
+        const int originalKind = s._tokenKind;
 
         while (_yychar) {
             if (_yychar != '*')
@@ -184,20 +174,41 @@ void Lexer::scan_helper(Token *tok)
                 yyinp();
                 if (_yychar == '/') {
                     yyinp();
-                    _state = State_Default;
+                    _state = 0;
                     break;
                 }
             }
         }
 
         if (! f._scanCommentTokens)
-            goto _Lagain;
+            goto again;
 
-        else if (originalState == State_MultiLineComment)
-            tok->f.kind = T_COMMENT;
-        else
-            tok->f.kind = T_DOXY_COMMENT;
-        return; // done
+        tok->f.kind = originalKind;
+        return;
+    } else if (s._tokenKind == T_CPP_COMMENT || s._tokenKind == T_CPP_DOXY_COMMENT) {
+        const Kind originalKind = (Kind)s._tokenKind;
+        tok->f.joined = true;
+        if (f._scanCommentTokens)
+            tok->f.kind = originalKind;
+        _state = 0;
+        scanCppComment(originalKind);
+        return;
+    } else if (!control() && isRawStringLiteral(s._tokenKind)) {
+        tok->f.kind = s._tokenKind;
+        const bool found = _expectedRawStringSuffix.isEmpty()
+                ? scanUntilRawStringLiteralEndSimple() : scanUntilRawStringLiteralEndPrecise();
+        if (found) {
+            scanOptionalUserDefinedLiteral(tok);
+            _state = 0;
+        }
+        return;
+    } else { // non-raw strings
+        tok->f.joined = true;
+        tok->f.kind = s._tokenKind;
+        _state = 0;
+        scanUntilQuote(tok, '"');
+        scanOptionalUserDefinedLiteral(tok);
+        return;
     }
 
     if (! _yychar) {
@@ -210,40 +221,16 @@ void Lexer::scan_helper(Token *tok)
 
     switch (ch) {
     case '\\':
-        while (_yychar != '\n' && std::isspace(_yychar))
-            yyinp();
-        // ### assert(! _yychar || _yychar == '\n');
-        if (_yychar == '\n') {
-            tok->f.joined = true;
-            tok->f.newline = false;
-            yyinp();
-        }
-        goto _Lagain;
+        s._newlineExpected = true;
+        goto again;
 
-    case '"': case '\'': {
-        const unsigned char quote = ch;
+    case '"':
+        scanStringLiteral(tok);
+        break;
 
-        tok->f.kind = quote == '"'
-            ? T_STRING_LITERAL
-            : T_CHAR_LITERAL;
-
-        while (_yychar && _yychar != quote) {
-            if (_yychar == '\n')
-                break;
-            if (_yychar != '\\')
-                yyinp();
-            else {
-                yyinp(); // skip `\\'
-
-                if (_yychar)
-                    yyinp();
-            }
-        }
-        // assert(_yychar == quote);
-
-        if (_yychar == quote)
-            yyinp();
-    } break;
+    case '\'':
+        scanCharLiteral(tok);
+        break;
 
     case '{':
         tok->f.kind = T_LBRACE;
@@ -263,8 +250,8 @@ void Lexer::scan_helper(Token *tok)
 
     case '#':
         if (_yychar == '#') {
-            tok->f.kind = T_POUND_POUND;
             yyinp();
+            tok->f.kind = T_POUND_POUND;
         } else {
             tok->f.kind = T_POUND;
         }
@@ -286,6 +273,9 @@ void Lexer::scan_helper(Token *tok)
         if (_yychar == ':') {
             yyinp();
             tok->f.kind = T_COLON_COLON;
+        } else if (_yychar == '>') {
+            yyinp();
+            tok->f.kind = T_RBRACKET;
         } else {
             tok->f.kind = T_COLON;
         }
@@ -297,7 +287,7 @@ void Lexer::scan_helper(Token *tok)
             tok->f.kind = T_DOT_STAR;
         } else if (_yychar == '.') {
             yyinp();
-            // ### assert(_yychar);
+            // ### CPP_CHECK(_yychar);
             if (_yychar == '.') {
                 yyinp();
                 tok->f.kind = T_DOT_DOT_DOT;
@@ -305,27 +295,90 @@ void Lexer::scan_helper(Token *tok)
                 tok->f.kind = T_ERROR;
             }
         } else if (std::isdigit(_yychar)) {
-            do {
-                if (_yychar == 'e' || _yychar == 'E') {
+            if (f._ppMode) {
+                scanPreprocessorNumber(tok, true);
+                break;
+            }
+
+            yyinp();
+            scanDigitSequence(); // this is optional: we already skipped over the first digit
+            scanExponentPart();
+            if (!scanOptionalFloatingSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            if (std::isalnum(_yychar) || _yychar == '_') {
+                do {
                     yyinp();
-                    if (_yychar == '-' || _yychar == '+') {
-                        yyinp();
-                        // ### assert(std::isdigit(_yychar));
-                    }
-                } else if (std::isalnum(_yychar) || _yychar == '.') {
-                    yyinp();
-                } else {
-                    break;
-                }
-            } while (_yychar);
-            tok->f.kind = T_NUMERIC_LITERAL;
+                } while (std::isalnum(_yychar) || _yychar == '_');
+                tok->f.kind = T_ERROR;
+            } else {
+                tok->f.kind = T_NUMERIC_LITERAL;
+            }
         } else {
             tok->f.kind = T_DOT;
         }
         break;
 
     case '?':
-        tok->f.kind = T_QUESTION;
+        if (_yychar == '?' && f._ppMode) {
+            yyinp();
+            if (_yychar == '(') {
+                yyinp();
+                tok->f.kind = T_LBRACKET;
+                tok->f.trigraph = true;
+            } else if (_yychar == ')') {
+                yyinp();
+                tok->f.kind = T_RBRACKET;
+                tok->f.trigraph = true;
+            } else if (_yychar == '<') {
+                yyinp();
+                tok->f.kind = T_LBRACE;
+                tok->f.trigraph = true;
+            } else if (_yychar == '>') {
+                yyinp();
+                tok->f.kind = T_RBRACE;
+                tok->f.trigraph = true;
+            } else if (_yychar == '=') {
+                yyinp();
+                tok->f.trigraph = true;
+                if (_yychar == '?' && *(_currentChar + 1) == '?' && *(_currentChar + 2) == '=') {
+                    yyinp();
+                    yyinp();
+                    yyinp();
+                    tok->f.kind = T_POUND_POUND;
+                } else {
+                    tok->f.kind = T_POUND;
+                }
+            } else if (_yychar == '\'') {
+                yyinp();
+                if (_yychar == '=') {
+                    yyinp();
+                    tok->f.kind = T_CARET_EQUAL;
+                } else {
+                    tok->f.kind = T_CARET;
+                }
+                tok->f.trigraph = true;
+            } else if (_yychar == '!') {
+                yyinp();
+                if (_yychar == '=') {
+                    yyinp();
+                    tok->f.kind = T_PIPE_EQUAL;
+                } else {
+                    tok->f.kind = T_PIPE;
+                }
+                tok->f.trigraph = true;
+            } else if (_yychar == '-') {
+                yyinp();
+                if (_yychar == '=') {
+                    yyinp();
+                    tok->f.kind = T_TILDE_EQUAL;
+                } else {
+                    tok->f.kind = T_TILDE;
+                }
+                tok->f.trigraph = true;
+            }
+        } else {
+            tok->f.kind = T_QUESTION;
+        }
         break;
 
     case '+':
@@ -373,44 +426,38 @@ void Lexer::scan_helper(Token *tok)
         if (_yychar == '/') {
             yyinp();
 
-            bool doxy = false;
+            Kind commentType = T_CPP_COMMENT;
 
             if (_yychar == '/' || _yychar == '!') {
                 yyinp();
-
-                if (_yychar == '<')
-                    yyinp();
-
-                if (_yychar != '\n' && std::isspace(_yychar))
-                    doxy = true;
+                commentType = T_CPP_DOXY_COMMENT;
             }
 
-            while (_yychar && _yychar != '\n')
-                yyinp();
+            scanCppComment(commentType);
 
             if (! f._scanCommentTokens)
-                goto _Lagain;
+                goto again;
 
-            tok->f.kind = doxy ? T_CPP_DOXY_COMMENT : T_CPP_COMMENT;
+            tok->f.kind = commentType;
 
         } else if (_yychar == '*') {
             yyinp();
 
-            bool doxy = false;
+            Kind commentKind = T_COMMENT;
 
             if (_yychar == '*' || _yychar == '!') {
-                const unsigned char ch = _yychar;
+                const char ch = _yychar;
 
                 yyinp();
 
                 if (ch == '*' && _yychar == '/')
-                    goto _Ldone;
+                    goto done;
 
                 if (_yychar == '<')
                     yyinp();
 
                 if (! _yychar || std::isspace(_yychar))
-                    doxy = true;
+                    commentKind = T_DOXY_COMMENT;
             }
 
             while (_yychar) {
@@ -423,16 +470,16 @@ void Lexer::scan_helper(Token *tok)
                 }
             }
 
-        _Ldone:
+        done:
             if (_yychar)
                 yyinp();
             else
-                _state = doxy ? State_MultiLineDoxyComment : State_MultiLineComment;
+                s._tokenKind = commentKind;
 
             if (! f._scanCommentTokens)
-                goto _Lagain;
+                goto again;
 
-            tok->f.kind = doxy ? T_DOXY_COMMENT : T_COMMENT;
+            tok->f.kind = commentKind;
 
         } else if (_yychar == '=') {
             yyinp();
@@ -446,6 +493,18 @@ void Lexer::scan_helper(Token *tok)
         if (_yychar == '=') {
             yyinp();
             tok->f.kind = T_PERCENT_EQUAL;
+        } else if (_yychar == '>') {
+            yyinp();
+            tok->f.kind = T_RBRACE;
+        } else if (_yychar == ':') {
+            yyinp();
+            if (_yychar == '%' && *(_currentChar + 1) == ':') {
+                yyinp();
+                yyinp();
+                tok->f.kind = T_POUND_POUND;
+            } else {
+                tok->f.kind = T_POUND;
+            }
         } else {
             tok->f.kind = T_PERCENT;
         }
@@ -513,11 +572,9 @@ void Lexer::scan_helper(Token *tok)
 
     case '<':
         if (f._scanAngleStringLiteralTokens) {
-            //const char *yytext = _currentChar;
             while (_yychar && _yychar != '>')
                 yyinp();
-            //int yylen = _currentChar - yytext;
-            // ### assert(_yychar == '>');
+            // ### CPP_CHECK(_yychar == '>');
             if (_yychar == '>')
                 yyinp();
             tok->f.kind = T_ANGLE_STRING_LITERAL;
@@ -530,7 +587,22 @@ void Lexer::scan_helper(Token *tok)
                 tok->f.kind = T_LESS_LESS;
         } else if (_yychar == '=') {
             yyinp();
-            tok->f.kind = T_LESS_EQUAL;
+            if (_languageFeatures.cxx20Enabled && _yychar == '>') {
+                yyinp();
+                tok->f.kind = T_LESS_EQUAL_GREATER;
+            } else {
+                tok->f.kind = T_LESS_EQUAL;
+            }
+        } else if (_yychar == ':') {
+            if (*(_currentChar+1) != ':' || *(_currentChar+2) == ':' || *(_currentChar+2) == '>') {
+                yyinp();
+                tok->f.kind = T_LBRACKET;
+            } else {
+                tok->f.kind = T_LESS;
+            }
+        } else if (_yychar == '%') {
+            yyinp();
+            tok->f.kind = T_LBRACE;
         } else {
             tok->f.kind = T_LESS;
         }
@@ -542,9 +614,9 @@ void Lexer::scan_helper(Token *tok)
             if (_yychar == '=') {
                 yyinp();
                 tok->f.kind = T_GREATER_GREATER_EQUAL;
-            } else
-                tok->f.kind = T_LESS_LESS;
-            tok->f.kind = T_GREATER_GREATER;
+            } else {
+                tok->f.kind = T_GREATER_GREATER;
+            }
         } else if (_yychar == '=') {
             yyinp();
             tok->f.kind = T_GREATER_EQUAL;
@@ -558,111 +630,475 @@ void Lexer::scan_helper(Token *tok)
         break;
 
     default: {
-        if (f._objCEnabled) {
+        if (_languageFeatures.objCEnabled) {
             if (ch == '@' && _yychar >= 'a' && _yychar <= 'z') {
-                //const char *yytext = _currentChar;
+                const char *yytext = _currentChar;
 
                 do {
                     yyinp();
-                    if (!isalnum(_yychar) && _yychar != '_' && _yychar != '$')
+                    if (! (isalnum(_yychar) || _yychar == '_' || _yychar == '$'))
                         break;
                 } while (_yychar);
 
-                // const int yylen = _currentChar - yytext;
-                //tok->f.kind = classifyObjCAtKeyword(yytext, yylen);		 /// ### FIXME
+                const int yylen = _currentChar - yytext;
+                tok->f.kind = classifyObjCAtKeyword(yytext, yylen);
                 break;
-            }
-            if (ch == '@' && _yychar == '"') {
-                // objc @string literals
-                ch = _yychar;
+            } else if (ch == '@' && _yychar == '"') {
                 yyinp();
-                tok->f.kind = T_AT_STRING_LITERAL;
-
-                //const char *yytext = _currentChar;
-
-                while (_yychar && _yychar != '"') {
-                    if (_yychar != '\\')
-                        yyinp();
-                    else {
-                        yyinp(); // skip `\\'
-
-                        if (_yychar)
-                            yyinp();
-                    }
-                }
-                // assert(_yychar == '"');
-
-                //int yylen = _currentChar - yytext;
-
-                if (_yychar == '"')
-                    yyinp();
-
+                scanStringLiteral(tok, '"');
                 break;
             }
         }
 
-        if (ch == 'L' && (_yychar == '"' || _yychar == '\'')) {
-            // wide char/string literals
-            ch = _yychar;
-            yyinp();
-
-            const unsigned char quote = ch;
-
-            tok->f.kind = quote == '"'
-                ? T_WIDE_STRING_LITERAL
-                : T_WIDE_CHAR_LITERAL;
-
-            //const char *yytext = _currentChar;
-
-            while (_yychar && _yychar != quote) {
-                if (_yychar != '\\')
-                    yyinp();
-                else {
-                    yyinp(); // skip `\\'
-
-                    if (_yychar)
-                        yyinp();
-                }
-            }
-            // assert(_yychar == quote);
-
-            //int yylen = _currentChar - yytext;
-
-            if (_yychar == quote)
+        if (ch == 'L' || ch == 'u' || ch == 'U' || ch == 'R') {
+            // Either a literal or still an identifier.
+            if (_yychar == '"') {
                 yyinp();
-
-        } else if (std::isalpha(ch) || ch == '_' || ch == '$') {
-            //const char *yytext = _currentChar - 1;
-            while (std::isalnum(_yychar) || _yychar == '_' || _yychar == '$')
+                if (ch == 'R')
+                    scanRawStringLiteral(tok);
+                else
+                    scanStringLiteral(tok, ch);
+            } else if (_yychar == '\'') {
                 yyinp();
-            //int yylen = _currentChar - yytext;
-            tok->f.kind = T_IDENTIFIER;
-            break;
-        } else if (std::isdigit(ch)) {
-            //const char *yytext = _currentChar - 1;
-            while (_yychar) {
-                if (_yychar == 'e' || _yychar == 'E') {
+                scanCharLiteral(tok, ch);
+            } else if (ch != 'R' && _yychar == 'R') {
+                yyinp();
+                if (_yychar == '"') {
                     yyinp();
-                    if (_yychar == '-' || _yychar == '+') {
-                        yyinp();
-                        // ### assert(std::isdigit(_yychar));
-                    }
-                } else if (std::isalnum(_yychar) || _yychar == '.') {
-                    yyinp();
+                    scanRawStringLiteral(tok, ch);
                 } else {
-                    break;
+                    scanIdentifier(tok, 1);
                 }
+            } else if (ch == 'u' && _yychar == '8') {
+                yyinp();
+                if (_yychar == '"') {
+                    yyinp();
+                    scanStringLiteral(tok, '8');
+                } else if (_yychar == '\'') {
+                    yyinp();
+                    scanCharLiteral(tok, '8');
+                } else if (_yychar == 'R') {
+                    yyinp();
+                    if (_yychar == '"') {
+                        yyinp();
+                        scanRawStringLiteral(tok, '8');
+                    } else {
+                        scanIdentifier(tok, 2);
+                    }
+                } else {
+                    scanIdentifier(tok, 1);
+                }
+            } else {
+                scanIdentifier(tok);
             }
-            //int yylen = _currentChar - yytext;
-            tok->f.kind = T_NUMERIC_LITERAL;
-            break;
+        } else if (std::isalpha(ch) || ch == '_' || ch == '$' || isByteOfMultiByteCodePoint(ch)) {
+            scanIdentifier(tok, _currentChar - _tokenStart - 1);
+        } else if (std::isdigit(ch)) {
+            if (f._ppMode)
+                scanPreprocessorNumber(tok, false);
+            else
+                scanNumericLiteral(tok);
         } else {
             tok->f.kind = T_ERROR;
-            break;
         }
+        break;
     } // default
 
     } // switch
 }
 
-} // namespace CPlusPlus
+void Lexer::scanStringLiteral(Token *tok, unsigned char hint)
+{
+    if (hint == 'L')
+        tok->f.kind = T_WIDE_STRING_LITERAL;
+    else if (hint == 'U')
+        tok->f.kind = T_UTF32_STRING_LITERAL;
+    else if (hint == 'u')
+        tok->f.kind = T_UTF16_STRING_LITERAL;
+    else if (hint == '8')
+        tok->f.kind = T_UTF8_STRING_LITERAL;
+    else if (hint == '@')
+        tok->f.kind = T_AT_STRING_LITERAL;
+    else
+        tok->f.kind = T_STRING_LITERAL;
+
+    scanUntilQuote(tok, '"');
+    scanOptionalUserDefinedLiteral(tok);
+}
+
+void Lexer::scanRawStringLiteral(Token *tok, unsigned char hint)
+{
+    QScopeGuard cleanup([this] { _expectedRawStringSuffix.clear(); });
+    if (control())
+        cleanup.dismiss();
+
+    const char *yytext = _currentChar;
+
+    int delimLength = -1;
+    const char *closingDelimCandidate = nullptr;
+    bool closed = false;
+    while (_yychar) {
+        if (_yychar == '(' && delimLength == -1) {
+            delimLength = _currentChar - yytext;
+            yyinp();
+        } else if (_yychar == ')') {
+            yyinp();
+            if (delimLength == -1) {
+                tok->f.kind = T_ERROR;
+                return;
+            }
+            closingDelimCandidate = _currentChar;
+        } else {
+            if (delimLength == -1) {
+                if (_yychar == '\\' || std::isspace(_yychar)) {
+                    tok->f.kind = T_ERROR;
+                    return;
+                }
+                if (!control())
+                    _expectedRawStringSuffix.append(_yychar);
+                yyinp();
+            } else {
+                if (!closingDelimCandidate) {
+                    yyinp();
+                } else {
+                    if (_yychar == '"') {
+                        if (delimLength == _currentChar - closingDelimCandidate) {
+                            // Got a matching closing delimiter.
+                            closed = true;
+                            break;
+                        }
+                    }
+
+                    // Make sure this continues to be a valid candidate.
+                    if (_yychar != *(yytext + (_currentChar - closingDelimCandidate)))
+                        closingDelimCandidate = nullptr;
+
+                    yyinp();
+                }
+            }
+        }
+    }
+
+    if (_yychar == '"')
+        yyinp();
+
+    if (hint == 'L')
+        tok->f.kind = T_RAW_WIDE_STRING_LITERAL;
+    else if (hint == 'U')
+        tok->f.kind = T_RAW_UTF32_STRING_LITERAL;
+    else if (hint == 'u')
+        tok->f.kind = T_RAW_UTF16_STRING_LITERAL;
+    else if (hint == '8')
+        tok->f.kind = T_RAW_UTF8_STRING_LITERAL;
+    else
+        tok->f.kind = T_RAW_STRING_LITERAL;
+
+    if (!control() && !closed) {
+        cleanup.dismiss();
+        s._tokenKind = tok->f.kind;
+        _expectedRawStringSuffix.prepend(')');
+        _expectedRawStringSuffix.append('"');
+    }
+    if (closed)
+        scanOptionalUserDefinedLiteral(tok);
+}
+
+bool Lexer::scanUntilRawStringLiteralEndPrecise()
+{
+    QByteArray slidingWindow;
+    slidingWindow.reserve(_expectedRawStringSuffix.size());
+    while (_yychar) {
+        slidingWindow.append(_yychar);
+        if (slidingWindow.size() > _expectedRawStringSuffix.size())
+            slidingWindow.remove(0, 1);
+        if (slidingWindow == _expectedRawStringSuffix) {
+            _expectedRawStringSuffix.clear();
+            yyinp();
+            return true;
+        }
+        yyinp();
+    }
+    return false;
+}
+
+// In case we don't have any further information
+// like the delimiter or its length, just match for: ...)..."
+bool Lexer::scanUntilRawStringLiteralEndSimple()
+{
+    bool closingParenthesisPassed = false;
+
+    while (_yychar) {
+        if (_yychar == ')') {
+            yyinp();
+            closingParenthesisPassed = true;
+        } else {
+            if (closingParenthesisPassed && _yychar == '"') {
+                yyinp();
+                return true;
+            } else {
+                yyinp();
+            }
+        }
+    }
+
+    return false;
+}
+
+void Lexer::scanCharLiteral(Token *tok, unsigned char hint)
+{
+    if (hint == 'L')
+        tok->f.kind = T_WIDE_CHAR_LITERAL;
+    else if (hint == 'U')
+        tok->f.kind = T_UTF32_CHAR_LITERAL;
+    else if (hint == 'u')
+        tok->f.kind = T_UTF16_CHAR_LITERAL;
+    else
+        tok->f.kind = T_CHAR_LITERAL;
+
+    scanUntilQuote(tok, '\'');
+    scanOptionalUserDefinedLiteral(tok);
+}
+
+void Lexer::scanUntilQuote(Token *tok, unsigned char quote)
+{
+    while (_yychar
+           && _yychar != quote
+           && _yychar != '\n') {
+        if (_yychar == '\\')
+            scanBackslash((Kind)tok->f.kind);
+        else
+            yyinp();
+    }
+    if (_yychar == quote)
+        yyinp();
+}
+
+bool Lexer::scanDigitSequence()
+{
+    if (!std::isdigit(_yychar))
+        return false;
+    yyinp();
+    while (std::isdigit(_yychar))
+        yyinp();
+    return true;
+}
+
+bool Lexer::scanExponentPart()
+{
+    if (_yychar != 'e' && _yychar != 'E')
+        return false;
+    yyinp();
+    if (_yychar == '+' || _yychar == '-')
+        yyinp();
+    return scanDigitSequence();
+}
+
+bool Lexer::scanOptionalFloatingSuffix()
+{
+    if (_yychar == 'f' || _yychar == 'l' || _yychar == 'F' || _yychar == 'L') {
+        yyinp();
+        return true;
+    }
+    return false;
+}
+
+bool Lexer::scanOptionalIntegerSuffix(bool allowU)
+{
+    switch(_yychar) {
+    case 'u':
+    case 'U':
+        if (allowU) {
+            yyinp();
+            scanOptionalIntegerSuffix(false);
+        }
+        return true;
+    case 'i':
+    case 'I':
+        yyinp();
+        if (_yychar == '6') {
+            yyinp();
+            if (_yychar == '4') {
+                yyinp();
+                return true;
+            }
+        }
+        return false;
+    case 'l':
+        yyinp();
+        if (_yychar == 'l')
+            yyinp();
+        if (_yychar == 'u' || _yychar == 'U')
+            yyinp();
+        return true;
+    case 'L':
+        yyinp();
+        if (_yychar == 'L')
+            yyinp();
+        if (_yychar == 'u' || _yychar == 'U')
+            yyinp();
+        return true;
+    case 'z':
+    case 'Z':
+        if (_languageFeatures.cxx23Enabled) {
+            yyinp();
+            if (_yychar == 'u' || _yychar == 'U')
+                yyinp();
+            return true;
+        }
+        return false;
+    default:
+        return false;
+    }
+}
+
+void Lexer::scanOptionalUserDefinedLiteral(Token *tok)
+{
+    if (_languageFeatures.cxx11Enabled && (_yychar == '_' || std::isalpha(_yychar))) {
+        tok->f.userDefinedLiteral = true;
+        while (std::isalnum(_yychar) || _yychar == '_' || isByteOfMultiByteCodePoint(_yychar))
+            yyinp();
+    }
+}
+
+void Lexer::scanNumericLiteral(Token *tok)
+{
+    const char *yytext = _currentChar - 1;
+    if (*yytext == '0' && _yychar) {
+        if (_yychar == 'x' || _yychar == 'X') {
+            yyinp();
+            while (std::isdigit(_yychar) ||
+                   (_yychar >= 'a' && _yychar <= 'f') ||
+                   (_yychar >= 'A' && _yychar <= 'F') ||
+                   ((_yychar == '\'') && _languageFeatures.cxx14Enabled)) {
+                yyinp();
+            }
+            if (!scanOptionalIntegerSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            goto theEnd;
+        } else if (_yychar == 'b' || _yychar == 'B') { // see n3472
+            yyinp();
+            while (_yychar == '0' || _yychar == '1' ||
+                   ((_yychar == '\'') && _languageFeatures.cxx14Enabled))
+                yyinp();
+            if (!scanOptionalIntegerSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            goto theEnd;
+        } else if (_yychar >= '0' && _yychar <= '7') {
+            do {
+                yyinp();
+            } while ((_yychar >= '0' && _yychar <= '7') ||
+                     ((_yychar == '\'') && _languageFeatures.cxx14Enabled));
+            if (!scanOptionalIntegerSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            goto theEnd;
+        }
+    }
+
+    while (_yychar) {
+        if (_yychar == '.') {
+            yyinp();
+            scanDigitSequence(); // this is optional: "1." is a valid floating point number
+            scanExponentPart();
+            if (!scanOptionalFloatingSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            break;
+        } else if (_yychar == 'e' || _yychar == 'E') {
+            if (scanExponentPart() && !scanOptionalFloatingSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            break;
+        } else if (std::isdigit(_yychar) ||
+                   ((_yychar == '\'') && _languageFeatures.cxx14Enabled)) {
+            yyinp();
+        } else {
+            if (!scanOptionalIntegerSuffix())
+                scanOptionalUserDefinedLiteral(tok);
+            break;
+        }
+    }
+
+theEnd:
+    if (std::isalnum(_yychar) || _yychar == '_') {
+        do {
+            yyinp();
+        } while (std::isalnum(_yychar) || _yychar == '_');
+        tok->f.kind = T_ERROR;
+    } else {
+        tok->f.kind = T_NUMERIC_LITERAL;
+    }
+}
+
+void Lexer::scanPreprocessorNumber(Token *tok, bool dotAlreadySkipped)
+{
+    if (dotAlreadySkipped &&
+            (!_yychar || (_yychar && !std::isdigit(_yychar)))) {
+        tok->f.kind = T_DOT;
+        return;
+    }
+
+    while (_yychar) {
+        if (_yychar == 'e' || _yychar == 'E') {
+            yyinp();
+            if (_yychar == '+' || _yychar == '-')
+                yyinp();
+        } else if (std::isalnum(_yychar) || (_yychar == '\'') || _yychar == '_' || _yychar == '.') {
+            yyinp();
+        } else {
+            scanOptionalUserDefinedLiteral(tok);
+            break;
+        }
+    }
+
+    tok->f.kind = T_NUMERIC_LITERAL;
+}
+
+void Lexer::scanIdentifier(Token *tok, unsigned extraProcessedChars)
+{
+    const char *yytext = _currentChar - 1 - extraProcessedChars;
+    while (std::isalnum(_yychar) || _yychar == '_' || _yychar == '$'
+            || isByteOfMultiByteCodePoint(_yychar)) {
+        yyinp();
+    }
+    int yylen = _currentChar - yytext;
+    if (f._scanKeywords) {
+        tok->f.kind = classify(yytext, yylen, _languageFeatures);
+    } else {
+        tok->f.kind = T_IDENTIFIER;
+    }
+
+    if (tok->f.kind == T_IDENTIFIER) {
+        tok->f.kind = classifyOperator(yytext, yylen);
+    }
+}
+
+void Lexer::scanBackslash(Kind type)
+{
+    yyinp(); // skip '\\'
+    if (_yychar && !std::isspace(_yychar)) {
+        yyinp();
+        return;
+    }
+    while (_yychar != '\n' && std::isspace(_yychar))
+        yyinp();
+    if (!_yychar) {
+        s._tokenKind = type;
+        s._newlineExpected = true;
+        return;
+    }
+    if (_yychar == '\n') {
+        yyinp();
+        while (_yychar != '\n' && std::isspace(_yychar))
+            yyinp();
+        if (!_yychar)
+            s._tokenKind = type;
+    }
+}
+
+void Lexer::scanCppComment(Kind type)
+{
+    while (_yychar && _yychar != '\n') {
+        if (_yychar == '\\')
+            scanBackslash(type);
+        else if (_yychar)
+            yyinp();
+    }
+}

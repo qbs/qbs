@@ -557,8 +557,10 @@ QbsLibrary {
         prefix: "cppscanner/"
         files: [
             "CPlusPlusForwardDeclarations.h",
+            "Keywords.cpp",
             "Lexer.cpp",
             "Lexer.h",
+            "ObjectiveCAtKeywords.cpp",
             "Token.cpp",
             "Token.h",
             "cppscanner.cpp",

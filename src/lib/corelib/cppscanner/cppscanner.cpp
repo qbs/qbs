@@ -60,14 +60,14 @@ public:
 
     bool equals(const Token &tk, const QLatin1String &literal) const
     {
-        return static_cast<int>(tk.length()) == literal.size()
-               && memcmp(m_fileContent + tk.begin(), literal.data(), literal.size()) == 0;
+        return static_cast<int>(tk.bytes()) == literal.size()
+               && memcmp(m_fileContent + tk.bytesBegin(), literal.data(), literal.size()) == 0;
     }
 
     QByteArray toByteArray(const Token &tk) const
     {
-        const auto ptr = m_fileContent + tk.begin();
-        const auto len = tk.length();
+        const auto ptr = m_fileContent + tk.bytesBegin();
+        const auto len = tk.bytes();
         return {ptr, int(len)};
     }
 };
@@ -213,7 +213,7 @@ static void doScanCppFile(
                         else
                             scanResult.flags = SC_GLOBAL_INCLUDE_FLAG;
                         scanResult.fileName = context.fileContent.substr(
-                            tk.begin() + 1, size_t(tk.length() - 2));
+                            tk.bytesBegin() + 1, size_t(tk.bytes() - 2));
                         context.includedFiles.push_back(scanResult);
                     }
                 }

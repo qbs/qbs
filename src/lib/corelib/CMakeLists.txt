@@ -433,7 +433,9 @@ set(TOOLS_HEADERS
 list_transform_prepend(TOOLS_HEADERS tools/)
 
 set(CPPSCANNER_SOURCES
+    Keywords.cpp
     Lexer.cpp
+    ObjectiveCAtKeywords.cpp
     Token.cpp
     cppscanner.cpp
 )
