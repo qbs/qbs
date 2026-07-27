@@ -174,7 +174,7 @@ static void doScanCppFile(
         if (scanForDependencies && tk.newline() && tk.is(T_IDENTIFIER)) {
             if (tc.equals(tk, moduleLiteral)) {
                 stepLexer();
-                if (tk.isNot(T_SEMICOLON))
+                if (tk.is(T_IDENTIFIER))
                     parseModule();
                 continue;
             } else if (tc.equals(tk, importLiteral)) {
