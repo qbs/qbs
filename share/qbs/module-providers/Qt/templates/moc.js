@@ -142,6 +142,9 @@ function splitMocFile(outputs)
     var content = inFile.readAll();
     inFile.close();
 
+    if (content.length === 0) // "No relevant classes found. No output generated."
+        return;
+
     var lines = content.split('\n');
     var splitIndex = -1;
     var depth = 0;
@@ -185,7 +188,7 @@ function commands(project, product, inputs, outputs, input, output)
     cmd.highlight = 'codegen';
     cmd.responseFileUsagePrefix = "@";
 
-    if (product.cpp.forceUseCxxModules) {
+    if (!input.fileTags.contains("hpp") && product.cpp.forceUseCxxModules) {
         var splitCmd = new JavaScriptCommand();
         splitCmd.description = "splitting " + input.fileName;
         splitCmd.highlight = "codegen";
