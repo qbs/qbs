@@ -15,8 +15,7 @@ StaticLibrary {
 
     files: [
         "builtin-array-fromasync.h",
-        "builtin-iterator-zip.h",
-        "builtin-iterator-zip-keyed.h",
+        "cutils.c",
         "cutils.h",
         "dtoa.c",
         "dtoa.h",

@@ -37,6 +37,7 @@
 
 /* 
    TODO:
+   - test n_digits=101 instead of 100
    - simplify subnormal handling
    - reduce max memory usage
    - free format: could add shortcut if exact result

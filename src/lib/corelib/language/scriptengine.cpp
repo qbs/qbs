@@ -284,7 +284,7 @@ void ScriptEngine::import(const JsImport &jsImport, JSValue &targetObject)
 
 void ScriptEngine::observeImport(JSValue &jsImport)
 {
-    if (!m_observer->addImportId(quintptr((JS_VALUE_GET_PTR(jsImport)))))
+    if (!m_observer->addImportId(quintptr((JS_VALUE_GET_OBJ(jsImport)))))
         return;
     handleJsProperties(jsImport, [this, &jsImport](const JSAtom &name,
                        const JSPropertyDescriptor &desc) {
