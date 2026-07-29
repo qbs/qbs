@@ -121,9 +121,10 @@ static void resolveDepencency(
         return;
     }
 
-    const QString &absFilePath = baseDir.isEmpty()
-            ? dependency.filePath()
-            : absDirPath + QLatin1Char('/') + dependency.fileName();
+    // Must be built from absDirPath, which is what we looked the file up by. Otherwise, an
+    // unclean path would be stored and never found again, creating a new FileDependency on
+    // every scan.
+    const QString absFilePath = absDirPath + QLatin1Char('/') + dependency.fileName();
 
     // TODO: We probably need a flag that tells us whether directories are allowed.
     const FileInfo fi(absFilePath);

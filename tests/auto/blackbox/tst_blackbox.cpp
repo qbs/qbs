@@ -9524,6 +9524,36 @@ void TestBlackbox::typescript()
     QVERIFY(regularFileExists(relativeProductBuildDir("animals") + "/main.js"));
 }
 
+void TestBlackbox::dotsInDependencies()
+{
+    QDir::setCurrent(testDataDir + "/dots-in-dependencies");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling a.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling b.cpp"), m_qbsStdout.constData());
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(!m_qbsStdout.contains("compiling"), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("include/touched.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling a.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling b.cpp"), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("include/other.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling b.cpp"), m_qbsStdout.constData());
+    QVERIFY2(!m_qbsStdout.contains("compiling a.cpp"), m_qbsStdout.constData());
+
+    WAIT_FOR_NEW_TIMESTAMP();
+    touch("include/shared.h");
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling a.cpp"), m_qbsStdout.constData());
+    QVERIFY2(m_qbsStdout.contains("compiling b.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::undefinedTargetPlatform()
 {
     QDir::setCurrent(testDataDir + "/undefined-target-platform");

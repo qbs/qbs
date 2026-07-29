@@ -110,6 +110,7 @@ private slots:
     void discardUnusedData();
     void discardUnusedData_data();
     void dotDotPcFile();
+    void dotsInDependencies();
     void driverLinkerFlags();
     void driverLinkerFlags_data();
     void dynamicLibraryInModule();
