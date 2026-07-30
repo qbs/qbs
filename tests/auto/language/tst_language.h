@@ -120,6 +120,7 @@ private slots:
     void invalidPropOnNonRequiredModule();
     void itemPrototype();
     void itemScope();
+    void itemScopeOverridesGlobalObjectProperty();
     void jsExtensions();
     void jsImportUsedInMultipleScopes_data();
     void jsImportUsedInMultipleScopes();

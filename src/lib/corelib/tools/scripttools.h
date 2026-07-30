@@ -84,7 +84,10 @@ QStringList getJsStringList(JSContext *ctx, JSValueConst val);
 JSValue throwError(JSContext *ctx, const QString &message);
 using PropertyHandler = std::function<void(const JSAtom &, const JSPropertyDescriptor &)>;
 void handleJsProperties(JSContext *ctx, JSValueConst obj, const  PropertyHandler &handler);
-inline quintptr jsObjectId(const JSValue &val) { return quintptr(JS_VALUE_GET_OBJ(val)); }
+inline quintptr jsObjectId(const JSValue &val)
+{
+    return quintptr(JS_VALUE_GET_PTR(val));
+}
 
 template <class T>
 void attachPointerTo(JSValue &scriptValue, T *ptr)

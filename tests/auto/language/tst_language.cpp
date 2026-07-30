@@ -1889,6 +1889,36 @@ void TestLanguage::itemScope()
     QCOMPARE(getJsVariant(ctx, evaluator.property(item, "z")).toInt(), 3);
 }
 
+void TestLanguage::itemScopeOverridesGlobalObjectProperty()
+{
+    // A colliding global property must not shadow item-scope bindings
+    FileContextPtr fileContext = FileContext::create();
+    fileContext->setFilePath("/dev/null");
+    JSSourceValueCreator sourceValueCreator(fileContext);
+    ItemPool pool;
+    Item *scope = Item::create(&pool, ItemType::Scope);
+    scope->setProperty("x", sourceValueCreator.create("1"));
+    Item *item = Item::create(&pool, ItemType::Scope);
+    item->setScope(scope);
+    item->setProperty("y", sourceValueCreator.create("x + 1"));
+    item->setProperty("assign", sourceValueCreator.create("x = 7"));
+
+    // An own property of the JS global object, which is what the fast paths in
+    // JS_GetGlobalVar/JS_SetGlobalVar consult first.
+    const QString fileName = QStringLiteral("test.js");
+    m_engine->evaluate(
+        JsValueOwner::ScriptEngine, QStringLiteral("globalThis.x = 1000;"), fileName);
+
+    Evaluator evaluator(m_engine.get());
+    JSContext * const ctx = m_engine->context();
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "y")).toInt(), 2);
+    QCOMPARE(getJsVariant(ctx, evaluator.property(item, "assign")).toInt(), 7);
+
+    const JSValue globalX = m_engine->evaluate(
+        JsValueOwner::ScriptEngine, QStringLiteral("globalThis.x"), fileName);
+    QCOMPARE(getJsVariant(ctx, globalX).toInt(), 1000);
+}
+
 void TestLanguage::jsExtensions()
 {
     QFile file(testProject("jsextensions.js"));

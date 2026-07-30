@@ -2,7 +2,9 @@ add_qbs_library(qbsquickjs
     STATIC
     SOURCES
         builtin-array-fromasync.h
-        cutils.c cutils.h
+        builtin-iterator-zip.h
+        builtin-iterator-zip-keyed.h
+        cutils.h
         dtoa.c dtoa.h
         libbf.c libbf.h
         libregexp-opcode.h

@@ -10,8 +10,8 @@ TARGET_DIR=$(dirname "$0")
 
 FILES="
 builtin-array-fromasync.h
-cutils.c
-cutils.h
+builtin-iterator-zip.h
+builtin-iterator-zip-keyed.h
 dtoa.c
 dtoa.h
 libregexp-opcode.h
