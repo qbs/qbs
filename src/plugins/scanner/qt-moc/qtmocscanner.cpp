@@ -49,9 +49,11 @@
 #include <tools/qbspluginmanager.h>
 #include <tools/scannerpluginmanager.h>
 
+#include <QtCore/qdir.h>
 #include <QtCore/qfileinfo.h>
 #include <QtCore/qglobal.h>
 #include <QtCore/qset.h>
+#include <QtCore/qversionnumber.h>
 
 #include <tools/span.h>
 
@@ -107,8 +109,6 @@ static QString normalizedMocScanTags(const char *fileTags)
 ScannerScanResult MocScannerPlugin::scan(
     const QString &filePath, const char *fileTags, const QVariantMap &properties) const
 {
-    Q_UNUSED(properties);
-
     ScannerScanResult scanResult;
     qbs::Internal::CppScannerContext context;
     const QString tags = normalizedMocScanTags(fileTags);
@@ -157,6 +157,35 @@ ScannerScanResult MocScannerPlugin::scan(
         scanResult.scannerProperties.insert(QStringLiteral("hasQObjectMacro"), true);
     if (hasPluginMetaDataMacro)
         scanResult.scannerProperties.insert(QStringLiteral("hasPluginMetaDataMacro"), true);
+    if (!context.partOfModule.isEmpty()) {
+        scanResult.scannerProperties.insert(
+            QStringLiteral("partOfModule"),
+            QString::fromLatin1(context.partOfModule.constData(), context.partOfModule.size()));
+        const QDir sourceDir = QFileInfo(filePath).dir();
+
+        const QVersionNumber moduleSupportVersion{6, 13};
+        const auto qtVersion = QVersionNumber::fromString(properties.value(QLatin1String("Qt.core"))
+                                                              .toMap()
+                                                              .value(QLatin1String("version"))
+                                                              .toString());
+        if (!qtVersion.isNull() && qtVersion < moduleSupportVersion) {
+            QStringList includes;
+            for (const auto &f : context.includedFiles) {
+                if (f.fileName.empty())
+                    continue;
+                const QString rawName = QString::fromUtf8(
+                    f.fileName.data(), int(f.fileName.size()));
+                if (f.flags & SC_LOCAL_INCLUDE_FLAG) {
+                    const QString resolved = sourceDir.absoluteFilePath(rawName);
+                    includes.append(QFileInfo::exists(resolved) ? resolved : rawName);
+                } else {
+                    includes.append(rawName);
+                }
+            }
+            if (!includes.isEmpty())
+                scanResult.scannerProperties.insert(QStringLiteral("includes"), includes);
+        }
+    }
 
     const bool isCppSource = tags.contains(QStringLiteral("cpp"))
                              || tags.contains(QStringLiteral("cppm"))

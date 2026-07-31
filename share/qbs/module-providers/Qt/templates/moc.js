@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var ModUtils = require("qbs.ModUtils");
+var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
 
 function args(product, input, outputs)
@@ -90,8 +91,9 @@ function mocInformation(input, product) {
         return { hasQObjectMacro: false, hasPluginMetaDataMacro: false, mustCompile: false };
     var hasQObjectMacro = !!info.hasQObjectMacro;
     var hasPluginMetaDataMacro = !!info.hasPluginMetaDataMacro;
-    var mustCompile = false;
-    if (hasQObjectMacro && input.fileTags.includes("hpp")) {
+    var module = info.partOfModule;
+    var mustCompile = !!module; // Module units always need their companion compiled.
+    if (!mustCompile && hasQObjectMacro && input.fileTags.includes("hpp")) {
         var included = Utilities.includedMocCppBaseNames(input, product);
         mustCompile = included.indexOf(input.completeBaseName) === -1;
     }
@@ -99,6 +101,8 @@ function mocInformation(input, product) {
         hasQObjectMacro: hasQObjectMacro,
         hasPluginMetaDataMacro: hasPluginMetaDataMacro,
         mustCompile: mustCompile,
+        module: module,
+        includes: info.includes || [],
     };
 }
 
@@ -111,7 +115,7 @@ function outputArtifacts(project, product, inputs, input)
     var artifacts = [artifact];
     if (mocInfo.hasPluginMetaDataMacro)
         artifact.explicitlyDependsOn = ["qt_plugin_metadata"];
-    if (input.fileTags.contains("hpp")) {
+    if (input.fileTags.contains("hpp") || mocInfo.module) {
         artifact.filePath = input.Qt.core.generatedHeadersDir
                 + "/moc_" + input.completeBaseName + ".cpp";
         var amalgamate = input.Qt.core.combineMocOutput;
@@ -120,83 +124,80 @@ function outputArtifacts(project, product, inputs, input)
         artifact.filePath = input.Qt.core.generatedHeadersDir + '/'
                 + input.completeBaseName + ".moc";
         artifact.fileTags.push("hpp");
-
-        // If modules might be involved, provide split moc header files for inclusion
-        // before and after the module start, respectively.
-        if (product.cpp.forceUseCxxModules) {
-            var includer = Object.assign({}, artifact);
-            includer.filePath += ".h";
-            var data = Object.assign({}, artifact);
-            data.filePath = artifact.filePath + ".data";
-            artifacts.push(includer, data);
-        }
     }
     if (product.Qt.core._generateMetaTypesFile)
         artifacts.push({filePath: artifact.filePath + ".json", fileTags: "qt.core.metatypes.in"});
     return artifacts;
 }
 
-function findOutputArtifact(outputs, suffix)
+// For moc < 6.13, we inject the module boilerplate ourselves.
+function backportModuleFragmentCommand(input, output, moduleName, moduleIncludes)
 {
-    for (var tag in outputs) {
-        var artifacts = outputs[tag];
-        for (var i = 0; i < artifacts.length; ++i) {
-            if (artifacts[i].filePath.endsWith(suffix))
-                return artifacts[i];
-        }
-    }
-    return undefined;
-}
+    var cmd = new JavaScriptCommand();
+    cmd.description = "patching module fragment into " + output.fileName;
+    cmd.highlight = "codegen";
+    cmd.moduleName = moduleName;
+    cmd.moduleIncludes = moduleIncludes;
+    cmd.sourceCode = function() {
+        var file = new TextFile(output.filePath, TextFile.ReadWrite);
+        var content = file.readAll();
 
-function splitMocFile(outputs)
-{
-    var mocArtifact = findOutputArtifact(outputs, ".moc");
-    var includerArtifact = findOutputArtifact(outputs, ".h");
-    var dataArtifact = findOutputArtifact(outputs, ".data");
-    if (!mocArtifact || !includerArtifact || !dataArtifact)
-        throw "splitMocFile: could not find expected .moc/.h/.data output artifacts";
+        var lines = content.split('\n');
 
-    var inFile = new TextFile(mocArtifact.filePath, TextFile.ReadOnly);
-    var content = inFile.readAll();
-    inFile.close();
-
-    if (content.length === 0) // "No relevant classes found. No output generated."
-        return;
-
-    var lines = content.split('\n');
-    var splitIndex = -1;
-    var depth = 0;
-    var inCompatCheck = false;
-    for (var i = 0; i < lines.length; ++i) {
-        var line = lines[i].trim();
-        if (!inCompatCheck) {
-            if (/^#if\s*!defined\(Q_MOC_OUTPUT_REVISION\)/.test(line)) {
-                inCompatCheck = true;
-                depth = 1;
+        // moc's actual content starts right after its banner comment.
+        var bannerCloseIndex = -1;
+        for (var i = 0; i < lines.length; ++i) {
+            if (/^\*+\/$/.test(lines[i])) {
+                bannerCloseIndex = i;
+                break;
             }
-            continue;
         }
-        if (/^#(if|ifdef|ifndef)\b/.test(line))
-            ++depth;
-        else if (/^#endif\b/.test(line) && --depth === 0) {
-            splitIndex = i;
-            break;
+        if (bannerCloseIndex === -1) {
+            throw "Failed to patch a module fragment into moc's output for '"
+                    + input.filePath + "': could not find the expected banner comment in '"
+                    + output.filePath + "'.";
         }
-    }
-    if (splitIndex === -1)
-        throw "Could not locate the Q_MOC_OUTPUT_REVISION compatibility check in '"
-                + mocArtifact.filePath + "'";
+        // Skip the banner's closing line and the blank line that always follows it.
+        var contentStartIndex = bannerCloseIndex + 2;
 
-    var firstPart = lines.slice(0, splitIndex + 1).join('\n') + '\n';
-    var secondPart = lines.slice(splitIndex + 1).join('\n');
+        var revisionGuardLine = "#if !defined(Q_MOC_OUTPUT_REVISION)";
+        var revisionGuardIndex = lines.indexOf(revisionGuardLine, contentStartIndex);
+        if (revisionGuardIndex === -1) {
+            throw "Failed to patch a module fragment into moc's output for '"
+                    + input.filePath + "': could not find the expected '"
+                    + revisionGuardLine + "' line in '" + output.filePath + "'.";
+        }
 
-    var includerFile = new TextFile(includerArtifact.filePath, TextFile.WriteOnly);
-    includerFile.write(firstPart);
-    includerFile.close();
+        // Depending on the input file's extension, old moc may or may not have written a
+        // plain self-include of the original file (it decides this the same way it would for
+        // an ordinary, non-module .h/.cpp file, having no notion of modules at all); either
+        // way, that doesn't work for a .cppm, so strip it if present.
+        var selfInclude = '#include "' + input.filePath + '"';
+        var selfIncludeIndex = lines.indexOf(selfInclude, contentStartIndex);
+        if (selfIncludeIndex !== -1 && selfIncludeIndex < revisionGuardIndex) {
+            lines.splice(selfIncludeIndex, 1);
+            revisionGuardIndex -= 1;
+        }
 
-    var dataFile = new TextFile(dataArtifact.filePath, TextFile.WriteOnly);
-    dataFile.write(secondPart);
-    dataFile.close();
+        var preamble = ["module;", ""];
+        var includes = moduleIncludes || [];
+        for (i = 0; i < includes.length; ++i)
+            preamble.push('#include "' + includes[i] + '"');
+        lines.splice.apply(lines, [contentStartIndex, 0].concat(preamble));
+        revisionGuardIndex += preamble.length;
+
+        var moduleAndPartition = moduleName.split(':');
+        var moduleDecl = ["", "module " + moduleAndPartition[0] + ";"];
+        if (moduleAndPartition.length > 1)
+            moduleDecl.push("import :" + moduleAndPartition[1] + ";");
+        moduleDecl.push("");
+        lines.splice.apply(lines, [revisionGuardIndex, 0].concat(moduleDecl));
+
+        file.truncate();
+        file.write(lines.join('\n'));
+        file.close();
+    };
+    return cmd;
 }
 
 function commands(project, product, inputs, outputs, input, output)
@@ -206,17 +207,17 @@ function commands(project, product, inputs, outputs, input, output)
     cmd.highlight = 'codegen';
     cmd.responseFileUsagePrefix = "@";
 
-    if (!input.fileTags.contains("hpp") && product.cpp.forceUseCxxModules) {
-        var splitCmd = new JavaScriptCommand();
-        splitCmd.description = "splitting " + input.fileName;
-        splitCmd.highlight = "codegen";
-        splitCmd.sourceCode = function() {
-            splitMocFile(outputs);
-        };
-        return [cmd, splitCmd];
+    var cmds = [cmd];
+
+    if (Utilities.versionCompare(product.Qt.core.version, "6.13") < 0) {
+        var mocInfo = mocInformation(input, product);
+        if (mocInfo.module) {
+            cmds.push(backportModuleFragmentCommand(input, output, mocInfo.module,
+                                                    mocInfo.includes));
+        }
     }
 
-    return cmd;
+    return cmds;
 }
 
 function generateMocCppCommands(inputs, output)

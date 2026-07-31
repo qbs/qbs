@@ -370,7 +370,7 @@ Module {
             auxiliaryInputs: "qt_plugin_metadata"
             excludedInputs: "unmocable"
             excludedScanners: ["cpp.cpp"]
-            outputFileTags: ["hpp", "unmocable", "qt.core.metatypes.in", "qt.untranslatable"]
+            outputFileTags: ["hpp", "cpp", "unmocable", "qt.core.metatypes.in", "qt.untranslatable"]
             outputArtifacts: Moc.outputArtifacts.apply(Moc, arguments)
             prepare: Moc.commands.apply(Moc, arguments)
         }

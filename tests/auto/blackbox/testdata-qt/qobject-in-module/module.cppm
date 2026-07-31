@@ -1,7 +1,6 @@
 module;
 
 #include "../dllexport.h"
-#include <module.moc.h>
 
 #include <QCoreApplication>
 #include <QObject>
@@ -25,5 +24,3 @@ public:
         });
     }
 };
-
-#include <module.moc.data>
