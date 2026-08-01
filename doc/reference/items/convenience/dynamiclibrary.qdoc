@@ -45,4 +45,6 @@
             \c "android.nativelibrary" in addition to \c "dynamiclibrary".
         \li There is a dependency on the \l{cpp} and \l{Android.ndk} modules.
     \endlist
+
+    \sa{tutorial-3.html}{Dynamic Library}
 */

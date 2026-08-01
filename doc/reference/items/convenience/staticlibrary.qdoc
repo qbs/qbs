@@ -37,4 +37,6 @@
 
     A StaticLibrary item is a \l{CppLibrary}{library} of the \l{Product::}{type}
     \c "staticlibrary".
+
+    \sa{tutorial-2.html}{Static Library}, ObjectLibrary
 */

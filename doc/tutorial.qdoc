@@ -149,6 +149,11 @@
     \l{StaticLibrary} item inherits the \l{CppLibrary} item which pulls in the dependency on the
     \l{cpp} module.
 
+    \note If the library does not need to be installed and distributed - for instance, when it is
+    used only as an internal abstraction inside the project - consider \l{ObjectLibrary} instead.
+    It behaves exactly like \l{StaticLibrary}, except that the object files are not packaged into
+    a container.
+
     As before, we set the \l{Product::files}{files} property with a header:
     \snippet ../tutorial/chapter-2/lib/lib.h 0
     And we set the implementation file of our library:

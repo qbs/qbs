@@ -32,6 +32,7 @@
     \inqmlmodule QbsConvenienceItems
     \ingroup list-of-items
     \keyword QML.ObjectLibrary
+    \since Qbs 3.2
 
     \brief A collection of object files.
 
@@ -41,4 +42,6 @@
     not packaged into a container. It is suitable if the library does not need to
     be installed and distributed, for instance when it is used as an internal
     abstraction inside a project.
+
+    \sa{tutorial-2.html}{Static Library}
 */
