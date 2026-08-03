@@ -12,6 +12,7 @@ CppApplication {
     }
     consoleApplication: true
     files: [
+        "a.cpp",
         "a.cppm",
         "a.p1.cppm",
         "a.p2.cppm",

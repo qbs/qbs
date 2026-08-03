@@ -4,7 +4,7 @@ CppApplication {
     condition: {
         if (qbs.toolchainType === "msvc"
             || ((qbs.toolchainType === "gcc" || qbs.toolchainType === "mingw")
-                && cpp.compilerVersionMajor >= 11)
+                && cpp.compilerVersionMajor >= 14)
             || (qbs.toolchainType === "clang" && cpp.compilerVersionMajor >= 16)) {
             return true;
         }
@@ -13,9 +13,11 @@ CppApplication {
     }
     consoleApplication: true
     files: [
+        "a.cpp",
         "a.cppm",
         "a.p1.cppm",
         "a.p2.cppm",
+        "b.cpp",
         "b.cppm",
         "b.p1.cppm",
         "b.p2.cppm",

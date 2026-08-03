@@ -15,6 +15,7 @@ Project {
         Depends { name: "cpp" }
         files: [
             "dllexport.h",
+            "lib-a/a.cpp",
             "lib-a/a.cppm",
             "lib-a/a.p1.cppm",
             "lib-a/a.p2.cppm",

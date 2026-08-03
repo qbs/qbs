@@ -10,6 +10,7 @@ target_sources(partitions PRIVATE
   BASE_DIRS
     ${PROJECT_SOURCE_DIR}
   FILES
+    a.cpp
     a.p1.cppm
     a.p2.cppm
     a.cppm

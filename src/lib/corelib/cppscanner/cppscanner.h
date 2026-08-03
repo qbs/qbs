@@ -96,6 +96,7 @@ struct QBS_EXPORT CppScannerContext
     FileType fileType{FT_UNKNOWN};
     QList<ScanResult> includedFiles;
     QByteArray providesModule;
+    QByteArray partOfModule;
     bool isInterface{false};
     QList<QByteArray> requiresModules;
     bool hasQObjectMacro{false};

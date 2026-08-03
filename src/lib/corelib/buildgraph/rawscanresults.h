@@ -65,6 +65,7 @@ public:
     FileTags additionalFileTags;
     // TODO: does this belong here?
     QString providesModule;
+    QString partOfModule;
     bool isInterfaceModule{false};
     QStringList requiresModules;
 
@@ -72,7 +73,12 @@ public:
     void completeSerializationOp(PersistentPool &pool)
     {
         pool.serializationOp<opType>(
-            deps, additionalFileTags, providesModule, isInterfaceModule, requiresModules);
+            deps,
+            additionalFileTags,
+            providesModule,
+            partOfModule,
+            isInterfaceModule,
+            requiresModules);
     }
 };
 

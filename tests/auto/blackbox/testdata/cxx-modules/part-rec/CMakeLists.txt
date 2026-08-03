@@ -12,10 +12,12 @@ target_sources(partitions PRIVATE
   FILES
     a.p1.cppm
     a.p2.cppm
+    a.cpp
     a.cppm
     b.p1.cppm
     b.p2.cppm
     b.cppm
+    b.cpp
 )
 target_sources(partitions PRIVATE
   main.cpp

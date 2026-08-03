@@ -96,6 +96,7 @@ static RawScanResult runScannerForArtifact(const Artifact *artifact)
             return scanData.rawScanResult;
 
         scanData.rawScanResult.providesModule = QString::fromUtf8(context.providesModule);
+        scanData.rawScanResult.partOfModule = QString::fromUtf8(context.partOfModule);
         scanData.rawScanResult.isInterfaceModule = context.isInterface;
         scanData.rawScanResult.requiresModules.clear();
         for (const auto &module : context.requiresModules)

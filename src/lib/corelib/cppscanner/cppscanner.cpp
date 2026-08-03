@@ -122,6 +122,7 @@ static void doScanCppFile(
             }
         }
 
+        context.partOfModule = mod;
         if (context.fileType == CppScannerContext::FileType::FT_CPPM)
             context.providesModule = mod;
         else
@@ -131,7 +132,7 @@ static void doScanCppFile(
         if (tk.is(T_COLON)) {
             stepLexer();
 
-            if (!context.providesModule.isEmpty()) {
+            if (!context.partOfModule.isEmpty()) {
                 const auto getModuleName = [](const QByteArray &moduleOrPartition) -> QByteArray {
                     const auto index = moduleOrPartition.indexOf(':');
                     if (index == -1)
@@ -139,7 +140,7 @@ static void doScanCppFile(
                     return moduleOrPartition.mid(0, index);
                 };
                 context.requiresModules
-                    << getModuleName(context.providesModule) + ':' + tc.toByteArray(tk);
+                    << getModuleName(context.partOfModule) + ':' + tc.toByteArray(tk);
             }
             return;
         }
