@@ -346,9 +346,8 @@ void InputArtifactScanner::resolveScanResultDependencies(
         auto &cachedResolvedDependencyItem = dirCache[dependency.fileName()];
         if (cachedResolvedDependencyItem) {
             ResolvedDependency &resolvedDependency = *cachedResolvedDependencyItem;
-            if (resolvedDependency.filePath.isEmpty())
-                return nullptr;
-            return &resolvedDependency;
+            if (!resolvedDependency.filePath.isEmpty())
+                return &resolvedDependency;
         }
         ResolvedDependency &resolvedDependency = cachedResolvedDependencyItem.emplace();
 

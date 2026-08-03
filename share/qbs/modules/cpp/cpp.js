@@ -91,7 +91,7 @@ function compilerOutputTags(withListingFiles, withCxxModules) {
     if (withListingFiles)
         tags.push("lst");
     if (withCxxModules)
-        tags = tags.concat(["compiled-module", "modulemap", "moduleinfo"]);
+        tags = tags.concat(["compiled-module", "modulemap"]);
     return tags;
 }
 
@@ -180,6 +180,20 @@ function cxxModuleInformation(input) {
     };
 }
 
+function moduleInfoArtifacts(input)
+{
+    var moduleInformation = cxxModuleInformation(input);
+    const moduleName = moduleInformation.providesModule;
+    if (!moduleName)
+        throw "No module interface in '" + input.filePath + "', which has 'cppm' tag.";
+
+    const moduleBaseName = moduleName.replace(':', '-');
+    return [{
+        filePath: FileInfo.joinPaths("cxx-modules", moduleBaseName + input.cpp.moduleInfoSuffix),
+        fileTags: ["moduleinfo"],
+    }];
+}
+
 function cxxModulesArtifacts(input) {
     var artifacts = [];
     if (input.cpp.forceUseCxxModules === false)
@@ -203,23 +217,16 @@ function cxxModulesArtifacts(input) {
         })
     }
     if (input.fileTags.includes("cppm")) {
-        const moduleName = moduleInformation.providesModule
-            ? moduleInformation.providesModule : undefined;
+        const moduleName = moduleInformation.providesModule;
         if (moduleName) {
             const moduleFileName = moduleName.replace(':', '-');
             artifacts.push({
                 filePath: FileInfo.joinPaths("cxx-modules", moduleFileName + product.cpp.compiledModuleSuffix),
                 fileTags: ["compiled-module"],
-            })
-            artifacts.push({
-                filePath: FileInfo.joinPaths("cxx-modules", moduleFileName + product.cpp.moduleInfoSuffix),
-                fileTags: ["moduleinfo"],
-            })
-        } else {
-            console.warn("File '" + input.fileName + "' has 'cppm' tag, but does not "
-                + "provide a module interface unit or partition");
+            });
         }
     }
+
     return artifacts;
 }
 
@@ -594,19 +601,15 @@ function supportsArchitecture(architecture, knownArchitectures) {
     return false;
 }
 
-function prepareModuleInfo(moduleInformation, input, output, product) {
-    var command = new JavaScriptCommand()
-    command.moduleInformation = moduleInformation
-    command.outPath = output.filePath
-    command.description = "generating module info for " + input.fileName
-    command.highlight = "filegen"
-
+function prepareModuleInfo(input, output, product) {
+    var command = new JavaScriptCommand();
+    command.description = "generating module info for " + input.fileName;
+    command.highlight = "filegen";
     command.sourceCode = function() {
-        var file = new TextFile(outPath, TextFile.WriteOnly);
-        file.write(JSON.stringify(moduleInformation, undefined, 4));
+        var file = new TextFile(output.filePath, TextFile.WriteOnly);
+        file.write(JSON.stringify(cxxModuleInformation(input), undefined, 4));
         file.close();
     }
-
     return command;
 }
 
@@ -729,11 +732,6 @@ function prepareModules(project, product, inputs, outputs, input, output) {
         return commands;
 
     const moduleInformation = cxxModuleInformation(input);
-
-    // module info json is present only for cppm
-    var cppModuleInfo = outputs["moduleinfo"];
-    if (cppModuleInfo)
-        commands.push(prepareModuleInfo(moduleInformation, input, cppModuleInfo[0], product));
 
     commands.push(prepareModuleMap(moduleInformation, input, cppModuleMap, product));
 

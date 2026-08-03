@@ -531,10 +531,19 @@ CppModule {
     }
 
     Rule {
+        name: "module info generator"
+        condition: forceUseCxxModules
+        inputs: "cppm"
+        outputFileTags: "moduleinfo"
+        outputArtifacts: Cpp.moduleInfoArtifacts(input)
+        prepare: Cpp.prepareModuleInfo(input, output, product)
+    }
+
+    Rule {
         name: "cpp_compiler"
         inputs: ["cpp", "cppm", "c", "objcpp", "objc", "asm_cpp"]
-        auxiliaryInputs: ["hpp"]
-        auxiliaryInputsFromDependencies: ["hpp"]
+        auxiliaryInputs: ["hpp", "moduleinfo"]
+        auxiliaryInputsFromDependencies: ["hpp", "moduleinfo"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
         outputFileTags: Cpp.compilerOutputTags(/*withListingFiles*/ false, /*withCxxModules*/ true)
             .concat(["c_obj", "cpp_obj"])
