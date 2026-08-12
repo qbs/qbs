@@ -49,6 +49,7 @@ class InitItem
 public:
     enum class ItemType {
         Application,
+        Library,
     };
 
     enum class Language {

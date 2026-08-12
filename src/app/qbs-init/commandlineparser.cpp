@@ -71,7 +71,8 @@ void CommandLineParser::parse(const QStringList &commandLine)
     parser.addHelpOption();
     parser.addPositionalArgument(
         QStringLiteral("project-type"),
-        Tr::tr("The type of project to create. Currently, only 'application' is supported."));
+        Tr::tr("The type of project to create. "
+               "Possible values are 'application' and 'library'."));
     parser.addPositionalArgument(QStringLiteral("name"), Tr::tr("The name of the project."));
     parser.process(commandLine);
 
@@ -122,5 +123,7 @@ InitItem::ItemType CommandLineParser::itemTypeFromName(const QString &name)
 {
     if (name == QLatin1String("application"))
         return InitItem::ItemType::Application;
+    if (name == QLatin1String("library"))
+        return InitItem::ItemType::Library;
     throwError(Tr::tr("Unsupported project type '%1'.").arg(name));
 }

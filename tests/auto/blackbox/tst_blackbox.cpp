@@ -10788,4 +10788,60 @@ void TestBlackbox::initApplication()
     }
 }
 
+void TestBlackbox::initLibrary_data()
+{
+    QTest::addColumn<QStringList>("initArgs");
+    QTest::addColumn<QString>("expectedDir");
+    QTest::addColumn<QStringList>("expectedFiles");
+
+    const QStringList cppFiles = QStringList()
+                                 << QStringLiteral("foo.cpp") << QStringLiteral("foo.h")
+                                 << QStringLiteral("foo.qbs") << QStringLiteral("foo_global.h");
+    QTest::newRow("default") << QStringList() << QStringLiteral("init-library/default") << cppFiles;
+    QTest::newRow("c++")
+        << (QStringList() << QStringLiteral("--language") << QStringLiteral("c++")
+                          << QStringLiteral("--version") << QStringLiteral("2.1.0"))
+        << QStringLiteral("init-library/cpp") << cppFiles;
+    QTest::newRow("c")
+        << (QStringList() << QStringLiteral("-l") << QStringLiteral("c")
+                          << QStringLiteral("--version") << QStringLiteral("3.0.1"))
+        << QStringLiteral("init-library/c")
+        << (QStringList() << QStringLiteral("foo.c") << QStringLiteral("foo.h")
+                          << QStringLiteral("foo.qbs") << QStringLiteral("foo_global.h"));
+}
+
+void TestBlackbox::initLibrary()
+{
+    QFETCH(QStringList, initArgs);
+    QFETCH(QString, expectedDir);
+    QFETCH(QStringList, expectedFiles);
+
+    const QString projectName = QStringLiteral("foo");
+
+    QTemporaryDir tempDir;
+    QVERIFY2(tempDir.isValid(), qPrintable(tempDir.errorString()));
+
+    QbsRunParameters initParams(QStringLiteral("init"));
+    initParams.arguments = initArgs;
+    initParams.arguments << QStringLiteral("library") << projectName;
+    initParams.workingDir = tempDir.path();
+    initParams.profile.clear();
+    QCOMPARE(runQbs(initParams), 0);
+
+    const QString projectDir = tempDir.path() + QLatin1Char('/') + projectName;
+    const QString expectedDirPath = testDataDir + QLatin1Char('/') + expectedDir;
+    QStringList sortedExpectedFiles = expectedFiles;
+    sortedExpectedFiles.sort();
+    QCOMPARE(
+        QDir(projectDir).entryList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::Name),
+        sortedExpectedFiles);
+    for (const QString &fileName : expectedFiles) {
+        const QString actualFilePath = projectDir + QLatin1Char('/') + fileName;
+        const QString expectedFilePath = expectedDirPath + QLatin1Char('/') + fileName;
+        READ_TEXT_FILE(actualFilePath, actualContents);
+        READ_TEXT_FILE(expectedFilePath, expectedContents);
+        QCOMPARE(unifiedLineEndings(actualContents), unifiedLineEndings(expectedContents));
+    }
+}
+
 QTEST_MAIN(TestBlackbox)

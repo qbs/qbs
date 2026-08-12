@@ -55,6 +55,8 @@ static QString itemTypeDirName(InitItem::ItemType itemType)
     switch (itemType) {
     case InitItem::ItemType::Application:
         return QStringLiteral("application");
+    case InitItem::ItemType::Library:
+        return QStringLiteral("library");
     }
     Q_UNREACHABLE();
 }
@@ -101,9 +103,15 @@ static void ensureProjectDirectoryCanBeCreated(const QString &projectDirectoryPa
         throw ErrorInfo(Tr::tr("Cannot create directory '%1'.").arg(projectDirectoryPath));
 }
 
+static QString productNameToMacro(QString productName)
+{
+    return productName.replace(QLatin1Char(' '), QLatin1Char('_')).toUpper();
+}
+
 static QString applyTemplate(QString contents, const QString &productName, const QString &version)
 {
-    return contents.replace(QLatin1String("@PRODUCT_NAME@"), productName)
+    return contents.replace(QLatin1String("@PRODUCT_NAME_UPPER@"), productNameToMacro(productName))
+        .replace(QLatin1String("@PRODUCT_NAME@"), productName)
         .replace(QLatin1String("@PRODUCT_VERSION@"), version);
 }
 

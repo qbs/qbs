@@ -8,5 +8,13 @@
         <file>application/java/Main.java</file>
         <file>application/objc/@PRODUCT_NAME@.qbs</file>
         <file>application/objc/@PRODUCT_NAME@.m</file>
+        <file>library/c/@PRODUCT_NAME@.qbs</file>
+        <file>library/c/@PRODUCT_NAME@.c</file>
+        <file>library/c/@PRODUCT_NAME@.h</file>
+        <file>library/c/@PRODUCT_NAME@_global.h</file>
+        <file>library/cpp/@PRODUCT_NAME@.qbs</file>
+        <file>library/cpp/@PRODUCT_NAME@.cpp</file>
+        <file>library/cpp/@PRODUCT_NAME@.h</file>
+        <file>library/cpp/@PRODUCT_NAME@_global.h</file>
     </qresource>
 </RCC>

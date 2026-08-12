@@ -170,6 +170,8 @@ private slots:
     void inputsFromDependencies();
     void initApplication();
     void initApplication_data();
+    void initLibrary();
+    void initLibrary_data();
     void installable();
     void installableAsAuxiliaryInput();
     void installedApp();
