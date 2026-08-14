@@ -118,10 +118,10 @@ VERSION_MINOR=`echo $VERSION | cut -d. -f2`
 OW_URL="https://github.com/open-watcom/open-watcom-v${VERSION_MAJOR}/releases/download/Current-build/ow-snapshot.tar.xz"
 OW_TAR="${DOWNLOAD_DIR}/ow.tar.xz"
 
-echo "Downloading compiler from ${OW_URL}..." >&2
+echo "Downloading compiler from '${OW_URL}'..." >&2
 curl --progress-bar -L -o ${OW_TAR} ${OW_URL} >&2
 
-echo "Unpacking compiler to ${INSTALL_DIR}..." >&2
+echo "Unpacking compiler to '${INSTALL_DIR}'..." >&2
 7z x "${OW_TAR}" -so | 7z x -aoa -si -ttar -o"${INSTALL_DIR}" >/dev/null 2>&1
 
 echo "${INSTALL_DIR}/${BIN_DIR}"
