@@ -134,7 +134,7 @@ void Lexer::setCode(const QString &code, int lineno, bool qmlMode)
     _tokenText.clear();
     _tokenText.reserve(1024);
     _errorMessage.clear();
-    _tokenSpell = QStringRef();
+    _tokenSpell = QStringView();
 
     _codePtr = code.unicode();
     _lastLinePtr = _codePtr;
@@ -179,7 +179,7 @@ int Lexer::lex()
 {
     const int previousTokenKind = _tokenKind;
 
-    _tokenSpell = QStringRef();
+    _tokenSpell = QStringView();
     _tokenKind = scanToken();
     _tokenLength = int(_codePtr - _tokenStartPtr - 1);
 

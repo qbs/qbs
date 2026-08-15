@@ -69,8 +69,8 @@ void Parser::reallocateStack()
     sym_stack = reinterpret_cast<Value*> (realloc(sym_stack, stack_size * sizeof(Value)));
     state_stack = reinterpret_cast<int*> (realloc(state_stack, stack_size * sizeof(int)));
     location_stack = reinterpret_cast<AST::SourceLocation*> (realloc(location_stack, stack_size * sizeof(AST::SourceLocation)));
-    string_stack = reinterpret_cast<QStringRef*> (realloc(
-                   static_cast<void *>(string_stack), stack_size * sizeof(QStringRef)));
+    string_stack = reinterpret_cast<QStringView *>(
+        realloc(static_cast<void *>(string_stack), stack_size * sizeof(QStringView)));
 }
 
 Parser::Parser(Engine *engine):
@@ -110,7 +110,7 @@ static inline AST::SourceLocation location(Lexer *lexer)
 
 AST::UiQualifiedId *Parser::reparseAsQualifiedId(AST::ExpressionNode *expr)
 {
-    QVarLengthArray<QStringRef, 4> nameIds;
+    QVarLengthArray<QStringView, 4> nameIds;
     QVarLengthArray<AST::SourceLocation, 4> locations;
 
     AST::ExpressionNode *it = expr;
@@ -402,7 +402,7 @@ case 48: {
 } break;
 
 case 50: {
-    const auto node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    const auto node = new (pool) AST::UiPublicMember(QStringView(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -413,7 +413,7 @@ case 50: {
 }   break;
 
 case 52: {
-    const auto node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    const auto node = new (pool) AST::UiPublicMember(QStringView(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -1469,10 +1469,10 @@ case 300: {
 } break;
 
 case 302: {
-  const auto node = new (pool) AST::BreakStatement(QStringRef());
-  node->breakToken = loc(1);
-  node->semicolonToken = loc(2);
-  sym(1).Node = node;
+    const auto node = new (pool) AST::BreakStatement(QStringView());
+    node->breakToken = loc(1);
+    node->semicolonToken = loc(2);
+    sym(1).Node = node;
 } break;
 
 case 304: {
@@ -1684,7 +1684,7 @@ case 343: {
 } break;
 
 case 344: {
-  stringRef(1) = QStringRef();
+    stringRef(1) = QStringView();
 } break;
 
 case 346: {

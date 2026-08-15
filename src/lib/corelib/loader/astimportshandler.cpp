@@ -80,7 +80,7 @@ void ASTImportsHandler::handleImports(const QbsQmlJS::AST::UiImportList *uiImpor
     for (const auto *it = uiImportList; it; it = it->next)
         handleImport(it->import, &baseImported);
     if (!baseImported) {
-        QStringRef qbsref(&StringConstants::qbsModule());
+        const QStringView qbsref{StringConstants::qbsModule()};
         QbsQmlJS::AST::UiQualifiedId qbsURI(qbsref);
         qbsURI.finish();
         QbsQmlJS::AST::UiImport imp(&qbsURI);

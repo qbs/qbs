@@ -57,10 +57,8 @@
 #include <tools/qbs_export.h>
 
 #include <QtCore/qstring.h>
-
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-#include <QtCore5Compat/qstringref.h>
-#endif
+#include <QtCore/qstringlist.h>
+#include <QtCore/qstringview.h>
 
 #include <set>
 #include <utility>
@@ -99,7 +97,7 @@ class QML_PARSER_EXPORT Engine
     Directives *_directives{nullptr};
     MemoryPool _pool;
     QList<AST::SourceLocation> _comments;
-    QString _extraCode;
+    QStringList _extraCode;
     QString _code;
 
 public:
@@ -119,13 +117,13 @@ public:
 
     MemoryPool *pool();
 
-    inline QStringRef midRef(int position, int size)
+    inline QStringView midRef(int position, int size)
     {
-        return QStringRef(&_code).mid(position, size);
+        return QStringView{_code}.mid(position, size);
     }
 
-    QStringRef newStringRef(const QString &s);
-    QStringRef newStringRef(const QChar *chars, int size);
+    QStringView newStringRef(const QString &s);
+    QStringView newStringRef(const QChar *chars, int size);
 };
 
 double integerFromString(const char *buf, int size, int radix);

@@ -340,7 +340,7 @@ protected:
     inline Value &sym(int index)
     { return sym_stack [tos + index - 1]; }
 
-    inline QStringRef &stringRef(int index)
+    inline QStringView &stringRef(int index)
     { return string_stack [tos + index - 1]; }
 
     inline AST::SourceLocation &loc(int index)
@@ -356,7 +356,7 @@ protected:
     Value *sym_stack;
     int *state_stack;
     AST::SourceLocation *location_stack;
-    QStringRef *string_stack;
+    QStringView *string_stack;
 
     AST::Node *program;
 
@@ -367,11 +367,11 @@ protected:
        int token = 0;
        double dval = 0.0;
        AST::SourceLocation loc;
-       QStringRef spell;
+       QStringView spell;
     };
 
     double yylval = 0.0;
-    QStringRef yytokenspell;
+    QStringView yytokenspell;
     AST::SourceLocation yylloc;
     AST::SourceLocation yyprevlloc;
 
@@ -412,7 +412,8 @@ void Parser::reallocateStack()
     sym_stack = reinterpret_cast<Value*> (realloc(sym_stack, stack_size * sizeof(Value)));
     state_stack = reinterpret_cast<int*> (realloc(state_stack, stack_size * sizeof(int)));
     location_stack = reinterpret_cast<AST::SourceLocation*> (realloc(location_stack, stack_size * sizeof(AST::SourceLocation)));
-    string_stack = reinterpret_cast<QStringRef*> (realloc(string_stack, stack_size * sizeof(QStringRef)));
+    string_stack = reinterpret_cast<QStringView*>(
+            realloc(string_stack, stack_size * sizeof(QStringView)));
 }
 
 Parser::Parser(Engine *engine):
@@ -451,7 +452,7 @@ static inline AST::SourceLocation location(Lexer *lexer)
 
 AST::UiQualifiedId *Parser::reparseAsQualifiedId(AST::ExpressionNode *expr)
 {
-    QVarLengthArray<QStringRef, 4> nameIds;
+    QVarLengthArray<QStringView, 4> nameIds;
     QVarLengthArray<AST::SourceLocation, 4> locations;
 
     AST::ExpressionNode *it = expr;
@@ -856,7 +857,7 @@ UiObjectMember: T_SIGNAL T_IDENTIFIER T_LPAREN UiParameterListOpt T_RPAREN T_AUT
 UiObjectMember: T_SIGNAL T_IDENTIFIER T_LPAREN UiParameterListOpt T_RPAREN T_SEMICOLON ;
 /.
 case $rule_number: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringView(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -871,7 +872,7 @@ UiObjectMember: T_SIGNAL T_IDENTIFIER T_AUTOMATIC_SEMICOLON ;
 UiObjectMember: T_SIGNAL T_IDENTIFIER T_SEMICOLON ;
 /.
 case $rule_number: {
-    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringRef(), stringRef(2));
+    AST::UiPublicMember *node = new (pool) AST::UiPublicMember(QStringView(), stringRef(2));
     node->type = AST::UiPublicMember::Signal;
     node->propertyToken = loc(1);
     node->typeToken = loc(2);
@@ -2542,7 +2543,7 @@ BreakStatement: T_BREAK T_AUTOMATIC_SEMICOLON ;  -- automatic semicolon
 BreakStatement: T_BREAK T_SEMICOLON ;
 /.
 case $rule_number: {
-  AST::BreakStatement *node = new (pool) AST::BreakStatement(QStringRef());
+  AST::BreakStatement *node = new (pool) AST::BreakStatement(QStringView());
   node->breakToken = loc(1);
   node->semicolonToken = loc(2);
   sym(1).Node = node;
@@ -2873,7 +2874,7 @@ case $rule_number: {
 IdentifierOpt: ;
 /.
 case $rule_number: {
-  stringRef(1) = QStringRef();
+  stringRef(1) = QStringView();
 } break;
 ./
 

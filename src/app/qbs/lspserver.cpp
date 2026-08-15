@@ -491,9 +491,9 @@ void LspServer::Private::handleGotoDefinitionRequest()
     const auto filesNode = astPath.at(bindingNodeIndex);
     if (filesNode->kind != Node::Kind_UiScriptBinding)
         return sendResponse(nullptr);
-    const QStringRef bindingName = static_cast<UiScriptBinding *>(filesNode)->qualifiedId->name;
-    const bool isFilesProperty = bindingName == "files";
-    const bool isReferencesProperty = bindingName == "references";
+    const QStringView bindingName = static_cast<UiScriptBinding *>(filesNode)->qualifiedId->name;
+    const bool isFilesProperty = bindingName == u"files";
+    const bool isReferencesProperty = bindingName == u"references";
     if (!isFilesProperty && !isReferencesProperty)
         return sendResponse(nullptr);
     const Node * const objectNode = astPath.at(objectNodeIndex);

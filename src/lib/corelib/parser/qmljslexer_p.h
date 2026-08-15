@@ -55,10 +55,7 @@
 #include "qmljsgrammar_p.h"
 #include <tools/qbs_export.h>
 #include <QtCore/qstring.h>
-
-#if (QT_VERSION >= QT_VERSION_CHECK(6, 0, 0))
-#include <QtCore5Compat/qstringref.h>
-#endif
+#include <QtCore/qstringview.h>
 
 namespace QbsQmlJS {
 
@@ -169,7 +166,7 @@ public:
     int tokenEndLine() const;
     int tokenEndColumn() const;
 
-    inline QStringRef tokenSpell() const { return _tokenSpell; }
+    inline QStringView tokenSpell() const { return _tokenSpell; }
     double tokenValue() const { return _tokenValue; }
     QString tokenText() const;
 
@@ -210,7 +207,7 @@ private:
     QString _code;
     QString _tokenText;
     QString _errorMessage;
-    QStringRef _tokenSpell;
+    QStringView _tokenSpell;
 
     const QChar *_codePtr;
     const QChar *_lastLinePtr;
