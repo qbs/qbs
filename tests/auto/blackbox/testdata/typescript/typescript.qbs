@@ -1,7 +1,19 @@
+import qbs.Host
+
 Project {
     NodeJSApplication {
         Depends { name: "typescript" }
         Depends { name: "lib" }
+
+        condition: {
+            var result = qbs.targetPlatform === Host.platform()
+                && (qbs.architecture === undefined || qbs.architecture === Host.architecture());
+            if (!result)
+                console.info("target platform/arch differ from host platform/arch ("
+                             + qbs.targetPlatform + "/" + qbs.architecture + " vs "
+                             + Host.platform() + "/" + Host.architecture() + ")");
+            return result;
+        }
 
         typescript.warningLevel: "pedantic"
         typescript.generateDeclarations: true

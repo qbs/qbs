@@ -35,8 +35,10 @@ function findLocation(packageManagerFilePath, location, nodejsPath) {
     try {
         if (nodejsPath)
             p.setEnv("PATH", nodejsPath);
-        if (p.exec(packageManagerFilePath, [location, "-g"]) !== 0)
+        if (p.exec(packageManagerFilePath, [location, "-g"]) !== 0) {
             console.error(p.readStdErr().trim());
+            return undefined;
+        }
         return p.readStdOut().trim();
     } finally {
         p.close();

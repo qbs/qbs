@@ -53,7 +53,7 @@ Module {
 
     property path toolchainInstallPath: tsc.path
 
-    property path toolchainLibDirName: (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6)) ? "lib" : "bin"
+    property string toolchainLibDirName: (versionMajor > 1 || (versionMajor === 1 && versionMinor >= 6)) ? "lib" : "bin"
     property path toolchainLibInstallPath: FileInfo.joinPaths(nodejs.packageManagerRootPath, "typescript", toolchainLibDirName)
 
     version: tsc.version ? tsc.version[2] : undefined
@@ -184,30 +184,33 @@ Module {
         multiplex: true
         inputs: ["typescript.typescript-internal"]
 
-        outputFileTags: ["typescript.compiled_typescript-internal"]
+        outputFileTags: ["typescript.typescript-internal.copy",
+                         "typescript.compiled_typescript-internal"]
         outputArtifacts: {
             if (!TypeScript.supportsModernFeatures(product))
                 return [];
+            var baseDir = FileInfo.joinPaths(product.buildDirectory,
+                                             ".io.qt.qbs.internal.typescript");
+            // The copied typescript package exists solely so that tsc can resolve the scanner's
+            // 'typescript' import. It is kept below the compiled scanner so that it does not
+            // shadow the real package when node loads the scanner, as it contains no
+            // implementation.
+            var srcDir = FileInfo.joinPaths(baseDir, "src");
             return [{
-                filePath: FileInfo.joinPaths(product.buildDirectory,
-                                             ".io.qt.qbs.internal.typescript", "qbs-tsc-scan.ts"),
+                filePath: FileInfo.joinPaths(srcDir, "qbs-tsc-scan.ts"),
                 fileTags: ["typescript.typescript-internal.copy"]
             },
             {
-                filePath: FileInfo.joinPaths(product.buildDirectory,
-                                             ".io.qt.qbs.internal.typescript",
-                                             "node_modules", "typescript", "lib", "typescript.d.ts"),
+                filePath: FileInfo.joinPaths(srcDir, "node_modules", "typescript", "lib",
+                                             "typescript.d.ts"),
                 fileTags: ["typescript.typescript-internal.copy"]
             },
             {
-                filePath: FileInfo.joinPaths(product.buildDirectory,
-                                             ".io.qt.qbs.internal.typescript",
-                                             "node_modules", "typescript", "package.json"),
+                filePath: FileInfo.joinPaths(srcDir, "node_modules", "typescript", "package.json"),
                 fileTags: ["typescript.typescript-internal.copy"]
             },
             {
-                filePath: FileInfo.joinPaths(product.buildDirectory,
-                                             ".io.qt.qbs.internal.typescript", "qbs-tsc-scan.js"),
+                filePath: FileInfo.joinPaths(baseDir, "qbs-tsc-scan.js"),
                 fileTags: ["typescript.compiled_typescript-internal"]
             }];
         }
@@ -237,8 +240,12 @@ Module {
 
             var outDir = FileInfo.path(
                         outputs["typescript.compiled_typescript-internal"][0].filePath);
-            var args = ["--module", "commonjs",
-                        "--outDir", outDir].concat(outputPaths.filter(function (f) { return !f.endsWith(".json"); }));
+            var srcDir = FileInfo.joinPaths(outDir, "src");
+            // typescript.d.ts references ES2015 types such as Map, which are not part of the
+            // default (ES5) library.
+            var args = ["--module", "commonjs", "--target", "es2015",
+                        "--rootDir", srcDir,
+                        "--outDir", outDir].concat(outputPaths.filter(function (f) { return f.endsWith(".ts"); }));
             var cmd = new Command(ModUtils.moduleProperty(product, "compilerPath"), args);
             cmd.ignoreDryRun = true;
             cmd.silent = true;

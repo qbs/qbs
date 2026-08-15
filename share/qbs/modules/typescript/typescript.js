@@ -176,6 +176,18 @@ function outputArtifacts(product, inputs) {
             artifacts[appIndex].fileTags = artifacts[appIndex].fileTags.concat(["application_js"]);
         }
 
+        // The scanner reports the locations tsc emits to, which is the product build directory.
+        // The compiled JavaScript is moved to an intermediate directory afterwards (QBS-5) so
+        // that the nodejs module can post-process it.
+        var intermediateDir = product.moduleProperty("nodejs", "compiledIntermediateDir");
+        for (i = 0; i < artifacts.length; ++i) {
+            if (!artifacts[i].fileTags.includes("compiled_typescript"))
+                continue;
+            artifacts[i].filePath = FileInfo.joinPaths(
+                        intermediateDir,
+                        FileInfo.relativePath(product.buildDirectory, artifacts[i].filePath));
+        }
+
         return artifacts;
     } finally {
         if (process)

@@ -59,14 +59,18 @@ NodeJsProbe {
         v.prepend(interpreterPath);
 
         var resultsMapper = function(result) {
-            result.npmBin = result.found
-                    ? NodeJs.findLocation(result.filePath, "bin", v.value)
-                    : undefined;
             result.npmRoot = result.found
                     ? NodeJs.findLocation(result.filePath, "root", v.value)
                     : undefined;
             result.npmPrefix = result.found
                     ? NodeJs.findLocation(result.filePath, "prefix", v.value)
+                    : undefined;
+            // npm removed the "bin" command in version 9, so derive the global bin directory
+            // from the prefix the same way npm itself does.
+            result.npmBin = result.npmPrefix
+                    ? (Host.os().contains("windows")
+                       ? result.npmPrefix
+                       : FileInfo.joinPaths(result.npmPrefix, "bin"))
                     : undefined;
             return result;
         };

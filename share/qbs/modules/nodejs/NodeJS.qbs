@@ -69,10 +69,10 @@ Module {
         return nodejs.path || npm.path;
     }
 
-    property path interpreterFileName: nodejs.fileName
+    property string interpreterFileName: nodejs.fileName
     property path interpreterFilePath: nodejs.filePath
 
-    property path packageManagerFileName: npm.fileName
+    property string packageManagerFileName: npm.fileName
     property path packageManagerFilePath: npm.filePath
 
     property path packageManagerBinPath: npm.npmBin

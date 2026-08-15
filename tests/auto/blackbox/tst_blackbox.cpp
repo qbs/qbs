@@ -9613,38 +9613,23 @@ void TestBlackbox::nodejs()
 
 void TestBlackbox::typescript()
 {
-    if (qEnvironmentVariableIsSet("GITHUB_ACTIONS"))
-        QSKIP("Skip this test when running on GitHub");
-
     if (qEnvironmentVariableIsSet("EMSDK"))
         QSKIP("Skip this test when running with wasm");
 
-    const SettingsPtr s = settings();
-    qbs::Profile p(profileName(), s.get());
-
     int status;
-    findTypeScript(&status);
+    const auto tools = findTypeScript(&status);
     QCOMPARE(status, 0);
+    if (tools.value(QStringLiteral("tsc")).isEmpty())
+        QSKIP("TypeScript compiler not found");
 
     QDir::setCurrent(testDataDir + QLatin1String("/typescript"));
 
-    QbsRunParameters params;
-    params.expectFailure = true;
-    status = runQbs(params);
-    if (p.value("typescript.toolchainInstallPath").toString().isEmpty() && status != 0) {
-        if (m_qbsStderr.contains("Path\" must be specified"))
-            QSKIP("typescript probe failed");
-        if (m_qbsStderr.contains("typescript.toolchainInstallPath"))
-            QSKIP("typescript.toolchainInstallPath not set and automatic detection failed");
-        if (m_qbsStderr.contains("nodejs.interpreterFilePath"))
-            QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
-    }
-
-    if (status != 0)
-        qDebug() << m_qbsStderr;
+    status = runQbs();
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
+        QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(status, 0);
 
-    params.expectFailure = false;
+    QbsRunParameters params;
     params.command = QStringLiteral("run");
     params.arguments = QStringList() << "-p" << "animals";
     QCOMPARE(runQbs(params), 0);

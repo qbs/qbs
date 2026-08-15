@@ -72,8 +72,8 @@ BinaryProbe {
                     ? TypeScript.findTscVersion(result.filePath, v.value)
                     : undefined;
             if (FileInfo.fromNativeSeparators(packageManagerBinPath) !== result.path ||
-                    !File.exists(
-                        FileInfo.fromNativeSeparators(packageManagerRootPath, "typescript"))) {
+                    !File.exists(FileInfo.joinPaths(
+                        FileInfo.fromNativeSeparators(packageManagerRootPath), "typescript"))) {
                 result = { found: false };
             }
             return result;

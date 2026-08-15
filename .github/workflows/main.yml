@@ -698,6 +698,12 @@ jobs:
         qbs config defaultProfile qt
         qbs config --list
       if: matrix.config.xcodeVersion == ''
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install TypeScript
+      run: npm install -g typescript@5
     - name: Run Tests
       run: |
         sudo chmod 777 /cores
@@ -833,6 +839,13 @@ jobs:
       run: |
         New-SelfSignedCertificate -DnsName qbs@community.test -Type CodeSigning -CertStoreLocation cert:\CurrentUser\My
       shell: powershell
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Install TypeScript
+      run: npm install -g typescript@5
+      shell: bash
     - name: Run Tests
       run: ${{ matrix.config.script }} ./release/install-root/bin
       shell: bash
