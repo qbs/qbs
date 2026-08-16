@@ -9542,31 +9542,15 @@ void TestBlackbox::generator_data()
 
 void TestBlackbox::nodejs()
 {
-    const SettingsPtr s = settings();
-    qbs::Profile p(profileName(), s.get());
-
     int status;
-    findNodejs(&status);
+    const auto nodejs = findNodejs(&status);
     QCOMPARE(status, 0);
+    if (nodejs.value(QStringLiteral("node")).isEmpty())
+        QSKIP("nodejs not found");
 
     QDir::setCurrent(testDataDir + QLatin1String("/nodejs"));
 
     status = runQbs();
-    if (p.value("nodejs.toolchainInstallPath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("toolchainInstallPath")) {
-        QSKIP("nodejs.toolchainInstallPath not set and automatic detection failed");
-    }
-
-    if (p.value("nodejs.packageManagerPrefixPath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("nodejs.packageManagerPrefixPath")) {
-        QSKIP("nodejs.packageManagerFilePath not set and automatic detection failed");
-    }
-
-    if (p.value("nodejs.interpreterFilePath").toString().isEmpty()
-            && status != 0 && m_qbsStderr.contains("interpreterPath")) {
-        QSKIP("nodejs.interpreterFilePath not set and automatic detection failed");
-    }
-
     if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
         QSKIP("Cannot run binaries in cross-compiled build");
     QCOMPARE(status, 0);
