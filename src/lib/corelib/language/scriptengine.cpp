@@ -239,6 +239,7 @@ void ScriptEngine::reset()
         }
         artifactsScriptValues.clear();
     }
+    m_observer->clearTrackedObjectIds();
     m_logger.clearWarnings();
 }
 

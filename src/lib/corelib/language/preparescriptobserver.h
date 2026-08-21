@@ -73,6 +73,14 @@ public:
     void addArtifactId(qint64 artifactId) { m_artifactIds.insert(artifactId); }
     bool addImportId(quintptr importId) { return m_importIds.insert(importId).second; }
     void clearImportIds() { m_importIds.clear(); }
+    void clearTrackedObjectIds()
+    {
+        m_projectObjectIds.clear();
+        m_parameterObjects.clear();
+        m_exportsObjectIds.clear();
+        m_importIds.clear();
+        m_artifactIds.clear();
+    }
     void addParameterObjectId(qint64 id, const QString &productName, const QString &depName,
                               const QualifiedId &moduleName)
     {
