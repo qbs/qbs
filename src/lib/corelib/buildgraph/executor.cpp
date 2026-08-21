@@ -577,6 +577,7 @@ void Executor::executeRuleNode(RuleNode *ruleNode)
 
     const RuleNode::ApplicationResult result = ruleNode->apply(
         m_logger, m_productsByName, m_projectsByName, m_inputArtifactScanContext);
+    m_elapsedTimeScanners += result.scanTimeInNs;
     updateLeaves(result.createdArtifacts);
     updateLeaves(result.invalidatedArtifacts);
     m_artifactsRemovedFromDisk << result.removedArtifacts;

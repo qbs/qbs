@@ -52,7 +52,8 @@
 #include <logging/categories.h>
 #include <logging/logger.h>
 #include <tools/qbsassert.h>
-#include <tools/qttools.h>
+
+#include <QElapsedTimer>
 
 namespace qbs {
 namespace Internal {
@@ -165,7 +166,11 @@ RuleNode::ApplicationResult RuleNode::apply(
     for (const QString &scannerId : std::as_const(m_rule->excludedScanners))
         excludedScanners.insert(scannerId);
     InputArtifactScanner inputScanner(logger, inputArtifactScanContext, excludedScanners);
+
+    QElapsedTimer scanTimer;
+    scanTimer.start();
     const bool wasScanned = mustScan && inputScanner.scan(inputsToScan);
+    result.scanTimeInNs = scanTimer.nsecsElapsed();
 
     if (upToDate) {
         qCDebug(lcExec) << "rule is up to date. Skipping.";

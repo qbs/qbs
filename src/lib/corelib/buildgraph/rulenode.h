@@ -74,6 +74,7 @@ public:
         NodeSet createdArtifacts;
         NodeSet invalidatedArtifacts;
         QStringList removedArtifacts;
+        qint64 scanTimeInNs = 0;
     };
 
     ApplicationResult apply(
