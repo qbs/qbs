@@ -45,6 +45,7 @@
 #include "productbuilddata.h"
 #include "projectbuilddata.h"
 #include "rulesapplicator.h"
+#include "rulesevaluationcontext.h"
 #include "transformer.h"
 #include "transformerchangetracking.h"
 
@@ -217,7 +218,11 @@ RuleNode::ApplicationResult RuleNode::apply(
         disconnect(connection.first, connection.second);
     if (!outputArtifactsToRemove.empty()) {
         RulesApplicator::handleRemovedRuleOutputs(
-            inputs, outputArtifactsToRemove, result.removedArtifacts, logger);
+            inputs,
+            outputArtifactsToRemove,
+            result.removedArtifacts,
+            product->topLevelProject()->buildData->evaluationContext->engine(),
+            logger);
     }
 
     if (mustApplyRule) {

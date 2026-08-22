@@ -114,6 +114,8 @@ public:
         } catch (const qbs::ErrorInfo &error) {
             setError(error.toString(), cmd->codeLocation());
         }
+        if (m_scriptEngine)
+            m_scriptEngine->reset();
 
         m_running = false;
         emit finished();
@@ -171,8 +173,6 @@ private:
     {
         if (!m_scriptEngine)
             m_scriptEngine = ScriptEngine::create(m_logger, EvalContext::JsCommand);
-        else
-            m_scriptEngine->reset();
         return m_scriptEngine.get();
     }
 

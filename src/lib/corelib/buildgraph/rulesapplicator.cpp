@@ -120,12 +120,15 @@ void RulesApplicator::applyRule(RuleNode *ruleNode, const ArtifactSet &inputArti
     }
     if (engine()->usesIo())
         m_ruleUsesIo = true;
-    engine()->releaseInputArtifactScriptValues(ruleNode);
+    engine()->releaseArtifactScriptValues(m_completeInputSet);
 }
 
-void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts,
-        const ArtifactSet &outputArtifactsToRemove, QStringList &removedArtifacts,
-        const Logger &logger)
+void RulesApplicator::handleRemovedRuleOutputs(
+    const ArtifactSet &inputArtifacts,
+    const ArtifactSet &outputArtifactsToRemove,
+    QStringList &removedArtifacts,
+    ScriptEngine *engine,
+    const Logger &logger)
 {
     ArtifactSet artifactsToRemove;
     const TopLevelProject *project = nullptr;
@@ -137,6 +140,8 @@ void RulesApplicator::handleRemovedRuleOutputs(const ArtifactSet &inputArtifacts
         project->buildData->removeArtifactAndExclusiveDependents(removedArtifact, logger, true,
                                                                  &artifactsToRemove);
     }
+    if (engine)
+        engine->releaseArtifactScriptValues(artifactsToRemove);
     for (Artifact * const artifact : std::as_const(artifactsToRemove)) {
         QBS_CHECK(!inputArtifacts.contains(artifact));
         removedArtifacts << artifact->filePath();
@@ -213,8 +218,8 @@ void RulesApplicator::doApply(const ArtifactSet &inputArtifacts, JSValue prepare
 
     const auto newOutputs = rangeTo<ArtifactSet>(outputArtifacts);
     const ArtifactSet oldOutputs = collectOldOutputArtifacts(inputArtifacts);
-    handleRemovedRuleOutputs(m_completeInputSet, oldOutputs - newOutputs, m_removedArtifacts,
-                             m_logger);
+    handleRemovedRuleOutputs(
+        m_completeInputSet, oldOutputs - newOutputs, m_removedArtifacts, engine(), m_logger);
 
     // The inputs become children of the rule node. Generated artifacts in the same product
     // already are children, because output artifacts become children of the producing

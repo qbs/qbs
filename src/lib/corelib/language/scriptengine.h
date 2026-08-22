@@ -48,7 +48,6 @@
 #include <tools/codelocation.h>
 #include <tools/error.h>
 #include <tools/filetime.h>
-#include <tools/mutexdata.h>
 #include <tools/porting.h>
 #include <tools/scripttools.h>
 #include <tools/set.h>
@@ -65,7 +64,6 @@
 #include <atomic>
 #include <functional>
 #include <memory>
-#include <mutex>
 #include <optional>
 #include <stack>
 #include <tuple>
@@ -79,7 +77,6 @@ class Artifact;
 class Evaluator;
 class JsImport;
 class PrepareScriptObserver;
-class RuleNode;
 class ScriptImporter;
 class ScriptPropertyObserver;
 
@@ -282,7 +279,7 @@ public:
 
     JSValue getArtifactScriptValue(Artifact *a, const QString &moduleName,
                                    const std::function<void(JSValue obj)> &setup);
-    void releaseInputArtifactScriptValues(const RuleNode *ruleNode);
+    void releaseArtifactScriptValues(const Set<Artifact *> &artifacts);
 
     const JSValueList &contextStack() const { return m_contextStack; }
 
@@ -321,6 +318,7 @@ private:
     bool gatherFileResults() const;
 
     void setMaxStackSize();
+    void releaseAllArtifactScriptValues();
     void setPropertyOnGlobalObject(const QString &property, JSValue value);
     void installQbsBuiltins();
     void extendJavaScriptBuiltins();
@@ -409,8 +407,7 @@ private:
     QHash<quintptr, JSValue> m_jsValueCache;
     QHash<JSValue, int> m_evalResults;
     std::vector<JSValue *> m_externallyCachedValues;
-    MutexData<QHash<QPair<Artifact *, QString>, JSValue>, std::recursive_mutex>
-        m_artifactsScriptValues;
+    QHash<QPair<Artifact *, QString>, JSValue> m_artifactsScriptValues;
     QVariantMap m_properties;
     std::optional<SetupProjectParameters> m_setupParams;
     ErrorInfo m_jsError;

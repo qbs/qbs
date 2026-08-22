@@ -78,6 +78,7 @@ public:
         const ArtifactSet &inputArtifacts,
         const ArtifactSet &artifactsToRemove,
         QStringList &removedArtifacts,
+        ScriptEngine *engine,
         const Logger &logger);
     static ArtifactSet collectExplicitlyDependsOn(const Rule *rule, const ResolvedProduct *product);
     static ArtifactSet collectAuxiliaryInputs(const Rule *rule, const ResolvedProduct *product);

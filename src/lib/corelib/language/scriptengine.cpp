@@ -47,7 +47,6 @@
 #include "scriptimporter.h"
 
 #include <buildgraph/artifact.h>
-#include <buildgraph/rulenode.h>
 #include <jsextensions/jsextensions.h>
 #include <logging/translator.h>
 #include <tools/error.h>
@@ -230,15 +229,7 @@ void ScriptEngine::reset()
     for (const auto &e : std::as_const(m_baseModuleScriptValues))
         JS_FreeValue(m_context, e.second);
     m_baseModuleScriptValues.clear();
-    {
-        auto guard = m_artifactsScriptValues.lock();
-        auto &artifactsScriptValues = guard.get();
-        for (auto it = artifactsScriptValues.cbegin(); it != artifactsScriptValues.cend(); ++it) {
-            it.key().first->setDeregister({});
-            JS_FreeValue(m_context, it.value());
-        }
-        artifactsScriptValues.clear();
-    }
+    releaseAllArtifactScriptValues();
     m_observer->clearTrackedObjectIds();
     m_logger.clearWarnings();
 }
@@ -772,7 +763,6 @@ void ScriptEngine::setArtifactsMapScriptValue(const ResolvedModule *module, JSVa
 JSValue ScriptEngine::getArtifactProperty(JSValue obj,
                                           const std::function<JSValue (const Artifact *)> &propGetter)
 {
-    auto guard = m_artifactsScriptValues.lock();
     const Artifact * const a = attachedPointer<Artifact>(obj, dataWithPtrClass());
     return a ? propGetter(a) : JS_EXCEPTION;
 }
@@ -969,45 +959,38 @@ void ScriptEngine::setMaxStackSize()
 JSValue ScriptEngine::getArtifactScriptValue(Artifact *a, const QString &moduleName,
                                              const std::function<void(JSValue obj)> &setup)
 {
-    auto guard = m_artifactsScriptValues.lock();
-    auto &scriptValues = guard.get();
-    const auto it = scriptValues.constFind(qMakePair(a, moduleName));
-    if (it != scriptValues.constEnd())
+    const auto it = m_artifactsScriptValues.constFind(qMakePair(a, moduleName));
+    if (it != m_artifactsScriptValues.constEnd())
         return JS_DupValue(m_context, *it);
-    a->setDeregister([this](const Artifact *a) {
-        auto guard = m_artifactsScriptValues.lock();
-        auto &scriptValues = guard.get();
-        for (auto it = scriptValues.begin(); it != scriptValues.end();) {
-            if (it.key().first == a) {
-                JS_SetOpaque(it.value(), nullptr);
-                JS_FreeValue(m_context, it.value());
-                it = scriptValues.erase(it);
-            } else {
-                ++it;
-            }
-        }
-    });
     JSValue obj = JS_NewObjectClass(context(), dataWithPtrClass());
     attachPointerTo(obj, a);
     setup(obj);
-    scriptValues.insert(qMakePair(a, moduleName), JS_DupValue(m_context, obj));
+    m_artifactsScriptValues.insert(qMakePair(a, moduleName), JS_DupValue(m_context, obj));
     return obj;
 }
 
-void ScriptEngine::releaseInputArtifactScriptValues(const RuleNode *ruleNode)
+void ScriptEngine::releaseArtifactScriptValues(const Set<Artifact *> &artifacts)
 {
-    auto guard = m_artifactsScriptValues.lock();
-    auto &scriptValues = guard.get();
-    for (auto it = scriptValues.begin(); it != scriptValues.end();) {
-        Artifact * const a = it.key().first;
-        if (ruleNode->children.contains(a)) {
-            a->setDeregister({});
+    for (auto it = m_artifactsScriptValues.begin(); it != m_artifactsScriptValues.end();) {
+        if (artifacts.contains(it.key().first)) {
+            // clear the opaque pointer just in case there are dangling references somewhere
+            // that way we get an exception instead of a UB. this should not happen though.
+            JS_SetOpaque(it.value(), nullptr);
             JS_FreeValue(m_context, it.value());
-            it = scriptValues.erase(it);
+            it = m_artifactsScriptValues.erase(it);
         } else {
             ++it;
         }
     }
+}
+
+void ScriptEngine::releaseAllArtifactScriptValues()
+{
+    for (auto it = m_artifactsScriptValues.cbegin(); it != m_artifactsScriptValues.cend(); ++it) {
+        JS_SetOpaque(it.value(), nullptr);
+        JS_FreeValue(m_context, it.value());
+    }
+    m_artifactsScriptValues.clear();
 }
 
 class JSTypeExtender

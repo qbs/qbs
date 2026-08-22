@@ -57,8 +57,6 @@ Artifact::~Artifact()
 {
     for (Artifact *p : parentArtifacts())
         p->childrenAddedByScanner.remove(this);
-    if (m_deregister)
-        m_deregister(this);
 }
 
 void Artifact::accept(BuildGraphVisitor *visitor)
