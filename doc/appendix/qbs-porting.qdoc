@@ -379,15 +379,23 @@
 
     \section2 QML_IMPORT_PATH
 
-    Used only for Qt Creator QML syntax highlighting. Inside a \l{Product},
-    \l{Application}, \l{CppApplication}, or \l{QtApplication}, create a
-    \c qmlImportPaths property:
+    Used by Qt Creator for the QML code model (syntax highlighting and
+    completion). Inside a \l{Product}, \l{Application},
+    \l{CppApplication}, or \l{QtApplication}, create a \c qmlImportPaths
+    property.
+
+    The values are import roots, not the directories that contain a
+    module's QML files. Tools such as Qt Creator and \c qmlimportscanner
+    convert the module URI to a relative path (dots become slashes) and
+    append it automatically. For example, a module with URI
+    \c{company.myplugin} whose files live in
+    \c{sourceDirectory/company/myplugin} needs \c{sourceDirectory} as the
+    import path, not \c{sourceDirectory + "/company/myplugin"}.
+
+    If the modules live under a subdirectory, point at that subdirectory:
 
     \code
-    Product {
-        name: "myProduct"
-        property stringList qmlImportPaths: [sourceDirectory + "/path/to/qml/"]
-    }
+    property stringList qmlImportPaths: [sourceDirectory + "/imports"]
     \endcode
 
     \section2 QT

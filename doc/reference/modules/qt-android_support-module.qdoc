@@ -76,7 +76,14 @@
 /*!
     \qmlproperty stringList Qt.android_support::qmlImportPaths
 
-    Additional directories to search for QML imports.
+    Additional import-root directories to search for QML imports.
+
+    The module URI is converted to a relative path (dots become slashes)
+    and appended to each entry automatically. Do not include that
+    relative path in these directories.
+
+    If this property is unset, the product-level \c qmlImportPaths
+    property is used as a fallback.
 
     \defaultvalue \c undefined
     \since 1.22
