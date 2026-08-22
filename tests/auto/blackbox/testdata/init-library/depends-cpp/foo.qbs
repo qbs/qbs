@@ -1,8 +1,10 @@
 CppLibrary {
-    name: "@PRODUCT_NAME@"
-    version: "@PRODUCT_VERSION@"
-@DEPENDS@    files: "@PRODUCT_NAME@.cpp"
-    publicHeaders: ["@PRODUCT_NAME@.h", "@PRODUCT_NAME@_global.h"]
+    name: "foo"
+    version: "1.0.0"
+    Depends { name: "Qt.core" }
+    Depends { name: "Qt.network" }
+    files: "foo.cpp"
+    publicHeaders: ["foo.h", "foo_global.h"]
 
     readonly property string _nameUpper: name.replace(" ", "_").toUpperCase()
     property string libraryMacro: _nameUpper + "_LIBRARY"

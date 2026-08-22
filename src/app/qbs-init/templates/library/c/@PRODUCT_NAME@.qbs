@@ -1,7 +1,7 @@
 CppLibrary {
     name: "@PRODUCT_NAME@"
     version: "@PRODUCT_VERSION@"
-    files: "@PRODUCT_NAME@.c"
+@DEPENDS@    files: "@PRODUCT_NAME@.c"
     publicHeaders: ["@PRODUCT_NAME@.h", "@PRODUCT_NAME@_global.h"]
 
     readonly property string _nameUpper: name.replace(" ", "_").toUpperCase()

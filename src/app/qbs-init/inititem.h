@@ -41,6 +41,7 @@
 #define QBS_INITITEM_H
 
 #include <QtCore/qstring.h>
+#include <QtCore/qstringlist.h>
 
 namespace qbs {
 
@@ -64,7 +65,8 @@ public:
         const QString &projectName,
         const QString &version,
         ItemType itemType,
-        Language language);
+        Language language,
+        const QStringList &depends = {});
 };
 
 } // namespace qbs

@@ -63,7 +63,8 @@ int main(int argc, char *argv[])
             parser.projectName(),
             parser.version(),
             parser.itemType(),
-            parser.language());
+            parser.language(),
+            parser.depends());
     } catch (const ErrorInfo &e) {
         std::cerr << qPrintable(Tr::tr("Error creating project: %1").arg(e.toString()))
                   << std::endl;

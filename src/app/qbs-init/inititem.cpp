@@ -108,11 +108,24 @@ static QString productNameToMacro(QString productName)
     return productName.replace(QLatin1Char(' '), QLatin1Char('_')).toUpper();
 }
 
-static QString applyTemplate(QString contents, const QString &productName, const QString &version)
+static QString formatDepends(const QStringList &depends)
+{
+    QString result;
+    for (const QString &dependency : depends)
+        result += QStringLiteral("    Depends { name: \"%1\" }\n").arg(dependency);
+    return result;
+}
+
+static QString applyTemplate(
+    QString contents,
+    const QString &productName,
+    const QString &version,
+    const QString &dependsBlock)
 {
     return contents.replace(QLatin1String("@PRODUCT_NAME_UPPER@"), productNameToMacro(productName))
         .replace(QLatin1String("@PRODUCT_NAME@"), productName)
-        .replace(QLatin1String("@PRODUCT_VERSION@"), version);
+        .replace(QLatin1String("@PRODUCT_VERSION@"), version)
+        .replace(QLatin1String("@DEPENDS@"), dependsBlock);
 }
 
 void InitItem::run(
@@ -120,7 +133,8 @@ void InitItem::run(
     const QString &projectName,
     const QString &version,
     ItemType itemType,
-    Language language)
+    Language language,
+    const QStringList &depends)
 {
     const QString projectDirectoryPath = QDir(directoryPath).filePath(projectName);
     ensureProjectDirectoryCanBeCreated(projectDirectoryPath);
@@ -138,10 +152,11 @@ void InitItem::run(
         throw ErrorInfo(Tr::tr("Template directory '%1' is empty.").arg(templateDirPath));
     }
 
+    const QString dependsBlock = formatDepends(depends);
     for (const QString &entry : entries) {
         const QString contents = applyTemplate(
-            readFile(templateDir.filePath(entry)), projectName, version);
-        const QString outputFileName = applyTemplate(entry, projectName, version);
+            readFile(templateDir.filePath(entry)), projectName, version, dependsBlock);
+        const QString outputFileName = applyTemplate(entry, projectName, version, dependsBlock);
         const QString outputFilePath = QDir(projectDirectoryPath).filePath(outputFileName);
         writeFile(outputFilePath, contents);
     }

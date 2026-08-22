@@ -10836,4 +10836,56 @@ void TestBlackbox::initLibrary()
     }
 }
 
+void TestBlackbox::initDepends_data()
+{
+    QTest::addColumn<QString>("projectType");
+    QTest::addColumn<QString>("expectedDir");
+    QTest::addColumn<QStringList>("expectedFiles");
+
+    QTest::newRow("application") << QStringLiteral("application")
+                                 << QStringLiteral("init-application/depends-cpp")
+                                 << (QStringList()
+                                     << QStringLiteral("foo.qbs") << QStringLiteral("foo.cpp"));
+    QTest::newRow("library") << QStringLiteral("library")
+                             << QStringLiteral("init-library/depends-cpp")
+                             << (QStringList()
+                                 << QStringLiteral("foo.cpp") << QStringLiteral("foo.h")
+                                 << QStringLiteral("foo.qbs") << QStringLiteral("foo_global.h"));
+}
+
+void TestBlackbox::initDepends()
+{
+    QFETCH(QString, projectType);
+    QFETCH(QString, expectedDir);
+    QFETCH(QStringList, expectedFiles);
+
+    const QString projectName = QStringLiteral("foo");
+
+    QTemporaryDir tempDir;
+    QVERIFY2(tempDir.isValid(), qPrintable(tempDir.errorString()));
+
+    QbsRunParameters initParams(QStringLiteral("init"));
+    initParams.arguments = QStringList{
+        QStringLiteral("--depends"), QStringLiteral("Qt.core,Qt.network")};
+    initParams.arguments << projectType << projectName;
+    initParams.workingDir = tempDir.path();
+    initParams.profile.clear();
+    QCOMPARE(runQbs(initParams), 0);
+
+    const QString projectDir = tempDir.path() + QLatin1Char('/') + projectName;
+    const QString expectedDirPath = testDataDir + QLatin1Char('/') + expectedDir;
+    QStringList sortedExpectedFiles = expectedFiles;
+    sortedExpectedFiles.sort();
+    QCOMPARE(
+        QDir(projectDir).entryList(QDir::AllEntries | QDir::NoDotAndDotDot, QDir::Name),
+        sortedExpectedFiles);
+    for (const QString &fileName : expectedFiles) {
+        const QString actualFilePath = projectDir + QLatin1Char('/') + fileName;
+        const QString expectedFilePath = expectedDirPath + QLatin1Char('/') + fileName;
+        READ_TEXT_FILE(actualFilePath, actualContents);
+        READ_TEXT_FILE(expectedFilePath, expectedContents);
+        QCOMPARE(unifiedLineEndings(actualContents), unifiedLineEndings(expectedContents));
+    }
+}
+
 QTEST_MAIN(TestBlackbox)

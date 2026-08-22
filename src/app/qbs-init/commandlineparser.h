@@ -52,6 +52,7 @@ public:
 
     QString projectName() const { return m_projectName; }
     QString version() const { return m_version; }
+    QStringList depends() const { return m_depends; }
     qbs::InitItem::ItemType itemType() const { return m_itemType; }
     qbs::InitItem::Language language() const { return m_language; }
 
@@ -63,6 +64,7 @@ private:
 
     QString m_projectName;
     QString m_version;
+    QStringList m_depends;
     qbs::InitItem::ItemType m_itemType = qbs::InitItem::ItemType::Application;
     qbs::InitItem::Language m_language = qbs::InitItem::Language::Cpp;
 };

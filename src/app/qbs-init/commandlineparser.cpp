@@ -66,8 +66,13 @@ void CommandLineParser::parse(const QStringList &commandLine)
         Tr::tr("The version of the product to create. Defaults to '1.0.0'."),
         QStringLiteral("version"),
         QStringLiteral("1.0.0"));
+    const QCommandLineOption dependsOpt(
+        QStringLiteral("depends"),
+        Tr::tr("Comma-separated list of module dependencies to add to the product."),
+        QStringLiteral("depends"));
     parser.addOption(languageOpt);
     parser.addOption(versionOpt);
+    parser.addOption(dependsOpt);
     parser.addHelpOption();
     parser.addPositionalArgument(
         QStringLiteral("project-type"),
@@ -89,6 +94,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     validateProjectName(m_projectName);
     m_language = languageFromName(parser.value(languageOpt));
     m_version = parser.value(versionOpt);
+    m_depends = parser.value(dependsOpt).split(QLatin1Char(','), Qt::SkipEmptyParts);
     if (QVersionNumber::fromString(m_version).isNull())
         throwError(Tr::tr("'%1' is not a valid version.").arg(m_version));
 }
