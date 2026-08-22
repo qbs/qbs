@@ -1,16 +1,8 @@
-Library {
+CppLibrary {
     name: "foo"
     version: "1.0.0"
-
-    Depends { name: "cpp" }
-    Depends { name: "bundle" }
-    bundle.isBundle: false
-
-    files: [
-        "foo.cpp",
-        "foo.h",
-        "foo_global.h",
-    ]
+    files: "foo.cpp"
+    publicHeaders: ["foo.h", "foo_global.h"]
 
     readonly property string _nameUpper: name.replace(" ", "_").toUpperCase()
     property string libraryMacro: _nameUpper + "_LIBRARY"
@@ -24,4 +16,7 @@ Library {
         cpp.defines: exportingProduct.config.build.libraryType === "static"
             ? [exportingProduct.staticLibraryMacro] : []
     }
+
+    Depends { name: "bundle" }
+    bundle.isBundle: false
 }
