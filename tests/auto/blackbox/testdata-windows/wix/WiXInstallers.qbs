@@ -2,6 +2,11 @@ import qbs.FileInfo
 import qbs.Host
 
 Project {
+    property bool enableSigning: false
+    property string hashAlgorithm
+    property string subjectName
+    property string signingTimestamp
+
     WindowsInstallerPackage {
         name: "QbsSetup"
         targetName: "qbs"
@@ -9,6 +14,15 @@ Project {
         wix.defines: ["scriptName=ExampleScript.bat"]
         wix.extensions: ["WixBalExtension", "WixUIExtension"]
         qbs.targetPlatform: "windows"
+        codesign.enableCodeSigning: project.enableSigning
+        codesign.hashAlgorithm: project.hashAlgorithm
+        codesign.subjectName: project.subjectName
+        codesign.signingTimestamp: project.signingTimestamp
+        codesign.timestampAlgorithm: "sha256"
+        property bool dummy: {
+            if (codesign.codesignPath)
+                console.info("signtool path: %%" + codesign.codesignPath + "%%");
+        }
 
         Export {
             Depends { name: "wix" }
@@ -26,6 +40,11 @@ Project {
         files: ["QbsBootstrapper.wxs"]
         qbs.architecture: original || "x86"
         qbs.targetPlatform: "windows"
+        codesign.enableCodeSigning: project.enableSigning
+        codesign.hashAlgorithm: project.hashAlgorithm
+        codesign.subjectName: project.subjectName
+        codesign.signingTimestamp: project.signingTimestamp
+        codesign.timestampAlgorithm: "sha256"
     }
 
     WindowsInstallerPackage {
@@ -35,5 +54,10 @@ Project {
         wix.cultures: []
         qbs.architecture: original || "x86"
         qbs.targetPlatform: "windows"
+        codesign.enableCodeSigning: project.enableSigning
+        codesign.hashAlgorithm: project.hashAlgorithm
+        codesign.subjectName: project.subjectName
+        codesign.signingTimestamp: project.signingTimestamp
+        codesign.timestampAlgorithm: "sha256"
     }
 }

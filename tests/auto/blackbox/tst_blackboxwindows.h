@@ -53,6 +53,8 @@ private slots:
     void standaloneCodesign();
     void standaloneCodesign_data();
     void wix();
+    void wixCodesign();
+    void wixCodesign_data();
     void wixDependencies();
 };
 

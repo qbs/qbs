@@ -417,6 +417,89 @@ void TestBlackboxWindows::wix()
     }
 }
 
+void TestBlackboxWindows::wixCodesign()
+{
+    QFETCH(SigntoolInfo::CodeSignResult, result);
+    QFETCH(QString, hashAlgorithm);
+    QFETCH(QString, subjectName);
+    QFETCH(QString, signingTimestamp);
+
+    const SettingsPtr s = settings();
+    Profile profile(profileName(), s.get());
+
+    if (!haveWiX(profile)) {
+        QSKIP("WiX is not installed");
+        return;
+    }
+
+    QByteArray arch = profile.value("qbs.architecture").toString().toLatin1();
+    if (arch.isEmpty())
+        arch = QByteArrayLiteral("x86");
+    if (arch.contains("arm"))
+        QSKIP("ARM is not supported for the WiX test");
+
+    QDir::setCurrent(testDataDir + "/wix");
+
+    const QStringList arguments{
+        "--force-probe-execution",
+        QStringLiteral("project.enableSigning:%1")
+            .arg((result == SigntoolInfo::CodeSignResult::Signed) ? "true" : "false"),
+        QStringLiteral("project.hashAlgorithm:%1").arg(hashAlgorithm),
+        QStringLiteral("project.subjectName:%1").arg(subjectName),
+        QStringLiteral("project.signingTimestamp:%1").arg(signingTimestamp)};
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs({"resolve", arguments}), 0);
+
+    QCOMPARE(runQbs({arguments}), 0);
+
+    if (!m_qbsStdout.contains("signtool path:"))
+        QSKIP("No current signtool path pattern exists");
+
+    const auto signtoolPath = extractSigntoolPath(m_qbsStdout);
+    QVERIFY(QFileInfo::exists(signtoolPath));
+
+    QVERIFY2(m_qbsStdout.contains("compiling QbsSetup.wxs"), m_qbsStdout);
+    QVERIFY2(m_qbsStdout.contains("linking qbs.msi"), m_qbsStdout);
+
+    QStringList outputBinaryPaths = {
+        relativeProductBuildDir("QbsSetup") + "/qbs.msi",
+        relativeProductBuildDir("RegressionBuster9000") + "/RegressionBuster9000.msi"};
+
+    if (HostOsInfo::isWindowsHost()) {
+        QVERIFY2(m_qbsStdout.contains("compiling QbsBootstrapper.wxs"), m_qbsStdout);
+        QVERIFY2(m_qbsStdout.contains("linking qbs-setup-" + arch + ".exe"), m_qbsStdout);
+        outputBinaryPaths << relativeProductBuildDir("QbsBootstrapper") + "/qbs-setup-" + arch
+                                 + ".exe";
+    }
+
+    for (const auto &outputBinaryPath : outputBinaryPaths) {
+        QVERIFY(regularFileExists(outputBinaryPath));
+
+        const SigntoolInfo signtoolInfo = extractSigntoolInfo(signtoolPath, outputBinaryPath);
+        QVERIFY(signtoolInfo.result != SigntoolInfo::CodeSignResult::Failed);
+        QCOMPARE(signtoolInfo.result, result);
+        QCOMPARE(signtoolInfo.hashAlgorithm, hashAlgorithm);
+        QCOMPARE(signtoolInfo.subjectName, subjectName);
+        QCOMPARE(signtoolInfo.timestamped, !signingTimestamp.isEmpty());
+    }
+}
+
+void TestBlackboxWindows::wixCodesign_data()
+{
+    QTest::addColumn<SigntoolInfo::CodeSignResult>("result");
+    QTest::addColumn<QString>("hashAlgorithm");
+    QTest::addColumn<QString>("subjectName");
+    QTest::addColumn<QString>("signingTimestamp");
+
+    QTest::newRow("wix, unsigned") << SigntoolInfo::CodeSignResult::Unsigned << "" << "" << "";
+    QTest::newRow("wix, signed, sha1, qbs@community.test, no timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha1" << "qbs@community.test" << "";
+    QTest::newRow("wix, signed, sha256, qbs@community.test, RFC3161 timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha256" << "qbs@community.test"
+        << "http://timestamp.digicert.com";
+}
+
 void TestBlackboxWindows::wixDependencies()
 {
     const SettingsPtr s = settings();

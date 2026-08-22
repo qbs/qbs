@@ -34,13 +34,19 @@ import qbs.Host
 import qbs.ModUtils
 import qbs.Probes
 import qbs.Utilities
+import "../codesign/codesign.js" as Codesign
 
 Module {
     condition: qbs.targetOS.includes("windows")
 
+    Depends { name: "codesign" }
+
     Probes.WiXProbe {
         id: wixProbe
     }
+
+    readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
+                                                && codesign.enableCodeSigning
 
     property path toolchainInstallPath: wixProbe.path
     property path toolchainInstallRoot: wixProbe.root
@@ -344,7 +350,8 @@ Module {
 
             if (product.type.includes("wixsetup")) {
                 artifacts.push({
-                    fileTags: ["wixsetup", "application"],
+                    fileTags: ["wixsetup", "application"].concat(
+                        product.wix.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
                                                  product.targetName
                                                     + ModUtils.moduleProperty(product,
@@ -354,7 +361,8 @@ Module {
 
             if (product.type.includes("msi")) {
                 artifacts.push({
-                    fileTags: ["msi"],
+                    fileTags: ["msi"].concat(
+                        product.wix.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
                     filePath: FileInfo.joinPaths(product.destinationDirectory,
                                                  product.targetName
                                                     + ModUtils.moduleProperty(product,
@@ -373,7 +381,12 @@ Module {
             return artifacts;
         }
 
-        outputFileTags: ["application", "msi", "wixpdb", "wixsetup"]
+        outputFileTags: {
+            var tags = ["application", "msi", "wixpdb", "wixsetup"];
+            if (shouldSignArtifacts)
+                tags.push("codesign.signed_artifact");
+            return tags;
+        }
 
         prepare: {
             var i;
@@ -449,7 +462,14 @@ Module {
             cmd.description = "linking " + primaryOutput.fileName;
             cmd.highlight = "linker";
             cmd.workingDirectory = FileInfo.path(primaryOutput.filePath);
-            return cmd;
+            var cmds = [cmd];
+
+            if (ModUtils.moduleProperty(product, "shouldSignArtifacts")) {
+                cmds = cmds.concat(Codesign.prepareCodesign(
+                    project, product, inputs, outputs, input, output));
+            }
+
+            return cmds;
         }
     }
 }

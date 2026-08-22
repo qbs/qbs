@@ -37,6 +37,12 @@
 
     This module is available on all platforms.
 
+    The generated MSI package or WiX setup executable can be code-signed by
+    enabling the \l{codesign} module. Set \l{codesign::enableCodeSigning}
+    {codesign.enableCodeSigning} to \c true and configure the related codesign
+    properties (such as \l{codesign::certificatePath}{codesign.certificatePath}
+    or \l{codesign::subjectName}{codesign.subjectName}).
+
     \section2 Relevant File Tags
     \target filetags-wix
 

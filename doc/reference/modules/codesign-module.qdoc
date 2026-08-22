@@ -47,8 +47,8 @@
             \l{https://github.com/mtrojnar/osslsigncode}{osslsigncode} version 2.0 or later. By
             default it is located in the \c PATH, but its location can be set explicitly via
             \l{codesign::codesignPath}{codesignPath}. This makes it possible to sign a
-            cross-compiled binary or an NSIS or Inno Setup installer that was built on Linux or
-            \macos. The certificate must be supplied as a PKCS#12 (PFX) file. Available since
+            cross-compiled binary or an NSIS, Inno Setup, or WiX installer that was built on Linux
+            or \macos. The certificate must be supplied as a PKCS#12 (PFX) file. Available since
             Qbs 3.4.
     \endlist
 
