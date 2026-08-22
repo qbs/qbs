@@ -32,8 +32,75 @@
 
 #include "../shared.h"
 
+#include <tools/hostosinfo.h>
+
 #include <QtCore/qdir.h>
 #include <QtCore/qregularexpression.h>
+
+using qbs::Internal::HostOsInfo;
+
+struct SigntoolInfo
+{
+    enum class CodeSignResult { Failed = 0, Signed, Unsigned };
+    CodeSignResult result = CodeSignResult::Failed;
+    bool timestamped = false;
+    QString hashAlgorithm;
+    QString subjectName;
+};
+
+Q_DECLARE_METATYPE(SigntoolInfo::CodeSignResult)
+
+static SigntoolInfo extractSigntoolInfo(const QString &signtoolPath, const QString &appPath)
+{
+    QProcess signtool;
+    signtool.start(signtoolPath, {QStringLiteral("verify"), QStringLiteral("/v"), appPath});
+    if (!signtool.waitForStarted() || !signtool.waitForFinished())
+        return {};
+    const auto output = signtool.readAllStandardError();
+    SigntoolInfo signtoolInfo;
+    if (output.contains("No signature found")) {
+        signtoolInfo.result = SigntoolInfo::CodeSignResult::Unsigned;
+    } else {
+        signtoolInfo.result = SigntoolInfo::CodeSignResult::Signed;
+        const auto stdoutOutput = signtool.readAllStandardOutput();
+        const auto lines = stdoutOutput.split('\n');
+        for (const auto &line : lines) {
+            {
+                const QRegularExpression re("^Hash of file \\((.+)\\):.+$");
+                const QRegularExpressionMatch match = re.match(line);
+                if (match.hasMatch()) {
+                    signtoolInfo.hashAlgorithm = match.captured(1).toLocal8Bit();
+                    continue;
+                }
+            }
+            {
+                const QRegularExpression re("Issued to: (.+)");
+                const QRegularExpressionMatch match = re.match(line);
+                if (match.hasMatch()) {
+                    signtoolInfo.subjectName = match.captured(1).toLocal8Bit().trimmed();
+                    continue;
+                }
+            }
+            if (line.startsWith("The signature is timestamped:")) {
+                signtoolInfo.timestamped = true;
+                break;
+            } else if (line.startsWith("File is not timestamped.")) {
+                break;
+            }
+        }
+    }
+    return signtoolInfo;
+}
+
+static QString extractSigntoolPath(const QByteArray &output)
+{
+    const QRegularExpression re("%%(.+)%%");
+    QRegularExpressionMatchIterator it = re.globalMatch(output);
+    if (!it.hasNext())
+        return {};
+    const QRegularExpressionMatch match = it.next();
+    return match.captured(1).toUtf8();
+}
 
 static bool extractToolset(const QByteArray &output,
                            QByteArray &toolchain, QByteArray &architecture)
@@ -159,6 +226,68 @@ void TestBlackboxBareMetal::sharedLibraries()
     QCOMPARE(runQbs(QbsRunParameters("run")), 0);
     QVERIFY2(m_qbsStdout.contains("Hello from app"), m_qbsStdout.constData());
     QVERIFY2(m_qbsStdout.contains("Hello from lib"), m_qbsStdout.constData());
+}
+
+void TestBlackboxBareMetal::codesign()
+{
+    QFETCH(SigntoolInfo::CodeSignResult, result);
+    QFETCH(QString, hashAlgorithm);
+    QFETCH(QString, subjectName);
+    QFETCH(QString, signingTimestamp);
+
+    if (!HostOsInfo::isWindowsHost())
+        QSKIP("signtool is only available on Windows");
+
+    QDir::setCurrent(testDataDir + "/codesign");
+
+    const QStringList arguments{
+        QStringLiteral("project.enableSigning:%1")
+            .arg((result == SigntoolInfo::CodeSignResult::Signed) ? "true" : "false"),
+        QStringLiteral("project.hashAlgorithm:%1").arg(hashAlgorithm),
+        QStringLiteral("project.subjectName:%1").arg(subjectName),
+        QStringLiteral("project.signingTimestamp:%1").arg(signingTimestamp)};
+
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(QbsRunParameters("resolve", arguments)), 0);
+    if (m_qbsStdout.contains("unsupported toolset:"))
+        QSKIP(unsupportedToolsetMessage(m_qbsStdout));
+
+    if (!m_qbsStdout.contains("signtool path:"))
+        QSKIP("No current signtool path pattern exists");
+
+    const auto signtoolPath = extractSigntoolPath(m_qbsStdout);
+    QVERIFY(QFileInfo::exists(signtoolPath));
+
+    QCOMPARE(runQbs(QbsRunParameters(arguments)), 0);
+
+    const QStringList outputBinaryPaths = {
+        relativeProductBuildDir("A") + "/A.exe", relativeProductBuildDir("B") + "/B.dll"};
+
+    for (const auto &outputBinaryPath : outputBinaryPaths) {
+        QVERIFY(regularFileExists(outputBinaryPath));
+
+        const SigntoolInfo signtoolInfo = extractSigntoolInfo(signtoolPath, outputBinaryPath);
+        QVERIFY(signtoolInfo.result != SigntoolInfo::CodeSignResult::Failed);
+        QCOMPARE(signtoolInfo.result, result);
+        QCOMPARE(signtoolInfo.hashAlgorithm, hashAlgorithm);
+        QCOMPARE(signtoolInfo.subjectName, subjectName);
+        QCOMPARE(signtoolInfo.timestamped, !signingTimestamp.isEmpty());
+    }
+}
+
+void TestBlackboxBareMetal::codesign_data()
+{
+    QTest::addColumn<SigntoolInfo::CodeSignResult>("result");
+    QTest::addColumn<QString>("hashAlgorithm");
+    QTest::addColumn<QString>("subjectName");
+    QTest::addColumn<QString>("signingTimestamp");
+
+    QTest::newRow("unsigned") << SigntoolInfo::CodeSignResult::Unsigned << "" << "" << "";
+    QTest::newRow("signed, sha1, qbs@community.test, no timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha1" << "qbs@community.test" << "";
+    QTest::newRow("signed, sha256, qbs@community.test, RFC3161 timestamp")
+        << SigntoolInfo::CodeSignResult::Signed << "sha256" << "qbs@community.test"
+        << "http://timestamp.digicert.com";
 }
 
 void TestBlackboxBareMetal::userIncludePaths()

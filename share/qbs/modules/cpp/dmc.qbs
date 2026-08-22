@@ -40,6 +40,8 @@ import "cpp.js" as Cpp
 CppModule {
     condition: Host.os().includes("windows") && qbs.toolchain && qbs.toolchain.includes("dmc")
 
+    Depends { name: "codesign" }
+
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
@@ -103,6 +105,9 @@ CppModule {
     }
 
     runtimeLibrary: "dynamic"
+
+    readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
+                                                && codesign.enableCodeSigning
 
     staticLibrarySuffix: ".lib"
     dynamicLibrarySuffix: ".dll"
@@ -172,7 +177,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "res", "linkerscript"]
         inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
-        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
+        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile,
+                                                        shouldSignArtifacts)
         outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: DMC.prepareLinker.apply(DMC, arguments)
     }
@@ -182,7 +188,7 @@ CppModule {
         multiplex: true
         inputs: ["obj", "res"]
         inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
-        outputFileTags: Cpp.dynamicLibraryLinkerOutputTags()
+        outputFileTags: Cpp.dynamicLibraryLinkerOutputTags(shouldSignArtifacts)
         outputArtifacts: Cpp.dynamicLibraryLinkerOutputArtifacts(product)
         prepare: DMC.prepareLinker.apply(DMC, arguments)
     }

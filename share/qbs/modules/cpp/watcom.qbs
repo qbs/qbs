@@ -39,6 +39,8 @@ import "watcom.js" as WATCOM
 CppModule {
     condition: qbs.toolchain && qbs.toolchain.includes("watcom")
 
+    Depends { name: "codesign" }
+
     Probes.BinaryProbe {
         id: compilerPathProbe
         condition: !toolchainInstallPath && !_skipAllChecks
@@ -96,6 +98,9 @@ CppModule {
     archiverPath: FileInfo.joinPaths(toolchainInstallPath, archiverName)
 
     runtimeLibrary: "dynamic"
+
+    readonly property bool shouldSignArtifacts: codesign._canSignArtifacts
+                                                && codesign.enableCodeSigning
 
     staticLibrarySuffix: ".lib"
     dynamicLibrarySuffix: toolchainDetails.dynamicLibrarySuffix
@@ -168,7 +173,8 @@ CppModule {
         multiplex: true
         inputs: ["obj", "res", "linkerscript"]
         inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
-        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile)
+        outputFileTags: Cpp.applicationLinkerOutputTags(generateLinkerMapFile,
+                                                        shouldSignArtifacts)
         outputArtifacts: Cpp.applicationLinkerOutputArtifacts(product)
         prepare: WATCOM.prepareLinker.apply(WATCOM, arguments)
     }
@@ -179,7 +185,7 @@ CppModule {
         multiplex: true
         inputs: ["obj", "res"]
         inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
-        outputFileTags: Cpp.dynamicLibraryLinkerOutputTags();
+        outputFileTags: Cpp.dynamicLibraryLinkerOutputTags(shouldSignArtifacts)
         outputArtifacts: Cpp.dynamicLibraryLinkerOutputArtifacts(product)
         prepare: WATCOM.prepareLinker.apply(WATCOM, arguments)
     }

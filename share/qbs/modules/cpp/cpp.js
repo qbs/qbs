@@ -114,15 +114,20 @@ function usesDebugFission(productOrArtifact) {
             && cpp.imageFormat === "elf";
 }
 
-function applicationLinkerOutputTags(needsLinkerMapFile) {
+function applicationLinkerOutputTags(needsLinkerMapFile, shouldSignArtifacts) {
     var tags = ["application"];
     if (needsLinkerMapFile)
         tags.push("mem_map");
+    if (shouldSignArtifacts)
+        tags.push("codesign.signed_artifact");
     return tags;
 }
 
-function dynamicLibraryLinkerOutputTags() {
-    return ["dynamiclibrary", "dynamiclibrary_import"];
+function dynamicLibraryLinkerOutputTags(shouldSignArtifacts) {
+    var tags = ["dynamiclibrary", "dynamiclibrary_import"];
+    if (shouldSignArtifacts)
+        tags.push("codesign.signed_artifact");
+    return tags;
 }
 
 function staticLibraryLinkerOutputTags() {
@@ -264,7 +269,8 @@ function compilerOutputArtifacts(input, inputs, withCxxModules) {
 
 function applicationLinkerOutputArtifacts(product) {
     var artifacts = [{
-        fileTags: ["application"],
+        fileTags: ["application"].concat(
+            product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                      PathTools.applicationFilePath(product))
     }];
@@ -280,7 +286,8 @@ function applicationLinkerOutputArtifacts(product) {
 
 function dynamicLibraryLinkerOutputArtifacts(product) {
     return [{
-        fileTags: ["dynamiclibrary"],
+        fileTags: ["dynamiclibrary"].concat(
+            product.cpp.shouldSignArtifacts ? ["codesign.signed_artifact"] : []),
         filePath: FileInfo.joinPaths(product.destinationDirectory,
                                      PathTools.dynamicLibraryFilePath(product))
     }, {

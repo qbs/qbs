@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Codesign = require("../codesign/codesign.js");
 var Cpp = require("cpp.js");
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
@@ -482,6 +483,12 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
         cmds.push(renameLinkerMapFile(project, product, inputs, outputs, input, output));
     else
         cmds.push(removeLinkerMapFile(project, product, inputs, outputs, input, output));
+
+    if (product.cpp.shouldSignArtifacts) {
+        Array.prototype.push.apply(
+                    cmds, Codesign.prepareCodesign(
+                        project, product, inputs, outputs, input, output));
+    }
 
     return cmds;
 }

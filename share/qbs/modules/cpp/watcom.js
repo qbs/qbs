@@ -28,6 +28,7 @@
 **
 ****************************************************************************/
 
+var Codesign = require("../codesign/codesign.js");
 var Cpp = require("cpp.js");
 var Environment = require("qbs.Environment");
 var File = require("qbs.File");
@@ -545,6 +546,7 @@ function prepareResourceCompiler(project, product, inputs, outputs, input, outpu
 }
 
 function prepareLinker(project, product, inputs, outputs, input, output) {
+    var cmds = [];
     var primaryOutput = outputs.dynamiclibrary ? outputs.dynamiclibrary[0]
                                                : outputs.application[0];
     var args = linkerFlags(project, product, inputs, outputs);
@@ -554,7 +556,15 @@ function prepareLinker(project, product, inputs, outputs, input, output) {
     cmd.description = "linking " + primaryOutput.fileName;
     cmd.highlight = "linker";
     cmd.jobPool = "watcom_job_pool";
-    return [cmd];
+    cmds.push(cmd);
+
+    if (product.cpp.shouldSignArtifacts) {
+        Array.prototype.push.apply(
+                    cmds, Codesign.prepareCodesign(
+                        project, product, inputs, outputs, input, output));
+    }
+
+    return cmds;
 }
 
 function prepareLibraryManager(project, product, inputs, outputs, input, output) {

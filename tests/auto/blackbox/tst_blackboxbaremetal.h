@@ -51,6 +51,9 @@ private slots:
 
     void sharedLibraries();
 
+    void codesign_data();
+    void codesign();
+
     void userIncludePaths();
     void systemIncludePaths();
     void distributionIncludePaths();
