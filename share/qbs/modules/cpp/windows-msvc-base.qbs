@@ -205,7 +205,7 @@ CppModule {
         name: "libtool"
         multiplex: true
         inputs: ["obj", "res"]
-        inputsFromDependencies: ["staticlibrary", "dynamiclibrary_import"]
+        inputsFromDependencies: ["staticlibrary", "objectlibrary", "dynamiclibrary_import"]
         outputFileTags: ["staticlibrary", "debuginfo_cl"]
         outputArtifacts: MSVC.libtoolOutputArtifacts(product)
         prepare: MSVC.libtoolCommands.apply(MSVC, arguments)

@@ -359,6 +359,7 @@ private slots:
     void sevenZip();
     void sourceArtifactInInputsFromDependencies();
     void staticLibWithoutSources();
+    void staticLibFromObjectLibs();
     void suspiciousCalls();
     void suspiciousCalls_data();
     void systemIncludePaths();

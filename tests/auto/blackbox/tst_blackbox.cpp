@@ -267,6 +267,13 @@ void TestBlackbox::staticLibWithoutSources()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackbox::staticLibFromObjectLibs()
+{
+    QDir::setCurrent(testDataDir + "/static-lib-from-object-libs");
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(), 0);
+}
+
 void TestBlackbox::suspiciousCalls()
 {
     const QString projectDir = testDataDir + "/suspicious-calls";
