@@ -85,6 +85,12 @@ function tscArguments(product, inputs) {
         args.push(flags[i]);
     }
 
+    // TypeScript 6 treats several long-standing options (notably --outFile) as
+    // deprecation errors unless this is set. Keep supporting them until a
+    // future module migration drops or replaces those features.
+    if (ModUtils.moduleProperty(product, "versionMajor") >= 6)
+        args.push("--ignoreDeprecations", "6.0");
+
     if (supportsModernFeatures(product)) {
         args.push("--rootDir", product.sourceDirectory);
     }

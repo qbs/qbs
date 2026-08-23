@@ -3,7 +3,7 @@ import ts = require("typescript");
 declare var process: any;
 
 export namespace io.qt.qbs {
-    export class Artifact {
+    export interface Artifact {
         filePath: string;
         fileTags: string[];
     }
@@ -28,7 +28,7 @@ export namespace io.qt.qbs {
             }
         }
 
-        function compileInternal(fileNames: string[], options: ts.CompilerOptions): qbs.Artifact[] {
+        function compileInternal(fileNames: string[], options: ts.CompilerOptions): qbs.Artifact[] | undefined {
             var outputArtifacts: qbs.Artifact[] = [];
             var program = ts.createProgram(fileNames, options);
             var emitResult = program.emit(undefined, filePath => {
@@ -38,7 +38,7 @@ export namespace io.qt.qbs {
             var allDiagnostics = ts.getPreEmitDiagnostics(program).concat(emitResult.diagnostics);
             allDiagnostics.forEach(diagnostic => {
                 var message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-                if (diagnostic.file) {
+                if (diagnostic.file && diagnostic.start !== undefined) {
                     var { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start);
                     console.error(`${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}`);
                 } else {
@@ -49,7 +49,7 @@ export namespace io.qt.qbs {
             return emitResult.emitSkipped ? undefined : outputArtifacts;
         }
 
-        export function compile(commandLineArguments: string[]): qbs.Artifact[] {
+        export function compile(commandLineArguments: string[]): qbs.Artifact[] | undefined {
             var parsedCommandLine = ts.parseCommandLine(commandLineArguments);
             return compileInternal(parsedCommandLine.fileNames, parsedCommandLine.options);
         }
