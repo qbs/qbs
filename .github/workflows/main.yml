@@ -703,7 +703,7 @@ jobs:
       with:
         node-version: '20'
     - name: Install TypeScript
-      run: npm install -g typescript@5
+      run: npm install -g typescript@6
     - name: Run Tests
       run: |
         sudo chmod 777 /cores
@@ -844,7 +844,7 @@ jobs:
       with:
         node-version: '20'
     - name: Install TypeScript
-      run: npm install -g typescript@5
+      run: npm install -g typescript@6
       shell: bash
     - name: Run Tests
       run: ${{ matrix.config.script }} ./release/install-root/bin
