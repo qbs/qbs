@@ -127,6 +127,7 @@ public:
                                   QObject *jobOwner = nullptr) const;
 
     void updateTimestamps(const QList<ProductData> &products);
+    void releaseBuildGraphLock();
 
     bool operator==(const Project &other) const { return d.data() == other.d.data(); }
 

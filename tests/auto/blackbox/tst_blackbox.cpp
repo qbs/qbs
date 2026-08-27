@@ -3276,6 +3276,59 @@ void TestBlackbox::ruleWithNonRequiredInputs()
     QVERIFY2(m_qbsStdout.contains("generating"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::runBuildGraphUnlock()
+{
+    QDir::setCurrent(testDataDir + "/run-build-graph-unlock");
+    QCOMPARE(runQbs(QbsRunParameters("resolve")), 0);
+    if (m_qbsStdout.contains("target platform/arch differ from host platform/arch"))
+        QSKIP("Cannot run binaries in cross-compiled build");
+    QCOMPARE(runQbs(QbsRunParameters("build")), 0);
+
+    QStringList runArgs;
+    runArgs << "run"
+            << "--settings-dir" << settings()->baseDirectory() << "-d" << "."
+            << QString("profile:") + profileName();
+
+    QProcess runProc;
+    runProc.setProcessEnvironment(QbsRunParameters::defaultEnvironment());
+    runProc.start(qbsExecutableFilePath, runArgs);
+    QVERIFY2(runProc.waitForStarted(), qPrintable(runProc.errorString()));
+
+    const auto stopRunProc = [&runProc] {
+        if (runProc.state() != QProcess::NotRunning) {
+            runProc.kill();
+            runProc.waitForFinished(5000);
+        }
+        waitForFileUnlock();
+    };
+
+    QElapsedTimer timer;
+    timer.start();
+    QByteArray runOutput;
+    const QByteArray runningMarker = "running";
+    while (timer.elapsed() < 30000) {
+        if (runProc.waitForReadyRead(100))
+            runOutput += runProc.readAllStandardOutput();
+        if (runOutput.contains(runningMarker))
+            break;
+        if (runProc.state() == QProcess::NotRunning) {
+            runOutput += runProc.readAllStandardOutput();
+            runOutput += runProc.readAllStandardError();
+            break;
+        }
+    }
+    runOutput += runProc.readAllStandardOutput();
+
+    QVERIFY2(runOutput.contains(runningMarker), runOutput.constData());
+    QVERIFY2(
+        runProc.state() == QProcess::Running,
+        qPrintable(QString::fromLocal8Bit(runProc.readAllStandardError())));
+
+    QCOMPARE(runQbs(QbsRunParameters("build")), 0);
+
+    stopRunProc();
+}
+
 void TestBlackbox::runMultiplexed()
 {
     QDir::setCurrent(testDataDir + "/run-multiplexed");

@@ -752,6 +752,12 @@ bool Project::isValid() const
     return d && d->internalProject;
 }
 
+void Project::releaseBuildGraphLock()
+{
+    if (d && d->internalProject)
+        d->internalProject->releaseBuildGraphLock();
+}
+
 /*!
  * \brief The top-level profile for building this project.
  */

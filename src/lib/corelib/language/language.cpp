@@ -628,6 +628,11 @@ void TopLevelProject::makeModuleProvidersNonTransient()
         item.second.transientOutput = false;
 }
 
+void TopLevelProject::releaseBuildGraphLock()
+{
+    bgLocker.reset();
+}
+
 QVariantMap TopLevelProject::fullProfileConfigsTree() const
 {
     QVariantMap tree;

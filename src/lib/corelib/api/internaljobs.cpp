@@ -262,7 +262,7 @@ void InternalSetupProjectJob::start()
                 = TopLevelProject::deriveBuildDirectory(m_parameters.buildRoot(), projectId);
         if (m_existingProject && m_existingProject->buildDirectory != buildDir)
             m_existingProject.reset();
-        if (!m_existingProject) {
+        if (!m_existingProject || !m_existingProject->bgLocker) {
             newBgLocker = std::make_unique<BuildGraphLocker>(
                 ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId),
                 logger(),
@@ -273,11 +273,12 @@ void InternalSetupProjectJob::start()
         if (m_existingProject) {
             if (m_existingProject != m_newProject) {
                 m_existingProject->makeModuleProvidersNonTransient();
-                m_newProject->bgLocker = std::move(m_existingProject->bgLocker);
+                if (m_existingProject->bgLocker)
+                    m_newProject->bgLocker = std::move(m_existingProject->bgLocker);
             }
-        } else {
-            m_newProject->bgLocker = std::move(newBgLocker);
         }
+        if (!m_newProject->bgLocker)
+            m_newProject->bgLocker = std::move(newBgLocker);
     } catch (const ErrorInfo &error) {
         m_newProject.reset();
         setError(error);

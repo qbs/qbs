@@ -801,6 +801,7 @@ public:
     QString id() const { return m_id; }
     QString profile() const;
     void makeModuleProvidersNonTransient();
+    void releaseBuildGraphLock();
     QVariantMap fullProfileConfigsTree() const; // Tree-ified + overridden values
 
     QVariantMap profileConfigs;

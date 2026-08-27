@@ -102,6 +102,7 @@ private:
     void connectJob(AbstractJob *job);
     ProductData getTheOneRunnableProduct();
     void install();
+    void releaseBuildGraphLocks();
     BuildOptions buildOptions(const Project &project) const;
     QString buildDirectory(const QString &profileName) const;
 

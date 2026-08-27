@@ -330,6 +330,7 @@ private slots:
     void ruleCycle();
     void ruleWithNoInputs();
     void ruleWithNonRequiredInputs();
+    void runBuildGraphUnlock();
     void runMultiplexed();
     void sanitizer_data();
     void sanitizer();

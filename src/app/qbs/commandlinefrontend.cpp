@@ -247,10 +247,12 @@ void CommandLineFrontend::handleJobFinished(bool success, AbstractJob *job)
             if (m_resolveJobs.empty())
                 handleProjectsResolved();
         } else if (qobject_cast<InstallJob *>(job)) {
-            if (m_parser.command() == RunCommandType)
+            if (m_parser.command() == RunCommandType) {
+                releaseBuildGraphLocks();
                 qApp->exit(runTarget());
-            else
+            } else {
                 qApp->quit();
+            }
         } else { // Build or clean.
             m_buildJobs.removeOne(job);
             if (m_buildJobs.empty()) {
@@ -394,6 +396,7 @@ void CommandLineFrontend::handleProjectsResolved()
         makeClean();
         break;
     case ShellCommandType:
+        releaseBuildGraphLocks();
         qApp->exit(runShell());
         break;
     case StatusCommandType:
@@ -697,6 +700,12 @@ ProductData CommandLineFrontend::getTheOneRunnableProduct()
     for (const ProductData &p : std::as_const(runnableProducts))
         error.append(QLatin1String("\t") + p.fullDisplayName());
     throw error;
+}
+
+void CommandLineFrontend::releaseBuildGraphLocks()
+{
+    for (Project &project : m_projects)
+        project.releaseBuildGraphLock();
 }
 
 void CommandLineFrontend::install()
