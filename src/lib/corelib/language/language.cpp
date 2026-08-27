@@ -587,16 +587,15 @@ void ResolvedProject::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-
 TopLevelProject::TopLevelProject()
-    : bgLocker(nullptr), locked(false), lastStartResolveTime(FileTime::oldestTime())
+    : locked(false)
+    , lastStartResolveTime(FileTime::oldestTime())
 {
 }
 
 TopLevelProject::~TopLevelProject()
 {
     cleanupModuleProviderOutput();
-    delete bgLocker;
 }
 
 QString TopLevelProject::deriveId(const QVariantMap &config)

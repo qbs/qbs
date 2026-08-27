@@ -62,6 +62,7 @@
 
 #include <QtCore/qtimer.h>
 
+#include <memory>
 #include <mutex>
 
 namespace qbs {
@@ -250,8 +251,7 @@ TopLevelProjectPtr InternalSetupProjectJob::project() const
 
 void InternalSetupProjectJob::start()
 {
-    BuildGraphLocker *bgLocker = m_existingProject ? m_existingProject->bgLocker : nullptr;
-    bool deleteLocker = false;
+    std::unique_ptr<BuildGraphLocker> newBgLocker;
     try {
         const ErrorInfo err = m_parameters.expandBuildConfiguration();
         if (err.hasError())
@@ -263,26 +263,24 @@ void InternalSetupProjectJob::start()
         if (m_existingProject && m_existingProject->buildDirectory != buildDir)
             m_existingProject.reset();
         if (!m_existingProject) {
-            bgLocker = new BuildGraphLocker(ProjectBuildData::deriveBuildGraphFilePath(buildDir,
-                                                                                       projectId),
-                                           logger(), m_parameters.waitLockBuildGraph(), observer());
-            deleteLocker = true;
+            newBgLocker = std::make_unique<BuildGraphLocker>(
+                ProjectBuildData::deriveBuildGraphFilePath(buildDir, projectId),
+                logger(),
+                m_parameters.waitLockBuildGraph(),
+                observer());
         }
         execute();
         if (m_existingProject) {
-            if (m_existingProject != m_newProject)
+            if (m_existingProject != m_newProject) {
                 m_existingProject->makeModuleProvidersNonTransient();
-            m_existingProject->bgLocker = nullptr;
+                m_newProject->bgLocker = std::move(m_existingProject->bgLocker);
+            }
+        } else {
+            m_newProject->bgLocker = std::move(newBgLocker);
         }
-        m_newProject->bgLocker = bgLocker;
-        deleteLocker = false;
     } catch (const ErrorInfo &error) {
         m_newProject.reset();
         setError(error);
-
-        // Delete the build graph locker if and only if we allocated it here.
-        if (deleteLocker)
-            delete bgLocker;
     }
     emit finished(this);
 }

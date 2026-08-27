@@ -787,7 +787,7 @@ public:
     QHash<QString, FileTime> fileLastModifiedResults; // Results of calls to "File.lastModified()".
     CodeLinks codeLinks;
     std::unique_ptr<ProjectBuildData> buildData;
-    BuildGraphLocker *bgLocker; // This holds the system-wide build graph file lock.
+    std::unique_ptr<BuildGraphLocker> bgLocker; // System-wide build graph file lock.
     bool locked; // This is the API-level lock for the project instance.
 
     Set<QString> buildSystemFiles;
