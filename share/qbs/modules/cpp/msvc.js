@@ -172,7 +172,7 @@ function handleClangClArchitectureFlags(product, architecture, flags) {
     }
 }
 
-function prepareCompilerInternal(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
+function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
     var i;
     var debugInformation = input.cpp.debugInformation;
     var args = ['/nologo', '/c']
@@ -311,10 +311,9 @@ function prepareCompilerInternal(project, product, inputs, outputs, input, outpu
         addCLanguageVersionFlag(input, args);
     }
 
-    var moduleMap = (outputs["modulemap"] || [])[0];
-    if (moduleMap) {
+    var moduleMap = Cpp.getModuleMapArtifact(input, product);
+    if (moduleMap)
         args.push("@" + moduleMap.filePath);
-    }
 
     // Whether we're compiling a precompiled header or normal source file
     var pchOutput = outputs[tag + "_pch"] ? outputs[tag + "_pch"][0] : undefined;
@@ -373,13 +372,6 @@ function prepareCompilerInternal(project, product, inputs, outputs, input, outpu
         return output.split(inputFileName + "\r\n").join("");
     };
     return [cmd];
-}
-
-function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var result = Cpp.prepareModules(project, product, inputs, outputs, input, output);
-    result = result.concat(prepareCompilerInternal(
-        project, product, inputs, outputs, input, output, explicitlyDependsOn));
-    return result;
 }
 
 function linkerSupportsWholeArchive(product)

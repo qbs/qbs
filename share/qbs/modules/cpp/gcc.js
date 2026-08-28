@@ -854,7 +854,7 @@ function compilerFlags(project, product, outputs, input, output, explicitlyDepen
     if (input.cpp.treatWarningsAsErrors)
         args.push('-Werror');
 
-    var moduleMap = (outputs["modulemap"] || [])[0];
+    var moduleMap = Cpp.getModuleMapArtifact(input, product);
     if (moduleMap) {
         const moduleMapperFlag = product.qbs.toolchain.includes("clang")
             ? "@" // clang uses response file with the list of flags
@@ -1108,7 +1108,7 @@ function setResponseFileThreshold(command, product)
         command.responseFileThreshold = 8000;
 }
 
-function prepareCompilerInternal(project, product, inputs, outputs, input, output_, explicitlyDependsOn) {
+function prepareCompiler(project, product, inputs, outputs, input, output_, explicitlyDependsOn) {
     var output = output_ || outputs["obj"][0];
 
     var compilerInfo = effectiveCompilerInfo(product.qbs.toolchain,
@@ -1159,13 +1159,6 @@ function prepareCompilerInternal(project, product, inputs, outputs, input, outpu
     cmd.responseFileUsagePrefix = '@';
     setResponseFileThreshold(cmd, product);
     return cmd;
-}
-
-function prepareCompiler(project, product, inputs, outputs, input, output, explicitlyDependsOn) {
-    var result = Cpp.prepareModules(project, product, inputs, outputs, input, output);
-    result = result.concat(prepareCompilerInternal(
-        project, product, inputs, outputs, input, output, explicitlyDependsOn));
-    return result;
 }
 
 // Concatenates two arrays of library names and preserves the dependency order that ld needs.

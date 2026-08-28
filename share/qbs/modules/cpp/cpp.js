@@ -91,7 +91,7 @@ function compilerOutputTags(withListingFiles, withCxxModules) {
     if (withListingFiles)
         tags.push("lst");
     if (withCxxModules)
-        tags = tags.concat(["compiled-module", "modulemap"]);
+        tags.push("compiled-module");
     return tags;
 }
 
@@ -194,6 +194,31 @@ function moduleInfoArtifacts(input)
     }];
 }
 
+function moduleMapArtifacts(input)
+{
+    var moduleInformation = cxxModuleInformation(input);
+    if (moduleInformation.providesModule || moduleInformation.requiresModules.length > 0) {
+        return [{
+            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
+                                         input.fileName + input.cpp.moduleMapSuffix),
+            fileTags: ["modulemap"],
+        }];
+    }
+    return [];
+}
+
+function getModuleMapArtifact(sourceArtifact, product)
+{
+    if (!product.cpp.forceUseCxxModules)
+        return undefined;
+    var moduleMaps = product.artifacts.modulemap || [];
+    for (var i = 0; i < moduleMaps.length; ++i) {
+        var mapArtifact = moduleMaps[i];
+        if (mapArtifact.completeBaseName === sourceArtifact.fileName)
+            return mapArtifact;
+    }
+}
+
 function cxxModulesArtifacts(input) {
     var artifacts = [];
     if (input.cpp.forceUseCxxModules === false)
@@ -209,13 +234,6 @@ function cxxModulesArtifacts(input) {
 
     var moduleInformation = cxxModuleInformation(input);
 
-    if (moduleInformation.providesModule || moduleInformation.requiresModules.length > 0) {
-        artifacts.push({
-            filePath: FileInfo.joinPaths(Utilities.getHash(input.baseDir),
-                                         input.fileName + input.cpp.moduleMapSuffix),
-            fileTags: ["modulemap"],
-        })
-    }
     if (input.fileTags.includes("cppm")) {
         const moduleName = moduleInformation.providesModule;
         if (moduleName) {
@@ -613,48 +631,41 @@ function prepareModuleInfo(input, output, product) {
     return command;
 }
 
-function prepareModuleMap(moduleInformation, input, mm, product) {
+function prepareModuleMap(input, output, product) {
     var modulesFromDeps = {};
-
     product.dependencies.forEach(function(dep){
         (dep.artifacts["compiled-module"] || []).forEach(function(a) {
             modulesFromDeps[a.completeBaseName.replace('-', ':')] = a.filePath;
         });
     });
 
-    var generateModuleMap = new JavaScriptCommand()
-    generateModuleMap.outPath = mm.filePath
-    generateModuleMap.moduleInformation = moduleInformation;
-    generateModuleMap.compiledModuleSuffix = product.cpp.compiledModuleSuffix;
-    generateModuleMap.moduleInfoSuffix = product.cpp.moduleInfoSuffix;
-    generateModuleMap.moduleOutputFlag = product.cpp.moduleOutputFlag;
-    generateModuleMap.moduleFileFlag = product.cpp.moduleFileFlag;
-    generateModuleMap.toolchain = product.qbs.toolchain;
-    generateModuleMap.toolchainType = product.qbs.toolchainType;
+    var generateModuleMap = new JavaScriptCommand();
+    generateModuleMap.outPath = output.filePath
     generateModuleMap.modulesFromDeps = modulesFromDeps;
     generateModuleMap.description = "generating module map for " + input.fileName
     generateModuleMap.highlight = "filegen"
     generateModuleMap.sourceCode = function() {
         function moduleFileOption(moduleName) {
-            return moduleFileFlag.replace("%module%", moduleName);
+            return product.cpp.moduleFileFlag.replace("%module%", moduleName);
         }
         function moduleOutputOption(moduleName) {
-            return moduleOutputFlag.replace("%module%", moduleName);
+            return product.cpp.moduleOutputFlag.replace("%module%", moduleName);
         }
 
         var content = "";
-        if (toolchainType === "gcc" || toolchainType === "mingw")
+        if (product.qbs.toolchainType === "gcc" || product.qbs.toolchainType === "mingw")
             content += "$root .\n";
         const isModule = input.fileTags.includes("cppm");
         function modulePath(moduleName) {
             return FileInfo.joinPaths(
                 product.buildDirectory,
                 "cxx-modules",
-                moduleName.replace(':', "-") + compiledModuleSuffix);
+                moduleName.replace(':', "-") + product.cpp.compiledModuleSuffix);
         }
+        const moduleInformation = cxxModuleInformation(input);
         const providesModule = moduleInformation.providesModule
         if (isModule && providesModule !== undefined) {
-            if (toolchainType === "msvc") {
+            if (product.qbs.toolchainType === "msvc") {
                 if (moduleInformation.isInterfaceModule)
                     content += "-interface\n";
                 else
@@ -666,8 +677,8 @@ function prepareModuleMap(moduleInformation, input, mm, product) {
 
         function isHeaderImport(mod) {
             return mod.length > 2
-                && (mod[0] == '<' && mod[mod.length - 1] == '>'
-                    || mod[0] == '"' && mod[mod.length - 1] == '"')
+                && (mod[0] === '<' && mod[mod.length - 1] === '>'
+                    || mod[0] === '"' && mod[mod.length - 1] === '"')
         }
 
         function processImport(mod) {
@@ -677,7 +688,8 @@ function prepareModuleMap(moduleInformation, input, mm, product) {
 
                 function getModuleInfo(moduleFile) {
                     const moduleInfoPath = FileInfo.joinPaths(
-                        FileInfo.path(moduleFile), FileInfo.completeBaseName(moduleFile) + moduleInfoSuffix);
+                        FileInfo.path(moduleFile), FileInfo.completeBaseName(moduleFile)
+                                             + product.cpp.moduleInfoSuffix);
                     var file = new TextFile(moduleInfoPath, TextFile.ReadOnly);
                     const moduleInfo = JSON.parse(file.readAll());
                     file.close();
@@ -689,7 +701,8 @@ function prepareModuleMap(moduleInformation, input, mm, product) {
                     const moduleInfo = getModuleInfo(moduleFile);
                     const requiresModules = moduleInfo['requiresModules'] || [];
                     requiresModules.forEach(function(importModule) {
-                        const importModuleFile = modulesFromDeps[importModule] || modulePath(importModule);
+                        const importModuleFile = modulesFromDeps[importModule]
+                                               || modulePath(importModule);
                         content += moduleFileOption(importModule) + importModuleFile + "\n";
                         processImportsRecursive(importModuleFile);
                     });
@@ -711,29 +724,10 @@ function prepareModuleMap(moduleInformation, input, mm, product) {
 
         // MinGW fails if file contains \r on Windows, so we use Unix line-endings on all platforms
         // and thus we use BinaryFile instead of TextFile here
-        var file = new BinaryFile(outPath, TextFile.WriteOnly);
+        var file = new BinaryFile(output.filePath, TextFile.WriteOnly);
         file.write(encode(content));
         file.close();
     }
 
     return generateModuleMap;
-}
-
-function prepareModules(project, product, inputs, outputs, input, output) {
-    var commands = [];
-
-    // module map is present for both cppm and regular cpp files if they use modules
-    const moduleMapOutputs = outputs["modulemap"];
-    if (moduleMapOutputs === undefined)
-        return commands;
-
-    const cppModuleMap = moduleMapOutputs[0];
-    if (cppModuleMap === undefined)
-        return commands;
-
-    const moduleInformation = cxxModuleInformation(input);
-
-    commands.push(prepareModuleMap(moduleInformation, input, cppModuleMap, product));
-
-    return commands;
 }

@@ -540,9 +540,20 @@ CppModule {
     }
 
     Rule {
+        name: "module map generator"
+        condition: forceUseCxxModules
+        inputs: ["cppm", "cpp"]
+        auxiliaryInputs: "moduleinfo"
+        auxiliaryInputsFromDependencies: ["moduleinfo", "compiled-module"]
+        outputFileTags: "modulemap"
+        outputArtifacts: Cpp.moduleMapArtifacts(input)
+        prepare: Cpp.prepareModuleMap(input, output, product)
+    }
+
+    Rule {
         name: "cpp_compiler"
         inputs: ["cpp", "cppm", "c", "objcpp", "objc", "asm_cpp"]
-        auxiliaryInputs: ["hpp", "moduleinfo"]
+        auxiliaryInputs: ["hpp", "moduleinfo", "modulemap"]
         auxiliaryInputsFromDependencies: ["hpp", "moduleinfo"]
         explicitlyDependsOn: ["c_pch", "cpp_pch", "objc_pch", "objcpp_pch"]
         outputFileTags: Cpp.compilerOutputTags(/*withListingFiles*/ false, /*withCxxModules*/ true)
