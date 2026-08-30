@@ -164,8 +164,8 @@ jobs:
         config:
         - {
             name: 'Build on macOS (Qbs, arm64)',
-            runner: 'macos-14',
-            profile: 'xcode_15_1-macosx-arm64',
+            runner: 'macos-15',
+            profile: 'xcode_16_4-macosx-arm64',
             toolchain: 'clang_64',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
@@ -179,8 +179,8 @@ jobs:
             }
         - {
             name: 'Build on macOS (Qbs, x64)',
-            runner: 'macos-14',
-            profile: 'xcode_15_1-macosx-x86_64',
+            runner: 'macos-15',
+            profile: 'xcode_16_4-macosx-x86_64',
             toolchain: 'clang_64',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
@@ -562,6 +562,17 @@ jobs:
       fail-fast: false
       matrix:
         config:
+        - {
+            name: 'Test macOS (Xcode 26.6, arm64)',
+            runner: 'macos-26',
+            target: 'desktop',
+            toolchain: 'clang_64',
+            xcodeVersion: '26.6',
+            testProfile: 'xcode_26_6-macosx-arm64',
+            qtVersion: '6.10.3',
+            suffix: 'macos-arm64',
+            script: './scripts/test-qbs.sh',
+            }
         - {
             name: 'Test macOS (Xcode 16.4, arm64)',
             runner: 'macos-15',

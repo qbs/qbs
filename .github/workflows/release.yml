@@ -71,7 +71,7 @@ jobs:
         config:
         - {
             name: 'Build on macOS (arm64)',
-            runner: 'macos-14',
+            runner: 'macos-15',
             profile: 'xcode_15_1-macosx-arm64',
             toolchain: 'clang_64',
             options: 'qbs.installPrefix:""
@@ -84,7 +84,7 @@ jobs:
           }
         - {
             name: 'Build on macOS (x86_64)',
-            runner: 'macos-14',
+            runner: 'macos-15',
             profile: 'xcode_15_1-macosx-x86_64',
             toolchain: 'clang_64',
             options: 'qbs.installPrefix:""
