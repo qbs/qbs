@@ -44,6 +44,7 @@ import "../codesign/codesign.js" as Codesign
 Module {
     Depends { name: "xcode"; required: false; }
     Depends { name: "codesign"; required: false; }
+    Depends { name: "notarization"; required: false; }
     Depends { name: "installpaths" }
 
     Probe {

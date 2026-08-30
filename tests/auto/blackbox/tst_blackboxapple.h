@@ -64,6 +64,8 @@ private slots:
     void deploymentTarget();
     void deploymentTarget_data();
     void dmg();
+    void notarization();
+    void notarization_data();
     void embedInfoPlist();
     void frameworkStructure();
     void iconcomposer();

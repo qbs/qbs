@@ -56,6 +56,7 @@
     \li \l{How do I print the value of a property?}
     \li \l{How do I debug \QBS scripts?}
     \li \l{How do I sign an application for an Apple platform?}
+    \li \l{How do I notarize a macOS application?}
     \endlist
 
     \section1 How do I build a Qt-based project?
@@ -852,4 +853,42 @@
     \code
         codesign.provisioningProfile: "abcdef12-1234-5678-1111-abcdef123456"
     \endcode
+
+    \section1 How do I notarize a macOS application?
+
+    To notarize a macOS application for distribution outside the Mac App Store, use the
+    \l{notarization} module in addition to the \l{codesign} module.
+
+    \code
+        Depends { name: "codesign" }
+        Depends { name: "notarization" }
+
+        codesign.enableCodeSigning: true
+        codesign.signingType: "apple-id"
+        codesign.codesignFlags: ["--options", "runtime", "--timestamp"]
+
+        notarization.enableNotarization: true
+    \endcode
+
+    Create the keychain profile once on the build machine:
+
+    \code
+    xcrun notarytool store-credentials "ACME-Notarization" \
+        --apple-id "developer@example.com" \
+        --team-id "ABCDE12345" \
+        --password "xxxx-xxxx-xxxx-xxxx"
+    \endcode
+
+    The keychain profile name is specific to the build machine, so set it in the
+    \l{Configuring Profiles and Preferences}{qbs profile} rather than in the project file:
+
+    \code
+    qbs config profiles.myprofile.modules.notarization.keychainProfile ACME-Notarization
+    \endcode
+
+    When \c{notarization.enableNotarization} is \c true, signed application bundles and disk
+    images are submitted to Apple's notary service automatically. To notarize a disk image
+    produced by an \l{AppleApplicationDiskImage} item, enable notarization on that product as
+    well. Qbs passes only the keychain profile name to \c notarytool. The Apple ID, app-specific
+    password, and team ID stay in the macOS keychain.
 */

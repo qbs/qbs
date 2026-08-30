@@ -40,6 +40,7 @@ import "dmg.js" as Dmg
 
 Module {
     Depends { name: "xcode"; required: false }
+    Depends { name: "notarization"; required: false }
 
     condition: Host.os().includes("darwin") && qbs.targetOS.includes("darwin")
 

@@ -81,4 +81,11 @@
     In addition, \QBS supports multi-language license agreement prompts that
     appear when the DMG is opened, with full Unicode and rich-text formatting
     support.
+
+    \section1 Notarizing macOS Distributables
+
+    macOS applications and disk images distributed outside the Mac App Store must be notarized
+    by Apple. Use the \l{notarization} module together with \l{codesign} to submit signed
+    artifacts to Apple's notary service and staple the resulting ticket. See
+    \l{How do I notarize a macOS application?} for details.
 */

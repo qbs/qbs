@@ -1026,6 +1026,73 @@ void TestBlackboxApple::dmg()
     QCOMPARE(runQbs(), 0);
 }
 
+void TestBlackboxApple::notarization()
+{
+    QFETCH(QStringList, arguments);
+    QFETCH(bool, expectNotarizing);
+    QFETCH(bool, validateTicket);
+    QFETCH(QStringList, commandFragments);
+
+    if (!findXcode())
+        QSKIP("requires Xcode profile");
+
+    QDir::setCurrent(testDataDir + "/notarization");
+    QbsRunParameters params(QStringList{"qbs.installPrefix:''"});
+    params.arguments += arguments;
+    rmDirR(relativeBuildDir());
+    QCOMPARE(runQbs(params), 0);
+    if (m_qbsStdout.contains("Skip this test: not macOS"))
+        QSKIP("notarization applies to macOS only");
+    if (m_qbsStdout.contains("Skip this test: missing credentials"))
+        QSKIP("notarization.keychainProfile or a Developer ID identity is not set");
+
+    const auto output = QString::fromUtf8(m_qbsStdout);
+    QCOMPARE(output.contains(QStringLiteral("notarizing")), expectNotarizing);
+    for (const auto &fragment : commandFragments)
+        QVERIFY2(output.contains(fragment), qPrintable(output));
+    if (commandFragments.isEmpty() && !validateTicket)
+        QVERIFY(!output.contains(QStringLiteral("notarytool")));
+    if (!validateTicket)
+        return;
+
+    const auto appPath = defaultInstallRoot + "/A.app";
+    QVERIFY(QFileInfo(appPath).exists());
+
+    QProcess stapler;
+    stapler.start(QStringLiteral("stapler"), {QStringLiteral("validate"), appPath});
+    QVERIFY(stapler.waitForFinished());
+    QCOMPARE(stapler.exitCode(), 0);
+}
+
+void TestBlackboxApple::notarization_data()
+{
+    QTest::addColumn<QStringList>("arguments");
+    QTest::addColumn<bool>("expectNotarizing");
+    QTest::addColumn<bool>("validateTicket");
+    QTest::addColumn<QStringList>("commandFragments");
+
+    QTest::newRow("disabled")
+            << QStringList{QStringLiteral("project.enableNotarization:false")}
+            << false
+            << false
+            << QStringList();
+    QTest::newRow("dry run")
+            << QStringList{QStringLiteral("--dry-run"),
+                           QStringLiteral("--command-echo-mode"),
+                           QStringLiteral("command-line"),
+                           QStringLiteral("modules.notarization.enableNotarization:true"),
+                           QStringLiteral("modules.notarization.keychainProfile:test-profile")}
+            << false
+            << false
+            << QStringList{QStringLiteral("xcrun notarytool"),
+                           QStringLiteral("--keychain-profile test-profile")};
+    QTest::newRow("enabled")
+            << QStringList{QStringLiteral("project.enableNotarization:true")}
+            << true
+            << true
+            << QStringList();
+}
+
 void TestBlackboxApple::embedInfoPlist()
 {
     QDir::setCurrent(testDataDir + QLatin1String("/embedInfoPlist"));

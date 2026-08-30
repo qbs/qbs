@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var Codesign = require("../codesign/codesign.js");
+var Notarization = require("../notarization/notarization.js");
 var File = require("qbs.File");
 var FileInfo = require("qbs.FileInfo");
 var DarwinTools = require("qbs.DarwinTools");
@@ -755,6 +756,9 @@ function generateBundleCommands(project, product, inputs, outputs, input, output
                               ["-f", bundlePath]);
             cmd.description = "registering " + product.bundle.bundleName;
             commands.push(cmd);
+
+            Array.prototype.push.apply(commands,
+                                       Notarization.prepareNotarize(product, bundlePath));
         }
     }
 

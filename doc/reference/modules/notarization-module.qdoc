@@ -1,0 +1,107 @@
+/****************************************************************************
+**
+** Copyright (C) 2026 Ivan Komissarov (abbapoh@gmail.com)
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmltype notarization
+    \inqmlmodule QbsModules
+    \since Qbs 3.5
+
+    \brief Provides support for notarizing macOS distributables.
+
+    The \c notarization module provides properties for submitting signed macOS application
+    bundles, disk images, and other distributables to Apple's notary service and stapling the
+    resulting ticket. When \l{notarization::enableNotarization}{enableNotarization} is \c true,
+    notarization is performed automatically as part of the \l{bundle} and \l{dmg} build steps,
+    similar to how the \l{codesign} module integrates with those modules.
+
+    This module is only available when building for Apple platforms on a macOS host.
+
+    Notarization requires artifacts to be signed beforehand with a \c Developer ID Application
+    certificate. Use the \l{codesign} module with \l{codesign::signingType}{codesign.signingType}
+    set to \c{"apple-id"} and enable the hardened runtime via
+    \l{codesign::codesignFlags}{codesign.codesignFlags}.
+
+    Credentials for Apple's notary service are separate from code signing certificates. Authenticate
+    with a keychain profile created with \c{notarytool store-credentials}. \c notarytool reads the
+    Apple ID, app-specific password, and team ID from that profile, so the password is not stored
+    in the build graph.
+*/
+
+/*!
+    \qmlproperty bool notarization::enableNotarization
+
+    Whether to notarize distributable macOS artifacts produced by this product.
+
+    \defaultvalue \c false
+*/
+
+/*!
+    \qmlproperty string notarization::notarytoolPath
+
+    The path to the \c notarytool binary.
+
+    \defaultvalue \c notarytool from \c{PATH}, or \c xcrun if \c notarytool is not found
+*/
+
+/*!
+    \qmlproperty string notarization::staplerPath
+
+    The path to the \c stapler binary.
+
+    \defaultvalue \c stapler from \c{PATH}, or \c xcrun if \c stapler is not found
+*/
+
+/*!
+    \qmlproperty string notarization::keychainProfile
+
+    The name of the keychain profile created with \c{notarytool store-credentials}.
+
+    \c notarytool reads the Apple ID, app-specific password, and team ID from this profile.
+    \QBS passes only the profile name.
+
+    This value is specific to the build machine. Set it in a
+    \l{Configuring Profiles and Preferences}{profile}.
+    It is required when \l{notarization::enableNotarization}{enableNotarization} is \c true.
+
+    \nodefaultvalue
+*/
+
+/*!
+    \qmlproperty bool notarization::staple
+
+    Whether to run \c{stapler staple} after successful notarization.
+
+    \defaultvalue \c true
+*/
+
+/*!
+    \qmlproperty stringList notarization::notarytoolFlags
+
+    Additional command-line flags passed to \c{notarytool submit}.
+
+    \nodefaultvalue
+*/

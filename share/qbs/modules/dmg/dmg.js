@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 var DarwinTools = require("qbs.DarwinTools");
+var Notarization = require("../notarization/notarization.js");
 var FileInfo = require("qbs.FileInfo");
 var TextFile = require("qbs.TextFile");
 var Utilities = require("qbs.Utilities");
@@ -212,6 +213,8 @@ function prepareDmg(project, product, inputs, outputs, input, output) {
     cmd.environment = ["PYTHONPATH=" + product.dmg.pythonPath];
     cmd.description = "creating " + output.fileName;
     cmds.push(cmd);
+
+    Array.prototype.push.apply(cmds, Notarization.prepareNotarize(product, output.filePath));
 
     return cmds;
 }
