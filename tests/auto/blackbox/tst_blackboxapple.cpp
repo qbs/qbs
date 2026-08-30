@@ -1007,12 +1007,14 @@ void TestBlackboxApple::deploymentTarget_data()
                                                    << "9.0";
         }
 
-        QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
-                                        << "-triple thumbv7k-apple-watchos2.0"
-                                        << "2.0";
-        QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
-                                               << "-triple i386-apple-watchos2.0"
-                                               << "2.0";
+        if (xcodeVersion < qbs::Version(27)) {
+            QTest::newRow("watchos armv7k") << "watchos" << watchos << "armv7k"
+                                            << "-triple thumbv7k-apple-watchos2.0"
+                                            << "2.0";
+            QTest::newRow("watchos-simulator x86") << "watchsimulator" << watchos_sim << "x86"
+                                                   << "-triple i386-apple-watchos2.0"
+                                                   << "2.0";
+        }
     }
 }
 
