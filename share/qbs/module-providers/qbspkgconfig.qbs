@@ -58,10 +58,9 @@ ModuleProvider {
     property bool staticMode: false
     property bool definePrefix: Host.os().includes("windows")
 
-    // We take the sysroot default from qbs.sysroot, except for Xcode toolchains, where
-    // the sysroot points into the Xcode installation and does not contain .pc files.
-    property path sysroot: qbs.toolchain && qbs.toolchain.includes("xcode")
-                           ? undefined : qbs.sysroot
+    // When building on macOS, .pc files live in Homebrew/MacPorts outside the SDK sysroot,
+    // while system libraries are found via the compiler's -isysroot.
+    property path sysroot: Host.os().includes("macos") ? undefined : qbs.sysroot
 
     Probes.BinaryProbe {
         id: pkgConfigProbe

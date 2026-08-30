@@ -7,6 +7,7 @@ Module {
     Probes.PkgConfigProbe {
         id: theProbe
         name: packageName
+        sysroot: ""
         libDirs: [libDir]
     }
 
