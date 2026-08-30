@@ -64,6 +64,8 @@ RUN apt-get update -qq && \
         locales \
         nanopb \
         ninja-build \
+        nodejs \
+        npm \
         nsis \
         openssl \
         osslsigncode \
@@ -88,6 +90,10 @@ ENV LLVM_INSTALL_DIR=/usr/lib/llvm-18
 # Set up Python
 RUN python3 -m venv /venv && \
     /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan mercurial
+
+# Set up Typescript
+
+RUN npm install typescript@6 -g
 
 ENV PATH=/venv/bin:${PATH}
 
