@@ -6348,6 +6348,7 @@ void TestBlackbox::linkerVariant_data()
     QTest::newRow("bfd") << QString("bfd");
     QTest::newRow("gold") << QString("gold");
     QTest::newRow("mold") << QString("mold");
+    QTest::newRow("wild") << QString("wild");
 }
 
 void TestBlackbox::linkerVariant()
