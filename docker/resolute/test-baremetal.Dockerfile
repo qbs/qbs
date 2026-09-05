@@ -1,7 +1,7 @@
 #
 # Baremetal toolchains for testing Qbs
 #
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu baremetal test environment for Qbs"
 
 # Allow colored output on command line.
@@ -34,7 +34,8 @@ ENTRYPOINT ["/sbin/entrypoint.sh"]
 # Install baremetal toolchains and Qbs runtime dependencies.
 RUN apt-get update -qq && \
     apt-get install -qq -y \
-        libasan5 \
+        libasan8 \
+        libbrotli1 \
         libglib2.0-0 \
         libgssapi-krb5-2 \
         gcc-arm-none-eabi \

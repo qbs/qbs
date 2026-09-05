@@ -1,10 +1,8 @@
 #
 # Install Qt and Qbs for Linux
 #
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu development environment for Qbs with Qt and various dependencies for testing Qbs modules and functionality"
-ARG QT_VERSION
-ARG QBS_VERSION
 
 # Allow colored output on command line.
 ENV TERM=xterm-color
@@ -41,8 +39,9 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-18 \
-        clang-tidy-18 \
+        clang-22 \
+        clang-format-22 \
+        clang-tidy-22 \
         cmake \
         curl \
         flex \
@@ -51,8 +50,8 @@ RUN apt-get update -qq && \
         help2man \
         icoutils \
         libcapnp-dev \
-        libc++-18-dev \
-        libclang-rt-18-dev \
+        libc++-22-dev \
+        libclang-rt-22-dev \
         libdbus-1-3 \
         libfreetype6 \
         libfontconfig1 \
@@ -80,22 +79,23 @@ RUN apt-get update -qq && \
         subversion \
         unzip \
         zip && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-18 100 && \
+    ln -sf /usr/lib/x86_64-linux-gnu/libxml2.so.16 /usr/lib/x86_64-linux-gnu/libxml2.so.2 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-22 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100
 
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-18
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-22
 
 # Set up Python
 RUN python3 -m venv /venv && \
-    /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.19.1 pyyaml conan mercurial
+    /venv/bin/pip3 install beautifulsoup4 lxml protobuf==3.20.0 pyyaml conan mercurial
+
+ENV PATH=/venv/bin:${PATH}
 
 # Set up Typescript
 
 RUN npm install typescript@6 -g
-
-ENV PATH=/venv/bin:${PATH}
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -110,7 +110,10 @@ ENV LC_ALL en_US.UTF-8
 COPY scripts/install-qt.sh install-qt.sh
 COPY scripts/install-qbs.sh install-qbs.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qttools qtx11extras qtscxml qtshadertools qt5compat icu && \
+ARG QT_VERSION
+ARG QBS_VERSION
+
+RUN ./install-qt.sh --version ${QT_VERSION} --no-default-mirror qtbase qtdeclarative qttools qtx11extras qtscxml qtshadertools qt5compat icu && \
     ./install-qbs.sh --version ${QBS_VERSION} && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/qbs/qbs-linux-x86_64-${QBS_VERSION}/bin:\${PATH}" > /etc/profile.d/qt.sh
 
@@ -124,6 +127,7 @@ RUN qbs-setup-toolchains /usr/bin/g++ gcc && \
     qbs config profiles.qt-gcc_64.baseProfile gcc && \
     qbs-setup-qt /opt/Qt/${QT_VERSION}/gcc_64/bin/qmake qt-clang_64 && \
     qbs config profiles.qt-clang_64.baseProfile clang && \
+    qbs config profiles.clang.cpp.stdModulesFiles '["/usr/lib/llvm-22/share/libc++/v1/std.cppm","/usr/lib/llvm-22/share/libc++/v1/std.compat.cppm"]' && \
     qbs config defaultProfile qt-gcc_64
 
 # Configure Conan

@@ -105,6 +105,17 @@ with open(dbFile, 'w') as f:
 "
 python3 -c "${SCRIPT}" analyzer/compile_commands.json
 
-RUN_CLANG_TIDY+=" -p analyzer -clang-tidy-binary ${CLANG_TIDY} -j ${CPU_COUNT} -header-filter=\".*qbs.*\.h$\" -quiet"
-${RUN_CLANG_TIDY} 2>/dev/null | tee results.txt
+# -exclude-header-filter was added in LLVM 19.
+EXCLUDE_HEADER_FILTER=""
+CLANG_TIDY_MAJOR=$("${CLANG_TIDY}" --version | sed -n 's/.*version \([0-9][0-9]*\).*/\1/p' | head -1)
+if [ "${CLANG_TIDY_MAJOR:-0}" -ge 19 ]; then
+    EXCLUDE_HEADER_FILTER=" -exclude-header-filter=(Token|qml.*_p|lsp/algorithm)\\.h$"
+fi
+
+# Do not wrap the regexes in extra quotes: those quotes become part of the pattern.
+# Disable globbing so '*' in the filters is not expanded.
+RUN_CLANG_TIDY+=" -p analyzer -clang-tidy-binary ${CLANG_TIDY} -j ${CPU_COUNT} -header-filter=.*qbs.*\\.h\$${EXCLUDE_HEADER_FILTER} -quiet"
+set -f
+echo ${RUN_CLANG_TIDY}
+${RUN_CLANG_TIDY} | tee results.txt
 echo "$(grep -c 'warning:' results.txt) warnings in total"

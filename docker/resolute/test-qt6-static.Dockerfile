@@ -1,10 +1,8 @@
 #
 # Testing Qbs with static qt6
 #
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu static qt6 test environment for Qbs"
-ARG QT_VERSION
-ARG QTCREATOR_VERSION
 
 # Allow colored output on command line.
 ENV TERM=xterm-color
@@ -37,12 +35,13 @@ RUN apt-get update -qq && \
     DEBIAN_FRONTEND="noninteractive" apt-get install -qq -y --no-install-recommends \
     apt-transport-https \
     build-essential \
-    clang-18 \
+    clang-21 \
     cmake \
     git \
     libassimp-dev \
     libb2-dev \
-    libclang-18-dev \
+    libclang-21-dev \
+    libclang-cpp21-dev \
     libdbus-1-dev \
     libdrm-dev \
     libegl-dev \
@@ -100,7 +99,7 @@ RUN apt-get update -qq && \
     libxrender-dev \
     libzstd-dev \
     locales \
-    llvm-18-dev \
+    llvm-21-dev \
     ninja-build \
     perl \
     python3 \
@@ -119,49 +118,54 @@ RUN mkdir ${QT_HOME}
 
 RUN cd ${QT_HOME} && git clone https://code.qt.io/qt/qt5.git
 
-RUN cd ${QT_HOME}/qt5 && git checkout v${QT_VERSION} && perl init-repository
+ARG QT_VERSION
 
-COPY docker/noble/qt6.5.3-static.patch ${QT_HOME}/qt6.5.3-static.patch
-# fixes build with Ubuntu 24.04, see https://bugreports.qt.io/browse/QTBUG-117950
-# RUN cd ${QT_HOME}/qt5/qtbase && git cherry-pick --no-commit bcdec67cd2e8063aca6beed6b301e47974bcd2ce
-# The following patch fixes by appling some commits
-# https://bugreports.qt.io/browse/QTBUG-117950
-# bcdec67cd2e8063aca6beed6b301e47974bcd2ce
-# https://bugreports.qt.io/browse/QTBUG-119469
-# 3f45905953d57e0174059d7d9d6bc75c3c1c406c
-# 7d9d1220f367d9275dfaa7ce12e89b0a9f4c1978
-# 3073b9c4dec5e5877363794bf81cbd4b84fdb9ee
-RUN cd ${QT_HOME}/qt5/qtbase && git apply ${QT_HOME}/qt6.5.3-static.patch
+RUN cd ${QT_HOME}/qt5 && git checkout v${QT_VERSION} && perl init-repository --module-subset=default,\
+-qt3d,\
+-qtactiveqt,\
+-qtcanvaspainter,\
+-qtcharts,\
+-qtconnectivity,\
+-qtcoap,\
+-qtdatavis3d,\
+-qtgraphs,\
+-qtgrpc,\
+-qthttpserver,\
+-qtimageformats,\
+-qtlanguageserver,\
+-qtlocation,\
+-qtlottie,\
+-qtmqtt,\
+-qtmultimedia,\
+-qtnetworkauth,\
+-qtopcua,\
+-qtopenapi,\
+-qtpositioning,\
+-qtqa,\
+-qtquick3d,\
+-qtquick3dphysics,\
+-qtquickeffectmaker,\
+-qtquicktimeline,\
+-qtremoteobjects,\
+-qtsensors,\
+-qtserialbus,\
+-qtserialport,\
+-qtspeech,\
+-qtsvg,\
+-qttasktree,\
+-qttranslations,\
+-qtvirtualkeyboard,\
+-qtwayland,\
+-qtwebengine,\
+-qtwebchannel,\
+-qtwebsockets,\
+-qtwebview
+
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-21
 
 RUN mkdir ${QT_HOME}/static-build && \
     cd ${QT_HOME}/static-build && \
-    ../qt5/configure -prefix /opt/Qt/${QT_VERSION}/gcc_64 -static \
-        -skip qt3d \
-        -skip qtactiveqt \
-        -skip qtcharts \
-        -skip qtconnectivity \
-        -skip qtcoap \
-        -skip qtdatavis3d \
-        -skip qthttpserver \
-        -skip qtimageformats \
-        -skip qtlanguageserver \
-        -skip qtlocation \
-        -skip qtlottie \
-        -skip qtmqtt \
-        -skip qtmultimedia \
-        -skip qtopcua \
-        -skip qtpositioning \
-        -skip qtqa \
-        -skip qtquick3d \
-        -skip qtquick3dphysics \
-        -skip qtquickeffectmaker \
-        -skip qtquicktimeline \
-        -skip qtsensors \
-        -skip qtspeech \
-        -skip qtvirtualkeyboard \
-        -skip qtwebchannel \
-        -skip qtwebview \
-        -skip qtwebengine
+    ../qt5/configure -prefix /opt/Qt/${QT_VERSION}/gcc_64 -static
 
 RUN cd ${QT_HOME}/static-build && cmake --build . --parallel
 
@@ -169,10 +173,8 @@ USER root
 
 RUN cd ${QT_HOME}/static-build && cmake --install .
 
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu static qt6 test environment for Qbs"
-ARG QT_VERSION
-ARG QTCREATOR_VERSION
 
 RUN mkdir -p /opt/Qt
 COPY --from=0 /opt/Qt/${QT_VERSION} /opt/Qt/${QT_VERSION}
@@ -203,8 +205,8 @@ RUN apt-get update -qq && \
         ca-certificates \
         capnproto \
         ccache \
-        clang-18 \
-        clang-tidy-18 \
+        clang-22 \
+        clang-tidy-22 \
         cmake \
         curl \
         flex \
@@ -214,6 +216,8 @@ RUN apt-get update -qq && \
         libb2-dev \
         libbrotli-dev \
         libcapnp-dev \
+        libclang1-21 \
+        libclang-cpp21 \
         libdbus-1-dev \
         libdrm-dev \
         libfontconfig1-dev \
@@ -228,6 +232,7 @@ RUN apt-get update -qq && \
         libnanopb-dev \
         libpcre++ \
         libprotobuf-dev \
+        libwayland-dev \
         libx11-xcb-dev \
         libxcb-composite0-dev \
         libxcb-cursor-dev \
@@ -279,12 +284,12 @@ RUN apt-get update -qq && \
         subversion \
         unzip \
         zip && \
-    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-18 100 && \
-    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-18 100 && \
-    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-18 100 && \
+    update-alternatives --install /usr/bin/clang clang /usr/bin/clang-22 100 && \
+    update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-22 100 && \
+    update-alternatives --install /usr/bin/clang-check clang-check /usr/bin/clang-check-22 100 && \
     update-alternatives --install /usr/bin/python python /usr/bin/python3 100
 
-ENV LLVM_INSTALL_DIR=/usr/lib/llvm-18
+ENV LLVM_INSTALL_DIR=/usr/lib/llvm-22
 
 # Set up Python
 RUN python3 -m venv /venv && \
@@ -303,11 +308,15 @@ ENV LC_ALL en_US.UTF-8
 # Install Qbs for Linux from qt.io
 #
 COPY scripts/install-qt.sh install-qt.sh
+COPY scripts/install-qbs.sh install-qbs.sh
 
-RUN ./install-qt.sh --version ${QTCREATOR_VERSION} qtcreator && \
-    echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:\${PATH}" > /etc/profile.d/qt.sh
+ARG QT_VERSION
+ARG QBS_VERSION
 
-ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/Qt/Tools/QtCreator/bin:${PATH}
+RUN ./install-qbs.sh --version ${QBS_VERSION} && \
+    echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/qbs/qbs-linux-x86_64-${QBS_VERSION}/bin:\${PATH}" > /etc/profile.d/qt.sh
+
+ENV PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:/opt/qbs/qbs-linux-x86_64-${QBS_VERSION}/bin:${PATH}
 
 # Configure Qbs
 USER $USER_NAME

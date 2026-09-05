@@ -1,7 +1,7 @@
 #
 # Testing Qbs with Web Assembly
 #
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu wasm test environment for Qbs"
 ARG QT_VERSION
 ARG EMSCRIPTEN_VERSION
@@ -41,7 +41,8 @@ RUN sudo apt-get update -qq && \
         p7zip-full \
         python3 \
         python3-pip \
-        unzip
+        unzip \
+        xz-utils
 
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
@@ -50,9 +51,9 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-RUN curl -L https://github.com/emscripten-core/emsdk/archive/refs/heads/main.zip > /emsdk.zip && \
-    unzip /emsdk.zip && \
-    rm /emsdk.zip && \
+RUN curl -L https://github.com/emscripten-core/emsdk/archive/refs/heads/main.zip > /tmp/emsdk.zip && \
+    unzip /tmp/emsdk.zip && \
+    rm /tmp/emsdk.zip && \
     mv /emsdk-main /emsdk && \
     cd /emsdk && \
     ./emsdk install ${EMSCRIPTEN_VERSION} && \
@@ -62,14 +63,14 @@ ENV EMSDK=/emsdk \
     PATH="/emsdk:/emsdk/upstream/emscripten:/emsdk/node/18.20.3_64bit/bin:${PATH}"
 
 #
-# Install Qt for Wasm from qt.io
+# Install Qt for Wasm
 #
 COPY scripts/install-qt.sh install-qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative qttools qtx11extras qtscxml qt5compat icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} --no-default-mirror qtbase qtdeclarative qttools qtx11extras qtscxml qt5compat icu && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/gcc_64/bin:\${PATH}" > /etc/profile.d/qt.sh
 
-RUN ./install-qt.sh --version ${QT_VERSION} --target wasm --toolchain wasm_multithread qtbase qtdeclarative qttools qtx11extras qtscxml qt5compat icu && \
+RUN ./install-qt.sh --version ${QT_VERSION} --no-default-mirror --target wasm --toolchain wasm_multithread qtbase qtdeclarative qttools qtx11extras qtscxml qt5compat icu && \
     echo "export PATH=/opt/Qt/${QT_VERSION}/wasm_multithread/bin:\${PATH}" > /etc/profile.d/qt.sh
 
 # Work-around for QTBUG-79020

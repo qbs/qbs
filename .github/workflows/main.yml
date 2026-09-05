@@ -16,15 +16,15 @@ jobs:
       matrix:
         config:
         - {
-            name: 'Build on Linux (Noble, gcc)',
-            image: 'noble-qt6',
+            name: 'Build on Linux (Resolute, gcc)',
+            image: 'resolute-qt6',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true
-                      products.qbs_archive.targetName:qbs-linux-noble-${{ github.run_id }}
+                      products.qbs_archive.targetName:qbs-linux-resolute-${{ github.run_id }}
                       products.qbs_archive.includeTests:true',
             script: './scripts/build-qbs-with-qbs.sh',
-            cacheid: 'gcc-qt6-noble',
-            suffix: 'linux-noble',
+            cacheid: 'gcc-qt6-resolute',
+            suffix: 'linux-resolute',
           }
     env:
       BUILD_OPTIONS: ${{ matrix.config.options }}
@@ -68,19 +68,19 @@ jobs:
         - {
             name: 'Build on Linux (clang_tidy)',
             script: './scripts/run-analyzer.sh',
-            image: 'noble-qt6',
+            image: 'resolute-qt6',
             options: 'profile:qt-clang_64 modules.cpp.compilerWrapper:ccache',
             cacheid: 'clang',
           }
         - {
             name: 'Build on Linux (CMake)',
             script: './scripts/build-qbs-with-cmake.sh',
-            image: 'noble-qt6',
+            image: 'resolute-qt6',
             cacheid: 'cmake',
           }
         - {
             name: 'Build on Linux (gcc, ASAN)',
-            image: 'noble-qt6',
+            image: 'resolute-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableAddressSanitizer:true
@@ -89,7 +89,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, UBSAN)',
-            image: 'noble-qt6',
+            image: 'resolute-qt6',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbsbuildconfig.enableUbSanitizer:true
@@ -98,7 +98,7 @@ jobs:
           }
         - {
             name: 'Build on Linux (gcc, Qt 5.15)',
-            image: 'noble-qt5',
+            image: 'resolute-qt5',
             script: './scripts/build-qbs-with-qbs.sh',
             options: 'modules.cpp.compilerWrapper:ccache
                       modules.qbs.debugInformation:true',
@@ -434,57 +434,57 @@ jobs:
         config:
         - {
             name: 'Test Linux (gcc, Qt 6)',
-            image: 'noble-qt6',
-            suffix: 'linux-noble',
+            image: 'resolute-qt6',
+            suffix: 'linux-resolute',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Test Linux (clang, Qt 6)',
-            image: 'noble-qt6',
-            suffix: 'linux-noble',
+            image: 'resolute-qt6',
+            suffix: 'linux-resolute',
             profile: 'qt-clang_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Test Linux (gcc, Qt 6, static)',
-            image: 'noble-qt6-static',
-            suffix: 'linux-noble',
+            image: 'resolute-qt6-static',
+            suffix: 'linux-resolute',
             profile: 'qt-gcc_64',
             script: './scripts/test-qbs.sh',
           }
         - {
             name: 'Test Linux (gcc, Qt 5)',
-            image: 'noble-qt5',
-            suffix: 'linux-noble',
+            image: 'resolute-qt5',
+            suffix: 'linux-resolute',
             profile: 'qt-gcc_64',
             script: './scripts/test-qt.sh',
           }
         - {
               name: 'Test Android (Qt 6.5)',
-              image: 'noble-android-65',
-              suffix: 'linux-noble',
+              image: 'resolute-android-65',
+              suffix: 'linux-resolute',
               profile: '',
               script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Test Android (Qt 5.15)',
-            image: 'noble-android-515',
-            suffix: 'linux-noble',
+            image: 'resolute-android-515',
+            suffix: 'linux-resolute',
             profile: '',
             script: './scripts/test-qt-for-android.sh',
           }
         - {
             name: 'Test Android (ndk r25)',
-            image: 'noble-android-ndk-r25',
-            suffix: 'linux-noble',
+            image: 'resolute-android-ndk-r25',
+            suffix: 'linux-resolute',
             profile: '',
             script: './scripts/test-for-android.sh',
           }
         - {
             name: 'Test WebAssembly',
-            image: 'noble-qt6-wasm',
-            suffix: 'linux-noble',
+            image: 'resolute-qt6-wasm',
+            suffix: 'linux-resolute',
             profile: '',
             script: './scripts/test-wasm.sh',
           }
@@ -527,26 +527,26 @@ jobs:
     - name: Download artifact
       uses: actions/download-artifact@v8
       with:
-        name: qbs-linux-noble-${{ github.run_id }}.tar.gz
+        name: qbs-linux-resolute-${{ github.run_id }}.tar.gz
         path: ./
     - name: Unpack artifact
-      run: mkdir -p release/install-root/ && tar xzf qbs-linux-noble-${{ github.run_id }}.tar.gz -C release/install-root/
+      run: mkdir -p release/install-root/ && tar xzf qbs-linux-resolute-${{ github.run_id }}.tar.gz -C release/install-root/
     - name: Pull the Docker Image
-      run: docker compose pull noble-baremetal
-    - name: arm-none-eabi-gcc-13_2
-      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: avr-gcc-7_3
-      run: QBS_AUTOTEST_PROFILE=avr-gcc-7_3 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: riscv64-unknown-elf-gcc-13_2
-      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-4_0_0-hcs8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-hcs8 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-4_0_0-mcs51
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-mcs51 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: sdcc-4_0_0-stm8
-      run: QBS_AUTOTEST_PROFILE=sdcc-4_2_0-stm8 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
-    - name: xtensa-lx106-elf-gcc-13_2
-      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-13_2 docker compose run noble-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+      run: docker compose pull resolute-baremetal
+    - name: arm-none-eabi-gcc-14_2
+      run: QBS_AUTOTEST_PROFILE=arm-none-eabi-gcc-14_2 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: avr-gcc-14_3
+      run: QBS_AUTOTEST_PROFILE=avr-gcc-14_3 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: riscv64-unknown-elf-gcc-14_2
+      run: QBS_AUTOTEST_PROFILE=riscv64-unknown-elf-gcc-14_2 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_5_0-hcs8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_5_0-hcs8 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_5_0-mcs51
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_5_0-mcs51 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: sdcc-4_5_0-stm8
+      run: QBS_AUTOTEST_PROFILE=sdcc-4_5_0-stm8 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
+    - name: xtensa-lx106-elf-gcc-13_4
+      run: QBS_AUTOTEST_PROFILE=xtensa-lx106-elf-gcc-13_4 docker compose run resolute-baremetal scripts/test-baremetal.sh release/install-root/usr/local/bin
 
   test-macos:
     name: ${{ matrix.config.name }}

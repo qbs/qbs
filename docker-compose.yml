@@ -22,88 +22,88 @@ x-default-service: &linux
       hard: -1
 
 services:
-  noble-qt6: &noble-qt6
+  resolute-qt6: &resolute-qt6
     << : *linux
-    hostname: noble-qt6
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-6.8.3_2.5.1-3
+    hostname: resolute-qt6
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-qt6-6.11.2_3.4.0-0
     build:
-      dockerfile: docker/noble/Dockerfile
+      dockerfile: docker/resolute/Dockerfile
       context: .
       args:
-        QT_VERSION: 6.8.3
-        QBS_VERSION: 2.5.1
+        QT_VERSION: 6.11.2
+        QBS_VERSION: 3.4.0
 
-  noble:
-    << : *noble-qt6
-
-  noble-qt5:
+  resolute-qt5: &resolute-qt5
     << : *linux
-    hostname: noble-qt5
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-5.15.2_2.5.1-4
+    hostname: resolute-qt5
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-qt5-5.12.2_3.0.3-0
     build:
-      dockerfile: docker/noble/Dockerfile
+      dockerfile: docker/resolute/Dockerfile
       context: .
       args:
         QT_VERSION: 5.15.2
-        QBS_VERSION: 2.5.1
+        QBS_VERSION: 3.0.3
 
-  noble-android-65:
+  resolute:
+    << : *resolute-qt6
+
+  resolute-android-65:
     << : *linux
-    hostname: noble-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-android-6.5.0-0
+    hostname: resolute-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-android-6.5.0-0
     build:
-      dockerfile: docker/noble/test-android.Dockerfile
+      dockerfile: docker/resolute/test-android.Dockerfile
       context: .
       args:
         QT_VERSION: 6.5.0
         ANDROID_NDK_VERSION: 25.1.8937393
 
-  noble-android-515:
+  resolute-android-515:
     << : *linux
-    hostname: noble-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-android-5.15.2-0
+    hostname: resolute-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-android-5.15.2-0
     build:
-      dockerfile: docker/noble/test-android.Dockerfile
+      dockerfile: docker/resolute/test-android.Dockerfile
       context: .
       args:
         QT_VERSION: 5.15.2
         ANDROID_NDK_VERSION: 23.0.7599858
 
-  noble-android-ndk-r25:
+  resolute-android-ndk-r25:
     << : *linux
-    hostname: noble-android
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-android-ndk-r25-0
+    hostname: resolute-android
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-android-ndk-r25-0
     build:
-      dockerfile: docker/noble/test-android-no-qt.Dockerfile
+      dockerfile: docker/resolute/test-android-no-qt.Dockerfile
       context: .
       args:
         ANDROID_NDK_VERSION: 25.1.8937393
 
-  noble-baremetal:
+  resolute-baremetal:
     << : *linux
-    hostname: noble-baremetal
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-baremetal-0
+    hostname: resolute-baremetal
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-baremetal-0
     build:
-      dockerfile: docker/noble/test-baremetal.Dockerfile
+      dockerfile: docker/resolute/test-baremetal.Dockerfile
       context: .
 
-  noble-qt6-static:
+  resolute-qt6-static:
     << : *linux
-    hostname: noble-qt6-static
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-static-6.5.3_2.3.2-0
+    hostname: resolute-qt6-static
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-qt6-static-6.11.2_3.0.3-0
     build:
-      dockerfile: docker/noble/test-qt6-static.Dockerfile
+      dockerfile: docker/resolute/test-qt6-static.Dockerfile
       context: .
       args:
-        QT_VERSION: 6.5.3
-        QTCREATOR_VERSION: 13.0.2
+        QT_VERSION: 6.11.2
+        QBS_VERSION: 3.0.3
 
-  noble-qt6-wasm:
+  resolute-qt6-wasm:
     << : *linux
-    hostname: noble-qt6-wasm
-    image: ${DOCKER_USER:-qbsbuild}/qbsdev:noble-qt6-wasm-6.7.3-0
+    hostname: resolute-qt6-wasm
+    image: ${DOCKER_USER:-qbsbuild}/qbsdev:resolute-qt6-wasm-6.7.3-0
     build:
-      dockerfile: docker/noble/test-qt6-wasm.Dockerfile
+      dockerfile: docker/resolute/test-qt6-wasm.Dockerfile
       context: .
       args:
         QT_VERSION: 6.7.3

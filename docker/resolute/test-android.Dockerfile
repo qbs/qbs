@@ -1,7 +1,7 @@
 #
 # Android SDK/NDK + Qt for Android for testing Qbs
 #
-FROM ubuntu:noble
+FROM ubuntu:resolute
 LABEL Description="Ubuntu test environment for Qbs and Qt for Android"
 
 # Allow colored output on command line.
@@ -37,7 +37,7 @@ RUN apt-get update -qq && \
         ca-certificates \
         curl \
         gdb \
-        libasan5 \
+        libasan8 \
         libglib2.0-0 \
         locales \
         openjdk-8-jdk-headless \
@@ -124,7 +124,7 @@ RUN if [ "${QT_VERSION}" \< "5.14" ] || [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
         QT_ABIS="any"; \
     fi; \
     if [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
-        ./install-qt.sh --version ${QT_VERSION} qtbase qtdeclarative icu; \
+        ./install-qt.sh --version ${QT_VERSION} --no-default-mirror qtbase qtdeclarative icu; \
         if [ "${QT_VERSION}" \< "6.1.0" ]; then \
             QT_COMPONENTS="qtbase qtdeclarative qttools qtquickcontrols2 qtquicktimeline svg"; \
         else \
@@ -134,6 +134,6 @@ RUN if [ "${QT_VERSION}" \< "5.14" ] || [ ! "${QT_VERSION}" \< "6.0.0" ]; then \
         QT_COMPONENTS="qtbase qtdeclarative qttools qtimageformats"; \
     fi; \
     for abi in ${QT_ABIS}; do \
-        ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} ${QT_COMPONENTS}; \
+        ./install-qt.sh --version ${QT_VERSION} --target android --toolchain ${abi} --no-default-mirror ${QT_COMPONENTS}; \
     done && \
     echo "export QT_VERSION=${QT_VERSION}" >> /etc/profile.d/qt.sh

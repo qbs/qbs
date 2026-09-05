@@ -28,9 +28,9 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Pull the Docker Image
-      run: docker compose pull noble
+      run: docker compose pull resolute-qt6
     - name: Build Qbs Docs
-      run: docker compose run noble ${{ matrix.config.script }}
+      run: docker compose run resolute-qt6 ${{ matrix.config.script }}
     - name: Upload artifacts
       uses: 'actions/upload-artifact@v7'
       with:
