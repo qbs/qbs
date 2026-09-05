@@ -424,7 +424,7 @@ download_one() {
     echo "Trying ${url} ..." >&2
     "${CURL[@]}" "${url}" -o "${package}" || return 1
     7z t "${package}" >/dev/null 2>&1 || return 1
-    7z x -y -o"${ARCHIVER_DIR}" "${package}" >/dev/null 2>&1 || return 1
+    7z x -y -o"${ARCHIVER_DIR}" "${package}" >/dev/null 2>&1 || 7z x -y -snld20 -o"${ARCHIVER_DIR}" "${package}" >/dev/null 2>&1 || return 1
     7z l -ba -slt -y "${package}" | tr '\\' '/' | sed -n -e "s|^Path\ =\ |${ARCHIVER_DIR}/|p" >> "${HASH_FILEPATH}" 2>/dev/null
     rm -f "${package}"
 }
