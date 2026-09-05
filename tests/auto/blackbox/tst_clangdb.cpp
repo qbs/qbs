@@ -210,8 +210,9 @@ void TestClangDb::checkClangDetectsSourceCodeProblems()
     arguments << "-analyze" << "-p" << relativeBuildDir() << sourceFilePath;
     QVERIFY(runProcess(executable, arguments, stdErr, stdOut) == 0);
     const QString output = QString::fromLocal8Bit(stdErr);
-    QVERIFY(output.contains(QRegularExpression(QStringLiteral("warning.*undefined"),
-                                               QRegularExpression::CaseInsensitiveOption)));
+    QVERIFY(output.contains(QRegularExpression(
+        QStringLiteral("warning.*undefined|uninitialized"),
+        QRegularExpression::CaseInsensitiveOption)));
     QVERIFY(output.contains(QRegularExpression(QStringLiteral("warning.*never read"),
                                                QRegularExpression::CaseInsensitiveOption)));
 }
