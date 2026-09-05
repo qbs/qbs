@@ -307,6 +307,7 @@ void TestTools::testSettingsMigration()
 {
     QFETCH(QString, baseDir);
     QFETCH(bool, hasOldSettings);
+    QVERIFY(!baseDir.isEmpty());
     Settings settings(baseDir);
     if (hasOldSettings) {
         // checks that we do not copy old "profiles/" dir anymore
@@ -364,7 +365,7 @@ QString TestTools::setupSettingsDir1()
         QDir::root().mkpath(profilesDir);
         const QString magicString = v == predecessor ? "right" : "wrong";
         QFile f(profilesDir + '/' + magicString + ".txt");
-        f.open(QIODevice::WriteOnly);
+        QBS_ASSERT(f.open(QIODevice::WriteOnly), return QString());
         s.setValue("org/qt-project/qbs/key", profilesDir + magicString);
     }
 
@@ -381,7 +382,7 @@ QString TestTools::setupSettingsDir2()
     const QString profilesDir = settingsDir + QLatin1String("/qbs/profiles");
     QDir::root().mkpath(profilesDir);
     QFile f(profilesDir + "/right.txt");
-    f.open(QIODevice::WriteOnly);
+    QBS_ASSERT(f.open(QIODevice::WriteOnly), return QString());
     s.setValue("org/qt-project/qbs/key", profilesDir + "right");
 
     return baseDir->path();
