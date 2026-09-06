@@ -310,7 +310,15 @@ function compute_url(){
     else
         HOST_OS_NAME=${HOST_OS//_x64/}
         HOST_OS_NAME=${HOST_OS_NAME//_arm64/}
+        # Windows >=6.11.0: packages are split per toolchain under
+        # qt6_6110/qt6_6110_msvc2022_64/ (win64_ prefix stripped from the dir name).
+        local WIN_TOOLCHAIN_DIR=${TOOLCHAIN#win64_}
         local REMOTE_BASES=(
+            # Windows repository format (>=6.11.0)
+            # qt6_6110/qt6_6110_msvc2022_64/qt.qt6.6110.win64_msvc2022_64/
+            "qt6_${VERSION//./}/qt6_${VERSION//./}_${WIN_TOOLCHAIN_DIR}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
+            # qt6_6110/qt6_6110_msvc2022_64/qt.qt6.6110.addons.qt5compat.win64_msvc2022_64/
+            "qt6_${VERSION//./}/qt6_${VERSION//./}_${WIN_TOOLCHAIN_DIR}/qt.qt6.${VERSION//./}.addons.${COMPONENT}.${TOOLCHAIN}"
             # New repository format (>=6.8.0)
             # qt6_680/qt6_680/qt.qt6.680.clang_64/6.8.3-0-*qtbase-*.7z
             "qt6_${VERSION//./}/qt6_${VERSION//./}/qt.qt6.${VERSION//./}.${TOOLCHAIN}"
@@ -460,12 +468,23 @@ function process_qtbase() {
         QMAKE_FILE="${UNPACK_DIR}/${VERSION}/gcc_64/bin/qmake"
         sed -i.bak "s|\/home\/qt\/work\/install\/bin\/qmake|${QMAKE_FILE}|g" "${WASM_QMAKE_FILE}"
     elif [ "${TARGET_PLATFORM}" == "desktop" ] && [ "${TOOLCHAIN}" == "win64_msvc2022_arm64_cross_compiled" ] && [ ! "${VERSION}" \< "6.0.0" ]; then
-        CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
+        local BIN_DIR="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin"
+        CONF_FILE="${BIN_DIR}/target_qt.conf"
         sed -i.bak "s|HostData=target|HostData=../msvc2022_arm64_cross_compiled|g" "${CONF_FILE}"
         sed -i.bak "s|HostPrefix=..\/..\/|HostPrefix=..\/..\/msvc2022_64|g" "${CONF_FILE}"
-        ARM64_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake.bat"
-        QMAKE_FILE='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qmake6.exe"'
-        sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qmake6.exe|${QMAKE_FILE}|g" "${ARM64_QMAKE_FILE}"
+        # Qt <=6.8 shipped qmake.bat; >=6.10 renamed it to host-qmake.bat (same content).
+        local HOST_QMAKE6='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qmake6.exe"'
+        local HOST_QTPATHS6='"%~dp0\\\\..\\\\..\\\\msvc2022_64\\\\bin\\\\qtpaths6.exe"'
+        for bat in qmake.bat qmake6.bat host-qmake.bat host-qmake6.bat; do
+            if [ -f "${BIN_DIR}/${bat}" ]; then
+                sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qmake6.exe|${HOST_QMAKE6}|g" "${BIN_DIR}/${bat}"
+            fi
+        done
+        for bat in host-qtpaths.bat host-qtpaths6.bat; do
+            if [ -f "${BIN_DIR}/${bat}" ]; then
+                sed -i.bak "s|\\\\Users\\\\qt\\\\work\\\\install\\\\bin\\\\qtpaths6.exe|${HOST_QTPATHS6}|g" "${BIN_DIR}/${bat}"
+            fi
+        done
     else
         CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qt.conf"
         echo "[Paths]" > ${CONF_FILE}
