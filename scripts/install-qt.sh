@@ -431,10 +431,10 @@ download_one() {
 
 # Patch qt.conf / qconfig.pri for qmake and print the bin directory for PATH.
 function process_qtbase() {
-    if [ "${TARGET_PLATFORM}" == "android" ] && [ ! "$(version "${VERSION}")" < "$(version "6.0.0")" ]; then
+    if [ "${TARGET_PLATFORM}" == "android" ] && [ "$(version "${VERSION}")" -ge "$(version "6.0.0")" ]; then
         CONF_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/target_qt.conf"
         ANDROID_QMAKE_FILE="${UNPACK_DIR}/${VERSION}/${TOOLCHAIN_DIR}/bin/qmake"
-        if [ "${TOOLCHAIN}" == "android_armv7" ] && [ ! "$(version "${VERSION}")" < "$(version "6.4.2")" ]; then
+        if [ "${TOOLCHAIN}" == "android_armv7" ] && [ "$(version "${VERSION}")" -ge "$(version "6.4.2")" ]; then
             sed -i "s/\r//" "${CONF_FILE}"
             sed -i "s|HostLibraryExecutables=.\/bin|HostLibraryExecutables=.\/libexec|g" "${CONF_FILE}"
             chmod +x "${ANDROID_QMAKE_FILE}"
