@@ -476,7 +476,7 @@ static int getEvalPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t 
         JSPropertyEnum *entry = *ptab;
         for (auto it = map.cbegin(); it != map.cend(); ++it, ++entry) {
             entry->atom = JS_NewAtom(ctx, it.key().toUtf8().constData());
-            entry->is_enumerable = 1;
+            entry->is_enumerable = true;
         }
     } else {
         *ptab = nullptr;
@@ -873,7 +873,7 @@ private:
         if (alternative) {
             ScopedJsValue sv(
                 m_engine.context(),
-                alternative->value->isFallback() ? JS_NewBool(m_engine.context(), 1)
+                alternative->value->isFallback() ? JS_NewBool(m_engine.context(), true)
                                                  : m_engine.evaluate(
                                                        JsValueOwner::Caller,
                                                        alternative->condition.value,

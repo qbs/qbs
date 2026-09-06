@@ -110,16 +110,16 @@ void getPropertyNames(JSContext *ctx, JSPropertyEnum **ptab, uint32_t *plen,
     JSPropertyEnum *entry = *ptab;
     for (auto it = properties.begin(); it != properties.end(); ++it, ++entry) {
         entry->atom = JS_NewAtom(ctx, it.key().toUtf8().constData());
-        entry->is_enumerable = 1;
+        entry->is_enumerable = true;
     }
     for (const QString &prop : extraPropertyNames) {
         entry->atom = JS_NewAtom(ctx, prop.toUtf8().constData());
-        entry->is_enumerable = 1;
+        entry->is_enumerable = true;
         ++entry;
     }
     for (uint32_t i = 0; i < basePlen; ++i, ++entry) {
         entry->atom = basePTab[i].atom;
-        entry->is_enumerable = 1;
+        entry->is_enumerable = true;
     }
     js_free(ctx, basePTab);
 }

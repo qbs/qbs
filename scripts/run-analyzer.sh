@@ -89,7 +89,7 @@ import os
 import sys
 
 dbFile = sys.argv[1]
-blacklist = ['qmljsgrammar.cpp', 'qmljsparser.cpp']
+blacklist = ['qmljsgrammar.cpp', 'qmljsparser.cpp', 'qmljslexer.cpp', 'Lexer.cpp']
 seenFiles = set()
 patched_db = []
 with open(dbFile, 'r') as f:

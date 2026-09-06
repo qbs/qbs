@@ -14,6 +14,7 @@ Checks: >
     google-build-namespaces,
     google-global-names-in-headers,
     google-objc-*,
+    -google-objc-function-naming,
     google-readability-namespace-comments,
     google-runtime-operator,
     misc-definitions-in-headers,
@@ -45,6 +46,8 @@ Checks: >
     modernize-use-using,
     performance-*,
     -performance-no-int-to-ptr,
+    -performance-enum-size,
+    -performance-avoid-endl,
     readability-avoid-const-params-in-decls,
     readability-container-size-empty,
     readability-delete-null-pointer,
@@ -70,6 +73,5 @@ WarningsAsErrors: >
     -readability-container-size-empty
 
 HeaderFilterRegex: ''
-AnalyzeTemporaryDtors: false
 CheckOptions:
     modernize-loop-convert.UseCxx20ReverseRanges: false

@@ -117,7 +117,7 @@ void ASTImportsHandler::handleImport(const QbsQmlJS::AST::UiImport *import, bool
         }
     } else {
         if (importUri.size() == 2 && importUri.front() == StringConstants::qbsModule()) {
-            const QString extensionName = importUri.last();
+            const QString &extensionName = importUri.last();
             if (JsExtensions::hasExtension(extensionName)) {
                 if (Q_UNLIKELY(!import->importId.isNull())) {
                     throw ErrorInfo(Tr::tr("Import of built-in extension '%1' "

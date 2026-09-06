@@ -470,8 +470,8 @@ JSValue UtilitiesExtension::js_smimeMessageContent(JSContext *ctx, JSValueConst,
     return throwError(ctx, QStringLiteral("smimeMessageContent is not available on this platform"));
 #else
     try {
-        const QString filePath = getArgument<QString>(ctx, "Utilities.smimeMessageContent",
-                                                      argc, argv);
+        const auto filePath = getArgument<QString>(
+            ctx, "Utilities.smimeMessageContent", argc, argv);
         QFile file(filePath);
         if (!file.open(QIODevice::ReadOnly))
             return JS_UNDEFINED;
@@ -495,7 +495,7 @@ JSValue UtilitiesExtension::js_certificateInfo(JSContext *ctx, JSValueConst,
     return throwError(ctx, QStringLiteral("certificateInfo is not available on this platform"));
 #else
     try {
-        const QVariant arg = getArgument<QVariant>(ctx, "Utilities.certificateInfo", argc, argv);
+        const auto arg = getArgument<QVariant>(ctx, "Utilities.certificateInfo", argc, argv);
         return toJsValue(ctx, certificateInfo(arg.toByteArray()));
     }  catch (const QString &error) {
         return throwError(ctx, error);

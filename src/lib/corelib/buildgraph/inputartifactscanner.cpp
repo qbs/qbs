@@ -136,7 +136,7 @@ static void resolveDepencency(
 
 InputArtifactScanner::InputArtifactScanner(
     Logger logger, InputArtifactScannerContext *ctx, Set<QString> excludedScanners)
-    : m_logger(logger)
+    : m_logger(std::move(logger))
     , m_context(ctx)
     , m_excludedScanners(std::move(excludedScanners))
 {}

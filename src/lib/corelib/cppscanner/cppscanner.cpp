@@ -51,22 +51,23 @@ using namespace CPlusPlus;
 
 class TokenComparator
 {
-    const char * const m_fileContent;
+    const std::string_view m_fileContent;
 
 public:
-    TokenComparator(const char *fileContent)
+    TokenComparator(std::string_view fileContent)
         : m_fileContent(fileContent)
     {}
 
     bool equals(const Token &tk, const QLatin1String &literal) const
     {
-        return static_cast<int>(tk.bytes()) == literal.size()
-               && memcmp(m_fileContent + tk.bytesBegin(), literal.data(), literal.size()) == 0;
+        return tk.bytes() == static_cast<int>(literal.size())
+               && memcmp(m_fileContent.data() + tk.bytesBegin(), literal.data(), literal.size())
+                      == 0;
     }
 
     QByteArray toByteArray(const Token &tk) const
     {
-        const auto ptr = m_fileContent + tk.bytesBegin();
+        const auto ptr = m_fileContent.data() + tk.bytesBegin();
         const auto len = tk.bytes();
         return {ptr, int(len)};
     }
@@ -89,7 +90,7 @@ static void doScanCppFile(
     const QLatin1String qnamespaceExportLiteral("Q_NAMESPACE_EXPORT");
     const QLatin1String pluginMetaDataLiteral("Q_PLUGIN_METADATA");
 
-    const TokenComparator tc(context.fileContent.data());
+    const TokenComparator tc(context.fileContent);
     Token tk;
     Token oldTk;
     ScanResult scanResult;

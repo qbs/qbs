@@ -83,7 +83,7 @@ std::vector<std::string> split(std::string_view str, const char delim)
     return result;
 }
 
-constexpr inline char listSeparator() noexcept
+constexpr char listSeparator() noexcept
 {
 #if defined(WIN32)
     return ';';

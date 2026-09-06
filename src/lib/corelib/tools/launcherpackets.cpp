@@ -51,7 +51,7 @@ QByteArray LauncherPacket::serialize() const
 {
     QByteArray data;
     QDataStream stream(&data, QIODevice::WriteOnly);
-    stream << static_cast<int>(0) << static_cast<quint8>(type) << token;
+    stream << 0 << static_cast<quint8>(type) << token;
     doSerialize(stream);
     stream.device()->reset();
     stream << static_cast<int>(data.size() - sizeof(int));

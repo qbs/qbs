@@ -159,9 +159,9 @@ private:
     QHash<QStringList, ArtifactPropertiesInfo> m_artifactPropertiesPerFilter;
     struct FileTagsFilterGroupInfo
     {
-        FileTagsFilterGroupInfo(const FileTags &filter, const FileTags &extraTags, Item *item)
-            : filter(filter)
-            , extraTags(extraTags)
+        FileTagsFilterGroupInfo(FileTags filter, FileTags extraTags, Item *item)
+            : filter(std::move(filter))
+            , extraTags(std::move(extraTags))
             , item(item)
         {}
         const FileTags filter;
@@ -1370,7 +1370,8 @@ void ExportsResolver::resolveShadowProduct()
     }
     try {
         adaptExportedPropertyValues();
-    } catch (const ErrorInfo &) {}
+    } catch (const ErrorInfo &) { // NOLINT(bugprone-empty-catch)
+    }
 }
 
 class TempScopeSetter

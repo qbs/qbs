@@ -60,11 +60,11 @@ private:
         const std::unordered_map<QString, ProductData> &productMap);
 
     void iterateProjects(
-        const ProjectData &projectData, std::function<void(const ProjectData &)> func);
+        const ProjectData &projectData, const std::function<void(const ProjectData &)> &func);
     void iterateProducts(
         const ProductData &product,
         const std::unordered_map<QString, ProductData> &productMap,
-        std::function<void(const ProductData &)> func);
+        const std::function<void(const ProductData &)> &func);
 };
 
 } // namespace qbs

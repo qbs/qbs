@@ -93,13 +93,13 @@ static QVariant fromObject(id obj, bool isPlist)
             value = [obj unsignedLongLongValue];
         } else if (strcmp([(NSNumber *)obj objCType], @encode(float)) == 0) {
             value = [obj floatValue];
-        } else if (strcmp([(NSNumber *)obj objCType], @encode(double)) == 0) {
+        } else if (strcmp([(NSNumber *)obj objCType], @encode(double)) == 0) { // NOLINT(bugprone-branch-clone)
             value = [obj doubleValue];
         } else {
             // NSDecimal or unknown
             value = [obj doubleValue];
         }
-    } else if ([obj isKindOfClass:[NSNull class]]) {
+    } else if ([obj isKindOfClass:[NSNull class]]) { // NOLINT(bugprone-branch-clone)
         // A null variant, close enough...
     } else {
         // unknown

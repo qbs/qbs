@@ -330,7 +330,7 @@ bool ProductsResolver::tryToReserveLoaderState(ProductWithLoaderState &product, 
     qCDebug(lcLoaderScheduling) << "loader state" << product.loaderState << " for product"
                                 << product.product->displayName()
                                 << "not available, adding product to wait queue";
-    m_waitingForLoaderState[product.loaderState].push({product.product, deferral});
+    m_waitingForLoaderState[product.loaderState].emplace(product.product, deferral);
     return false;
 }
 

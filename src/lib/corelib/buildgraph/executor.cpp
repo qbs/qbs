@@ -602,7 +602,7 @@ void Executor::finishJob(ExecutorJob *job, bool success)
 
     const JobMap::Iterator it = m_processingJobs.find(job);
     QBS_CHECK(it != m_processingJobs.end());
-    const TransformerPtr transformer = it.value();
+    const TransformerPtr transformer = std::move(it.value());
     m_processingJobs.erase(it);
     m_availableJobs.push_back(job);
     updateJobCounts(transformer.get(), -1);

@@ -42,6 +42,8 @@
 #include "filedependency.h"
 #include "depscanner.h"
 
+#include <tools/stlutils.h>
+
 #include <utility>
 
 namespace qbs {
@@ -100,13 +102,10 @@ const RawScanResults::ScanData *RawScanResults::existingScanData(
 
 void RawScanResults::invalidateResults(const QString &scannerId)
 {
-    for (auto it = m_rawScanData.begin(); it != m_rawScanData.end(); ++it) {
-        for (auto scanData = it->second.begin(); scanData != it->second.end();) {
-            if (scanData->scannerId == scannerId)
-                scanData = it->second.erase(scanData);
-            else
-                ++scanData;
-        }
+    for (auto &entry : m_rawScanData) {
+        removeIf(entry.second, [&scannerId](const ScanData &scanData) {
+            return scanData.scannerId == scannerId;
+        });
     }
 }
 

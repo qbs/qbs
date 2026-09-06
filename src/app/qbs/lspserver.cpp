@@ -836,7 +836,7 @@ void LspServer::Private::handleGotoDefForModuleProperties(
 // Otherwise, return all products.
 QList<ProductData> LspServer::Private::getRelevantProducts(const QString &sourceFile)
 {
-    const QList<ProductData> allProducts = projectData.allProducts();
+    QList<ProductData> allProducts = projectData.allProducts();
     QList<ProductData> relevantProducts;
     for (const ProductData &p : allProducts) {
         if (p.location().filePath() == sourceFile)

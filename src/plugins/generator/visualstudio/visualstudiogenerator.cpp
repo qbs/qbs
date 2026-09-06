@@ -245,12 +245,12 @@ static void writeProjectFiles(const QMap<QString, std::shared_ptr<MSBuildProject
 {
     // Write out all the MSBuild project files to disk
     for (auto it = projects.cbegin(), end = projects.cend(); it != end; ++it) {
-        const auto projectFilePath = it.key();
+        const auto &projectFilePath = it.key();
         Internal::FileSaver file(projectFilePath.toStdString());
         if (!file.open())
             throw ErrorInfo(Tr::tr("Cannot open %s for writing").arg(projectFilePath));
 
-        std::shared_ptr<MSBuildProject> project = it.value();
+        const auto &project = it.value();
         MSBuildProjectWriter writer(file.device());
         if (!(writer.write(project.get()) && file.commit()))
             throw ErrorInfo(Tr::tr("Failed to generate %1").arg(projectFilePath));

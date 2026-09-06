@@ -71,7 +71,7 @@ static QVariant variantFromString(const QString &str, bool &ok)
 
 QVariant representationToSettingsValue(const QString &representation)
 {
-    const QVariant v = representationToVariant(representation);
+    QVariant v = representationToVariant(representation);
     switch (static_cast<QMetaType::Type>(v.userType())) {
     // Work around QSettings losing type information when storing integer types.
     case QMetaType::Bool:

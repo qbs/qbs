@@ -144,7 +144,8 @@ JSValue getJsProperty(JSContext *ctx, JSValue obj, const QString &prop)
 
 void setJsProperty(JSContext *ctx, JSValueConst obj, std::string_view prop, JSValue val)
 {
-    JS_SetPropertyStr(ctx, obj, prop.data(), val);
+    JS_SetPropertyStr(
+        ctx, obj, prop.data(), val); // NOLINT(bugprone-suspicious-stringview-data-usage)
 }
 
 void setJsProperty(JSContext *ctx, JSValue obj, const QString &prop, JSValue val)

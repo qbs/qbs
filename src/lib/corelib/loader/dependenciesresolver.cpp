@@ -281,7 +281,7 @@ void DependenciesResolver::resolve()
                                                             return m.item == state.loadingItem;
                                                         });
             QBS_CHECK(loadingItemModule != modules.end());
-            const Item::Module tempModule = *loadingItemModule;
+            const Item::Module tempModule = std::move(*loadingItemModule);
             modules.erase(loadingItemModule);
             modules.push_back(tempModule);
         }

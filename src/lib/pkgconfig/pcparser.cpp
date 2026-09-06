@@ -694,7 +694,7 @@ void PcParser::parseVersionsField(
         raiseDuplicateFieldException(fieldName, pkg.filePath);
 
     const auto trimmed = trimAndSubstitute(pkg, str);
-    modules = parseModuleList(pkg, trimmed.c_str());
+    modules = parseModuleList(pkg, trimmed);
 }
 
 void PcParser::parseLine(PcPackage &pkg, std::string_view str)

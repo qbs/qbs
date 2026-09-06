@@ -388,7 +388,7 @@ ImportReferences ScriptEngine::importedFilesUsedInScript() const
                     return entry.first == fp;
                 });
             if (fileIt == files.cend())
-                files.push_back(std::make_pair(fp, FileTime::currentTime()));
+                files.emplace_back(fp, FileTime::currentTime());
         }
     }
     return files;

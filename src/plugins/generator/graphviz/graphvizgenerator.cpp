@@ -117,7 +117,7 @@ void GraphvizGenerator::writeProjectsGraph(const ProjectData &projectData)
         projectToNode[currentProjectData.name()] = dotGraph.addNode(
             makeProjectNode(dotGraph.createNodeId(), currentProjectData));
 
-        const auto subProjects = currentProjectData.subProjects();
+        const auto &subProjects = currentProjectData.subProjects();
         for (const auto &subProject : subProjects)
             projectParentMap[subProject.name()] = currentProjectData.name();
     });
@@ -204,7 +204,7 @@ void GraphvizGenerator::writeProductGraph(
             makeProductNode(dotGraph.createNodeId(), productMap.at(dep)));
     }
     for (const auto &productName : deps) {
-        const auto currentProduct = productMap.at(productName);
+        const auto &currentProduct = productMap.at(productName);
         const auto parentNode = productToNode[productName];
         for (const auto &dep : currentProduct.dependencies()) {
             const auto childNode = productToNode[dep];
@@ -239,7 +239,7 @@ void GraphvizGenerator::writeProductGraph(
     for (const auto &artifact : product.generatedArtifacts()) {
         artifactMap[artifact.filePath()] = artifact;
         if (artifact.isTargetArtifact())
-            artifactQueue.push_back({artifact, productNode2});
+            artifactQueue.emplace_back(artifact, productNode2);
     }
 
     // Traverse artifacts starting from target artifacts down to their dependencies.
@@ -268,7 +268,7 @@ void GraphvizGenerator::writeProductGraph(
         for (const auto &childPath : artifact.childPaths()) {
             auto it = artifactMap.find(childPath);
             if (it != artifactMap.end()) {
-                artifactQueue.push_back({it->second, nodeId});
+                artifactQueue.emplace_back(it->second, nodeId);
             }
         }
         artifactQueue.pop_front();
@@ -280,7 +280,7 @@ void GraphvizGenerator::writeProductGraph(
 }
 
 void GraphvizGenerator::iterateProjects(
-    const ProjectData &projectData, std::function<void(const ProjectData &)> func)
+    const ProjectData &projectData, const std::function<void(const ProjectData &)> &func)
 {
     std::deque<ProjectData> queue;
     queue.push_back(projectData);
@@ -299,7 +299,7 @@ void GraphvizGenerator::iterateProjects(
 void GraphvizGenerator::iterateProducts(
     const ProductData &product,
     const std::unordered_map<QString, ProductData> &productMap,
-    std::function<void(const ProductData &)> func)
+    const std::function<void(const ProductData &)> &func)
 {
     std::deque<ProductData> productQueue{product};
     while (!productQueue.empty()) {
