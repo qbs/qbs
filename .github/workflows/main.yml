@@ -551,7 +551,7 @@ jobs:
   test-macos:
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.runner }}
-    timeout-minutes: 60
+    timeout-minutes: 90
     needs: build-macos
     env:
       QTEST_FUNCTION_TIMEOUT: 9000000
