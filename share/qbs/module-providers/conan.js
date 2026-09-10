@@ -153,6 +153,7 @@ function configure(installDirectory, moduleName, outputBaseDir, jsonProbe) {
 
     var moduleFile = new TextFile(moduleFilePath, TextFile.ReadOnly);
     const moduleInfo = JSON.parse(moduleFile.readAll());
+    moduleFile.close();
 
     const outputDir = FileInfo.joinPaths(outputBaseDir, "modules", moduleName.replace(".", "/"));
     File.makePath(outputDir);
