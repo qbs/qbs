@@ -185,7 +185,10 @@ public:
         struct PropertyData
         {
             PropertyData() = default;
-            PropertyData(QString v, const CodeLocation &l) : value(std::move(v)), location(l) {}
+            PropertyData(QString v, CodeLocation l)
+                : value(std::move(v))
+                , location(std::move(l))
+            {}
             QString value;
             CodeLocation location;
         };
@@ -195,8 +198,10 @@ public:
             : condition(std::move(c)), overrideListProperties(std::move(o)), value(std::move(v)) {}
         Alternative clone(ItemPool &pool) const
         {
-            return Alternative(condition, overrideListProperties,
-                               std::static_pointer_cast<JSSourceValue>(value->clone(pool)));
+            return {
+                condition,
+                overrideListProperties,
+                std::static_pointer_cast<JSSourceValue>(value->clone(pool))};
         }
 
         PropertyData condition;

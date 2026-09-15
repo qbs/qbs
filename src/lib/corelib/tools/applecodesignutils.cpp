@@ -56,7 +56,7 @@ namespace Internal {
 
 QByteArray smimeMessageContent(const QByteArray &data)
 {
-    QCFType<CMSDecoderRef> decoder = NULL;
+    QCFType<CMSDecoderRef> decoder = nullptr;
     if (CMSDecoderCreate(&decoder) != noErr)
         return {};
 
@@ -66,7 +66,7 @@ QByteArray smimeMessageContent(const QByteArray &data)
     if (CMSDecoderFinalizeMessage(decoder) != noErr)
         return {};
 
-    QCFType<CFDataRef> content = NULL;
+    QCFType<CFDataRef> content = nullptr;
     if (CMSDecoderCopyContent(decoder, &content) != noErr)
         return {};
 
@@ -120,7 +120,7 @@ QVariantMap identitiesProperties()
                                                         sizeof(keys) / sizeof(keys[0]),
                                                         &kCFTypeDictionaryKeyCallBacks,
                                                         &kCFTypeDictionaryValueCallBacks);
-    QCFType<CFTypeRef> result = NULL;
+    QCFType<CFTypeRef> result = nullptr;
     if (SecItemCopyMatching(query, &result) != errSecSuccess)
         return {};
 
@@ -129,7 +129,7 @@ QVariantMap identitiesProperties()
         if (!identity)
             return;
 
-        QCFType<SecCertificateRef> certificate = NULL;
+        QCFType<SecCertificateRef> certificate = nullptr;
         if (SecIdentityCopyCertificate(identity, &certificate) != errSecSuccess)
             return;
 

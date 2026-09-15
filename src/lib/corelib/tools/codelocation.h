@@ -133,10 +133,8 @@ public:
     CodeRange &operator=(const CodeRange &other) = default;
     CodeRange &operator=(CodeRange &&other) = default;
 
-    const CodePosition &start() const & { return m_start; }
-    const CodePosition &end() const & { return m_end; }
-    CodePosition start() && { return std::move(m_start); }
-    CodePosition end() && { return std::move(m_end); }
+    CodePosition start() const { return m_start; }
+    CodePosition end() const { return m_end; }
 
     bool contains(const CodePosition &pos) const;
 

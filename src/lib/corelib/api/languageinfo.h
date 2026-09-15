@@ -50,9 +50,9 @@ class Version;
 
 class QBS_EXPORT LanguageInfo
 {
+public:
     LanguageInfo() = delete;
 
-public:
     static std::string qmlTypeInfo();
     static Version qbsVersion();
 };

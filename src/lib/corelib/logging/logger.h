@@ -113,7 +113,7 @@ QBS_EXPORT LogWriter operator<<(LogWriter w, const MessageTag &tag);
 class QBS_EXPORT Logger
 {
 public:
-    Logger(ILogSink *logSink = 0);
+    Logger(ILogSink *logSink = nullptr);
 
     ILogSink *logSink() const { return m_logSink; }
 

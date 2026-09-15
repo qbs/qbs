@@ -46,7 +46,7 @@
 
 namespace qbs {
 
-QString toJSLiteral(const bool b)
+QString toJSLiteral(bool b)
 {
     return b ? Internal::StringConstants::trueValue() : Internal::StringConstants::falseValue();
 }

@@ -39,6 +39,7 @@
 
 #pragma once
 
+#include <concepts>
 #include <mutex>
 #include <shared_mutex>
 
@@ -57,7 +58,7 @@ public:
     {
         friend class MutexData;
         template<typename U>
-        ReferenceGuard(U &&data) noexcept
+        requires(!std::same_as<std::decay_t<U>, ReferenceGuard>) ReferenceGuard(U &&data) noexcept
             : m_ptr(std::addressof(data.m_data))
             , m_lock(data.m_mutex)
         {}
@@ -101,5 +102,5 @@ private:
     mutable MutexType m_mutex;
 };
 
-} // namespace qbs
 } // namespace Internal
+} // namespace qbs

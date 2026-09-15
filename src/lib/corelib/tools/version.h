@@ -106,7 +106,7 @@ public:
     VersionRange &narrowDown(const VersionRange &other);
 };
 
-constexpr inline int compare(const Version &lhs, const Version &rhs)
+constexpr int compare(const Version &lhs, const Version &rhs)
 {
     if (lhs.majorVersion() < rhs.majorVersion())
         return -1;
@@ -127,27 +127,27 @@ constexpr inline int compare(const Version &lhs, const Version &rhs)
     return 0;
 }
 
-constexpr inline bool operator==(const Version &lhs, const Version &rhs)
+constexpr bool operator==(const Version &lhs, const Version &rhs)
 {
     return compare(lhs, rhs) == 0;
 }
-constexpr inline bool operator!=(const Version &lhs, const Version &rhs)
+constexpr bool operator!=(const Version &lhs, const Version &rhs)
 {
     return !operator==(lhs, rhs);
 }
-constexpr inline bool operator<(const Version &lhs, const Version &rhs)
+constexpr bool operator<(const Version &lhs, const Version &rhs)
 {
     return compare(lhs, rhs) < 0;
 }
-constexpr inline bool operator>(const Version &lhs, const Version &rhs)
+constexpr bool operator>(const Version &lhs, const Version &rhs)
 {
     return compare(lhs, rhs) > 0;
 }
-constexpr inline bool operator<=(const Version &lhs, const Version &rhs)
+constexpr bool operator<=(const Version &lhs, const Version &rhs)
 {
     return !operator>(lhs, rhs);
 }
-constexpr inline bool operator>=(const Version &lhs, const Version &rhs)
+constexpr bool operator>=(const Version &lhs, const Version &rhs)
 {
     return !operator<(lhs, rhs);
 }

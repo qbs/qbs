@@ -41,8 +41,7 @@ public:
 
     void scan(Token *tok);
 
-    inline void operator()(Token *tok)
-    { scan(tok); }
+    void operator()(Token *tok) { scan(tok); }
 
     bool scanCommentTokens() const;
     void setScanCommentTokens(bool onoff);

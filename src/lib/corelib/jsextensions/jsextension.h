@@ -69,10 +69,15 @@ template<class Derived> class JsExtension
         return klass::jsForward(func, text, ctx, this_val, argc, argv);                      \
     }
 
+private:
+    JsExtension() = default;
+    friend Derived;
+
 public:
     virtual ~JsExtension() = default;
 
-    template<typename ...Args > static JSValue createObject(JSContext *ctx, Args... args)
+    template<typename... Args>
+    static JSValue createObject(JSContext *ctx, const Args &...args)
     {
         ScopedJsValue obj(ctx, JS_NewObjectClass(ctx, classId(ctx)));
         JS_SetOpaque(obj, new Derived(ctx, args...));

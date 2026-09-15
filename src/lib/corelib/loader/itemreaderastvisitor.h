@@ -65,7 +65,7 @@ class ItemReaderASTVisitor : public QbsQmlJS::AST::Visitor
 public:
     ItemReaderASTVisitor(ItemReaderVisitorState &visitorState, FileContextPtr file,
                          ItemPool *itemPool, Logger &logger);
-    ~ItemReaderASTVisitor();
+    ~ItemReaderASTVisitor() override;
 
     void checkItemTypes() { doCheckItemTypes(rootItem()); }
 

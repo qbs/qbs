@@ -50,8 +50,8 @@ namespace qbs {
 namespace Internal {
 class Logger;
 
-typedef void (*QbsPluginLoadFunction)();
-typedef void (*QbsPluginUnloadFunction)();
+using QbsPluginLoadFunction = void (*)();
+using QbsPluginUnloadFunction = void (*)();
 
 class QbsPluginManagerPrivate;
 

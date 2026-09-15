@@ -125,7 +125,9 @@ public:
     ScopedJsValue(const ScopedJsValue &) = delete;
     ScopedJsValue &operator=(const ScopedJsValue &) = delete;
 
-    ScopedJsValue(ScopedJsValue && other) : m_context(other.m_context), m_value(other.m_value)
+    ScopedJsValue(ScopedJsValue &&other) noexcept
+        : m_context(other.m_context)
+        , m_value(other.m_value)
     {
         other.m_value = JS_UNDEFINED;
     }
@@ -138,7 +140,10 @@ private:
 class ScopedJsValueList
 {
 public:
-    ScopedJsValueList(JSContext *ctx, const JSValueList &l) : m_context(ctx), m_list(l) {}
+    ScopedJsValueList(JSContext *ctx, JSValueList list)
+        : m_context(ctx)
+        , m_list(std::move(list))
+    {}
     ~ScopedJsValueList() { for (const JSValue v : m_list) JS_FreeValue(m_context, v); }
     operator JSValueList() const { return m_list; }
 
@@ -169,7 +174,9 @@ public:
     ScopedJsAtom(const ScopedJsAtom &) = delete;
     ScopedJsAtom&operator=(const ScopedJsAtom &) = delete;
 
-    ScopedJsAtom(ScopedJsAtom &&other) : m_context(other.m_context), m_atom(other.m_atom)
+    ScopedJsAtom(ScopedJsAtom &&other) noexcept
+        : m_context(other.m_context)
+        , m_atom(other.m_atom)
     {
         other.m_atom = 0;
     }
@@ -182,11 +189,11 @@ private:
 class QBS_AUTOTEST_EXPORT JsException
 {
 public:
-    JsException(JSContext *ctx, JSValue ex, JSValue bt, const CodeLocation &fallbackLocation)
+    JsException(JSContext *ctx, JSValue ex, JSValue bt, CodeLocation fallbackLocation)
         : m_ctx(ctx)
         , m_exception(ex)
         , m_backtrace(bt)
-        , m_fallbackLocation(fallbackLocation)
+        , m_fallbackLocation(std::move(fallbackLocation))
     {}
     JsException(JsException && other) noexcept;
     ~JsException();

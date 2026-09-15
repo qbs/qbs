@@ -53,8 +53,8 @@ public:
     QString stdErr() const { return m_stderr; }
 
     static QStringList allToolNames();
-    static bool tryToRunTool(const QString &toolName, const QStringList &arguments,
-                             int *exitCode = 0);
+    static bool tryToRunTool(
+        const QString &toolName, const QStringList &arguments, int *exitCode = nullptr);
 
 private:
     bool m_failedToStart = false;

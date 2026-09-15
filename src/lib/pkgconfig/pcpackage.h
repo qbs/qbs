@@ -200,7 +200,7 @@ inline bool endsWith(std::string_view haystack, std::string_view needle)
             && haystack.compare(haystack.size() - needle.size(), needle.size(), needle) == 0;
 }
 
-} // Internal
+} // namespace Internal
 
 } // namespace qbs
 

@@ -54,21 +54,21 @@ struct DotGraphNode
     bool enabled{true};
 
     enum class Type { Product, Project, Module, Artifact, File };
-    Type type;
+    Type type{Type::Product};
 
     static QByteArray typeToString(Type type)
     {
         if (type == Type::Project)
-            return QByteArray("ellipse");
+            return "ellipse";
         if (type == Type::Product)
-            return QByteArray("box");
+            return "box";
         if (type == Type::Module)
-            return QByteArray("diamond");
+            return "diamond";
         if (type == Type::Artifact)
-            return QByteArray("pentagon");
+            return "pentagon";
         if (type == Type::File)
-            return QByteArray("note");
-        return QByteArray("box");
+            return "note";
+        return "box";
     }
 
     QByteArray toString() const
@@ -108,7 +108,7 @@ public:
         m_nodes.push_back(std::move(node));
         return m_nodes.back().id;
     }
-    void addRelation(Relation &&relation) { m_relations.push_back(std::move(relation)); }
+    void addRelation(Relation relation) { m_relations.push_back(relation); }
     size_t createNodeId() { return m_nodeIds++; }
 
 private:

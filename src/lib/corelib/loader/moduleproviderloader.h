@@ -75,7 +75,7 @@ private:
     enum class ModuleProviderLookup { Scoped, Named };
     struct Provider {
         QualifiedId name;
-        ModuleProviderLookup lookup;
+        ModuleProviderLookup lookup{ModuleProviderLookup::Scoped};
     };
     ModuleProviderResult executeModuleProvidersHelper(
             ProductContext &product,

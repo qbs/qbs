@@ -53,11 +53,10 @@ class QPropertyListUtils
     Q_DISABLE_COPY(QPropertyListUtils)
 
 public:
+    QPropertyListUtils() = delete;
+
     static QVariant fromPropertyList(id plist);
     static id toPropertyList(const QVariant &map);
-
-private:
-    QPropertyListUtils();
 };
 
 template <typename Key, typename T>

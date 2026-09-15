@@ -79,7 +79,8 @@ public:
     static inline std::vector<QString> canonicalOSIdentifiers(const QString &os);
     static inline HostOs hostOs();
 
-    static inline Version hostOsVersion() {
+    static Version hostOsVersion()
+    {
         Version v;
         if (HostOsInfo::isWindowsHost()) {
             QSettings settings(QStringLiteral("HKEY_LOCAL_MACHINE\\Software\\"
@@ -209,7 +210,7 @@ QString HostOsInfo::hostOSIdentifier()
 
 QString HostOsInfo::hostOSArchitecture()
 {
-    const auto cpuArch = QSysInfo::currentCpuArchitecture();
+    auto cpuArch = QSysInfo::currentCpuArchitecture();
     if (cpuArch == QLatin1String("i386"))
         return QStringLiteral("x86");
     return cpuArch;

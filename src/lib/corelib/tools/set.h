@@ -50,7 +50,6 @@
 #endif
 
 #include <algorithm>
-#include <functional>
 #include <iterator>
 #include <memory>
 #include <set>
@@ -137,7 +136,7 @@ public:
     void clear() { m_data.clear(); }
     void reserve(size_type size) { m_data.reserve(size); }
 
-    void swap(Set<T> &other) { m_data.swap(other.m_data); }
+    void swap(Set<T> &other) noexcept { m_data.swap(other.m_data); }
 
     void load(PersistentPool &pool);
     void store(PersistentPool &pool) const;
@@ -285,8 +284,8 @@ template<typename T> void Set<T>::load(PersistentPool &pool)
 template<typename T> void Set<T>::store(PersistentPool &pool) const
 {
     pool.store(static_cast<int>(size()));
-    std::for_each(m_data.cbegin(), m_data.cend(),
-                  std::bind(&Set<T>::storeElem, this, std::ref(pool), std::placeholders::_1));
+    for (const T &v : m_data)
+        storeElem(pool, v);
 }
 
 #ifdef QT_CORE_LIB

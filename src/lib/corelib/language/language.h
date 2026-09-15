@@ -113,22 +113,22 @@ class Probe
 public:
     static ProbePtr create() { return ProbePtr(new Probe); }
     static ProbeConstPtr create(
-        const QString &globalId,
-        const CodeLocation &location,
+        QString globalId,
+        CodeLocation location,
         bool condition,
-        const QString &configureScript,
-        const QVariantMap &initialProperties,
-        const QMap<QString, VariantValuePtr> &values,
-        const ImportReferences &importedFilesUsed)
+        QString configureScript,
+        QVariantMap initialProperties,
+        QMap<QString, VariantValuePtr> values,
+        ImportReferences importedFilesUsed)
     {
         return ProbeConstPtr(new Probe(
-            globalId,
-            location,
+            std::move(globalId),
+            std::move(location),
             condition,
-            configureScript,
-            initialProperties,
-            values,
-            importedFilesUsed));
+            std::move(configureScript),
+            std::move(initialProperties),
+            std::move(values),
+            std::move(importedFilesUsed)));
     }
 
     const QString &globalId() const { return m_globalId; }
@@ -161,14 +161,14 @@ private:
     Probe() = default;
     Probe(
         QString globalId,
-        const CodeLocation &location,
+        CodeLocation location,
         bool condition,
         QString configureScript,
         QVariantMap initialProperties,
         QMap<QString, VariantValuePtr> values,
         ImportReferences importedFilesUsed)
         : m_globalId(std::move(globalId))
-        , m_location(location)
+        , m_location(std::move(location))
         , m_configureScript(std::move(configureScript))
         , m_initialProperties(std::move(initialProperties))
         , m_values(std::move(values))
@@ -252,10 +252,10 @@ public:
 
     QString absoluteFilePath;
     FileTags fileTags;
-    bool overrideFileTags;
+    bool overrideFileTags{true};
     QString targetOfModule;
     PropertyMapPtr properties;
-    bool fromWildcard;
+    bool fromWildcard{false};
 
     template<PersistentPool::OpType opType> void completeSerializationOp(PersistentPool &pool)
     {
@@ -264,7 +264,7 @@ public:
     }
 
 private:
-    SourceArtifactInternal() : overrideFileTags(true) {}
+    SourceArtifactInternal() = default;
 };
 bool operator==(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2);
 inline bool operator!=(const SourceArtifactInternal &sa1, const SourceArtifactInternal &sa2) {
@@ -301,7 +301,7 @@ private:
 class QBS_AUTOTEST_EXPORT ResolvedGroup
 {
 public:
-    static GroupPtr create() { return GroupPtr(new ResolvedGroup); }
+    static GroupPtr create() { return std::make_shared<ResolvedGroup>(); }
 
     CodeLocation location;
 
@@ -616,8 +616,8 @@ class ScriptEngine;
 
 struct ProductDependency
 {
-    ProductDependency(const ResolvedProductPtr &p, bool minimal)
-        : product(p)
+    ProductDependency(ResolvedProductPtr p, bool minimal)
+        : product(std::move(p))
         , minimal(minimal)
     {}
     ProductDependency() = default;
