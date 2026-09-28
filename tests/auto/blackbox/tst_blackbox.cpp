@@ -9809,6 +9809,29 @@ void TestBlackbox::includePathChangeTracking()
     QVERIFY2(!m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
 }
 
+void TestBlackbox::includeScanningAtPageBoundary()
+{
+    QDir::setCurrent(testDataDir + "/include-scanning-at-page-boundary");
+
+    // The scanner maps the file into memory, so for a file whose size is a multiple of the
+    // page size, the byte after its end is usually not readable.
+    // The file is generated here, because line ending conversion on checkout would change
+    // its size.
+    const QByteArray code = "int main() { return 0; }\n";
+    const qsizetype fileSize = 4096;
+    QByteArray content = code + "//";
+    content += QByteArray(fileSize - content.size() - 1, 'x');
+    content += '\n';
+    QCOMPARE(content.size(), fileSize);
+    QFile cppFile("main.cpp");
+    QVERIFY2(cppFile.open(QIODevice::WriteOnly), qPrintable(cppFile.errorString()));
+    QCOMPARE(cppFile.write(content), fileSize);
+    cppFile.close();
+
+    QCOMPARE(runQbs(), 0);
+    QVERIFY2(m_qbsStdout.contains("compiling main.cpp"), m_qbsStdout.constData());
+}
+
 void TestBlackbox::inputTagsChangeTracking_data()
 {
     QTest::addColumn<QString>("generateInput");
