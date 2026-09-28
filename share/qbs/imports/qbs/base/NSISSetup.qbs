@@ -29,6 +29,7 @@
 ****************************************************************************/
 
 Product {
-    Depends { name: "nsis"; condition: qbs.targetOS.contains("windows") }
+    Depends { name: "nsis"; condition: qbs.targetOS.contains("windows"); required: nsisRequired }
     type: ["nsissetup"]
+    property bool nsisRequired: true
 }
