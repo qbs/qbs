@@ -53,7 +53,7 @@ using qbs::Internal::Tr;
 void CommandLineParser::parse(const QStringList &commandLine)
 {
     QCommandLineParser parser;
-    parser.setApplicationDescription(Tr::tr("Create a new project."));
+    parser.setApplicationDescription(Tr::tr("This tool creates a qbs project from scratch."));
     const QCommandLineOption languageOpt(
         {QStringLiteral("l"), QStringLiteral("language")},
         Tr::tr("The programming language to use. "

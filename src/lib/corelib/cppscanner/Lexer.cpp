@@ -340,7 +340,7 @@ void Lexer::scan_helper(Token *tok)
             } else if (_yychar == '=') {
                 yyinp();
                 tok->f.trigraph = true;
-                if (_yychar == '?' && *(_currentChar + 1) == '?' && *(_currentChar + 2) == '=') {
+                if (_yychar == '?' && peek(1) == '?' && peek(2) == '=') {
                     yyinp();
                     yyinp();
                     yyinp();
@@ -498,7 +498,7 @@ void Lexer::scan_helper(Token *tok)
             tok->f.kind = T_RBRACE;
         } else if (_yychar == ':') {
             yyinp();
-            if (_yychar == '%' && *(_currentChar + 1) == ':') {
+            if (_yychar == '%' && peek(1) == ':') {
                 yyinp();
                 yyinp();
                 tok->f.kind = T_POUND_POUND;
@@ -594,7 +594,7 @@ void Lexer::scan_helper(Token *tok)
                 tok->f.kind = T_LESS_EQUAL;
             }
         } else if (_yychar == ':') {
-            if (*(_currentChar+1) != ':' || *(_currentChar+2) == ':' || *(_currentChar+2) == '>') {
+            if (peek(1) != ':' || peek(2) == ':' || peek(2) == '>') {
                 yyinp();
                 tok->f.kind = T_LBRACKET;
             } else {

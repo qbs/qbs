@@ -6,6 +6,7 @@ Project {
     property string signingTimestamp
 
     NSISSetup {
+        nsisRequired: false
         property bool _test: {
             var present = qbs.targetOS.includes("windows") && nsis.present;
             console.info("has nsis: " + present);

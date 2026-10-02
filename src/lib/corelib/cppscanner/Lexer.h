@@ -84,12 +84,12 @@ public:
                 ++utf16charCounter;
             currentSourceChar += trailingBytesCurrentCodePoint + 1;
             // Guard against truncated multi-byte sequences that advance past the buffer end.
-            yychar = currentSourceChar <= lastChar ? *currentSourceChar : '\0';
+            yychar = currentSourceChar < lastChar ? *currentSourceChar : '\0';
 
             // Process single-byte UTF-8 code point (latin1)
         } else {
             ++currentSourceChar;
-            yychar = currentSourceChar <= lastChar ? *currentSourceChar : '\0';
+            yychar = currentSourceChar < lastChar ? *currentSourceChar : '\0';
         }
     }
 
@@ -126,6 +126,11 @@ private:
         yyinp_utf8(_currentChar, _yychar, _currentCharUtf16, _lastChar);
         if (_yychar == '\n')
             pushLineStartOffset();
+    }
+
+    char peek(int offset) const
+    {
+        return _currentChar + offset < _lastChar ? _currentChar[offset] : '\0';
     }
 
 private:
