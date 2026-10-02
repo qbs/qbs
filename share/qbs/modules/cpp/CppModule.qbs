@@ -446,6 +446,7 @@ Module {
     Group {
         name: "std modules"
         condition: stdModulesFiles !== undefined
+                && (forceUseImportStd || forceUseImportStdCompat)
         files: stdModulesFiles
         fileTags: "cppm"
     }
