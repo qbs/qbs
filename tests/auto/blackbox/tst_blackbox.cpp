@@ -50,6 +50,7 @@
 #include <QtCore/qjsonvalue.h>
 #include <QtCore/qlocale.h>
 #include <QtCore/qregularexpression.h>
+#include <QtCore/qscopeguard.h>
 #include <QtCore/qsettings.h>
 #include <QtCore/qtemporarydir.h>
 #include <QtCore/qtemporaryfile.h>
@@ -3294,13 +3295,13 @@ void TestBlackbox::runBuildGraphUnlock()
     runProc.start(qbsExecutableFilePath, runArgs);
     QVERIFY2(runProc.waitForStarted(), qPrintable(runProc.errorString()));
 
-    const auto stopRunProc = [&runProc] {
+    auto cleanup = qScopeGuard([&runProc] {
         if (runProc.state() != QProcess::NotRunning) {
             runProc.kill();
             runProc.waitForFinished(5000);
         }
         waitForFileUnlock();
-    };
+    });
 
     QElapsedTimer timer;
     timer.start();
@@ -3325,8 +3326,6 @@ void TestBlackbox::runBuildGraphUnlock()
         qPrintable(QString::fromLocal8Bit(runProc.readAllStandardError())));
 
     QCOMPARE(runQbs(QbsRunParameters("build")), 0);
-
-    stopRunProc();
 }
 
 void TestBlackbox::runMultiplexed()
