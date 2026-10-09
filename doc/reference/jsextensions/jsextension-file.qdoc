@@ -35,6 +35,13 @@
     The \c File service offers limited access to the file system for operations such as copying
     or removing files.
 
+    \target tracking
+    Operations that return information about a file have their result tracked, which means
+    the call will be re-run on the next invocation of \QBS and compared to the previous value.
+    If the values differ, the project will be re-resolved (if the call appears on the
+    right-hand side of a property) or, if it is in a \l{Rule}{rule} or \l{Command}{command} script,
+    that rule or command will be re-run.
+
     \section1 Available Operations
 
     \section2 canonicalFilePath
@@ -43,6 +50,8 @@
     \endcode
     Returns the canonical path of \c filePath, that is, an absolute path without symbolic links
     or redundant "." or ".." elements. If the file does not exist, an empty string is returned.
+
+    \note The result of this operation is \l{#tracking}{tracked}.
 
     \section2 copy
     \code
@@ -64,12 +73,16 @@
     \endcode
     Returns true if and only if there is a file at \c filePath.
 
+    \note The result of this operation is \l{#tracking}{tracked}.
+
     \section2 directoryEntries
     \code
     File.directoryEntries(path: string, filter: File.Filter): string[]
     \endcode
     Returns a sorted list of the directory \c{path}'s contents non-recursively,
     filtered by \c filter. The values of \c filter are equivalent to Qt's \c QDir::Filter.
+
+    \note The result of this operation is \l{#tracking}{tracked}.
 
     \section2 lastModified
     \code
@@ -78,6 +91,8 @@
     Returns the time of last modification for the file at \c filePath. The concrete semantics of the
     returned value are platform-specific. You should only rely on the property that a smaller value
     indicates an older timestamp.
+
+    \note The result of this operation is \l{#tracking}{tracked}.
 
     \section2 makePath
     \code
