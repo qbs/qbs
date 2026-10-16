@@ -86,6 +86,22 @@
 
 //! [key]
 
+//! [project-type]
+
+    \section2 \c <project-type>
+
+    The type of project to create. Possible values are \c application and \c library.
+
+//! [project-type]
+
+//! [project-name]
+
+    \section2 \c <name>
+
+    The name of the project and the generated directory.
+
+//! [project-name]
+
 //! [property]
 
     \section2 \c {property:value}

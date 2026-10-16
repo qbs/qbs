@@ -1,0 +1,71 @@
+/****************************************************************************
+**
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
+**
+** This file is part of Qbs.
+**
+** $QT_BEGIN_LICENSE:FDL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
+**
+** GNU Free Documentation License Usage
+** Alternatively, this file may be used under the terms of the GNU Free
+** Documentation License version 1.3 as published by the Free Software
+** Foundation and appearing in the file included in the packaging of
+** this file. Please review the following information to ensure
+** the GNU Free Documentation License version 1.3 requirements
+** will be met: https://www.gnu.org/licenses/fdl-1.3.html.
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \page cli-init.html
+    \ingroup cli
+
+    \title init
+    \brief Creates a \QBS project from scratch.
+
+    \section1 Synopsis
+
+    \code
+    qbs create-project [--language <language>] [--version <version>] [--depends <depends>] project-type name
+    \endcode
+
+    \section1 Description
+
+    Sets up a \QBS project directory according to the given options and parameters. The directory
+    has the same name as the project and is generated in the current working directory.
+
+    \section1 Options
+
+    \include cli-options.qdocinc language
+    \include cli-options.qdocinc project-version
+    \include cli-options.qdocinc depends
+    \include cli-options.qdocinc help
+
+    \section1 Parameters
+
+    \include cli-parameters.qdocinc project-type
+    \include cli-parameters.qdocinc project-name
+
+    \section1 Examples
+
+    To create a new C application:
+
+    \code
+    qbs init -c c application hello-world
+    \endcode
+
+    To create a new Qt-based library:
+
+    \code
+    qbs init -d Qt.core library mylib
+    \endcode
+*/
