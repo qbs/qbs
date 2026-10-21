@@ -66,9 +66,10 @@ Project {
 
     NSISSetup {
         name: "hello-installer"
-        condition: qbs.targetOS.includes("windows")
+        condition: qbs.targetOS.includes("windows") && nsis.present
         targetName: "hello-setup"
         destinationDirectory: project.buildDirectory
+        nsisRequired: false
 
         Depends { name: "hello" }
 
