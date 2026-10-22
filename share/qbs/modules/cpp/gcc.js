@@ -152,6 +152,7 @@ function collectLibraryDependencies(product, isDarwin) {
         if (!artifacts)
             return;
         var artifactFilePaths = artifacts.map(function(a) { return a.filePath; });
+        artifactFilePaths.sort();
         for (var i = 0; i < artifactFilePaths.length; ++i)
            addFunction(artifactFilePaths[i], dep);
     }
@@ -430,6 +431,8 @@ function linkerFlags(project, product, inputs, outputs, primaryOutput, linkerPat
                                           "--minor-os-version", minor);
             }
         }
+        if (product.cpp.enableReproducibleBuilds)
+            escapableLinkerFlags.push("--no-insert-timestamp");
     }
 
     if (inputs.aggregate_infoplist)

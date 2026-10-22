@@ -3025,23 +3025,35 @@ void TestBlackbox::reproducibleBuild()
     if (isNotGcc)
         QSKIP("reproducible builds only supported for gcc");
     QVERIFY(isGcc);
+    const QString exePath = relativeExecutableFilePath("the product", m_qbsStdout);
 
     QCOMPARE(runQbs(), 0);
     QFile object(
-        relativeProductBuildDir("the product") + '/' + inputDirHash(".") + '/' + "file1.cpp"
+        relativeProductBuildDir("dep") + '/' + inputDirHash(".") + '/' + "file1.cpp"
         + objectSuffix);
     QVERIFY2(object.open(QIODevice::ReadOnly), qPrintable(object.fileName()));
-    const QByteArray oldContents = object.readAll();
+    const QByteArray oldObjContents = object.readAll();
+    QFile app(exePath);
+    QVERIFY2(app.open(QIODevice::ReadOnly), qPrintable(app.fileName()));
+    const QByteArray oldAppContents = app.readAll();
     object.close();
-    QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
-    QVERIFY(!object.exists());
+    app.close();
     params.command = "build";
-    QCOMPARE(runQbs(params), 0);
-    if (reproducible) {
+    for (int i = 0; i < 5; ++i) {
+        rmDirR(relativeBuildDir());
+        QVERIFY(!object.exists());
+        QVERIFY(!app.exists());
+        QCOMPARE(runQbs(params), 0);
+        if (!reproducible)
+            break;
         QVERIFY(object.open(QIODevice::ReadOnly));
-        const QByteArray newContents = object.readAll();
-        QVERIFY(oldContents == newContents);
+        QVERIFY(app.open(QIODevice::ReadOnly));
+        const QByteArray newObjContents = object.readAll();
+        QVERIFY(oldObjContents == newObjContents);
+        const QByteArray newAppContents = app.readAll();
+        QVERIFY(oldAppContents == newAppContents);
         object.close();
+        app.close();
     }
     QCOMPARE(runQbs(QbsRunParameters("clean")), 0);
 }
