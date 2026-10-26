@@ -1,8 +1,12 @@
 import qbs.Host
 
 Project {
-    DynamicLibrary {
+    Library {
         name: "lib"
+        Properties {
+            condition: Qt.core.staticBuild
+            type: "staticlibrary"
+        }
         condition: {
             if (!qbs.toolchain.includes("clang-cl") && !qbs.toolchain.includes("xcode")
                     && (qbs.toolchain.includes("msvc")

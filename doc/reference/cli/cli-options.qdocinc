@@ -125,6 +125,14 @@
 
 //! [command-echo-mode]
 
+//! [depends]
+
+    \section2 \c {--depends <depends>}
+
+    Comma-separated list of module dependencies to add to the product.
+
+//! [depends]
+
 //! [detect-qt-versions]
 
     \section2 \c --detect
@@ -273,6 +281,15 @@
     Keeps going when errors occur, if at all possible.
 
 //! [keep-going]
+
+//! [language]
+
+    \section2 \c --language|-l <language>
+
+    The programming language to use. Possible values are \c c, \c c++, \c java, and \c
+    objective-c. Defaults to \tt c++.
+
+//! [language]
 
 //! [less-verbose]
 
@@ -526,6 +543,14 @@
      \endlist
 
 //! [type]
+
+//! [project-version]
+
+    \section2 \c {--version <version> }
+
+    The version of the product to create. Defaults to \c 1.0.0.
+
+//! [project-version]
 
 //! [unset]
 

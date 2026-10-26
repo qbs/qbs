@@ -32,7 +32,15 @@
 
 int main()
 {
+    auto startTime = std::chrono::steady_clock::now();
     std::cout << "running" << std::endl;
-    while (true)
+
+    while (true) {
+        auto currentTime = std::chrono::steady_clock::now();
+        auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(currentTime - startTime);
+        // let this app automatically end after 20s to avoid leaking process on Windows
+        if (elapsed.count() >= 20)
+            break;
         std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
 }
