@@ -15,7 +15,7 @@ module;
 
 module Mod3; // implementation unit of module Mod3
 
-import :Order; // import internal partition to use Order
+import :Order; // import interface partition to use Order
 
 double Customer::sumPrice() const
 {

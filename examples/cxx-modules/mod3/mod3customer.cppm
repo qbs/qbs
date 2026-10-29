@@ -16,7 +16,7 @@ module; // start module unit with global module fragment
 
 export module Mod3:Customer; // interface partition declaration
 
-import :Order; // import internal partition to use Order
+import :Order; // import interface partition to use Order
 
 export class Customer
 {

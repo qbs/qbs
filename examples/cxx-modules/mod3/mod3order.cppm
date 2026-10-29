@@ -13,7 +13,7 @@ module; // start module unit with global module fragment
 
 #include <string>
 
-module Mod3:Order; // internal partition declaration
+export module Mod3:Order; // interface partition declaration
 
 struct Order
 {
