@@ -89,8 +89,11 @@ void RequestedArtifacts::setArtifactsForTag(const ResolvedProduct *product,
     RequestedArtifactsPerProduct &ra = m_requestedArtifactsPerProduct[product->uniqueName()];
     QBS_ASSERT(!ra.allTags.empty(), ;);
     Set<QString> &filePaths = ra.requestedTags[tag.toString()];
-    for (const Artifact * const a : product->buildData->artifactsByFileTag().value(tag))
-        filePaths.insert(a->filePath());
+    const auto artifacts = mapFindPtr(product->buildData->artifactsByFileTag(), tag);
+    if (artifacts) {
+        for (const Artifact * const a : *artifacts)
+            filePaths.insert(a->filePath());
+    }
 }
 
 void RequestedArtifacts::setNonExistingTagRequested(const ResolvedProduct *product,

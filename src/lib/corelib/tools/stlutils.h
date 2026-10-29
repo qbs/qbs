@@ -107,15 +107,42 @@ bool containsKey(const C &container, const typename C::key_type &v)
     return container.find(v) != end;
 }
 
-template <class C>
-typename C::mapped_type mapValue(
-        const C &container,
-        const typename C::key_type &key,
-        const typename C::mapped_type &value = typename C::mapped_type())
+template<class C>
+concept QtMapLike = requires(typename C::const_iterator it)
+{
+    it.value();
+};
+
+template<class C>
+concept StlMapLike = !QtMapLike<C> && requires(typename C::const_iterator it)
+{
+    it->second;
+};
+
+template<StlMapLike C>
+const typename C::mapped_type *mapFindPtr(const C &container, const typename C::key_type &key)
 {
     const auto end = container.cend();
     const auto it = container.find(key);
-    return it != end ? it->second : value;
+    return it != end ? &it->second : nullptr;
+}
+
+template<QtMapLike C>
+const typename C::mapped_type *mapFindPtr(const C &container, const typename C::key_type &key)
+{
+    const auto end = container.cend();
+    const auto it = container.find(key);
+    return it != end ? &it.value() : nullptr;
+}
+
+template<class C>
+typename C::mapped_type mapValue(
+    const C &container,
+    const typename C::key_type &key,
+    const typename C::mapped_type &defaultValue = typename C::mapped_type())
+{
+    const auto value = mapFindPtr(container, key);
+    return value ? *value : defaultValue;
 }
 
 template <typename C>

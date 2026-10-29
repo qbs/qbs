@@ -997,13 +997,18 @@ void BuildGraphLoader::rescueOldBuildData(const ResolvedProductConstPtr &restore
             rad.fileTags = oldArtifact->fileTags();
             rad.properties = oldArtifact->properties;
 
-            const ChildrenInfo &childrenInfo = childLists.value(oldArtifact);
-            for (Artifact * const child : std::as_const(childrenInfo.children)) {
-                rad.children.emplace_back(child->product->name,
-                        child->product->multiplexConfigurationId, child->filePath(),
-                        childrenInfo.childrenAddedByScanner.contains(child));
-                transform(oldArtifact->fileDependencies, rad.fileDependencies,
-                          std::mem_fn(&FileDependency::filePath));
+            if (const auto childrenInfo = mapFindPtr(childLists, oldArtifact); childrenInfo) {
+                for (Artifact * const child : std::as_const(childrenInfo->children)) {
+                    rad.children.emplace_back(
+                        child->product->name,
+                        child->product->multiplexConfigurationId,
+                        child->filePath(),
+                        childrenInfo->childrenAddedByScanner.contains(child));
+                    transform(
+                        oldArtifact->fileDependencies,
+                        rad.fileDependencies,
+                        std::mem_fn(&FileDependency::filePath));
+                }
             }
             newlyResolvedProduct->buildData->addRescuableArtifactData(
                 oldArtifact->filePath(), std::move(rad));

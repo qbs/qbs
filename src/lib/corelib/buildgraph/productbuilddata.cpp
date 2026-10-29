@@ -100,7 +100,7 @@ void ProductBuildData::addFileTagToArtifact(Artifact *artifact, const FileTag &t
     m_jsArtifactsMapUpToDate = false;
 }
 
-ArtifactSetByFileTag ProductBuildData::artifactsByFileTag() const
+const ArtifactSetByFileTag &ProductBuildData::artifactsByFileTag() const
 {
     return m_artifactsByFileTag;
 }

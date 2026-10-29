@@ -28,7 +28,7 @@ public:
     static DocumentUri fromProtocol(const QString &uri);
     static DocumentUri fromFilePath(const Utils::FilePath &file, const PathMapper &mapToServerPath);
 
-    operator QJsonValue() const { return QJsonValue(toString()); }
+    operator QJsonValue() const { return toString(); }
 
 private:
     DocumentUri(const QString &other);
@@ -267,7 +267,7 @@ public:
 
     // The edits to be applied.
     QList<TextEdit> edits() const { return array<TextEdit>(editsKey); }
-    void setEdits(const QList<TextEdit> edits) { insertArray(editsKey, edits); }
+    void setEdits(const QList<TextEdit> &edits) { insertArray(editsKey, edits); }
 
     bool isValid() const override { return contains(textDocumentKey) && contains(editsKey); }
 };
@@ -605,14 +605,17 @@ public:
     void clearDeprecated() { remove(deprecatedKey); }
 
     Range range() const { return typedValue<Range>(rangeKey); }
-    void setRange(Range range) { insert(rangeKey, range); }
+    void setRange(const Range &range) { insert(rangeKey, range); }
 
     Range selectionRange() const { return typedValue<Range>(selectionRangeKey); }
-    void setSelectionRange(Range selectionRange) { insert(selectionRangeKey, selectionRange); }
+    void setSelectionRange(const Range &selectionRange)
+    {
+        insert(selectionRangeKey, selectionRange);
+    }
 
     std::optional<QList<DocumentSymbol>> children() const
     { return optionalArray<DocumentSymbol>(childrenKey); }
-    void setChildren(QList<DocumentSymbol> children) { insertArray(childrenKey, children); }
+    void setChildren(const QList<DocumentSymbol> &children) { insertArray(childrenKey, children); }
     void clearChildren() { remove(childrenKey); }
 };
 
@@ -677,4 +680,4 @@ enum Kind {
 };
 } // namespace CompletionItemKind
 
-} // namespace LanguageClient
+} // namespace lsp

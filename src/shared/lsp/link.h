@@ -17,8 +17,8 @@ class Link
 {
 public:
     Link() = default;
-    Link(const FilePath &filePath, int line = 0, int column = 0)
-        : targetFilePath(filePath)
+    Link(FilePath filePath, int line = 0, int column = 0)
+        : targetFilePath(std::move(filePath))
         , targetLine(line)
         , targetColumn(column)
     {}

@@ -9,7 +9,7 @@ namespace lsp {
 
 JsonObject &JsonObject::operator=(const JsonObject &other) = default;
 
-JsonObject &JsonObject::operator=(JsonObject &&other)
+JsonObject &JsonObject::operator=(JsonObject &&other) noexcept
 {
     m_jsonObject.swap(other.m_jsonObject);
     return *this;

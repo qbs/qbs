@@ -23,7 +23,7 @@ public:
     void setType(int type) { insert(typeKey, type); }
 
     QString message() const { return typedValue<QString>(messageKey); }
-    void setMessage(QString message) { insert(messageKey, message); }
+    void setMessage(const QString &message) { insert(messageKey, message); }
 
     QString toString() const;
 
@@ -45,7 +45,7 @@ public:
     using JsonObject::JsonObject;
 
     QString title() const { return typedValue<QString>(titleKey); }
-    void setTitle(QString title) { insert(titleKey, title); }
+    void setTitle(const QString &title) { insert(titleKey, title); }
 
     bool isValid() const override { return contains(titleKey); }
 };
@@ -90,4 +90,4 @@ public:
     bool parametersAreValid(QString * /*error*/) const override { return params().has_value(); }
 };
 
-} // namespace LanguageClient
+} // namespace lsp

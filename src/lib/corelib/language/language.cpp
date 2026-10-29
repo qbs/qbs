@@ -374,18 +374,24 @@ void ResolvedProduct::store(PersistentPool &pool)
     serializationOp<PersistentPool::Store>(pool);
 }
 
-ArtifactSet ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
+const ArtifactSet &ResolvedProduct::lookupArtifactsByFileTag(const FileTag &tag) const
 {
     QBS_CHECK(buildData);
-    return buildData->artifactsByFileTag().value(tag);
+    static ArtifactSet emptySet;
+    if (const auto artifacts = mapFindPtr(buildData->artifactsByFileTag(), tag))
+        return *artifacts;
+    return emptySet;
 }
 
 ArtifactSet ResolvedProduct::lookupArtifactsByFileTags(const FileTags &tags) const
 {
     QBS_CHECK(buildData);
     ArtifactSet set;
-    for (const FileTag &tag : tags)
-        set = set.unite(buildData->artifactsByFileTag().value(tag));
+    const ArtifactSetByFileTag artifacts = buildData->artifactsByFileTag();
+    for (const FileTag &tag : tags) {
+        if (const auto tagArtifacts = mapFindPtr(artifacts, tag))
+            set.unite(*tagArtifacts);
+    }
     return set;
 }
 

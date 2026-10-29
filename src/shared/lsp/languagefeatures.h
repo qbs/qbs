@@ -327,20 +327,18 @@ public:
     using variant::variant;
     DocumentSymbolsResult() : variant(nullptr) {}
     explicit DocumentSymbolsResult(const QJsonValue &value);
-    DocumentSymbolsResult(const DocumentSymbolsResult &other) : variant(other) {}
-    DocumentSymbolsResult(DocumentSymbolsResult &&other) : variant(std::move(other)) {}
+    DocumentSymbolsResult(const DocumentSymbolsResult &other) = default;
+    DocumentSymbolsResult(DocumentSymbolsResult &&other) noexcept
+        : variant(std::move(other))
+    {}
 
     using variant::operator=;
-    DocumentSymbolsResult &operator =(DocumentSymbolsResult &&other)
+    DocumentSymbolsResult &operator=(DocumentSymbolsResult &&other) noexcept
     {
         variant::operator=(std::move(other));
         return *this;
     }
-    DocumentSymbolsResult &operator =(const DocumentSymbolsResult &other)
-    {
-        variant::operator=(other);
-        return *this;
-    }
+    DocumentSymbolsResult &operator=(const DocumentSymbolsResult &other) = default;
     // Needed to make it usable in Qt 6 signals.
     bool operator<(const DocumentSymbolsResult &other) const = delete;
 };
@@ -422,7 +420,7 @@ public:
     using JsonObject::JsonObject;
 
     QString title() const { return typedValue<QString>(titleKey); }
-    void setTitle(QString title) { insert(titleKey, title); }
+    void setTitle(const QString &title) { insert(titleKey, title); }
 
     std::optional<CodeActionKind> kind() const { return optionalValue<CodeActionKind>(kindKey); }
     void setKind(const CodeActionKind &kind) { insert(kindKey, kind); }
@@ -569,7 +567,7 @@ public:
     using JsonObject::JsonObject;
 
     Range range() const { return typedValue<Range>(rangeKey); }
-    void setRange(Range range) { insert(rangeKey, range); }
+    void setRange(const Range &range) { insert(rangeKey, range); }
 
     Color color() const { return typedValue<Color>(colorKey); }
     void setColor(const Color &color) { insert(colorKey, color); }
@@ -641,8 +639,7 @@ class DocumentFormattingProperty : public std::variant<bool, double, QString>
 public:
     DocumentFormattingProperty() = default;
     explicit DocumentFormattingProperty(const QJsonValue &value);
-    explicit DocumentFormattingProperty(const DocumentFormattingProperty &other)
-        : std::variant<bool, double, QString>(other) {}
+    explicit DocumentFormattingProperty(const DocumentFormattingProperty &other) = default;
 
     using variant::variant;
     using variant::operator=;
@@ -678,8 +675,8 @@ public:
     void clearTrimFinalNewlines() { remove(trimFinalNewlinesKey); }
 
     QHash<QString, DocumentFormattingProperty> properties() const;
-    void setProperty(const std::string_view key, const DocumentFormattingProperty &property);
-    void removeProperty(const std::string_view &key) { remove(key); }
+    void setProperty(std::string_view key, const DocumentFormattingProperty &property);
+    void removeProperty(std::string_view key) { remove(key); }
 
     bool isValid() const override { return contains(insertSpaceKey) && contains(tabSizeKey); }
 };
@@ -833,4 +830,4 @@ public:
     constexpr static const char methodName[] = "textDocument/rename";
 };
 
-} // namespace LanguageClient
+} // namespace lsp

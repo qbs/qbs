@@ -22,7 +22,9 @@ public:
 
     Trace() = default;
     Trace(Values val) : m_value(val) {}
-    Trace(QString val) : Trace(fromString(val)) {}
+    Trace(const QString &val)
+        : Trace(fromString(val))
+    {}
 
     static Trace fromString(const QString& val);
     QString toString() const;
@@ -184,4 +186,4 @@ public:
     constexpr static const char methodName[] = "initialize";
 };
 
-} // namespace LanguageClient
+} // namespace lsp

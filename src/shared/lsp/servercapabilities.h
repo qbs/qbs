@@ -200,7 +200,7 @@ public:
 
         // A character on which formatting should be triggered, like `}`.
         QString firstTriggerCharacter() const { return typedValue<QString>(firstTriggerCharacterKey); }
-        void setFirstTriggerCharacter(QString firstTriggerCharacter)
+        void setFirstTriggerCharacter(const QString &firstTriggerCharacter)
         { insert(firstTriggerCharacterKey, firstTriggerCharacter); }
 
         // More trigger characters.
@@ -337,14 +337,14 @@ public:
     std::optional<std::variant<bool, CodeActionOptions>> codeActionProvider() const;
     void setCodeActionProvider(bool codeActionProvider)
     { insert(codeActionProviderKey, codeActionProvider); }
-    void setCodeActionProvider(CodeActionOptions options)
+    void setCodeActionProvider(const CodeActionOptions &options)
     { insert(codeActionProviderKey, options); }
     void clearCodeActionProvider() { remove(codeActionProviderKey); }
 
     // The server provides code lens.
     std::optional<CodeLensOptions> codeLensProvider() const
     { return optionalValue<CodeLensOptions>(codeLensProviderKey); }
-    void setCodeLensProvider(CodeLensOptions codeLensProvider)
+    void setCodeLensProvider(const CodeLensOptions &codeLensProvider)
     { insert(codeLensProviderKey, codeLensProvider); }
     void clearCodeLensProvider() { remove(codeLensProviderKey); }
 
@@ -390,7 +390,7 @@ public:
     // The server provides execute command support.
     std::optional<ExecuteCommandOptions> executeCommandProvider() const
     { return optionalValue<ExecuteCommandOptions>(executeCommandProviderKey); }
-    void setExecuteCommandProvider(ExecuteCommandOptions executeCommandProvider)
+    void setExecuteCommandProvider(const ExecuteCommandOptions &executeCommandProvider)
     { insert(executeCommandProviderKey, executeCommandProvider); }
     void clearExecuteCommandProvider() { remove(executeCommandProviderKey); }
 
@@ -432,4 +432,4 @@ public:
     void clearExperimental() { remove(experimentalKey); }
 };
 
-} // namespace LanguageClient
+} // namespace lsp

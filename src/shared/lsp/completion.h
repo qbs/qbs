@@ -266,4 +266,4 @@ public:
     constexpr static const char methodName[] = "completionItem/resolve";
 };
 
-} // namespace LanguageClient
+} // namespace lsp

@@ -939,7 +939,7 @@ static QualifiedIdSet propertiesToEvaluate(std::deque<QualifiedId> initialProps,
         const auto insertResult = allProperties.insert(prop);
         if (!insertResult.second)
             continue;
-        transform(deps.value(prop), remainingProps, [](const QualifiedId &id) { return id; });
+        transform(mapValue(deps, prop), remainingProps, [](const QualifiedId &id) { return id; });
     }
     return allProperties;
 }

@@ -571,15 +571,17 @@ RuleCommandList ProjectPrivate::ruleCommands(const ProductData &product,
     if (!resolvedProduct->enabled)
         throw ErrorInfo(Tr::tr("Product '%1' is disabled.").arg(product.name()));
     QBS_CHECK(resolvedProduct->buildData);
-    const ArtifactSet &outputArtifacts = resolvedProduct->buildData->artifactsByFileTag()
-            .value(FileTag(outputFileTag.toLocal8Bit()));
-    for (const Artifact * const outputArtifact : std::as_const(outputArtifacts)) {
-        const TransformerConstPtr transformer = outputArtifact->transformer;
-        if (!transformer)
-            continue;
-        for (const Artifact * const inputArtifact : std::as_const(transformer->inputs)) {
-            if (inputArtifact->filePath() == inputFilePath)
-                return ruleCommandListForTransformer(transformer.get());
+    const auto artifacts = mapFindPtr(
+        resolvedProduct->buildData->artifactsByFileTag(), FileTag(outputFileTag.toLocal8Bit()));
+    if (artifacts) {
+        for (const Artifact * const outputArtifact : *artifacts) {
+            const TransformerConstPtr transformer = outputArtifact->transformer;
+            if (!transformer)
+                continue;
+            for (const Artifact * const inputArtifact : std::as_const(transformer->inputs)) {
+                if (inputArtifact->filePath() == inputFilePath)
+                    return ruleCommandListForTransformer(transformer.get());
+            }
         }
     }
 

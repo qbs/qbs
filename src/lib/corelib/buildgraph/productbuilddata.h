@@ -75,7 +75,7 @@ public:
     void removeArtifactFromSetByFileTag(Artifact *artifact, const FileTag &fileTag);
     void addFileTagToArtifact(Artifact *artifact, const FileTag &tag);
 
-    ArtifactSetByFileTag artifactsByFileTag() const;
+    const ArtifactSetByFileTag &artifactsByFileTag() const;
 
     AllRescuableArtifactData rescuableArtifactData() const { return m_rescuableArtifactData; }
     void setRescuableArtifactData(const AllRescuableArtifactData &rad);

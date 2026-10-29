@@ -678,7 +678,7 @@ public:
     std::vector<SourceArtifactPtr> allEnabledFiles() const;
     FileTags fileTagsForFileName(const QString &fileName) const;
 
-    ArtifactSet lookupArtifactsByFileTag(const FileTag &tag) const;
+    const ArtifactSet &lookupArtifactsByFileTag(const FileTag &tag) const;
     ArtifactSet lookupArtifactsByFileTags(const FileTags &tags) const;
     ArtifactSet targetArtifacts() const;
 

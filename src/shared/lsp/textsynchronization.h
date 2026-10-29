@@ -16,7 +16,10 @@ public:
     using JsonObject::JsonObject;
 
     TextDocumentItem textDocument() const { return typedValue<TextDocumentItem>(textDocumentKey); }
-    void setTextDocument(TextDocumentItem textDocument) { insert(textDocumentKey, textDocument); }
+    void setTextDocument(const TextDocumentItem &textDocument)
+    {
+        insert(textDocumentKey, textDocument);
+    }
 
     bool isValid() const override { return contains(textDocumentKey); }
 };
@@ -71,7 +74,7 @@ public:
 
         // The range of the document that changed.
         std::optional<Range> range() const { return optionalValue<Range>(rangeKey); }
-        void setRange(Range range) { insert(rangeKey, range); }
+        void setRange(const Range &range) { insert(rangeKey, range); }
         void clearRange() { remove(rangeKey); }
 
         // The length of the range that got replaced.
@@ -169,7 +172,7 @@ public:
 
     TextDocumentIdentifier textDocument()
     const { return typedValue<TextDocumentIdentifier>(textDocumentKey); }
-    void setTextDocument(TextDocumentIdentifier textDocument)
+    void setTextDocument(const TextDocumentIdentifier &textDocument)
     { insert(textDocumentKey, textDocument); }
 
     std::optional<QString> text() const { return optionalValue<QString>(textKey); }
@@ -212,4 +215,4 @@ public:
     constexpr static const char methodName[] = "textDocument/didClose";
 };
 
-} // namespace LanguageClient
+} // namespace lsp

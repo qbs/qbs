@@ -107,4 +107,4 @@ auto greaterEqualThan(Type &&value)
         return !(entry < value);
     };
 }
-} // namespace Utils
+} // namespace lsp::Utils

@@ -45,4 +45,4 @@ private:
     QByteArray typeHeader() const;
 };
 
-} // namespace LanguageClient
+} // namespace lsp

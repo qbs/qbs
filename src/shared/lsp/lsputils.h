@@ -56,7 +56,7 @@ public:
     using std::variant<QList<T>, std::nullptr_t>::variant;
     using std::variant<QList<T>, std::nullptr_t>::operator=;
 
-    LanguageClientArray() {}
+    LanguageClientArray() = default;
 
     explicit LanguageClientArray(const QList<T> &list)
     { *this = list; }
@@ -82,7 +82,7 @@ public:
                 array.append(QJsonValue(value));
             return array;
         }
-        return QJsonValue();
+        return {};
     }
 
     QList<T> toListOrEmpty() const
@@ -152,7 +152,7 @@ template <typename T>
 QList<T> jsonArrayToList(const QJsonArray &array)
 {
     QList<T> list;
-    for (const QJsonValue &val : array)
+    for (const auto &val : array)
         list << fromJsonValue<T>(val);
     return list;
 }

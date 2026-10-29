@@ -42,7 +42,7 @@ public:
             return *id;
         if (auto id = std::get_if<QString>(this))
             return *id;
-        return QJsonValue();
+        return {};
     }
 
     bool isValid() const
@@ -111,8 +111,7 @@ public:
 
     virtual std::optional<ResponseHandler> responseHandler() const { return std::nullopt; }
 
-    BaseMessage toBaseMessage() const
-    { return BaseMessage(jsonRpcMimeType(), toRawData()); }
+    BaseMessage toBaseMessage() const { return {jsonRpcMimeType(), toRawData()}; }
 
 protected:
     QJsonObject m_jsonObject;
@@ -267,8 +266,7 @@ public:
 
     MessageId id() const
     { return MessageId(m_jsonObject.value(idKey)); }
-    void setId(MessageId id)
-    { this->m_jsonObject.insert(idKey, id); }
+    void setId(const MessageId &id) { this->m_jsonObject.insert(idKey, id); }
 
     std::optional<Result> result() const
     {
@@ -305,8 +303,7 @@ public:
 
     MessageId id() const
     { return MessageId(m_jsonObject.value(idKey)); }
-    void setId(MessageId id)
-    { this->m_jsonObject.insert(idKey, id); }
+    void setId(const MessageId &id) { this->m_jsonObject.insert(idKey, id); }
 
     std::optional<std::nullptr_t> result() const
     {
@@ -355,8 +352,8 @@ public:
     {
         QElapsedTimer timer;
         timer.start();
-        auto callback = [callback = m_callBack, method = this->method(), t = std::move(timer)]
-                (const JsonRpcMessage &message) {
+        auto callback = [callback = m_callBack, method = this->method(), t = timer](
+                            const JsonRpcMessage &message) {
             if (!callback)
                 return;
             logElapsedTime(method, t);
