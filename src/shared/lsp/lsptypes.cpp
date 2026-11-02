@@ -187,15 +187,15 @@ Position::Position(int line, int character)
 
 Range::Range(const Position &start, const Position &end)
 {
-    setStart(start);
-    setEnd(end);
+    setStartPosition(start);
+    setEndPosition(end);
 }
 
 bool Range::contains(const Range &other) const
 {
-    if (start() > other.start())
+    if (startPosition() > other.startPosition())
         return false;
-    if (end() < other.end())
+    if (endPosition() < other.endPosition())
         return false;
     return true;
 }
@@ -236,9 +236,10 @@ Utils::Link Location::toLink(const DocumentUri::PathMapper &mapToHostPath) const
     if (!isValid())
         return Utils::Link();
 
-    return Utils::Link(uri().toFilePath(mapToHostPath),
-                       range().start().line() + 1,
-                       range().start().character());
+    return Utils::Link(
+        uri().toFilePath(mapToHostPath),
+        range().startPosition().line() + 1,
+        range().startPosition().character());
 }
 
 // Ensure %xx like %20 are really decoded using fromPercentEncoding

@@ -140,7 +140,7 @@ void QbsPluginManager::loadPlugins(const std::vector<std::string> &pluginPaths,
         QDirIterator it(qtPluginPath, filters, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
-            std::unique_ptr<QLibrary> lib(new QLibrary(fileName));
+            auto lib = std::make_unique<QLibrary>(fileName);
             if (!lib->load()) {
                 logger.qbsWarning() << Tr::tr("plugin manager: Cannot load plugin '%1': %2")
                                        .arg(QDir::toNativeSeparators(fileName), lib->errorString());

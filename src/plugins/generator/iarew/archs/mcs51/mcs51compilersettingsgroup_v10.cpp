@@ -330,7 +330,7 @@ Mcs51CompilerSettingsGroup::Mcs51CompilerSettingsGroup(
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ICC8051"));
+    setGroupName(QByteArrayLiteral("ICC8051"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

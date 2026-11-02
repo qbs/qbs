@@ -203,8 +203,8 @@ public:
                              int argc, JSValueConst *argv)
     {
         try {
-            using Ret = typename FunctionTrait<Func>::Ret;
-            using Args = typename FunctionTrait<Func>::Args;
+            using Ret = FunctionTrait<Func>::Ret;
+            using Args = FunctionTrait<Func>::Args;
             const auto args = getArgumentsHelper(Args(), ctx, name, argc, argv);
             const auto obj = fromJsObject(ctx, this_val);
             if constexpr (std::is_same_v<Ret, void>) {

@@ -209,7 +209,7 @@ Mcs51LinkerSettingsGroup::Mcs51LinkerSettingsGroup(
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("XLINK"));
+    setGroupName(QByteArrayLiteral("XLINK"));
     setArchiveVersion(kLinkerArchiveVersion);
     setDataVersion(kLinkerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

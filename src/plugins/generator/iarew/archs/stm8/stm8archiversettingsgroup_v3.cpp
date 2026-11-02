@@ -67,7 +67,7 @@ Stm8ArchiverSettingsGroup::Stm8ArchiverSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("IARCHIVE"));
+    setGroupName(QByteArrayLiteral("IARCHIVE"));
     setArchiveVersion(kArchiverArchiveVersion);
     setDataVersion(kArchiverDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

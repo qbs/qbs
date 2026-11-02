@@ -261,7 +261,7 @@ AvrLinkerSettingsGroup::AvrLinkerSettingsGroup(
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
 {
-    setName(QByteArrayLiteral("XLINK"));
+    setGroupName(QByteArrayLiteral("XLINK"));
     setArchiveVersion(kLinkerArchiveVersion);
     setDataVersion(kLinkerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

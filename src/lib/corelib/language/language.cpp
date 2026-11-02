@@ -853,7 +853,7 @@ bool SourceWildCards::hasChangedSinceExpansion() const
 template<typename L>
 QMap<QString, typename L::value_type> listToMap(const L &list)
 {
-    using V = typename L::value_type;
+    using V = L::value_type;
     QMap<QString, V> map;
     for (const V &elem : list)
         map.insert(keyFromElem(elem), elem);
@@ -865,7 +865,7 @@ bool listsAreEqual(const L &l1, const L &l2)
 {
     if (l1.size() != l2.size())
         return false;
-    using V = typename L::value_type;
+    using V = L::value_type;
     const QMap<QString, V> map1 = listToMap(l1);
     const QMap<QString, V> map2 = listToMap(l2);
     const auto keys = map1.keys();

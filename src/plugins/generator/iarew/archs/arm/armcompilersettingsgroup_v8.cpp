@@ -328,7 +328,7 @@ ArmCompilerSettingsGroup::ArmCompilerSettingsGroup(
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ICCARM"));
+    setGroupName(QByteArrayLiteral("ICCARM"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

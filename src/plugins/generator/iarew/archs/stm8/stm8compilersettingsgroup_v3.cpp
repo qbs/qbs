@@ -306,7 +306,7 @@ Stm8CompilerSettingsGroup::Stm8CompilerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ICCSTM8"));
+    setGroupName(QByteArrayLiteral("ICCSTM8"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

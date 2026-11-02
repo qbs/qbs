@@ -354,7 +354,7 @@ Msp430GeneralSettingsGroup::Msp430GeneralSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("General"));
+    setGroupName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

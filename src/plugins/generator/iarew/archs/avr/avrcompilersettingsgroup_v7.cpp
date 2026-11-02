@@ -326,7 +326,7 @@ AvrCompilerSettingsGroup::AvrCompilerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ICCAVR"));
+    setGroupName(QByteArrayLiteral("ICCAVR"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

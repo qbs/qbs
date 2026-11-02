@@ -110,7 +110,7 @@ public:
     {
     }
 
-    void visitProduct(const ResolvedProductPtr &product)
+    void visitResolvedProduct(const ResolvedProductPtr &product)
     {
         m_product = product;
         ArtifactVisitor::visitProduct(product);
@@ -172,7 +172,7 @@ void ArtifactCleaner::cleanup(const TopLevelProjectPtr &project,
     Set<QString> directories;
     for (const ResolvedProductPtr &product : products) {
         CleanupVisitor visitor(options, m_observer, m_logger);
-        visitor.visitProduct(product);
+        visitor.visitResolvedProduct(product);
         directories.unite(visitor.directories());
         if (visitor.hasError())
             m_hasError = true;

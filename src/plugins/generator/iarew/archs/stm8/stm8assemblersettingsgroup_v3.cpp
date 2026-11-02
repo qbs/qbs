@@ -156,7 +156,7 @@ Stm8AssemblerSettingsGroup::Stm8AssemblerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ASTM8"));
+    setGroupName(QByteArrayLiteral("ASTM8"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

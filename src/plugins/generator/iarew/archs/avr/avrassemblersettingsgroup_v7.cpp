@@ -158,7 +158,7 @@ AvrAssemblerSettingsGroup::AvrAssemblerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("AAVR"));
+    setGroupName(QByteArrayLiteral("AAVR"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

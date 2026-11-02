@@ -160,7 +160,7 @@ Mcs51AssemblerSettingsGroup::Mcs51AssemblerSettingsGroup(
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("A8051"));
+    setGroupName(QByteArrayLiteral("A8051"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

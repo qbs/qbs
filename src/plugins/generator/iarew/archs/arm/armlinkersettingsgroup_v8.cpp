@@ -303,7 +303,7 @@ ArmLinkerSettingsGroup::ArmLinkerSettingsGroup(
         const ProductData &qbsProduct,
         const std::vector<ProductData> &qbsProductDeps)
 {
-    setName(QByteArrayLiteral("ILINK"));
+    setGroupName(QByteArrayLiteral("ILINK"));
     setArchiveVersion(kLinkerArchiveVersion);
     setDataVersion(kLinkerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

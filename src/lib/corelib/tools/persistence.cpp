@@ -66,7 +66,7 @@ PersistentPool::~PersistentPool() = default;
 
 void PersistentPool::load(const QString &filePath)
 {
-    std::unique_ptr<QFile> file(new QFile(filePath));
+    auto file = std::make_unique<QFile>(filePath);
     if (!file->exists())
         throw NoBuildGraphError(filePath);
     if (!file->open(QFile::ReadOnly)) {
@@ -107,7 +107,7 @@ void PersistentPool::setupWriteStream(const QString &filePath)
                         .arg(filePath));
     }
     QBS_CHECK(!QFile::exists(filePath));
-    std::unique_ptr<QFile> file(new QFile(filePath));
+    auto file = std::make_unique<QFile>(filePath);
     if (!file->open(QFile::WriteOnly)) {
         throw ErrorInfo(Tr::tr("Failure storing build graph: "
                 "Cannot open file '%1' for writing: %2").arg(filePath, file->errorString()));

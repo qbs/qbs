@@ -778,7 +778,7 @@ Mcs51GeneralSettingsGroup::Mcs51GeneralSettingsGroup(
     Q_UNUSED(qbsProject)
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("General"));
+    setGroupName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

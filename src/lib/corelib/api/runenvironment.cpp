@@ -219,7 +219,7 @@ int RunEnvironment::doRunShell()
     }
 
     // We cannot use QProcess, since it does not do stdin forwarding.
-    return system(command.toLocal8Bit().constData());
+    return system(command.toLocal8Bit().constData()); // NOLINT(bugprone-command-processor)
 }
 
 static QString findExecutable(const QStringList &fileNames)

@@ -478,7 +478,7 @@ RulesApplicator::OutputArtifactInfo RulesApplicator::createOutputArtifact(
         outputInfo.oldFileTags = outputArtifact->fileTags();
         outputInfo.oldProperties = outputArtifact->properties->value();
     } else {
-        std::unique_ptr<Artifact> newArtifact(new Artifact);
+        auto newArtifact = std::make_unique<Artifact>();
         newArtifact->artifactType = Artifact::Generated;
         newArtifact->setFilePath(outputPath);
         insertArtifact(m_product, newArtifact.get());

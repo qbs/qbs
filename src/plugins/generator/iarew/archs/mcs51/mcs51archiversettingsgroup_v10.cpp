@@ -67,7 +67,7 @@ Mcs51ArchiverSettingsGroup::Mcs51ArchiverSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("XAR"));
+    setGroupName(QByteArrayLiteral("XAR"));
     setArchiveVersion(kArchiverArchiveVersion);
     setDataVersion(kArchiverDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

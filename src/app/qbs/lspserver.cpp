@@ -720,8 +720,8 @@ void LspServer::Private::handleDidChangeNotification()
             doc.currentContent = change.text();
             continue;
         }
-        const int startPos = posToOffset(range->start(), doc.currentContent);
-        const int endPos = posToOffset(range->end(), doc.currentContent);
+        const int startPos = posToOffset(range->startPosition(), doc.currentContent);
+        const int endPos = posToOffset(range->endPosition(), doc.currentContent);
         if (startPos == -1 || endPos == -1 || startPos > endPos)
             return sendErrorResponse(LspErrorResponse::InvalidParams, Tr::tr("Invalid range."));
         doc.currentContent.replace(startPos, endPos - startPos, change.text());

@@ -71,17 +71,17 @@ template<typename T> struct SortAfterLoad<std::shared_ptr<T>> { static const boo
 template<typename T> class Set
 {
 public:
-    using const_iterator = typename std::vector<T>::const_iterator;
-    using iterator = typename std::vector<T>::iterator;
-    using reverse_iterator = typename std::vector<T>::reverse_iterator;
-    using const_reverse_iterator = typename std::vector<T>::const_reverse_iterator;
-    using size_type = typename std::vector<T>::size_type;
+    using const_iterator = std::vector<T>::const_iterator;
+    using iterator = std::vector<T>::iterator;
+    using reverse_iterator = std::vector<T>::reverse_iterator;
+    using const_reverse_iterator = std::vector<T>::const_reverse_iterator;
+    using size_type = std::vector<T>::size_type;
     using value_type = T;
-    using difference_type = typename std::vector<T>::difference_type;
-    using pointer = typename std::vector<T>::pointer;
-    using const_pointer = typename std::vector<T>::const_pointer;
-    using reference = typename std::vector<T>::reference;
-    using const_reference = typename std::vector<T>::const_reference;
+    using difference_type = std::vector<T>::difference_type;
+    using pointer = std::vector<T>::pointer;
+    using const_pointer = std::vector<T>::const_pointer;
+    using reference = std::vector<T>::reference;
+    using const_reference = std::vector<T>::const_reference;
 
     iterator begin() { return m_data.begin(); }
     iterator end() { return m_data.end(); }
@@ -304,7 +304,7 @@ template<> inline QString Set<QString>::toString(const QString &value) const { r
 #endif
 
 template<typename T>
-typename Set<T>::iterator Set<T>::asMutableIterator(typename Set<T>::const_iterator cit)
+Set<T>::iterator Set<T>::asMutableIterator(Set<T>::const_iterator cit)
 {
     const auto offset = std::distance(cbegin(), cit);
     return begin() + offset;

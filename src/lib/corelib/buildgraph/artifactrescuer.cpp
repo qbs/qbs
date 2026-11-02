@@ -71,7 +71,7 @@ ArtifactRescuer::ArtifactRescuer(
 bool ArtifactRescuer::rescueOldBuildData(Artifact *artifact)
 {
     bool childrenAdded = false;
-    ResolvedProduct * const product = artifact->product.get();
+    const ResolvedProduct * const product = artifact->product.get();
     RescuableArtifactData rad = product->buildData->removeFromRescuableArtifactData(
         artifact->filePath());
     if (!rad.isValid())

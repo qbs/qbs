@@ -476,7 +476,7 @@ template<typename... Args> struct PPHelper<std::tuple<Args...>>
 
 template<typename T> struct PPHelper<QFlags<T>>
 {
-    using Int = typename QFlags<T>::Int;
+    using Int = QFlags<T>::Int;
     static void store(const QFlags<T> &flags, PersistentPool *pool)
     {
         pool->store<Int>(flags);

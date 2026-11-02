@@ -152,21 +152,6 @@ struct QBS_EXPORT GeneratableProject : public GeneratableProjectData {
             func(it.key().toStdString(), it.value());
     }
 
-    const Project operator[](const QString &configurationName) const
-    {
-        return projects[configurationName];
-    }
-
-    const Project operator[](const std::string &configurationName) const
-    {
-        return projects[QString::fromStdString(configurationName)];
-    }
-
-    bool isValid() const
-    {
-        return !data.empty() && !projects.empty();
-    }
-
     const ProjectData projectData(const QString &configurationName) const
     {
         return data[configurationName];

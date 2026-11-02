@@ -93,12 +93,12 @@ class QBS_EXPORT ErrorInfo
 {
 public:
     ErrorInfo();
-    ErrorInfo(const ErrorInfo &rhs);
+    ErrorInfo(const ErrorInfo &rhs) noexcept;
     ErrorInfo(ErrorInfo &&rhs) noexcept;
     ErrorInfo(const QString &description, const CodeLocation &location = CodeLocation(),
               bool internalError = false);
     ErrorInfo(const QString &description, const QStringList &backtrace);
-    ErrorInfo &operator=(const ErrorInfo &other);
+    ErrorInfo &operator=(const ErrorInfo &other) noexcept;
     ErrorInfo &operator=(ErrorInfo &&other) noexcept;
     ~ErrorInfo();
 

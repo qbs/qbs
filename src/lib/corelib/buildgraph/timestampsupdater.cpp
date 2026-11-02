@@ -59,7 +59,7 @@ public:
     TimestampsUpdateVisitor()
         : ArtifactVisitor(Artifact::Generated), m_now(FileTime::currentTime()) {}
 
-    void visitProduct(const ResolvedProductConstPtr &product)
+    void visitResolvedProduct(const ResolvedProductConstPtr &product)
     {
         QBS_CHECK(product->buildData);
         ArtifactVisitor::visitProduct(product);
@@ -88,7 +88,7 @@ void TimestampsUpdater::updateTimestamps(const TopLevelProjectPtr &project,
 {
     TimestampsUpdateVisitor v;
     for (const ResolvedProductPtr &product : products)
-        v.visitProduct(product);
+        v.visitResolvedProduct(product);
     if (!products.empty())
         project->buildData->setDirty();
     project->store(logger);

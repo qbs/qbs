@@ -67,7 +67,7 @@ AvrArchiverSettingsGroup::AvrArchiverSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("XAR"));
+    setGroupName(QByteArrayLiteral("XAR"));
     setArchiveVersion(kArchiverArchiveVersion);
     setDataVersion(kArchiverDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

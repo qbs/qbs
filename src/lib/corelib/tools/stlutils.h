@@ -108,19 +108,22 @@ bool containsKey(const C &container, const typename C::key_type &v)
 }
 
 template<class C>
-concept QtMapLike = requires(typename C::const_iterator it)
+concept QtMapLike = requires(C::const_iterator it)
 {
     it.value();
 };
 
 template<class C>
-concept StlMapLike = !QtMapLike<C> && requires(typename C::const_iterator it)
+concept StlMapLike = !QtMapLike<C> && requires(C::const_iterator it)
 {
     it->second;
 };
 
+// msvc requires typename here while clang-tidy complains about it being redundant
 template<StlMapLike C>
-const typename C::mapped_type *mapFindPtr(const C &container, const typename C::key_type &key)
+const typename C::mapped_type *mapFindPtr( // NOLINT(readability-redundant-typename)
+    const C &container,
+    const typename C::key_type &key)
 {
     const auto end = container.cend();
     const auto it = container.find(key);
@@ -128,7 +131,9 @@ const typename C::mapped_type *mapFindPtr(const C &container, const typename C::
 }
 
 template<QtMapLike C>
-const typename C::mapped_type *mapFindPtr(const C &container, const typename C::key_type &key)
+const typename C::mapped_type *mapFindPtr( // NOLINT(readability-redundant-typename)
+    const C &container,
+    const typename C::key_type &key)
 {
     const auto end = container.cend();
     const auto it = container.find(key);
@@ -136,10 +141,10 @@ const typename C::mapped_type *mapFindPtr(const C &container, const typename C::
 }
 
 template<class C>
-typename C::mapped_type mapValue(
+C::mapped_type mapValue(
     const C &container,
     const typename C::key_type &key,
-    const typename C::mapped_type &defaultValue = typename C::mapped_type())
+    const typename C::mapped_type &defaultValue = {})
 {
     const auto value = mapFindPtr(container, key);
     return value ? *value : defaultValue;
@@ -249,16 +254,18 @@ size_t hashRange(R &&range)
 }
 
 // based on qcontainertools_impl.h
-template <typename Iterator>
-using IfIsForwardIterator_t = typename std::enable_if_t<
+template<typename Iterator>
+using IfIsForwardIterator_t = std::enable_if_t<
     std::is_convertible_v<
-        typename std::iterator_traits<Iterator>::iterator_category, std::forward_iterator_tag>,
+        typename std::iterator_traits<Iterator>::iterator_category,
+        std::forward_iterator_tag>,
     bool>;
 
-template <typename Iterator>
-using IfIsNotForwardIterator = typename std::enable_if_t<
+template<typename Iterator>
+using IfIsNotForwardIterator = std::enable_if_t<
     !std::is_convertible_v<
-        typename std::iterator_traits<Iterator>::iterator_category, std::forward_iterator_tag>,
+        typename std::iterator_traits<Iterator>::iterator_category,
+        std::forward_iterator_tag>,
     bool>;
 
 template <typename Container,
@@ -273,7 +280,7 @@ template <typename Container,
           IfIsForwardIterator_t<ForwardIterator> = true>
 void reserveIfForwardIterator(Container *c, ForwardIterator f, ForwardIterator l)
 {
-    c->reserve(static_cast<typename Container::size_type>(std::distance(f, l)));
+    c->reserve(static_cast<Container::size_type>(std::distance(f, l)));
 }
 
 // similar to ranges::to proposal

@@ -69,7 +69,7 @@ VisualStudioGuidPool::VisualStudioGuidPool(const std::string &storeFilePath)
     }
 }
 
-VisualStudioGuidPool::~VisualStudioGuidPool()
+VisualStudioGuidPool::~VisualStudioGuidPool() // NOLINT(bugprone-exception-escape)
 {
     Internal::FileSaver file(d->storeFilePath);
     if (file.open()) {

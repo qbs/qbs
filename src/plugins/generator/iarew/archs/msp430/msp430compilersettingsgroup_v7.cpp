@@ -331,7 +331,7 @@ Msp430CompilerSettingsGroup::Msp430CompilerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("ICC430"));
+    setGroupName(QByteArrayLiteral("ICC430"));
     setArchiveVersion(kCompilerArchiveVersion);
     setDataVersion(kCompilerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

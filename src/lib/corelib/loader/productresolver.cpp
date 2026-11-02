@@ -1063,7 +1063,7 @@ void ProductResolverStage2::resolveExport(Item *exportItem)
 std::unique_ptr<ExportedItem> ProductResolverStage2::resolveExportChild(
         const Item *item, const ExportedModule &module)
 {
-    std::unique_ptr<ExportedItem> exportedItem(new ExportedItem);
+    auto exportedItem = std::make_unique<ExportedItem>();
 
     // This is the type of the built-in base item. It may turn out that we need to support
     // derived items under Export. In that case, we probably need a new Item member holding

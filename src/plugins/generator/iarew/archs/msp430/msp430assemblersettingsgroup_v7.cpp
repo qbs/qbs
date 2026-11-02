@@ -161,7 +161,7 @@ Msp430AssemblerSettingsGroup::Msp430AssemblerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("A430"));
+    setGroupName(QByteArrayLiteral("A430"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

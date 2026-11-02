@@ -40,8 +40,8 @@ class IarewSettingsPropertyGroup : public gen::xml::PropertyGroup
 public:
     explicit IarewSettingsPropertyGroup();
 
-    void setName(const QByteArray &name);
-    QByteArray name() const;
+    void setGroupName(const QByteArray &groupName);
+    QByteArray groupName() const;
 
     void setArchiveVersion(int archiveVersion);
     int archiveVersion() const;

@@ -72,7 +72,10 @@ public:
         m_engine->setProperty(StringConstants::qbsProcEnvVarInternal(), v);
     }
 
-    ~EnvProvider() { m_engine->setProperty(StringConstants::qbsProcEnvVarInternal(), QVariant()); }
+    ~EnvProvider() // NOLINT(bugprone-exception-escape)
+    {
+        m_engine->setProperty(StringConstants::qbsProcEnvVarInternal(), QVariant());
+    }
 
     QProcessEnvironment alteredEnvironment() const { return m_env; }
 

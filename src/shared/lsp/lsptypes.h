@@ -92,19 +92,25 @@ public:
     using JsonObject::JsonObject;
 
     // The range's start position.
-    Position start() const { return typedValue<Position>(startKey); }
-    void setStart(const Position &start) { insert(startKey, start); }
+    Position startPosition() const { return typedValue<Position>(startKey); }
+    void setStartPosition(const Position &start) { insert(startKey, start); }
 
     // The range's end position.
-    Position end() const { return typedValue<Position>(endKey); }
-    void setEnd(const Position &end) { insert(endKey, end); }
+    Position endPosition() const { return typedValue<Position>(endKey); }
+    void setEndPosition(const Position &end) { insert(endKey, end); }
 
-    bool isEmpty() const { return start() == end(); }
-    bool contains(const Position &pos) const { return start() <= pos && pos <= end(); }
+    bool isEmpty() const { return startPosition() == endPosition(); }
+    bool contains(const Position &pos) const
+    {
+        return startPosition() <= pos && pos <= endPosition();
+    }
     bool contains(const Range &other) const;
     bool overlaps(const Range &range) const;
     bool isLeftOf(const Range &other) const
-    { return isEmpty() || other.isEmpty() ? end() < other.start() : end() <= other.start(); }
+    {
+        return isEmpty() || other.isEmpty() ? endPosition() < other.startPosition()
+                                            : endPosition() <= other.startPosition();
+    }
 
     bool isValid() const override
     { return JsonObject::contains(startKey) && JsonObject::contains(endKey); }

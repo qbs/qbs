@@ -75,8 +75,7 @@ ProcessCommandExecutor::ProcessCommandExecutor(const Logger &logger, QObject *pa
 {
     connect(&m_process, &QbsProcess::errorOccurred,
             this, &ProcessCommandExecutor::onProcessError);
-    connect(&m_process, static_cast<void (QbsProcess::*)(int)>(&QbsProcess::finished),
-            this, &ProcessCommandExecutor::onProcessFinished);
+    connect(&m_process, &QbsProcess::finished, this, &ProcessCommandExecutor::onProcessFinished);
 }
 
 static QProcessEnvironment mergeEnvironments(const QProcessEnvironment &baseEnv,

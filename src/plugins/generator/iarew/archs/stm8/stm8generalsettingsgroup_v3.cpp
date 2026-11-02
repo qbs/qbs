@@ -273,7 +273,7 @@ Stm8GeneralSettingsGroup::Stm8GeneralSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("General"));
+    setGroupName(QByteArrayLiteral("General"));
     setArchiveVersion(kGeneralArchiveVersion);
     setDataVersion(kGeneralDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

@@ -159,7 +159,7 @@ ArmAssemblerSettingsGroup::ArmAssemblerSettingsGroup(
 {
     Q_UNUSED(qbsProductDeps)
 
-    setName(QByteArrayLiteral("AARM"));
+    setGroupName(QByteArrayLiteral("AARM"));
     setArchiveVersion(kAssemblerArchiveVersion);
     setDataVersion(kAssemblerDataVersion);
     setDataDebugInfo(gen::utils::debugInformation(qbsProduct));

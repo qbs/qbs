@@ -100,7 +100,7 @@ Evaluator::Evaluator(ScriptEngine *scriptEngine)
     scriptEngine->logger().storeWarnings();
 }
 
-Evaluator::~Evaluator()
+Evaluator::~Evaluator() // NOLINT(bugprone-exception-escape)
 {
     Set<JSValue> valuesToFree;
     for (const auto &data : std::as_const(m_scriptValueMap)) {

@@ -191,7 +191,7 @@ ErrorInfo::ErrorInfo() : d(new ErrorInfoPrivate)
 {
 }
 
-ErrorInfo::ErrorInfo(const ErrorInfo &rhs) = default;
+ErrorInfo::ErrorInfo(const ErrorInfo &rhs) noexcept = default;
 
 ErrorInfo::ErrorInfo(ErrorInfo &&rhs) noexcept = default;
 
@@ -229,7 +229,7 @@ ErrorInfo::ErrorInfo(const QString &description, const QStringList &backtrace)
 
 ErrorInfo &ErrorInfo::operator=(ErrorInfo &&other) noexcept = default;
 
-ErrorInfo &ErrorInfo::operator =(const ErrorInfo &other) = default;
+ErrorInfo &ErrorInfo::operator=(const ErrorInfo &other) noexcept = default;
 
 ErrorInfo::~ErrorInfo() = default;
 
