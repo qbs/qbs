@@ -14,7 +14,7 @@ module;              // start module unit with global module fragment
 
 #include <string>
 
-module Mod2:Order;   // internal partition declaration
+export module Mod2:Order;   // interface partition declaration
 
 struct Order {
   int count;
