@@ -690,6 +690,8 @@ function prepareModuleMap(input, output, product) {
                     const moduleInfoPath = FileInfo.joinPaths(
                         FileInfo.path(moduleFile), FileInfo.completeBaseName(moduleFile)
                                              + product.cpp.moduleInfoSuffix);
+                    if (!File.exists(moduleInfoPath))
+                        return {};
                     var file = new TextFile(moduleInfoPath, TextFile.ReadOnly);
                     const moduleInfo = JSON.parse(file.readAll());
                     file.close();
