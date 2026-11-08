@@ -140,17 +140,15 @@ jobs:
 
   clang-format:
     name: Check Style
-    runs-on: macos-15
+    runs-on: ubuntu-latest
     timeout-minutes: 60
-    strategy:
-        fail-fast: false
     steps:
     - uses: actions/checkout@v1
-    - name: Update PATH
-      run: echo "$(brew --prefix llvm@18)/bin" >> ${GITHUB_PATH}
+    - name: Pull the Docker Image
+      run: docker compose pull resolute
     - name: Run clang-format
       run: |
-        git diff -U0 --no-color --relative HEAD^ | $(brew --prefix llvm@18)/share/clang/clang-format-diff.py -i -p1 -regex ".*\.(cxx|cpp|hpp|h)" -v
+        docker compose run resolute "git diff -U0 --no-color --relative HEAD^ | clang-format-diff-22 -i -p1 -regex '.*\.(cxx|cpp|hpp|h)' -v"
     - name: Check diff
       run: git diff --exit-code
 
