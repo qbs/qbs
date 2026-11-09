@@ -53,12 +53,14 @@
 #include <tools/error.h>
 #include <tools/qbsassert.h>
 #include <tools/qttools.h>
+#include <tools/stringconstants.h>
 
 #include <quickjs.h>
 
 #include <QtCore/qeventloop.h>
 #include <QtCore/qmutex.h>
 #include <QtCore/qpointer.h>
+#include <QtCore/qprocess.h>
 #include <QtCore/qthread.h>
 #include <QtCore/qtimer.h>
 
@@ -85,6 +87,18 @@ public:
     const JavaScriptCommandResult &result() const
     {
         return m_result;
+    }
+
+    // Must be called from the executor thread, while no command is running.
+    // QProcessEnvironment lazily converts its values between QString and QByteArray
+    // without any locking, so its data must not be shared between threads.
+    // Therefore, we create a deep copy here instead of using the product's environment directly.
+    void setBuildEnvironment(const QProcessEnvironment &env)
+    {
+        m_buildEnvironment = QProcessEnvironment();
+        const QStringList keys = env.keys();
+        for (const QString &key : keys)
+            m_buildEnvironment.insert(key, env.value(key));
     }
 
     void cancel(const qbs::ErrorInfo &reason)
@@ -137,7 +151,10 @@ private:
             importScopeForSourceCode.setValue(getJsProperty(ctx, scope, cmd->scopeName()));
 
         setupScriptEngineForProduct(scriptEngine, transformer->product().get(),
-                                    transformer->rule->module.get(), scope, true);
+                                    transformer->rule->module.get(), scope, false);
+        QVariant buildEnv;
+        buildEnv.setValue<void *>(&m_buildEnvironment);
+        scriptEngine->setProperty(StringConstants::qbsProcEnvVarInternal(), buildEnv);
         transformer->setupInputs(scriptEngine, scope);
         transformer->setupOutputs(scriptEngine, scope);
         transformer->setupExplicitlyDependsOn(scriptEngine, scope);
@@ -179,6 +196,7 @@ private:
     Logger m_logger;
     std::unique_ptr<ScriptEngine> m_scriptEngine;
     JavaScriptCommandResult m_result;
+    QProcessEnvironment m_buildEnvironment;
     QMutex m_resultMutex;
     bool m_running = false;
     bool m_cancelled = false;
@@ -241,6 +259,7 @@ bool JsCommandExecutor::doStart()
 
     m_thread->start();
     m_running = true;
+    m_objectInThread->setBuildEnvironment(transformer()->product()->buildEnvironment);
     emit startRequested(jsCommand(), transformer());
     return true;
 }

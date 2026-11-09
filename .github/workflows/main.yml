@@ -631,17 +631,6 @@ jobs:
             script: './scripts/test-qt.sh',
           }
         - {
-            name: 'Test macOS (Xcode 15.4, arm64)',
-            runner: 'macos-14',
-            target: 'desktop',
-            toolchain: 'clang_64',
-            xcodeVersion: '15.4',
-            testProfile: 'xcode_15_4-macosx-arm64',
-            qtVersion: '6.11.2',
-            suffix: 'macos-arm64',
-            script: './scripts/test-qbs.sh',
-          }
-        - {
             name: 'Test macOS (Xcode-less, arm64)',
             runner: 'macos-15',
             target: 'desktop',
