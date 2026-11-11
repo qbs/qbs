@@ -72,6 +72,7 @@ add_custom_command(
         --settings-dir ${PROJECT_BINARY_DIR}/settings
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs
         -d ${PROJECT_BINARY_DIR}/
+        --log-level warning
         config:resources-build
         qbs.installPrefix:""
         project.withCode:false
@@ -82,6 +83,7 @@ add_custom_command(
         --settings-dir ${PROJECT_BINARY_DIR}/settings
         -f ${PROJECT_SOURCE_DIR}/qbs.qbs
         -d ${PROJECT_BINARY_DIR}/
+        --log-level warning
         config:resources-build
         -p "qbs resources"
     DEPENDS qbs "${_QBS_RESOURCES_DST}" qbs_processlauncher
