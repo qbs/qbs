@@ -21,8 +21,6 @@ elseif (UNIX)
     set(PKG_CONFIG_PC_PATH "${PKG_CONFIG_PC_PATH}:/usr/lib/pkgconfig/:/usr/share/pkgconfig/")
 endif()
 
-message(${PKG_CONFIG_PC_PATH})
-
 add_qbs_library(qbspkgconfig
     STATIC
     DEFINES
