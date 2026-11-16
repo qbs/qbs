@@ -819,13 +819,14 @@
     \QBS can also be built locally from sources. For more information, see
     \l{Appendix A: Building Qbs}.
 
-    \section1 Windows
+    \section1 Prebuilt Binaries
 
-    The Qt Project provides prebuilt binaries for Windows (x86 and x64) at
-    \l{https://download.qt.io/official_releases/qbs/}. For commercial customers of
-    The Qt Company, the binaries are available in the \l {Qt Account}.
-    The binaries are packaged in a .zip folder that can be extracted to a location
-    of your choice.
+    We provide prebuilt binaries for Windows, Ubuntu, and macOS at
+    \l{https://download.qt.io/official_releases/qbs/}.
+    The binaries are packaged in .zip or .tar.gz archives that can be extracted
+    to a location of your choice.
+
+    \section1 Windows
 
     \QBS is also available as a \l Chocolatey package, which can be installed in
     the usual way:
