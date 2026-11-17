@@ -454,8 +454,18 @@ void TestBlackboxProviders::qbsModuleProvidersCompatibility()
              m_qbsStdout);
 }
 
+void TestBlackboxProviders::qbspkgconfigModuleProvider_data()
+{
+    QTest::addColumn<bool>("useSystemIncludes");
+
+    QTest::newRow("default") << false;
+    QTest::newRow("system includes") << true;
+}
+
 void TestBlackboxProviders::qbspkgconfigModuleProvider()
 {
+    QFETCH(bool, useSystemIncludes);
+
     QDir::setCurrent(testDataDir + "/qbspkgconfig-module-provider/libs");
     rmDirR(relativeBuildDir());
 
@@ -471,10 +481,29 @@ void TestBlackboxProviders::qbspkgconfigModuleProvider()
     rmDirR(relativeBuildDir());
 
     const auto sysroot = testDataDir + "/qbspkgconfig-module-provider/libs/install-root";
+    const QByteArray includePath = QString(sysroot + "/usr/include").toUtf8();
 
     QbsRunParameters params;
     params.arguments << "moduleProviders.qbspkgconfig.sysroot:" + sysroot;
+    if (useSystemIncludes)
+        params.arguments << "moduleProviders.qbspkgconfig.useSystemIncludes:true";
     QCOMPARE(runQbs(params), 0);
+
+    const auto listedIn = [&](const QByteArray &label) {
+        const QByteArray prefix = label + ": ";
+        const int start = m_qbsStdout.indexOf(prefix);
+        if (start == -1)
+            return false;
+        const int end = m_qbsStdout.indexOf('\n', start);
+        return m_qbsStdout.mid(start, end < 0 ? -1 : end - start).contains(includePath);
+    };
+    if (useSystemIncludes) {
+        QVERIFY2(!listedIn("includePaths"), m_qbsStdout.constData());
+        QVERIFY2(listedIn("systemIncludePaths"), m_qbsStdout.constData());
+    } else {
+        QVERIFY2(listedIn("includePaths"), m_qbsStdout.constData());
+        QVERIFY2(!listedIn("systemIncludePaths"), m_qbsStdout.constData());
+    }
 }
 
 void TestBlackboxProviders::qtBug51237()

@@ -87,6 +87,20 @@
 */
 
 /*!
+    \qmlproperty bool qbspkgconfig::useSystemIncludes
+    \since Qbs 3.5
+
+    If this property is \c true, regular include paths from the package are written to
+    \l{cpp::systemIncludePaths}{cpp.systemIncludePaths} instead of
+    \l{cpp::includePaths}{cpp.includePaths}.
+
+    Include paths that the package already reports as system includes are always written to
+    \c{cpp.systemIncludePaths}.
+
+    \defaultvalue \c false
+*/
+
+/*!
     \qmlproperty bool qbspkgconfig::definePrefix
 
     If this property is \c true, then \QBS will override the ${prefix} variable in the packages

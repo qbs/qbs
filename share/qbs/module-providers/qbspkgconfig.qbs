@@ -56,6 +56,7 @@ ModuleProvider {
     property stringList extraPaths
     property stringList libDirs
     property bool staticMode: false
+    property bool useSystemIncludes: false
     property bool definePrefix: Host.os().includes("windows")
 
     // When building on macOS, .pc files live in Homebrew/MacPorts outside the SDK sysroot,
@@ -180,6 +181,11 @@ ModuleProvider {
             return [];
         }
         var moduleInfo = getModuleInfo(pkg, staticMode);
+        if (useSystemIncludes) {
+            moduleInfo.systemIncludePaths =
+                    moduleInfo.systemIncludePaths.uniqueConcat(moduleInfo.includePaths);
+            moduleInfo.includePaths = [];
+        }
         var deps = getModuleDependencies(pkg, staticMode);
 
         var moduleDir = FileInfo.joinPaths(outputDir, moduleName);
