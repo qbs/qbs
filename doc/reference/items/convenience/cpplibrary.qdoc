@@ -48,7 +48,7 @@
 
     The name of the directory where headers are installed.
 
-    \defaultvalue \l{product::targetName}{Product.targetName}
+    \defaultvalue \l{Product::targetName}{Product.targetName}
     \since Qbs 3.2
 */
 
@@ -72,7 +72,7 @@
 
     The directory where to install public headers.
 
-    \defaultvalue \l{installpaths.headers} + \c{"/"} + \l{headersDirectoryName}
+    \defaultvalue \l{installpaths::headers}{installpaths.headers} + \c{"/"} + \l{headersDirectoryName}
     \since Qbs 3.2
 */
 
@@ -97,6 +97,6 @@
 
     The directory where to install private headers.
 
-    \defaultvalue \l{installpaths.headers} + \c{"/"} + \l{headersDirectoryName} + \c{"/private"}
+    \defaultvalue \l{installpaths::headers}{installpaths.headers} + \c{"/"} + \l{headersDirectoryName} + \c{"/private"}
     \since Qbs 3.2
 */

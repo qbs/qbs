@@ -91,9 +91,17 @@
 /*!
     \qmlproperty string installpaths::include
 
-    The location where to install include files.
+    The base directory for installed headers. Project headers go in \l{headers}.
 
     \defaultvalue \c "include"
+*/
+
+/*!
+    \qmlproperty string installpaths::headers
+
+    The location where to install a project's headers.
+
+    \defaultvalue \l{include} + \c{"/"} + \l{subdir}
 */
 
 /*!
@@ -131,7 +139,7 @@
 /*!
     \qmlproperty string installpaths::subdir
 
-    The additional directory appended to the libexec, share and plugins paths.
+    The additional directory appended to the headers, libexec, share and plugins paths.
 
     \defaultvalue lower-case \l{Project::name}{Project.name}
 */
