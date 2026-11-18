@@ -91,7 +91,13 @@
 /*!
     \qmlproperty string installpaths::include
 
-    The base directory for installed headers. Project headers go in \l{headers}.
+    The root directory for headers, relative to
+    \l{qbs::installPrefix}{qbs.installPrefix}.
+
+    This is the system include directory. With an install prefix of \c{/usr},
+    the default value corresponds to \c{/usr/include}. Distributors change this
+    property to relocate that directory for every header install, for example
+    from \c{/usr/include} to \c{/opt/include}.
 
     \defaultvalue \c "include"
 */
@@ -99,7 +105,20 @@
 /*!
     \qmlproperty string installpaths::headers
 
-    The location where to install a project's headers.
+    The directory where a project's headers are installed.
+
+    Set this property in a product to override the default value.
+
+    This example installs a \l{CppLibrary}'s public headers under
+    \c{/include/somedir/<product name>} instead of \c{/include/<project name>/<product name>}:
+
+    \code
+    CppLibrary {
+        install: true
+        publicHeaders: ["mylib.h"]
+        installpaths.headers: installpaths.include + "/somedir"
+    }
+    \endcode
 
     \defaultvalue \l{include} + \c{"/"} + \l{subdir}
 */
