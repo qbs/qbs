@@ -79,6 +79,7 @@ CppModule {
         // input
         property bool _forceUseImportStd : forceUseImportStd
         property bool _forceUseImportStdCompat : forceUseImportStdCompat
+        property string _cxxStandardLibrary: cxxStandardLibrary
         property stringList _toolchain: qbs.toolchain
         property string _compilerPath : compilerPathByLanguage["cpp"]
 

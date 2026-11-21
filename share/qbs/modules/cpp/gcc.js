@@ -1875,15 +1875,22 @@ function wasmArtifacts(product)
 }
 
 function configureStdModules() {
+    var modulesJsonFiles = [
+        "libc++.modules.json",
+        "libstdc++.modules.json",
+        "../../c++/libc++.modules.json",
+    ];
+    var stdlib = _cxxStandardLibrary;
+    if (!stdlib && !_toolchain.includes("clang"))
+        stdlib = "libstdc++";
+
+    if (stdlib === "libc++")
+        modulesJsonFiles = ["libc++.modules.json", "../../c++/libc++.modules.json"];
+    else if (stdlib === "libstdc++")
+        modulesJsonFiles = ["libstdc++.modules.json"];
+
     try {
         var probe = new Process();
-        // check which stdlib is used? this actually works:
-        // clang-18 -print-file-name=libstdc++.modules.json --sysroot /opt/gcc-15/
-        const modulesJsonFiles = [
-            "libc++.modules.json",
-            "libstdc++.modules.json",
-            "../../c++/libc++.modules.json",
-        ];
         for (var i = 0; i < modulesJsonFiles.length; ++i) {
             const modulesJsonFile = modulesJsonFiles[i];
             const result = probe.exec(_compilerPath, ["-print-file-name=" + modulesJsonFile], false);
