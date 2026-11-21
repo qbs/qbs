@@ -455,13 +455,14 @@ static std::vector<MSVC> installedCompilersHelper(Logger &logger)
             continue;
         }
 
-        msvc.version = QString::number(Internal::VisualStudioVersionInfo(
-            msvc.internalVsVersion).marketingVersion());
-        if (msvc.version.isEmpty()) {
+        const int marketingVersion
+            = Internal::VisualStudioVersionInfo(msvc.internalVsVersion).marketingVersion();
+        if (marketingVersion <= 0) {
             logger.qbsWarning()
                     << Tr::tr("Unknown MSVC version %1 found.").arg(installInfo.version);
             continue;
         }
+        msvc.version = QString::number(marketingVersion);
 
         if (msvc.internalVsVersion.majorVersion() < 15) {
             QDir vcInstallDir = vsInstallDir;
