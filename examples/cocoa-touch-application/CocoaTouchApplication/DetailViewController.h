@@ -51,11 +51,10 @@
 
 #import <UIKit/UIKit.h>
 
-@interface DetailViewController : UIViewController <UISplitViewControllerDelegate>
+@interface DetailViewController : UIViewController
 {
     id _detailItem;
     UILabel *_detailDescriptionLabel;
-    UIPopoverController *_masterPopoverController;
 }
 
 @property (nonatomic, retain) id detailItem;
