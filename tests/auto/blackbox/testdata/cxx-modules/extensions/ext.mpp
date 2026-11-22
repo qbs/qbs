@@ -1,0 +1,2 @@
+export module ext_mpp;
+export int fromMpp() { return 1; }
