@@ -51,6 +51,7 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
     m_command = ConfigCommand();
     m_helpRequested = false;
     m_settingsDir.clear();
+    m_settingsFormat = qbs::defaultSettingsFormat();
 
     m_commandLine = commandLine;
     if (m_commandLine.empty())
@@ -75,6 +76,8 @@ void ConfigCommandLineParser::parse(const QStringList &commandLine)
             setCommand(ConfigCommand::CfgAddProfile);
         else if (arg == QLatin1String("settings-dir"))
             assignOptionArgument(arg, m_settingsDir);
+        else if (arg == QLatin1String("settings-format"))
+            setSettingsFormat(arg);
         else if (arg == QLatin1String("user"))
             setScope(qbs::Settings::UserScope);
         else if (arg == QLatin1String("system"))
@@ -150,21 +153,34 @@ void ConfigCommandLineParser::setScope(Settings::Scope scope)
     m_scope = scope;
 }
 
+void ConfigCommandLineParser::setSettingsFormat(const QString &option)
+{
+    QString format;
+    assignOptionArgument(option, format);
+    m_settingsFormat = qbs::settingsFormatFromString(format);
+}
+
 void ConfigCommandLineParser::printUsage() const
 {
-    std::puts("Usage:\n"
-        "    qbs config [--settings-dir <settings directory] <options>\n"
-        "    qbs config [--settings-dir <settings directory] <key>\n"
-        "    qbs config [--settings-dir <settings directory] <key> <value>"
+    const auto usage = QStringLiteral(
+        "Usage:\n"
+        "    qbs config [--settings-dir <settings directory>] "
+        "[--settings-format <format>] <options>\n"
+        "    qbs config [--settings-dir <settings directory>] "
+        "[--settings-format <format>] <key>\n"
+        "    qbs config [--settings-dir <settings directory>] "
+        "[--settings-format <format>] <key> <value>"
         "\n"
-         "Options:\n"
-         "    --list [<root> ...]      list keys under key <root> or all keys\n"
-         "    --user                   consider only user-level settings\n"
-         "    --system                 consider only system-level settings\n"
-         "    --unset <name>           remove key with given name\n"
-         "    --add-profile <name> <key> <value> ...  add profile with the given name and properties\n"
-         "    --import <file>          import settings from given file\n"
-         "    --export <file>          export settings to given file\n");
+        "Options:\n"
+        "    --list [<root> ...]      list keys under key <root> or all keys\n"
+        "    --user                   consider only user-level settings\n"
+        "    --system                 consider only system-level settings\n"
+        "    --unset <name>           remove key with given name\n"
+        "    --add-profile <name> <key> <value> ...  add profile with the given name and "
+        "properties\n"
+        "    --import <file>          import settings from given file\n"
+        "    --export <file>          export settings to given file\n");
+    std::puts(qPrintable(usage));
 }
 
 void ConfigCommandLineParser::assignOptionArgument(const QString &option, QString &argument)

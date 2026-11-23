@@ -119,6 +119,18 @@ private slots:
         QVERIFY(parser.parseCommandLine(QStringList() << "--log-level" << "trace" << m_fileArgs));
         QCOMPARE(ConsoleLogger::instance().logSink()->logLevel(), LoggerTrace);
 
+        QVERIFY(
+            parser.parseCommandLine(QStringList() << "--settings-format" << "ini" << m_fileArgs));
+        QCOMPARE(parser.settingsFormat(), SettingsFormat::Ini);
+        if (Internal::HostOsInfo::isWindowsHost()) {
+            QVERIFY(!parser.parseCommandLine(
+                QStringList() << "--settings-format" << "native" << m_fileArgs));
+        } else {
+            QVERIFY(parser.parseCommandLine(
+                QStringList() << "--settings-format" << "native" << m_fileArgs));
+            QCOMPARE(parser.settingsFormat(), SettingsFormat::Native);
+        }
+
         // Second "global" profile overwrites first.
         QVERIFY(parser.parseCommandLine(QStringList() << "profile:a" << m_fileArgs << "profile:b"));
         QCOMPARE(parser.buildConfigurations().size(), 1);
@@ -212,6 +224,8 @@ private slots:
                 << (QStringList() << "--changed-files" << "," << m_fileArgs);
         QTest::newRow("Invalid log level")
                 << (QStringList() << "--log-level" << "blubb" << m_fileArgs);
+        QTest::newRow("Invalid settings format")
+            << (QStringList() << "--settings-format" << "xml" << m_fileArgs);
         QTest::newRow("Unknown numeric argument") << (QStringList() << m_fileArgs << "-123");
         QTest::newRow("Unknown parameter") << (QStringList() << m_fileArgs << "debug");
         QTest::newRow("Too many arguments") << (QStringList("help") << "build" << "clean");

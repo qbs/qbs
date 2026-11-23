@@ -54,6 +54,7 @@ public:
     QString qmakePath() const { return m_qmakePath; }
     QString profileName() const { return m_profileName; }
     QString settingsDir() const { return m_settingsDir; }
+    qbs::SettingsFormat settingsFormat() const { return m_settingsFormat; }
     qbs::Settings::Scope settingsScope() const { return m_settingsScope; }
 
     QString usageString() const;
@@ -69,6 +70,7 @@ private:
     QString m_qmakePath;
     QString m_profileName;
     QString m_settingsDir;
+    qbs::SettingsFormat m_settingsFormat = qbs::defaultSettingsFormat();
     QStringList m_commandLine;
     QString m_command;
 };

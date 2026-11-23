@@ -35,8 +35,8 @@
     \section1 Synopsis
 
     \code
-    qbs setup-qt [--settings-dir <directory>] [--system] --detect
-    qbs setup-qt [--settings-dir <directory>] [--system] <path to qmake> <profile name>
+    qbs setup-qt [--settings-dir <directory>] [--settings-format <format>] [--system] --detect
+    qbs setup-qt [--settings-dir <directory>] [--settings-format <format>] [--system] <path to qmake> <profile name>
     \endcode
 
     \section1 Description
@@ -55,6 +55,7 @@
 
     \include cli-options.qdocinc detect-qt-versions
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
     \include cli-options.qdocinc setup-tools-system
     \include cli-options.qdocinc help
 

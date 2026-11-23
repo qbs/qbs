@@ -584,6 +584,26 @@ void SettingsDirOption::doParse(const QString &representation, QStringList &inpu
     m_settingsDir = input.takeFirst();
 }
 
+QString SettingsFormatOption::description(CommandType command) const
+{
+    Q_UNUSED(command);
+    return Tr::tr(
+               "%1 <format>\n"
+               "\tPossible values are 'native' and 'ini'.\n"
+               "\t'native' is not supported on Windows, where it would use the registry.\n")
+        .arg(longRepresentation());
+}
+
+QString SettingsFormatOption::longRepresentation() const
+{
+    return QStringLiteral("--settings-format");
+}
+
+void SettingsFormatOption::doParse(const QString &representation, QStringList &input)
+{
+    m_settingsFormat = settingsFormatFromString(getArgument(representation, input));
+}
+
 QString JobLimitsOption::description(CommandType command) const
 {
     Q_UNUSED(command);

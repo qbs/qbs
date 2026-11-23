@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
             return EXIT_SUCCESS;
         }
 
-        Settings settings(clParser.settingsDir());
+        Settings settings(clParser.settingsDir(), clParser.settingsFormat());
         settings.setScopeForWriting(clParser.settingsScope());
 
         if (clParser.autoDetectionMode()) {

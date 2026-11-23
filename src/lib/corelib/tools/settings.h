@@ -44,6 +44,7 @@
 
 #include <QtCore/qstring.h>
 #include <QtCore/qstringlist.h>
+#include <QtCore/qstringview.h>
 #include <QtCore/qvariant.h>
 
 #include <memory>
@@ -54,12 +55,20 @@ QT_END_NAMESPACE
 
 namespace qbs {
 
+enum class SettingsFormat { Native, Ini };
+
+QBS_EXPORT SettingsFormat defaultSettingsFormat();
+QBS_EXPORT SettingsFormat settingsFormatFromString(QStringView format);
+QBS_EXPORT QString settingsFormatDescription();
+
 class QBS_EXPORT Settings
 {
 public:
     // The "pure" base directory without any version scope. Empty string means "system default".
     Settings(const QString &baseDir);
+    Settings(const QString &baseDir, SettingsFormat format);
     Settings(const QString &baseDir, const QString &systemBaseDir);
+    Settings(const QString &baseDir, const QString &systemBaseDir, SettingsFormat format);
 
     ~Settings();
 

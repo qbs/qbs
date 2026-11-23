@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
             parser.printUsage();
             return EXIT_SUCCESS;
         }
-        Settings settings(parser.settingsDir());
+        Settings settings(parser.settingsDir(), parser.settingsFormat());
         ConfigCommandExecutor(&settings, parser.scope()).execute(parser.command());
     } catch (const ConfigCommandLineParser::Error &e) {
         std::cerr << qPrintable(e.message()) << std::endl;

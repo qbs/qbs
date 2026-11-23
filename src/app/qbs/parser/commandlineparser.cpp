@@ -96,6 +96,10 @@ public:
     bool withNonDefaultProducts() const;
     bool dryRun() const;
     QString settingsDir() const { return  optionPool.settingsDirOption()->settingsDir(); }
+    SettingsFormat settingsFormat() const
+    {
+        return optionPool.settingsFormatOption()->settingsFormat();
+    }
 
     CommandEchoMode echoMode() const;
 
@@ -158,7 +162,7 @@ BuildOptions CommandLineParser::buildOptions(const QString &profile) const
 {
     d->buildOptions.setMaxJobCount(jobCount(profile));
     if (d->buildOptions.echoMode() < 0) {
-        Settings settings(settingsDir());
+        Settings settings(settingsDir(), settingsFormat());
         d->buildOptions.setEchoMode(Preferences(&settings, profile).defaultEchoMode());
     }
     return d->buildOptions;
@@ -202,7 +206,7 @@ int CommandLineParser::jobCount(const QString &profile) const
     if (const int explicitJobCount = d->optionPool.jobsOption()->jobCount(); explicitJobCount > 0)
         return explicitJobCount;
 
-    Settings settings(settingsDir());
+    Settings settings(settingsDir(), settingsFormat());
     return Preferences(&settings, profile).jobs();
 }
 
@@ -280,6 +284,11 @@ bool CommandLineParser::showVersion() const
 QString CommandLineParser::settingsDir() const
 {
     return d->settingsDir();
+}
+
+SettingsFormat CommandLineParser::settingsFormat() const
+{
+    return d->settingsFormat();
 }
 
 DeprecationWarningMode CommandLineParser::deprecationWarningMode() const

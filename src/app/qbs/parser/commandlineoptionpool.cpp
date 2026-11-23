@@ -119,6 +119,9 @@ CommandLineOption *CommandLineOptionPool::getOption(CommandLineOption::Type type
         case CommandLineOption::SettingsDirOptionType:
             option = new SettingsDirOption;
             break;
+        case CommandLineOption::SettingsFormatOptionType:
+            option = new SettingsFormatOption;
+            break;
         case CommandLineOption::JobLimitsOptionType:
             option = new JobLimitsOption;
             break;
@@ -261,6 +264,12 @@ CommandEchoModeOption *CommandLineOptionPool::commandEchoModeOption() const
 SettingsDirOption *CommandLineOptionPool::settingsDirOption() const
 {
     return static_cast<SettingsDirOption *>(getOption(CommandLineOption::SettingsDirOptionType));
+}
+
+SettingsFormatOption *CommandLineOptionPool::settingsFormatOption() const
+{
+    return static_cast<SettingsFormatOption *>(
+        getOption(CommandLineOption::SettingsFormatOptionType));
 }
 
 JobLimitsOption *CommandLineOptionPool::jobLimitsOption() const

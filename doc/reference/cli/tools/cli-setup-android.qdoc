@@ -35,7 +35,7 @@
     \section1 Synopsis
 
     \code
-    qbs setup-android [--settings-dir <directory>] [--ndk-dir <directory>]
+    qbs setup-android [--settings-dir <directory>] [--settings-format <format>] [--ndk-dir <directory>]
                       [--sdk-dir <directory>] [--qt-dir <directory>]
                       <profile name>
     \endcode
@@ -51,6 +51,7 @@
     \section1 Options
 
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
     \include cli-options.qdocinc ndk-dir
     \include cli-options.qdocinc sdk-dir
     \include cli-options.qdocinc qt-dir

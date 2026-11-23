@@ -49,6 +49,10 @@ static QString helpOptionShort() { return QStringLiteral("-h"); }
 static QString helpOptionLong() { return QStringLiteral("--help"); }
 static QString detectOption() { return QStringLiteral("--detect"); }
 static QString settingsDirOption() { return QStringLiteral("--settings-dir"); }
+static QString settingsFormatOption()
+{
+    return QStringLiteral("--settings-format");
+}
 static QString systemOption() { return QStringLiteral("--system"); }
 
 void CommandLineParser::parse(const QStringList &commandLine)
@@ -61,6 +65,7 @@ void CommandLineParser::parse(const QStringList &commandLine)
     m_qmakePath.clear();
     m_profileName.clear();
     m_settingsDir.clear();
+    m_settingsFormat = qbs::defaultSettingsFormat();
 
     if (m_commandLine.empty())
         throwError(Tr::tr("No command-line arguments provided."));
@@ -78,6 +83,11 @@ void CommandLineParser::parse(const QStringList &commandLine)
             m_settingsScope = qbs::Settings::SystemScope;
         else if (arg == settingsDirOption())
             assignOptionArgument(settingsDirOption(), m_settingsDir);
+        else if (arg == settingsFormatOption()) {
+            QString format;
+            assignOptionArgument(settingsFormatOption(), format);
+            m_settingsFormat = qbs::settingsFormatFromString(format);
+        }
     }
 
     if (m_helpRequested || m_autoDetectionMode) {
@@ -110,14 +120,22 @@ QString CommandLineParser::usageString() const
 {
     QString s = Tr::tr("This tool creates qbs profiles from Qt versions.\n");
     s += Tr::tr("Usage:\n");
-    s += Tr::tr("    %1 [%2 <settings directory>] [%4] %3\n")
-            .arg(m_command, settingsDirOption(), detectOption(), systemOption());
-    s += Tr::tr("    %1 [%2 <settings directory>] [%4] <path to qmake> <profile name>\n")
-            .arg(m_command, settingsDirOption(), systemOption());
+    s += Tr::tr("    %1 [%2 <settings directory>] [%3 <format>] [%4] %5\n")
+             .arg(
+                 m_command,
+                 settingsDirOption(),
+                 settingsFormatOption(),
+                 systemOption(),
+                 detectOption());
+    s += Tr::tr(
+             "    %1 [%2 <settings directory>] [%3 <format>] [%4] <path to qmake> "
+             "<profile name>\n")
+             .arg(m_command, settingsDirOption(), settingsFormatOption(), systemOption());
     s += Tr::tr("    %1 %2|%3\n").arg(m_command, helpOptionShort(), helpOptionLong());
     s += Tr::tr("The first form tries to auto-detect all known Qt versions, looking them up "
                 "via the PATH environment variable.\n");
-    s += Tr::tr("The second form creates one profile for one Qt version.");
+    s += Tr::tr("The second form creates one profile for one Qt version.\n");
+    s += qbs::settingsFormatDescription();
     return s;
 }
 

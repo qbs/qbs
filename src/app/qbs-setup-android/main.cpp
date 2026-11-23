@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
             std::cout << qPrintable(clParser.usageString()) << std::endl;
             return EXIT_SUCCESS;
         }
-        qbs::Settings settings(clParser.settingsDir());
+        qbs::Settings settings(clParser.settingsDir(), clParser.settingsFormat());
         settings.setScopeForWriting(clParser.settingsScope());
         setupAndroid(&settings, clParser.profileName(), clParser.sdkDir(), clParser.ndkDir(),
                      clParser.qtSdkDir());

@@ -51,14 +51,20 @@ class QSettings;
 QT_END_NAMESPACE
 
 namespace qbs {
+
+enum class SettingsFormat;
 namespace Internal {
 
 class SettingsCreator
 {
 public:
-    SettingsCreator(QString baseDir);
+    SettingsCreator(QString baseDir, SettingsFormat format);
+
+    static QString settingsFilePath(const QString &baseDir, SettingsFormat format);
 
     std::unique_ptr<QSettings> getQSettings();
+    static std::unique_ptr<QSettings> createQSettings(
+        const QString &filePath, SettingsFormat format);
 
 private:
     void migrate();
@@ -71,6 +77,7 @@ private:
     QString m_newSettingsFilePath;
     std::unique_ptr<QSettings> m_settings;
     const Version m_qbsVersion;
+    const SettingsFormat m_format;
 };
 
 

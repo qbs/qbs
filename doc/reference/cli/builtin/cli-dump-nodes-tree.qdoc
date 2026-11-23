@@ -49,6 +49,7 @@
     \include cli-options.qdocinc build-directory
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
 
     \section1 Parameters
 

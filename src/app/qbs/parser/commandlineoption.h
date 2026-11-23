@@ -44,6 +44,7 @@
 #include <tools/commandechomode.h>
 #include <tools/deprecationwarningmode.h>
 #include <tools/joblimits.h>
+#include <tools/settings.h>
 
 #include <QtCore/qstringlist.h>
 
@@ -76,6 +77,7 @@ public:
         LogTimeOptionType,
         CommandEchoModeOptionType,
         SettingsDirOptionType,
+        SettingsFormatOptionType,
         JobLimitsOptionType,
         RespectProjectJobLimitsOptionType,
         GeneratorOptionType,
@@ -409,6 +411,21 @@ private:
     void doParse(const QString &representation, QStringList &input) override;
 
     QString m_settingsDir;
+};
+
+class SettingsFormatOption : public CommandLineOption
+{
+public:
+    SettingsFormat settingsFormat() const { return m_settingsFormat; }
+
+    QString description(CommandType command) const override;
+    QString shortRepresentation() const override { return {}; }
+    QString longRepresentation() const override;
+
+private:
+    void doParse(const QString &representation, QStringList &input) override;
+
+    SettingsFormat m_settingsFormat = defaultSettingsFormat();
 };
 
 class JobLimitsOption : public CommandLineOption

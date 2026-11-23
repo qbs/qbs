@@ -54,6 +54,7 @@ public:
 
     qbs::Settings::Scopes scope() const { return m_scope; }
     QString settingsDir() const { return m_settingsDir; }
+    qbs::SettingsFormat settingsFormat() const { return m_settingsFormat; }
     bool helpRequested() const { return m_helpRequested; }
     void printUsage() const;
 
@@ -70,11 +71,13 @@ private:
     void assignOptionArgument(const QString &option, QString &argument);
     void setCommand(ConfigCommand::Command command);
     void setScope(qbs::Settings::Scope scope);
+    void setSettingsFormat(const QString &option);
 
     ConfigCommand m_command;
     qbs::Settings::Scopes m_scope = qbs::Settings::allScopes();
     bool m_helpRequested = false;
     QString m_settingsDir;
+    qbs::SettingsFormat m_settingsFormat = qbs::defaultSettingsFormat();
     QStringList m_commandLine;
 };
 

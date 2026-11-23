@@ -87,13 +87,54 @@ static QString systemSettingsBaseDir()
 #endif
 }
 
-Settings::Settings(const QString &baseDir) : Settings(baseDir, systemSettingsBaseDir()) { }
+SettingsFormat defaultSettingsFormat()
+{
+    return HostOsInfo::isWindowsHost() ? SettingsFormat::Ini : SettingsFormat::Native;
+}
+
+static SettingsFormat checkSettingsFormat(SettingsFormat format)
+{
+    if (format == SettingsFormat::Native && HostOsInfo::isWindowsHost()) {
+        throw ErrorInfo(
+            Tr::tr(
+                "Settings format 'native' is not supported on Windows. "
+                "It would store settings in the registry. Use 'ini' instead."));
+    }
+    return format;
+}
+
+SettingsFormat settingsFormatFromString(QStringView format)
+{
+    if (format == u"native")
+        return checkSettingsFormat(SettingsFormat::Native);
+    if (format == u"ini")
+        return SettingsFormat::Ini;
+    throw ErrorInfo(Tr::tr("Invalid settings format '%1'.").arg(format));
+}
+
+QString settingsFormatDescription()
+{
+    return Tr::tr("Possible values for <format> are 'native' and 'ini'.");
+}
+
+Settings::Settings(const QString &baseDir)
+    : Settings(baseDir, defaultSettingsFormat())
+{}
+
+Settings::Settings(const QString &baseDir, SettingsFormat format)
+    : Settings(baseDir, systemSettingsBaseDir(), format)
+{}
 
 Settings::Settings(const QString &baseDir, const QString &systemBaseDir)
-    : m_settings(SettingsCreator(baseDir).getQSettings()),
-      m_systemSettings(std::make_unique<QSettings>(systemBaseDir + QStringLiteral("/qbs.conf"),
-                                                   QSettings::IniFormat)),
-      m_baseDir(baseDir)
+    : Settings(baseDir, systemBaseDir, defaultSettingsFormat())
+{}
+
+Settings::Settings(const QString &baseDir, const QString &systemBaseDir, SettingsFormat format)
+    : m_settings(SettingsCreator(baseDir, checkSettingsFormat(format)).getQSettings())
+    , m_systemSettings(
+          std::make_unique<QSettings>(
+              SettingsCreator::settingsFilePath(systemBaseDir, format), QSettings::IniFormat))
+    , m_baseDir(baseDir)
 {
     // Actual qbs settings are stored transparently within a group, because QSettings
     // can see non-qbs fallback settings e.g. from QtProject that we're not interested in.

@@ -35,10 +35,10 @@
     \section1 Synopsis
 
     \code
-    qbs config [--settings-dir <directory>] [--user|--system] [--list [<root> ...]]
+    qbs config [--settings-dir <directory>] [--settings-format <format>] [--user|--system] [--list [<root> ...]]
                [--unset <key>] [--export <file>] [--import <file>]
-    qbs config [--settings-dir <directory>] [--user|--system] <key>
-    qbs config [--settings-dir <directory>] [--user|--system] <key> <value>
+    qbs config [--settings-dir <directory>] [--settings-format <format>] [--user|--system] <key>
+    qbs config [--settings-dir <directory>] [--settings-format <format>] [--user|--system] <key> <value>
     \endcode
 
     \section1 Description
@@ -76,6 +76,7 @@
     \section1 Options
 
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
     \include cli-options.qdocinc list-root
     \include cli-options.qdocinc unset
     \include cli-options.qdocinc export

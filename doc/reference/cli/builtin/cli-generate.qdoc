@@ -58,6 +58,7 @@
     \include cli-options.qdocinc log-time
     \include cli-options.qdocinc more-verbose
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
     \include cli-options.qdocinc show-progress
 
     \section1 Parameters

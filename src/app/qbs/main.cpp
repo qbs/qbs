@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
             return 0;
         }
 
-        Settings settings(parser.settingsDir());
+        Settings settings(parser.settingsDir(), parser.settingsFormat());
         ConsoleLogger::instance().setSettings(&settings);
         CommandLineFrontend clFrontend(parser, &settings);
         app.setCommandLineFrontend(&clFrontend);

@@ -77,6 +77,7 @@
     \target build-products
     \include cli-options.qdocinc products-specified
     \include cli-options.qdocinc settings-dir
+    \include cli-options.qdocinc settings-format
     \include cli-options.qdocinc show-progress
     \include cli-options.qdocinc wait-lock
 

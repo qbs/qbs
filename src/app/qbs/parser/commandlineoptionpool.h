@@ -74,6 +74,7 @@ public:
     LogTimeOption *logTimeOption() const;
     CommandEchoModeOption *commandEchoModeOption() const;
     SettingsDirOption *settingsDirOption() const;
+    SettingsFormatOption *settingsFormatOption() const;
     JobLimitsOption *jobLimitsOption() const;
     RespectProjectJobLimitsOption *respectProjectJobLimitsOption() const;
     GeneratorOption *generatorOption() const;

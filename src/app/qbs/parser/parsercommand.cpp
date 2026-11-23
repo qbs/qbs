@@ -45,8 +45,8 @@
 #include <tools/error.h>
 #include <tools/hostosinfo.h>
 #include <tools/qbsassert.h>
-#include <tools/stlutils.h>
 #include <tools/qttools.h>
+#include <tools/stlutils.h>
 
 #include <QtCore/qmap.h>
 
@@ -92,8 +92,10 @@ void Command::parsePropertyAssignment(const QString &argument)
 QList<CommandLineOption::Type> Command::actualSupportedOptions() const
 {
     QList<CommandLineOption::Type> options = supportedOptions();
-    if (type() != HelpCommandType)
+    if (type() != HelpCommandType) {
         options.push_back(CommandLineOption::SettingsDirOptionType); // Valid for almost all commands.
+        options.push_back(CommandLineOption::SettingsFormatOptionType);
+    }
     return options;
 }
 

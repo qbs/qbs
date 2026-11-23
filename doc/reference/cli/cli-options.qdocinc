@@ -469,6 +469,22 @@
 
 //! [sdk-dir]
 
+//! [settings-format]
+
+    \section2 \c {--settings-format <format>}
+
+    Selects the settings storage format. Supported values are \c native and \c ini.
+
+    Use \c ini on macOS to store settings in an INI file instead of the native
+    property list format. On other Unix systems, \c native is already an INI-style
+    file, so the option makes no practical difference there.
+
+    \c native is not supported on Windows, where Qt's native format is the Windows Registry.
+    \c ini is the only supported format on Windows, and it is the default there.
+    The default on other platforms is \c native.
+
+//! [settings-format]
+
 //! [settings-dir]
 
     \section2 \c {--settings-dir <directory>}

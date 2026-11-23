@@ -43,7 +43,7 @@
 #include "settingscreator.h"
 
 #include "fileinfo.h"
-#include "hostosinfo.h"
+#include "settings.h"
 
 #include <QtCore/qdiriterator.h>
 #include <QtCore/qfileinfo.h>
@@ -66,15 +66,27 @@ QString getBaseDir(QString baseDir) {
 }
 } // namespace
 
-static QSettings::Format format()
+QSettings::Format qSettingsFormat(SettingsFormat format)
 {
-    return HostOsInfo::isWindowsHost() ? QSettings::IniFormat : QSettings::NativeFormat;
+    switch (format) {
+    case SettingsFormat::Native:
+        return QSettings::NativeFormat;
+    case SettingsFormat::Ini:
+        return QSettings::IniFormat;
+    }
+    Q_UNREACHABLE();
 }
 
-SettingsCreator::SettingsCreator(QString baseDir)
+SettingsCreator::SettingsCreator(QString baseDir, SettingsFormat format)
     : m_settingsBaseDir(getBaseDir(std::move(baseDir)))
     , m_qbsVersion(Version::fromString(QLatin1String(QBS_VERSION)))
+    , m_format(format)
+{}
+
+QString SettingsCreator::settingsFilePath(const QString &baseDir, SettingsFormat format)
 {
+    Q_UNUSED(format);
+    return baseDir + QLatin1String("/qbs.conf");
 }
 
 std::unique_ptr<QSettings> SettingsCreator::getQSettings()
@@ -82,6 +94,12 @@ std::unique_ptr<QSettings> SettingsCreator::getQSettings()
     createQSettings();
     migrate();
     return std::move(m_settings);
+}
+
+std::unique_ptr<QSettings> SettingsCreator::createQSettings(
+    const QString &filePath, SettingsFormat format)
+{
+    return std::make_unique<QSettings>(filePath, qSettingsFormat(format));
 }
 
 void SettingsCreator::migrate()
@@ -104,15 +122,17 @@ void SettingsCreator::migrate()
                    << "to" << m_newSettingsFilePath;
     }
 
-    m_settings = std::make_unique<QSettings>(m_newSettingsFilePath, format());
+    m_settings = std::make_unique<QSettings>(m_newSettingsFilePath, qSettingsFormat(m_format));
 }
 
 void SettingsCreator::createQSettings()
 {
-    std::unique_ptr<QSettings> tmp(m_settingsBaseDir.isEmpty()
-            ? new QSettings(format(), QSettings::UserScope, QStringLiteral("QtProject"),
-                            QStringLiteral("qbs"))
-            : new QSettings(m_settingsBaseDir + QLatin1String("/qbs.conf"), format()));
+    const QSettings::Format format = qSettingsFormat(m_format);
+    std::unique_ptr<QSettings> tmp(
+        m_settingsBaseDir.isEmpty()
+            ? new QSettings(
+                  format, QSettings::UserScope, QStringLiteral("QtProject"), QStringLiteral("qbs"))
+            : new QSettings(settingsFilePath(m_settingsBaseDir, m_format), format));
     const QFileInfo fi(tmp->fileName());
     m_settingsBaseDir = fi.path();
     m_newSettingsDir = m_settingsBaseDir + QLatin1String("/qbs/") + m_qbsVersion.toString();
