@@ -90,16 +90,9 @@ public:
     }
 
     // Must be called from the executor thread, while no command is running.
-    // QProcessEnvironment lazily converts its values between QString and QByteArray
-    // without any locking, so its data must not be shared between threads.
-    // Therefore, we create a deep copy here instead of using the product's environment directly.
-    void setBuildEnvironment(const QProcessEnvironment &env)
-    {
-        m_buildEnvironment = QProcessEnvironment();
-        const QStringList keys = env.keys();
-        for (const QString &key : keys)
-            m_buildEnvironment.insert(key, env.value(key));
-    }
+    // We create a deep copy here instead of using the product's environment directly,
+    // as the latter is also accessed by the executor thread.
+    void setBuildEnvironment(const QProcessEnvironment &env) { m_buildEnvironment = deepCopy(env); }
 
     void cancel(const qbs::ErrorInfo &reason)
     {

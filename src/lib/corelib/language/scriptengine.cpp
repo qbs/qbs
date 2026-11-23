@@ -455,7 +455,8 @@ QProcessEnvironment ScriptEngine::environment() const
 
 void ScriptEngine::setEnvironment(const QProcessEnvironment &env)
 {
-    m_environment = env;
+    // Engines can run in different threads, so they must not share the environment data.
+    m_environment = deepCopy(env);
 }
 
 void ScriptEngine::importFile(const QString &filePath, JSValue targetObject)
