@@ -80,6 +80,17 @@
 */
 
 /*!
+    \qmlproperty string Scanner::pluginName
+
+    The name of a built-in scanner plugin that extracts dependencies.
+
+    When set, that plugin performs the scan instead of the \l scan script.
+    Resolving the product fails if no plugin with this name is available.
+
+    \nodefaultvalue
+*/
+
+/*!
     \qmlproperty string Scanner::scannerId
 
     An identifier for this scanner. For scanners declared in a module, the
@@ -96,7 +107,8 @@
     not available on \c input in scan scripts; values come from the last scan
     stored in the build graph.
 
-    If not set explicitly, the \l pluginName is used for plugin-based scanners.
+    If not set explicitly, the \l{Scanner::pluginName}{pluginName} is used for
+    plugin-based scanners.
     Otherwise, a stable identifier (SHA1-hash) is derived from the \l scan script.
 
     \nodefaultvalue

@@ -2351,6 +2351,7 @@ void TestBlackbox::cxxModules_data()
     QTest::newRow("partitions-dependency-on-module") << "part-depmod";
     QTest::newRow("partitions-library") << "part-lib";
     QTest::newRow("no-modules") << "no-modules";
+    QTest::newRow("extensions") << "extensions";
 }
 
 void TestBlackbox::cxxModules()

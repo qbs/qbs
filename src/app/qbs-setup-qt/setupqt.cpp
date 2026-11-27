@@ -151,7 +151,8 @@ static Version vcVersionFromDirName(const QString &dir)
         std::make_pair("2015", "14"),
         std::make_pair("2017", "14.10"),
         std::make_pair("2019", "14.20"),
-        std::make_pair("2022", "14.30")};
+        std::make_pair("2022", "14.30"),
+        std::make_pair("2026", "14.50")};
     return Version::fromString(QString::fromStdString(mapping.value(match[1].str())));
 }
 

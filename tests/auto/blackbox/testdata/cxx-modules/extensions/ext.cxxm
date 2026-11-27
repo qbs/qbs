@@ -1,0 +1,2 @@
+export module ext_cxxm;
+export int fromCxxm() { return 1; }

@@ -1,0 +1,2 @@
+export module ext_ccm;
+export int fromCcm() { return 1; }

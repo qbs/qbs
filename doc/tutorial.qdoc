@@ -464,7 +464,7 @@
     \snippet ../tutorial/chapter-7/qbs/imports/ConfigMyProject.qbs 0
 
     We added the \c{enableAddressSanitizer} property and a dependency on the
-    \l{Sanitizer.address} module if that property is set to \c{true}.
+    \l{Sanitizers.address} module if that property is set to \c{true}.
 
     Now let's use the item in a module:
     \snippet ../tutorial/chapter-7/qbs/modules/config/myproject/module.qbs 0
@@ -690,9 +690,9 @@
 
     \snippet ../tutorial/chapter-10-1/hello.cppm 0
 
-    \note Currently, Clang only recognizes \c .cppm files as modules, however, for GCC and MSVC
-    \QBS also recognizes \c .ixx files as C++ modules. \QBS assigns the \c "cppm" file tag to these
-    files. You can assign this tag manually to module files with different extensions.
+    \note \QBS assigns the \c "cppm" tag to C++ module interface files.
+    The recognized extensions are listed under the \l{filetags-cpp}{\c cpp module file tags}.
+    Assign that tag manually to a module file with any other extension.
 
     This function is later used in the \c main.cpp file as follows:
 

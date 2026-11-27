@@ -79,3 +79,15 @@ qbs::QHashValueType qHash(const QProcessEnvironment &env)
 }
 
 QT_END_NAMESPACE
+
+namespace qbs {
+
+QProcessEnvironment deepCopy(const QProcessEnvironment &env)
+{
+    QProcessEnvironment copy;
+    for (const QStringList keys = env.keys(); const QString &key : keys)
+        copy.insert(key, env.value(key));
+    return copy;
+}
+
+} // namespace qbs

@@ -609,10 +609,16 @@ function languageTagFromFileExtension(toolchain, fileName) {
         "s"     : "asm",
         "S"     : "asm_cpp"
     };
-    if (!toolchain.includes("clang"))
+    if (!toolchain.includes("clang")) {
         m["sx"] = "asm_cpp"; // clang does NOT recognize .sx
-    else
-        m["cppm"] = "cppm";
+    } else {
+        Object.assign(m, {
+            "cppm": "cppm",
+            "ccm" : "cppm",
+            "cxxm": "cppm",
+            "c++m": "cppm"
+        });
+    }
 
     return m[fileName.substring(i + 1)];
 }
@@ -639,7 +645,7 @@ function effectiveCompilerInfo(toolchain, input, output) {
         if (input.qbs.toolchain.includes("qcc"))
             language = qnxLangArgs(input, tag);
         else
-            language = ["-x", languageName(tag) + (pchOutput ? '-header' : '')];
+            language = ["-x", languageName(tag, toolchain) + (pchOutput ? '-header' : '')];
     }
     if (!compilerPath)
         // fall back to main compiler
@@ -1019,13 +1025,16 @@ function additionalCompilerAndLinkerFlags(product) {
 }
 
 // Returns the GCC language name equivalent to fileTag, accepted by the -x argument
-function languageName(fileTag) {
+function languageName(fileTag, toolchain) {
     if (fileTag === 'c')
         return 'c';
     else if (fileTag === 'cpp')
         return 'c++';
-    else if (fileTag === 'cppm')
+    else if (fileTag === 'cppm') {
+        if (toolchain && toolchain.includes("clang") && !toolchain.includes("msvc"))
+            return 'c++-module';
         return 'c++';
+    }
     else if (fileTag === 'objc')
         return 'objective-c';
     else if (fileTag === 'objcpp')

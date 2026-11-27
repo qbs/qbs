@@ -559,7 +559,7 @@ Module {
     }
 
     FileTagger {
-        patterns: ["*.cppm", "*.ixx"]
+        patterns: ["*.cppm", "*.ccm", "*.cxxm", "*.c++m", "*.ixx"]
         fileTags: ["cppm"]
     }
 

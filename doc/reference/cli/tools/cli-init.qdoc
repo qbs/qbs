@@ -35,7 +35,7 @@
     \section1 Synopsis
 
     \code
-    qbs create-project [--language <language>] [--version <version>] [--depends <depends>] project-type name
+    qbs init [--language <language>] [--version <version>] [--depends <depends>] project-type name
     \endcode
 
     \section1 Description

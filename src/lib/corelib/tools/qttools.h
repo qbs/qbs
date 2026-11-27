@@ -228,6 +228,11 @@ bool qVariantMapsEqual(const QVariantMap &m1, const QVariantMap &m2);
 bool qVariantHashesEqual(const QVariantHash &h1, const QVariantHash &h2);
 bool qVariantListsEqual(const QVariantList &l1, const QVariantList &l2);
 
+// QProcessEnvironment lazily converts its values between QString and QByteArray
+// without any locking, so its data must not be shared between threads.
+// This function returns a copy that does not share any data with the original.
+QProcessEnvironment deepCopy(const QProcessEnvironment &env);
+
 inline bool qVariantsEqual(const QVariant &v1, const QVariant &v2)
 {
     if (v1.isNull() != v2.isNull())

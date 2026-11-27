@@ -58,9 +58,19 @@ VisualStudioVersionInfo::VisualStudioVersionInfo(const Version &version)
 std::set<VisualStudioVersionInfo> VisualStudioVersionInfo::knownVersions()
 {
     static const std::set<VisualStudioVersionInfo> known = {
-        Version(17), Version(16), Version(15), Version(14), Version(12), Version(11),
-        Version(10), Version(9), Version(8), Version(7, 1), Version(7), Version(6)
-    };
+        Version(18),
+        Version(17),
+        Version(16),
+        Version(15),
+        Version(14),
+        Version(12),
+        Version(11),
+        Version(10),
+        Version(9),
+        Version(8),
+        Version(7, 1),
+        Version(7),
+        Version(6)};
     return known;
 }
 
@@ -127,6 +137,8 @@ int VisualStudioVersionInfo::marketingVersion() const
         return 2019;
     case 17:
         return 2022;
+    case 18:
+        return 2026;
     default:
         qWarning() << QStringLiteral("unrecognized Visual Studio version: ")
                    << m_version.toString();
@@ -173,9 +185,10 @@ QString VisualStudioVersionInfo::toolsVersion() const
 QString VisualStudioVersionInfo::platformToolsetVersion() const
 {
     static std::pair<int, QString> table[] = {
-        {17, QStringLiteral("v143")},             // VS 2022
-        {16, QStringLiteral("v142")},             // VS 2019
-        {15, QStringLiteral("v141")}              // VS 2017
+        {18, QStringLiteral("v145")}, // VS 2026
+        {17, QStringLiteral("v143")}, // VS 2022
+        {16, QStringLiteral("v142")}, // VS 2019
+        {15, QStringLiteral("v141")}  // VS 2017
     };
     for (const auto &p : table) {
         if (p.first == m_version.majorVersion())

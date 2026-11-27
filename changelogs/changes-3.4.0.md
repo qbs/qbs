@@ -3,6 +3,7 @@
 * The `list-products` command now has a `--tags` option.
 * `qbs run` now releases the build graph, allowing a concurrent re-build.
 * Updated QuickJS to v0.16.2.
+* Qbs now uses bytecode cache when evaluating code.
 
 # Language
 * Scanners can now attach properties to artifacts.
